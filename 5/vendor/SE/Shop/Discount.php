@@ -15,7 +15,7 @@ class Discount extends Base
     {
         return array(
             "select" => 'sd.*',
-            "joins" => array(
+            "left" => array(
                 "type" => "inner",
                 "table" => 'shop_discount_links sdl',
                 "condition" => 'sdl.discount_id = sd.id'

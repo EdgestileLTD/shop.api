@@ -6,8 +6,8 @@ use \PDO as PDO;
 
 class DB
 {
-    /* @var $dbh PDO */
     static public $lastQuery;
+    /* @var $dbh PDO */
     static protected $dbh = null;
     static private $tables = array();
 
@@ -92,6 +92,12 @@ class DB
         return self::$dbh->query($statement);
     }
 
+    public static function exec($statement)
+    {
+        self::$lastQuery = $statement;
+        return self::$dbh->exec($statement);
+    }
+
     public static function strToCamelCase($str)
     {
         $separator = '_';
@@ -145,6 +151,65 @@ class DB
             return true;
         } catch (\PDOException $e) {
             throw new Exception($e->getMessage());
+        }
+    }
+
+    public static function saveManyToMany($idKey, $links = array(), $setting = array())
+    {
+        try {
+            $existIds = array();
+            $sql = "SELECT {$setting['link']} FROM {$setting["table"]} WHERE {$setting['table']}.{$setting['key']} = {$idKey}";
+            $items = DB::query($sql)->fetchAll();            
+            foreach ($items as $item)
+                $existIds[] = $item[$setting["link"]];            
+
+            $deleteIds = array();
+            foreach ($existIds as $id) {
+                $isFind = false;
+                foreach ($links as $link) {
+                    $isFind = $link["id"] == $id;
+                    if ($isFind)
+                        break;
+                }
+                if (!$isFind)
+                    $deleteIds[] = $id;
+            }
+            if ($deleteIds) {
+                $ids = implode(",", $deleteIds);
+                DB::exec("DELETE FROM {$setting['table']} WHERE 
+                                  {$setting['table']}.{$setting['key']} = {$idKey} AND {$setting['link']} IN ({$ids})");
+            }
+
+            $newLinks = array();
+            $updateLinks = array();
+            foreach ($links as $link) {
+                $item = empty($setting["isSort"]) ? array("id" => $link["id"]) :
+                    array("id" => $link["id"], "sort" => $link["sort"]);
+                if (!in_array($link["id"], $existIds))
+                    $newLinks[] = $item;
+                else $updateLinks[] = $item;
+            }
+            if ($newLinks) {
+                $sql = array();
+                foreach ($newLinks as $link)
+                    $sql[] = empty($setting["isSort"]) ? "({$link["id"]}, {$idKey})" :
+                        "({$link["id"]}, {$idKey}, {$link["sort"]})";
+                $sql = (empty($setting["isSort"]) ?
+                        "INSERT INTO {$setting['table']} ({$setting['link']}, {$setting['key']}) VALUES " :
+                        "INSERT INTO {$setting['table']} ({$setting['link']}, {$setting['key']}, sort) VALUES ") . implode(",", $sql);
+                DB::exec($sql);
+            }
+            if ($updateLinks && !empty($setting["isSort"])) {
+                $sql = array();
+                foreach ($updateLinks as $link)
+                    $sql[] = "UPDATE {$setting['table']} SET sort = {$link["sort"]} 
+                              WHERE ({$setting['link']} = {$link["id"]} AND {$setting['key']} = {$idKey})";
+                $sql = implode(";\n", $sql);
+                DB::exec($sql);
+            }
+
+        } catch (\PDOException $e) {
+            throw new Exception("Query: " . self::$lastQuery . "\nError: " .   $e->getMessage());
         }
     }
 
