@@ -135,7 +135,7 @@ function getLevel($id)
     global $DBH;
 
     $level = 0;
-    $sqlLevel = 'SELECT `level` FROM shop_group_tree WHERE id_parent = :id_parent LIMIT 1';
+    $sqlLevel = 'SELECT `level` FROM shop_group_tree WHERE id_parent = :id_parent AND id_child = :id_parent LIMIT 1';
     $sth = $DBH->prepare($sqlLevel);
     $params = array("id_parent" => $id);
     $answer = $sth->execute($params);

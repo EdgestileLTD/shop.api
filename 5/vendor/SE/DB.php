@@ -451,7 +451,7 @@ class DB
                 else return $this->dataValues["id"];
             } else return null;
         } catch (\PDOException $e) {
-            throw new Exception($e->getMessage());
+            throw new Exception("Query: " . self::$lastQuery . "\nError: " .   $e->getMessage());
         }
     }
 

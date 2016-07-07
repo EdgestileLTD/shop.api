@@ -2,9 +2,12 @@
 
 namespace SE\Shop;
 
+
 class Feature extends Base
 {
     protected $tableName = "shop_feature";
+    protected $sortBy = "sort";
+    protected $sortOrder = "asc";
 
     protected function getSettingsFetch()
     {
@@ -30,4 +33,8 @@ class Feature extends Base
         );
     }
 
+    protected function getSettingsInfo()
+    {
+        return $this->getSettingsFetch();
+    }    
 }

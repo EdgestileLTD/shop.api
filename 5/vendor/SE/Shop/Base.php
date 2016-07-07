@@ -211,7 +211,25 @@ class Base
             } else throw new Exception();
         } catch (Exception $e) {
             DB::rollBack();
-            $this->error = "Не удаётся сохранить информацию об объекте!";
+            $this->error = empty($this->error) ? "Не удаётся сохранить информацию об объекте!" : $this->error;
+        }
+    }
+
+    public function sort()
+    {
+        if (empty($this->tableName))
+            return;
+
+        try {
+            $sortIndexes = $this->input["indexes"];
+            foreach ($sortIndexes as $index) {
+                $u = new DB($this->tableName);
+                $index["position"] = $index["sort"];                
+                $u->setValuesFields($index);
+                $u->save();
+            }
+        } catch (Exception $e) {
+            $this->error = "Не удаётся произвести сортировку элементов!";
         }
     }
 
