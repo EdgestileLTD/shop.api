@@ -1,0 +1,22 @@
+DirectoryIndex index.php
+AddDefaultCharset utf-8
+
+
+<Files .htaccess>
+order allow,deny
+deny from all
+</Files>
+
+RewriteEngine On
+Options +FollowSymLinks 
+RewriteBase /api/4
+
+RewriteRule ^(.*)$  index.php?%{QUERY_STRING}
+
+php_flag display_startup_errors on
+php_flag display_errors on
+php_flag html_errors on
+php_value docref_root 0
+php_value docref_ext 0
+
+AddType application/x-httpd-php .api

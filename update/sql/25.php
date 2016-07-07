@@ -1,0 +1,4 @@
+<?php
+
+se_db_query('ALTER TABLE shop_order_userfields
+  CHANGE COLUMN update_at updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;');

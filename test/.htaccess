@@ -1,0 +1,11 @@
+DirectoryIndex index.php
+AddDefaultCharset utf-8
+
+<Files .htaccess>
+order allow,deny
+deny from all
+</Files>
+
+RewriteEngine On
+Options +FollowSymLinks
+RewriteBase /api/test

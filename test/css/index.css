@@ -1,0 +1,17 @@
+.input-group {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+#name-project {
+    display: none;
+}
+
+.block-hidden {
+    display: none;
+}
+
+textarea {
+    width: 100%
+}
+
