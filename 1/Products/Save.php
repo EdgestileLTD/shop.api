@@ -551,6 +551,7 @@ if ($isNew || !empty($ids)) {
     $isUpdated |= setField($isNew, $u, $json->currency, 'curr');
     $isUpdated |= setField($isNew, $u, $json->bonus, 'bonus');
     $isUpdated |= setField($isNew, $u, $json->tax, 'nds');
+    $isUpdated |= setField($isNew, $u, $json->sortIndex, 'sort');
 
     if (isset($json->isInfinitely) && $json->isInfinitely && !isset($json->count))
         $json->count = -1;

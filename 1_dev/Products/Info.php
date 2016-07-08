@@ -417,6 +417,7 @@ if ($u->id) {
     $product['code'] = $u->code;
     $product['name'] = $u->name;
     $product['article'] = $u->article;
+    $product['sortIndex'] = (int) $u->sort;
     $product['idGroup'] = $u->idGroup;
     $product['idType'] = $u->id_type;
     $product['nameGroup'] = $u->nameGroup;

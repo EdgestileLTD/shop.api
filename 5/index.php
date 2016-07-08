@@ -52,9 +52,10 @@ require_once API_ROOT . "vendor/autoload.php";
 $apiMethod = $_SERVER['REQUEST_METHOD'];
 $apiClass = parse_url($_SERVER["REQUEST_URI"]);
 $apiClass = str_replace("api/" . API_VERSION . "/", "", trim($apiClass['path'], "/"));
+$origin = !empty($headers['Origin']) ? $headers['Origin'] : $headers['origin'];
 
-if (!empty($headers['Origin'])) {
-    $url = parse_url($headers['Origin']);
+if (!empty($origin)) {
+    $url = parse_url($origin);
     if ($url) {
         if ($url['host'] == 'shop.siteedit24.com')
             header("Access-Control-Allow-Origin: http://shop.siteedit24.com");

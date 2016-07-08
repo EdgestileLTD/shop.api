@@ -34,15 +34,13 @@ class PaySystem extends Base
             $objects = $u->getList($this->limit, $this->offset);
             $paySystems = array();
             foreach ($objects as $item) {
-                $paySystem = null;
-                $paySystem['id'] = $item['id'];
+                $paySystem = $item;
                 $paySystem['imageFile'] = $item['logoimg'];
                 $paySystem['identifier'] = $item['ident'];
-                $paySystem['name'] = $item['name_payment'];
+                $paySystem['name'] = $item['namePayment'];
                 $paySystem['isActive'] = $item['active'] == 'Y';
-                $paySystem['isTestMode'] = $item['is_test'] == 'Y';
+                $paySystem['isTestMode'] = $item['isTest'] == 'Y';
                 $paySystem['sortIndex'] = (int)$item['sort'];
-                $paySystem['wayPayment'] = $item['way_payment'];
                 if ($paySystem['imageFile']) {
                     if (strpos($paySystem['imageFile'], "://") === false) {
                         $paySystem['imageUrl'] = 'http://' . HOSTNAME . "/images/rus/shoppayment/" . $paySystem['imageFile'];

@@ -28,7 +28,9 @@ class Base
     protected $tableAlias;
     protected $imageSize = 256;
     protected $imagePreviewSize = 64;
-    protected $availableSigns = array("=", "<=", "<", ">", ">=");
+    protected $availableSigns = array("=", "<=", "<", ">", ">=", "IN");
+
+    private $patterns = array();
 
     function __construct($input = null)
     {
@@ -125,7 +127,7 @@ class Base
         $settingsFetch = $this->getSettingsFetch();
 
         $settingsFetch["select"] = $settingsFetch["select"] ? $settingsFetch["select"] : "*";
-        $patterns = $this->getPattensBySelect($settingsFetch["select"]);
+        $this->patterns = $this->getPattensBySelect($settingsFetch["select"]);
         try {
             $u = $this->createTableForInfo($settingsFetch);
             $searchFields = $u->getFields();
@@ -200,7 +202,7 @@ class Base
     {
         try {
             $this->correctValuesBeforeSave();
-            DB::beginTransaction();            
+            DB::beginTransaction();
             $u = new DB($this->tableName);
             $u->setValuesFields($this->input);
             $this->input["id"] = $u->save();
@@ -227,6 +229,7 @@ class Base
                 $index["position"] = $index["sort"];                
                 $u->setValuesFields($index);
                 $u->save();
+                //writeLog($u->getSql());
             }
         } catch (Exception $e) {
             $this->error = "Не удаётся произвести сортировку элементов!";
@@ -314,16 +317,29 @@ class Base
             $filters[] = $this->filters;
         else $filters = $this->filters;
         foreach ($filters as $filter) {
-            $field = DB::strToUnderscore($filter["field"]);
-            $field = $this->tableAlias . ".`{$field}`" ;
+            if (key_exists($filter["field"], $this->patterns))
+                $field = $this->patterns[$filter["field"]];
+            else {
+                $field = DB::strToUnderscore($filter["field"]);
+                $field = $this->tableAlias . ".`{$field}`";
+            }
             $sign = empty($filter["sign"]) || !in_array($filter["sign"], $this->availableSigns) ?
                 "=" : $filter["sign"];
-            $value = !isset($filter["value"]) ? null : "'{$filter['value']}'";
+            if ($sign == "IN") {
+                $values = explode(",", $filter["value"]);
+                $filter['value'] = null;
+                foreach ($values as $value) {
+                    if ($filter['value'])
+                        $filter['value'] .= ",";
+                    $value = trim($value);
+                    $filter['value'] .= "'{$value}'";
+                }
+                $value = "({$filter['value']})";
+            } else $value = !isset($filter["value"]) ? null : "'{$filter['value']}'";
             if (!$field || !$value)
                 continue;
             $where[] = "{$field} {$sign} {$value}";
         }
-
         return implode(" AND ", $where);
     }
 

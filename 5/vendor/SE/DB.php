@@ -25,6 +25,7 @@ class DB
     protected $whereDefinitions;
     protected $whereValues = array();
     protected $dataValues = array();
+    protected $inputData = array();
 
     private $fields = array();
 
@@ -462,11 +463,16 @@ class DB
 
     public function setValuesFields($values)
     {
+        $this->inputData = $values;
         $fields = $this->getFields();
         foreach ($values as $key => $value) {
             if ((is_array($value) && $key != "ids") || is_object($value))
                 continue;
 
+            if (is_array($value) && $key == "ids") {
+                $ids = implode(",", $value);
+                $this->whereDefinitions = "id IN ($ids)";
+            }
             $keyName = $key;
             if (key_exists($keyName, $fields)) {
                 $this->setValueField($fields[$keyName], $value);
@@ -483,25 +489,28 @@ class DB
         if (empty($this->tableName))
             return null;
 
-        $isInsert = !key_exists("id", $this->dataValues) && !key_exists("ids", $this->dataValues) &&
-            empty($this->whereDefinitions);
+        $isInsert = !key_exists("id", $this->dataValues) && empty($this->whereDefinitions);
         $isInsert = $isInsert || $isInsertId && key_exists("id", $this->dataValues);
         if ($isInsert && key_exists("id", $this->dataValues) && !empty($this->dataValues["id"])) {
             $object = $this->getInfo($this->dataValues["id"]);
             $this->whereDefinitions = null;
             $isInsert = is_null($object);
         }
+        $values = $this->getValuesString($isInsert, $isInsertId);
+        if (empty($values)) {
+            if (!empty($this->inputData["ids"]))
+                $this->dataValues["id"] = $this->inputData["ids"][0];
+            return $this->dataValues["id"];
+        }
+        
         $query[] = $isInsert ? "INSERT INTO" : "UPDATE";
         $query[] = $this->tableName;
         $query[] = "SET";
-        $query[] = $this->getValuesString($isInsert, $isInsertId);
+        $query[] = $values;
         if (!$isInsert) {
             $query[] = "WHERE";
-            if (empty($this->whereDefinitions)) {
-                if (key_exists("ids", $this->dataValues))
-                    $this->where("id IN (" . implode(",", $this->dataValues["ids"]) . ")");
-                else $this->where("id = :id", array("id" => $this->dataValues["id"]));
-            }
+            if (empty($this->whereDefinitions))
+                $this->where("id = :id", array("id" => $this->dataValues["id"]));
             $query[] = $this->whereDefinitions;
         }
 
@@ -513,7 +522,11 @@ class DB
             if ($stmt->execute()) {
                 if ($isInsert && !$isInsertId)
                     return self::$dbh->lastInsertId();
-                else return $this->dataValues["id"];
+                else {
+                    if (!empty($this->inputData["ids"]))
+                        $this->dataValues["id"] = $this->inputData["ids"][0];
+                    return $this->dataValues["id"];
+                }
             } else return null;
         } catch (\PDOException $e) {
             throw new Exception("Query: " . self::$lastQuery . "\nError: " .   $e->getMessage());

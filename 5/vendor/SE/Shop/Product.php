@@ -201,13 +201,15 @@ class Product extends Base
 		return $u->getList();
 	}
 
-	public function fillModifications(&$product)
+	public function getModifications($idProduct = null)
 	{
-		$id = $product["id"];
+		$result = array();
+		$id = $idProduct ? $idProduct : $this->input["id"];
 		if (!$id)
-			return;
+			return $result;
 
 		$newTypes = array("string" => "S", "number" => "D", "bool" => "B", "list" => "L", "colorlist" => "CL");
+		$product = array();
 
 		$u = new DB('shop_modifications', 'sm');
 		$u->select('smg.*,
@@ -243,7 +245,7 @@ class Product extends Base
 			$groups[] = $group;
 		}
 		if (!isset($groups))
-			return;
+			return $result;
 
 		$u = new DB('shop_modifications', 'sm');
 		$u->select('sm.*,
@@ -280,7 +282,7 @@ class Product extends Base
 					$value = null;
 					$value['idFeature'] = $feature[0];
 					$value['id'] = $feature[1];
-					$value['name'] = $feature[2];
+					$value['value'] = $feature[2];
 					$sorts[] = $feature[3];
 					$value['color'] = $feature[4];
 					$modification['values'][] = $value;
@@ -297,7 +299,7 @@ class Product extends Base
 						if ($value['imageFile']) {
 							if (strpos($value['imageFile'], "://") === false) {
 								$value['imageUrl'] = 'http://' . HOSTNAME . "/images/rus/shopprice/" . $value['imageFile'];
-								$value['imageUrlPreview'] = "http://" . HOSTNAME . "/lib/image.php?size=64&img=images/{$lang}/shopprice/" . $value['imageFile'];
+								$value['imageUrlPreview'] = "http://" . HOSTNAME . "/lib/image.php?size=64&img=images/rus/shopprice/" . $value['imageFile'];
 							} else {
 								$value['imageUrl'] = $image['imageFile'];
 								$value['imageUrlPreview'] = $image['imageFile'];
@@ -314,8 +316,7 @@ class Product extends Base
 				$existFeatures[] = $item['valuesFeature'];
 			}
 		}
-		$product['modifications'] = $groups;
-		$product['countModifications'] = count($objects);
+		return $groups;
 	}
 
     public function getDiscounts($idProduct = null)
@@ -342,7 +343,7 @@ class Product extends Base
 		$result["comments"] = $this->getComments();
         $result["discounts"] = $this->getDiscounts();
 		$result["crossGroups"] = $this->getCrossGroups();
-		$this->fillModifications($this->result);
+		$result["modifications"] = $this->getModifications();
 		return $result;
 	}
 
@@ -364,7 +365,7 @@ class Product extends Base
 
 	protected function correctValuesBeforeSave()
 	{
-		if (!$this->input["id"] || isset($this->input["code"])) {
+		if (!$this->input["id"] && !$this->input["ids"] || isset($this->input["code"])) {
 			if (empty($this->input["code"]))
 				$this->input["code"] = strtolower(se_translite_url($this->input["name"]));
 			$this->input["code"] = $this->getUrl($this->input["code"], $this->input["id"]);
@@ -679,7 +680,7 @@ class Product extends Base
             $u = new DB('shop_modifications', 'sm');
             if (!empty($idsUpdateM))
                 $u->where("NOT id IN ($idsUpdateM) AND id_price in (?)", $idsStr)->deleteList();
-            else $u->where("id_price in (?)", $idsStr)->deleteList();
+            else $u->where("id_price IN (?)", $idsStr)->deleteList();
 
             // новые модификации
             $dataM = array();
@@ -695,10 +696,10 @@ class Product extends Base
                             $count = $item["count"];
                         foreach ($idsProducts as $idProduct) {
                             $i++;
-                            $dataM[] = array('id' => $i, '`code`' => $item["article"],
+                            $dataM[] = array('id' => $i, 'code' => $item["article"],
                                 'id_mod_group' => $mod["id"], 'id_price' => $idProduct, 'value' => $item["price"],
                                 'value_opt' => $item["priceSmallOpt"], 'value_opt_corp' => $item["priceOpt"], 'count' => $count,
-                                'sort' => $item["sortIndex"], 'description' => $item["description"]);
+                                'sort' => (int) $item["sortIndex"], 'description' => $item["description"]);
                             foreach ($item["values"] as $v)
                                 $dataF[] = array('id_price' => $idProduct, 'id_modification' => $i,
                                     'id_feature' => $v["idFeature"], 'id_value' => $v["id"]);

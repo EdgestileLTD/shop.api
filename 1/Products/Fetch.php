@@ -143,6 +143,7 @@ foreach ($objects as $item) {
     $product['code'] = $item['code'];
     $product['article'] = $item['article'];
     $product['name'] = $item['name'];
+    $product['sortIndex'] = (int)$item['sort'];
     $product['nameGroup'] = $item['namegroup'];
     $product['manufacture'] = $item['manufacturer'];
     $product['price'] = (real)$item['price'];

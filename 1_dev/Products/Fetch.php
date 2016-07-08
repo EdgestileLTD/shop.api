@@ -143,6 +143,7 @@ foreach ($objects as $item) {
     $product['code'] = $item['code'];
     $product['article'] = $item['article'];
     $product['name'] = $item['name'];
+    $product['sortIndex'] = (int) $item['sort'];
     $product['nameGroup'] = $item['namegroup'];
     $product['manufacture'] = $item['manufacturer'];
     $product['price'] = (real)$item['price'];
@@ -193,7 +194,7 @@ if (!se_db_error()) {
     $status['data'] = $data;
 } else {
     $status['status'] = 'error';
-    $status['errortext'] = 'Не удаётся получить список товаров!';
+    $status['errortext'] = se_db_error();// 'Не удаётся получить список товаров!';
 }
 
 outputData($status);

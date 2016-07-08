@@ -40,8 +40,10 @@ class Category extends Base
 
     private function getGridTree($items)
     {
-        foreach ($items as &$item)
+        foreach ($items as &$item) {
             $item["pathName"] = $this->getPathName($item, $items);
+            $item["level"] = substr_count($item["pathName"], "/");
+        }
         return $items;
     }
 
@@ -50,7 +52,7 @@ class Category extends Base
         if (CORE_VERSION == "5.3") {
             $result["select"] = "sg.id, GROUP_CONCAT(CONCAT_WS(':', sgtp.level, sgt.id_parent) SEPARATOR ';') ids_parents,
                 sg.code_gr, sg.position, sg.name, sg.picture, sg.picture_alt, sg.id_modification_group_def,
-                sg.description";
+                sg.description, sgt.id_parent";
             $joins[] = array(
                 "type" => "left",
                 "table" => 'shop_group_tree sgt',
@@ -76,16 +78,30 @@ class Category extends Base
     protected function correctValuesBeforeFetch($items = array())
     {
         $result = array();
-        $items = $this->getPlainTree($items);
-        $items = $this->getGridTree($items);
-        $count = count($items);
         $limit = $this->input["limit"];
-        $offset = $this->offset;
-        if ($limit > $count)
-            $limit = $count;
-        for ($i = $offset; $i < ($offset + $limit); ++$i)
-            $result[] = $items[$i];
+        if ($limit) {
+            $items = $this->getPlainTree($items);
+            $items = $this->getGridTree($items);
+            $count = count($items);
+            $offset = $this->offset;
+            if ($limit > $count)
+                $limit = $count;
+            for ($i = $offset; $i < ($offset + $limit); ++$i)
+                $result[] = $items[$i];
+        } else $result = $items;
         return $result;
     }
 
+    protected function getChilds()
+    {        
+        $idParent = $this->input["id"];
+        $filter = array("field" => "idParent", "value" =>  $idParent);
+        $category = new Category(array("filters" => $filter));
+        return $category->fetch();
+    }
+
+    protected function getAddInfo()
+    {
+        return array("childs" => $this->getChilds());
+    }
 }

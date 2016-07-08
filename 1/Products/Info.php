@@ -416,6 +416,7 @@ if ($u->id) {
     $product['isActive'] = (bool)($u->enabled === 'Y');
     $product['code'] = $u->code;
     $product['name'] = $u->name;
+    $product['sortIndex'] = (int) $u->sort;
     $product['article'] = $u->article;
     $product['idGroup'] = $u->idGroup;
     $product['idType'] = $u->id_type;
