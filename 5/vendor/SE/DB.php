@@ -162,7 +162,8 @@ class DB
             $sql = "SELECT {$setting['link']} FROM {$setting["table"]} WHERE {$setting['table']}.{$setting['key']} = {$idKey}";
             $items = DB::query($sql)->fetchAll();            
             foreach ($items as $item)
-                $existIds[] = $item[$setting["link"]];            
+                if (!empty($item[$setting["link"]]))
+                    $existIds[] = $item[$setting["link"]];
 
             $deleteIds = array();
             foreach ($existIds as $id) {

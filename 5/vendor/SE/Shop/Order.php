@@ -15,7 +15,7 @@ class Order extends Base
             "select" => 'so.*, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) customer, 
                 p.phone customer_phone, p.email customer_email, 
                 (SUM((sto.price-IFNULL(sto.discount, 0))*sto.count)-IFNULL(so.discount, 0) + IFNULL(so.delivery_payee, 0)) amount, 
-                sp.name_payment name_payment_primary, spp.name_payment',
+                sp.name_payment name_payment_primary, spp.name_payment, sch.id_coupon id_coupon, sch.discount coupon_discount',
             "joins" => array(
                 array(
                     "type" => "inner",
@@ -41,6 +41,11 @@ class Order extends Base
                     "type" => "left",
                     "table" => 'shop_payment sp',
                     "condition" => 'sp.id = so.payment_type'
+                ),
+                array(
+                    "type" => "left",
+                    "table" => 'shop_coupons_history sch',
+                    "condition" => 'sch.id_order = so.id'
                 )
             ),
             "aggregation" => array(
