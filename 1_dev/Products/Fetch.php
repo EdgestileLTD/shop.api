@@ -131,7 +131,8 @@ $patterns = array('id' => 'sp.id',
     'nameGroup' => 'namegroup',
     'brand' => 'sb.name',
     'weight' => 'sp.weight',
-    'volume' => 'sp.volume'
+    'volume' => 'sp.volume',
+    'sortIndex' => 'sort'
 );
 $sortBy = (isset($patterns[$json->sortBy])) ? $patterns[$json->sortBy] : 'id';
 $u->orderby($sortBy, $json->sortOrder === 'desc');

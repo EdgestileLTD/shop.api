@@ -759,7 +759,6 @@ class Product extends Base
 
     protected function saveAddInfo()
 	{
-        $this->input["ids"] = empty($this->input["ids"]) ? array($this->input["id"]) : $this->input["ids"];
         if (!$this->input["ids"])
             return false;
 

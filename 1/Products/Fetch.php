@@ -131,7 +131,8 @@ $patterns = array('id' => 'sp.id',
     'nameGroup' => 'namegroup',
     'brand' => 'sb.name',
     'weight' => 'sp.weight',
-    'volume' => 'sp.volume'
+    'volume' => 'sp.volume',
+    'sortIndex' => 'sort'
 );
 $sortBy = (isset($patterns[$json->sortBy])) ? $patterns[$json->sortBy] : 'id';
 $u->orderby($sortBy, $json->sortOrder === 'desc');
@@ -143,7 +144,7 @@ foreach ($objects as $item) {
     $product['code'] = $item['code'];
     $product['article'] = $item['article'];
     $product['name'] = $item['name'];
-    $product['sortIndex'] = (int)$item['sort'];
+    $product['sortIndex'] = (int) $item['sort'];
     $product['nameGroup'] = $item['namegroup'];
     $product['manufacture'] = $item['manufacturer'];
     $product['price'] = (real)$item['price'];

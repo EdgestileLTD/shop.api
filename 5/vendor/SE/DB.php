@@ -257,8 +257,9 @@ class DB
         $this->groupBy = !empty($field) ? $field : $this->aliasName . ".id";
     }
 
-    public function orderBy($field, $desc = false)
+    public function orderBy($field = null, $desc = false)
     {
+        $field = empty($field) ? $this->aliasName . ".id" : $field;
         $this->orderBy = array();
         $this->addOrderBy($field, $desc);
     }
