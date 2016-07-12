@@ -11,7 +11,7 @@
         $dateFilter .= "so.date_order <= '$dateTo'";
     }
     if (!$dateFilter)
-        $dateFilter = "TRUE";
+        $dateFilter = "TRUE";  
 
     $u = new seTable('shop_price');
     $u->addField('price_purchase', 'decimal(10,2)');

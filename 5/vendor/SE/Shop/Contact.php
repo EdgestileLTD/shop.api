@@ -39,12 +39,13 @@ class Contact extends Base
                 p.avatar imageFile,
                 su.username login, su.password, (su.is_active = "Y") isActive, uu.company, uu.director,
                 uu.tel, uu.fax, uu.uradres, uu.fizadres');
-            $u->leftjoin('se_user su', 'p.id=su.id');
-            $u->leftjoin('user_urid uu', 'uu.id=su.id');
+            $u->leftJoin('se_user su', 'p.id=su.id');
+            $u->leftJoin('user_urid uu', 'uu.id=su.id');
             $contact = $u->getInfo($id);
             $contact['groups'] = $this->getGroups($contact['id']);
             $contact['companyRequisites'] = $this->getCompanyRequisites($contact['id']);
             $contact['personalAccount'] = $this->getPersonalAccount($contact['id']);
+            $contact['accountOperations'] = (new BankAccountTypeOperation())->fetch();
             if ($count = count($contact['personalAccount']))
                 $contact['balance'] = $contact['personalAccount'][$count - 1]['balance'];
             $this->result = $contact;
@@ -61,14 +62,11 @@ class Contact extends Base
         $u->select('id, order_id AS idOrder, account, date_payee AS datePayee, in_payee AS inPayee,
               out_payee AS outPayee, curr AS currency, operation AS typeOperation, docum AS note');
         $u->where('sua.user_id=?', $id);
-        $u->orderby("sua.date_payee");
+        $u->orderBy("sua.date_payee");
         $result = $u->getList();
         $account = array();
         $balance = 0;
         foreach ($result as $item) {
-            settype($item['inPayee'], float);
-            settype($item['outPayee'], float);
-            settype($item['typeOperation'], int);
             $item['datePayee'] = date('Y-m-d', strtotime($item['datePayee']));
             $item['datePayeeDisplay'] = date('d.m.Y', strtotime($item['datePayee']));
             $balance += ($item['inPayee'] - $item['outPayee']);
@@ -201,7 +199,7 @@ class Contact extends Base
                 }
         } catch (Exception $e) {
             $this->error = "Не удаётся сохранить лицевой счёт контакта!";
-            throw new Exception($this->error);
+            throw new Exception($this->error); 
         }
     }
 
