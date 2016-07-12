@@ -58,17 +58,13 @@ class Contact extends Base
 
     private function getPersonalAccount($id)
     {
-        $u = new DB('se_user_account', 'sua');
-        $u->select('id, order_id AS idOrder, account, date_payee AS datePayee, in_payee AS inPayee,
-              out_payee AS outPayee, curr AS currency, operation AS typeOperation, docum AS note');
-        $u->where('sua.user_id=?', $id);
-        $u->orderBy("sua.date_payee");
+        $u = new DB('se_user_account');
+        $u->where('user_id = ?', $id);
+        $u->orderBy("date_payee");
         $result = $u->getList();
         $account = array();
         $balance = 0;
         foreach ($result as $item) {
-            $item['datePayee'] = date('Y-m-d', strtotime($item['datePayee']));
-            $item['datePayeeDisplay'] = date('d.m.Y', strtotime($item['datePayee']));
             $balance += ($item['inPayee'] - $item['outPayee']);
             $item['balance'] = $balance;
             $account[] = $item;
@@ -156,7 +152,7 @@ class Contact extends Base
                 $u = new DB("user_rekv");
                 $requisite["idAuthor"] = $id;
                 $u->setValuesFields($requisite);
-                $u->save();                
+                $u->save();
             }
         } catch (Exception $e) {
             $this->error = "Не удаётся сохранить реквизиты компании!";
@@ -177,29 +173,17 @@ class Contact extends Base
 
             $u = new DB('se_user_account', 'sua');
             if (!empty($idsUpdate))
-                $u->where("NOT id IN ($idsUpdate) AND user_id=?", $id)->deleteList();
+                $u->where("NOT id IN ($idsUpdate) AND user_id = ?", $id)->deleteList();
             else $u->where("user_id = ?", $id)->deleteList();
 
-            $data = array();
-            foreach ($accounts as $account)
-                if (empty($account["id"]))
-                    $data[] = array("user_id" => $id, "date_payee" => $account["datePayee"],
-                        "in_payee" => $account['inPayee'], "out_payee" => $account["outPayee"],
-                        "curr" => $account["currency"], "operation" => $account["typeOperation"], "docum" => $account["note"]);
-            if ($data)
-                DB::insertList('se_user_account', $data);
-
-            foreach ($accounts as $account)
-                if (!empty($account["id"])) {
-                    $u = new DB('se_user_account', 'sua');
-                    $account["operation"] = $account["typeOperation"];
-                    $account["docum"] = $account["note"];
-                    $u->setValuesFields($account);
-                    $u->save();
-                }
+            foreach ($accounts as $account) {
+                $u = new DB('se_user_account');
+                $u->setValuesFields($account);
+                $u->save();
+            }
         } catch (Exception $e) {
             $this->error = "Не удаётся сохранить лицевой счёт контакта!";
-            throw new Exception($this->error); 
+            throw new Exception($this->error);
         }
     }
 
