@@ -81,22 +81,11 @@ class Contact extends Base
     private function getCompanyRequisites($id)
     {
         $u = new DB('user_rekv_type', 'urt');
-        $u->select('ur.*, urt.size, urt.title');
-        $u->leftjoin('user_rekv ur', 'ur.rekv_code=urt.code');
-        $u->where('ur.id_author=?', $id);
-        $u->groupby('urt.code');
-        $u->orderby('urt.id');
-        $result = $u->getList();
-        $requisites = array();
-        foreach ($result as $item) {
-            $requisite['id'] = $item['id'];
-            $requisite['code'] = $item['rekv_code'];
-            $requisite['name'] = $item['title'];
-            $requisite['value'] = $item['value'];
-            $requisite['size'] = (int)$item['size'];
-            $requisites[] = $requisite;
-        }
-        return $requisites;
+        $u->select('ur.id, ur.value, urt.code rekv_code, urt.size, urt.title');
+        $u->leftJoin('user_rekv ur', "ur.rekv_code = urt.code AND ur.id_author = {$id}");
+        $u->groupBy('urt.code');
+        $u->orderBy('urt.id');
+        return $u->getList();
     }
 
     private function getGroups($id)
@@ -129,110 +118,124 @@ class Contact extends Base
         return uniqid();
     }
 
-    private function saveGroups($newIdsGroups, $idsContact)
+    private function saveGroups($groups, $idsContact)
     {
-        $idsContactsS = implode(",", $idsContact);
-        $idsGroupsS = implode(",", $newIdsGroups);
-        $u = new seTable('se_user_group', 'sug');
-        if ($newIdsGroups)
-            $u->where("NOT group_id IN ($idsGroupsS) AND user_id IN ($idsContactsS)")->deleteList();
-        else $u->where("user_id IN ($idsContactsS)")->deleteList();
-        $u = new seTable('se_user_group', 'sug');
-        $u->select("group_id");
-        $u->where("user_id IN ($idsContactsS)");
-        $objects = $u->getList();
-        $idsExists = array();
-        foreach ($objects as $object)
-            $idsExists[] = $object["group_id"];
-        if (!empty($newIdsGroups)) {
-            foreach ($newIdsGroups as $id)
-                if (!empty($id) && !in_array($id, $idsExists))
-                    foreach ($idsContact as $idContact)
-                        $data[] = array('user_id' => $idContact, 'group_id' => $id);
-            if (!empty($data))
-                se_db_InsertList('se_user_group', $data);
+        try {
+            $newIdsGroups = array();
+            foreach ($groups as $group)
+                $newIdsGroups[] = $group["id"];
+            $idsGroupsS = implode(",", $newIdsGroups);
+            $idsContactsS = implode(",", $idsContact);
+            $u = new DB('se_user_group', 'sug');
+            if ($newIdsGroups)
+                $u->where("NOT group_id IN ($idsGroupsS) AND user_id IN ($idsContactsS)")->deleteList();
+            else $u->where("user_id IN ($idsContactsS)")->deleteList();
+            $u = new DB('se_user_group', 'sug');
+            $u->select("group_id");
+            $u->where("user_id IN ($idsContactsS)");
+            $objects = $u->getList();
+            $idsExists = array();
+            foreach ($objects as $object)
+                $idsExists[] = $object["groupId"];
+            if (!empty($newIdsGroups)) {
+                foreach ($newIdsGroups as $id)
+                    if (!empty($id) && !in_array($id, $idsExists))
+                        foreach ($idsContact as $idContact)
+                            $data[] = array('user_id' => $idContact, 'group_id' => $id);
+                if (!empty($data))
+                    DB::insertList('se_user_group', $data);
+            }
+        } catch (Exception $e) {
+            $this->error = "Не удаётся сохранить группы контакта!";
+            throw new Exception($this->error);
         }
     }
 
-    private function saveCompanyRequisites($id, $json)
+    private function saveCompanyRequisites($id, $input)
     {
-        if (isset($json->companyRequisites)) {
-            $u = new seTable('user_rekv', 'ur');
-            $u->where('id_author=?', $id)->deletelist();
-
-            foreach ($json->companyRequisites as $requisite)
-                $data[] = array('id_author' => $id, 'rekv_code' => $requisite->code,
-                    'value' => $requisite->value);
-            if (!empty($data))
-                se_db_InsertList('user_rekv', $data);
+        try {
+            foreach ($input["companyRequisites"] as $requisite) {
+                $u = new DB("user_rekv");
+                $requisite["idAuthor"] = $id;
+                $u->setValuesFields($requisite);
+                $u->save();                
+            }
+        } catch (Exception $e) {
+            $this->error = "Не удаётся сохранить реквизиты компании!";
+            throw new Exception($this->error);
         }
     }
 
     private function savePersonalAccounts($id, $accounts)
     {
-        $idsUpdate = null;
-        foreach ($accounts as $account)
-            if ($account->id) {
-                if (!empty($idsUpdate))
-                    $idsUpdate .= ',';
-                $idsUpdate .= $account->id;
-            }
+        try {
+            $idsUpdate = null;
+            foreach ($accounts as $account)
+                if ($account["id"]) {
+                    if (!empty($idsUpdate))
+                        $idsUpdate .= ',';
+                    $idsUpdate .= $account["id"];
+                }
 
-        $u = new seTable('se_user_account', 'sua');
-        if (!empty($idsUpdate))
-            $u->where("NOT id IN ($idsUpdate) AND user_id=?", $id)->deletelist();
-        else $u->where("user_id=?", $id)->deletelist();
+            $u = new DB('se_user_account', 'sua');
+            if (!empty($idsUpdate))
+                $u->where("NOT id IN ($idsUpdate) AND user_id=?", $id)->deleteList();
+            else $u->where("user_id = ?", $id)->deleteList();
 
-        $data = array();
-        foreach ($accounts as $account)
-            if (empty($account->id))
-                $data[] = array("user_id" => $id, "date_payee" => $account->datePayee,
-                    "in_payee" => $account->inPayee, "out_payee" => $account->outPayee,
-                    "curr" => $account->currency, "operation" => $account->typeOperation, "docum" => $account->note);
-        if ($data)
-            se_db_InsertList('se_user_account', $data);
+            $data = array();
+            foreach ($accounts as $account)
+                if (empty($account["id"]))
+                    $data[] = array("user_id" => $id, "date_payee" => $account["datePayee"],
+                        "in_payee" => $account['inPayee'], "out_payee" => $account["outPayee"],
+                        "curr" => $account["currency"], "operation" => $account["typeOperation"], "docum" => $account["note"]);
+            if ($data)
+                DB::insertList('se_user_account', $data);
 
-        foreach ($accounts as $account)
-            if (!empty($account->id)) {
-                $u = new seTable('se_user_account', 'sua');
-                $isUpdated = false;
-                $isUpdated |= setField(0, $u, $account->datePayee, 'date_payee');
-                $isUpdated |= setField(0, $u, $account->typeOperation, 'operation');
-                $isUpdated |= setField(0, $u, $account->inPayee, 'in_payee');
-                $isUpdated |= setField(0, $u, $account->outPayee, 'out_payee');
-                $isUpdated |= setField(0, $u, $account->typeOperation, 'operation');
-                $isUpdated |= setField(0, $u, $account->note, 'docum');
-                if ($isUpdated) {
-                    $u->where('id=?', $account->id);
+            foreach ($accounts as $account)
+                if (!empty($account["id"])) {
+                    $u = new DB('se_user_account', 'sua');
+                    $account["operation"] = $account["typeOperation"];
+                    $account["docum"] = $account["note"];
+                    $u->setValuesFields($account);
                     $u->save();
                 }
-            }
+        } catch (Exception $e) {
+            $this->error = "Не удаётся сохранить лицевой счёт контакта!";
+            throw new Exception($this->error);
+        }
     }
 
     private function setUserGroup($idUser)
     {
-        $u = new seTable('se_group', 'sg');
-        $u->select("id");
-        $u->where("title = 'User'");
-        $u->fetchOne();
-        $idGroup = $u->id;
-        if (!$idGroup) {
-            $u = new seTable('se_group', 'sg');
-            $u->title = "User";
-            $u->level = 1;
-            $idGroup = $u->save();
-        }
+        try {
+            $u = new DB('se_group', 'sg');
+            $u->select("id");
+            $u->where("title = 'User'");
+            $result = $u->fetchOne();
+            $idGroup = $result["id"];
+            if (!$idGroup) {
+                $u = new DB('se_group', 'sg');
+                $data["title"] = "User";
+                $data["level"] = 1;
+                $u->setValuesFields($data);
+                $idGroup = $u->save();
+            }
 
-        $u = new seTable('se_user_group', 'sug');
-        $u->select("id");
-        $u->where("sug.group_id = {$idGroup} AND sug.user_id = {$idUser}");
-        $u->fetchOne();
-        $id = $u->id;
-        if (!$id) {
-            $u = new seTable('se_user_group', 'sug');
-            $u->group_id = $idGroup;
-            $u->user_id = $idUser;
-            $u->save();
+            $u = new DB('se_user_group', 'sug');
+            $u->select("id");
+            $u->where("sug.group_id = {$idGroup} AND sug.user_id = {$idUser}");
+            $result = $u->fetchOne();
+            $id = $result["id"];
+            if (!$id) {
+                $u = new DB('se_user_group', 'sug');
+                $data["groupId"] = $idGroup;
+                $data["userId"] = $idUser;
+                $u->setValuesFields($data);
+                $u->save();
+            }
+        } catch (Exception $e) {
+            $this->error = "Не удаётся сохранить группу контакта!";
+            throw new Exception($this->error);
         }
     }
 
@@ -263,12 +266,12 @@ class Contact extends Base
                     $this->input["username"] = $this->getUserName($login, $userName, $ids[0]);
                 }
                 $u->setValuesFields($this->input);
-                $ids[] = $u->save();
+                $u->save();
             }
 
             if ($isNew || !empty($ids)) {
                 if ($isNew)
-                    $this->input["reg_date"] = date("Y-m-d H:i:s");
+                    $this->input["regDate"] = date("Y-m-d H:i:s");
                 $this->input["id"] = $ids[0];
                 $u = new DB('person', 'p');
                 $u->setValuesFields($this->input);
@@ -280,25 +283,20 @@ class Contact extends Base
                 $u->setValuesFields($this->input);
                 $u->save(true);
 
-//                $this->saveCompanyRequisites($ids[0], $this->input);
-//            if ($ids && isset($json->personalAccount))
-//                $this->savePersonalAccounts($ids[0], $json->personalAccount);
-//            if (!empty($json->groups)) {
-//                foreach ($json->groups as $group)
-//                    $json->idsGroups[] = $group->id;
-//            }
-//            if (isset($json->isAdmin) && $json->isAdmin)
-//                $json->idsGroups[] = 3;
-//            if ($ids && isset($json->idsGroups))
-//                $this->saveGroups($json->idsGroups, $ids);
-//            else {
-//                if (isset($json->isAdmin) && !$json->isAdmin) {
-//                    $u = new seTable('se_user_group', 'sug');
-//                    $u->where('group_id=3 AND user_id=?', $ids[0])->deletelist();
-//                }
-//            }
-//
-//            $this->setUserGroup($ids[0]);
+                $this->saveCompanyRequisites($ids[0], $this->input);
+                if ($ids && isset($this->input["personalAccount"]))
+                    $this->savePersonalAccounts($ids[0], $this->input["personalAccount"]);
+                if (isset($this->input["isAdmin"]) && $this->input["isAdmin"])
+                    $this->input["idsGroups"][] = 3;
+                if ($ids && isset($this->input["groups"]))
+                    $this->saveGroups($this->input["groups"], $ids);
+                else {
+                    if (isset($this->input["isAdmin"]) && !$this->input["isAdmin"]) {
+                        $u = new DB('se_user_group', 'sug');
+                        $u->where('group_id = 3 AND user_id = ?', $ids[0])->deleteList();
+                    }
+                }
+                $this->setUserGroup($ids[0]);
             }
             DB::commit();
             $this->info();
@@ -306,7 +304,7 @@ class Contact extends Base
             return $this;
         } catch (Exception $e) {
             DB::rollBack();
-            $this->error = "Не удаётся сохранить контакт!";
+            $this->error = empty($this->error) ? "Не удаётся сохранить контакт!" : $this->error;
         }
 
     }

@@ -141,7 +141,6 @@ class Base
                 $u->where($this->getWhereQuery($searchFields));
             $u->groupBy();
             $u->orderBy($this->sortBy, $this->sortOrder == 'desc');
-            writeLog($u->getSql());
             $this->result["items"] = $this->correctValuesBeforeFetch($u->getList($this->limit, $this->offset));
             $this->result["count"] = $u->getListCount();
             if (!empty($settingsFetch["aggregation"])) { 
@@ -230,7 +229,6 @@ class Base
                 $index["position"] = $index["sort"];                
                 $u->setValuesFields($index);
                 $u->save();
-                //writeLog($u->getSql());
             }
         } catch (Exception $e) {
             $this->error = "Не удаётся произвести сортировку элементов!";
@@ -358,5 +356,5 @@ class Base
         }
         return $query;
     }
-
+ 
 }

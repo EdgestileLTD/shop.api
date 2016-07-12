@@ -117,7 +117,7 @@ if ($apiClass != "Auth" && empty($_SESSION['isAuth']) && !in_array($_SERVER["REM
 }
 
 $apiObject = $apiClass;
-if (!class_exists($apiClass = "\\SE\\Shop\\" . str_replace("/", "\\", $apiClass))) {
+if (!class_exists($apiClass = "\\SE\\Shop\\" . str_replace("/", "\\", $apiClass))) {    
     header("HTTP/1.1 404 Not found");
     echo "Объект '{$apiObject}' не найден!";
     exit;
@@ -127,7 +127,6 @@ if (!method_exists($apiClass, $apiMethod)) {
     echo "Метод'{$apiMethod}' не поддерживается!";
     exit;
 }
-
 $apiObject = new $apiClass($phpInput);
 if ($apiObject->initConnection($CONFIG))
     $apiObject->$apiMethod();

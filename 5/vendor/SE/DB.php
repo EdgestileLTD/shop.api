@@ -468,7 +468,7 @@ class DB
         $this->inputData = $values;
         $fields = $this->getFields();
         foreach ($values as $key => $value) {
-            if ((is_array($value) && $key != "ids") || is_object($value))
+            if (($key == "id" && empty($value)) || (is_array($value) && $key != "ids") || is_object($value))
                 continue;
 
             if (is_array($value) && $key == "ids") {

@@ -50,7 +50,7 @@ class Auth extends Base
 
     public function info()
     {
-        $userToken = md5($this->input["login"] . $this->input["password"]);        
+        $userToken = md5($this->input["login"] . $this->input["password"]);
         try {
             if (TOKEN == trim($userToken)) {
                 $data['userDisplay'] = 'Администратор';
@@ -105,6 +105,6 @@ class Auth extends Base
         } catch (Exception $e) {
             $this->error = "Ошибка при авторизации!";
         }
-    } 
+    }
 
 }
