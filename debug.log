@@ -1,0 +1,3124 @@
+Array
+(
+    [0] => Array
+        (
+            [id] => 256
+            [idParent] => 246
+            [code] => rulevaya-tyaga-10
+            [sortIndex] => 0
+            [name] => Рулевая тяга
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 5
+        )
+
+    [1] => Array
+        (
+            [id] => 1
+            [idParent] => 
+            [code] => hyundai
+            [sortIndex] => 0
+            [name] => HYUNDAI
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 27
+            [countGoods] => 0
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [idParent] => 1
+            [code] => nakonechnik-rulevoy-tyagi
+            [sortIndex] => 0
+            [name] => Наконечник рулевой тяги
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 7
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [idParent] => 2
+            [code] => rulevaya-tyaga
+            [sortIndex] => 0
+            [name] => Рулевая тяга
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 5
+        )
+
+    [4] => Array
+        (
+            [id] => 46
+            [idParent] => 45
+            [code] => lancer-9
+            [sortIndex] => 0
+            [name] => LANCER 9
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 24
+            [countGoods] => 0
+        )
+
+    [5] => Array
+        (
+            [id] => 47
+            [idParent] => 46
+            [code] => filtr-maslyanyy-1
+            [sortIndex] => 0
+            [name] => Фильтр масляный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [6] => Array
+        (
+            [id] => 72
+            [idParent] => 71
+            [code] => filtr-maslyanyy-2
+            [sortIndex] => 0
+            [name] => Фильтр масляный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [7] => Array
+        (
+            [id] => 166
+            [idParent] => 165
+            [code] => filtr-maslyanyy-6
+            [sortIndex] => 0
+            [name] => Фильтр масляный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [8] => Array
+        (
+            [id] => 193
+            [idParent] => 192
+            [code] => filtr-maslyanyy-7
+            [sortIndex] => 0
+            [name] => Фильтр масляный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [9] => Array
+        (
+            [id] => 219
+            [idParent] => 18
+            [code] => rio-2-jb
+            [sortIndex] => 0
+            [name] => RIO 2 JB
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 26
+            [countGoods] => 0
+        )
+
+    [10] => Array
+        (
+            [id] => 220
+            [idParent] => 219
+            [code] => filtr-maslyanyy-8
+            [sortIndex] => 0
+            [name] => Фильтр масляный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [11] => Array
+        (
+            [id] => 257
+            [idParent] => 246
+            [code] => sharovaya-opora-10
+            [sortIndex] => 1
+            [name] => Шаровая опора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 5
+        )
+
+    [12] => Array
+        (
+            [id] => 9
+            [idParent] => 2
+            [code] => amortizator-gazomaslyanyy
+            [sortIndex] => 1
+            [name] => Амортизатор газомасляный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 12
+        )
+
+    [13] => Array
+        (
+            [id] => 19
+            [idParent] => 20
+            [code] => kia-ceed-ed
+            [sortIndex] => 1
+            [name] => KIA CEED ED
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 3
+            [countGoods] => 0
+        )
+
+    [14] => Array
+        (
+            [id] => 25
+            [idParent] => 1
+            [code] => vtulka-stabilizatora
+            [sortIndex] => 1
+            [name] => Втулка стабилизатора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [15] => Array
+        (
+            [id] => 48
+            [idParent] => 46
+            [code] => filtr-vozdushnyy-1
+            [sortIndex] => 1
+            [name] => Фильтр воздушный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [16] => Array
+        (
+            [id] => 71
+            [idParent] => 45
+            [code] => lancer-x
+            [sortIndex] => 1
+            [name] => LANCER X
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 20
+            [countGoods] => 0
+        )
+
+    [17] => Array
+        (
+            [id] => 73
+            [idParent] => 71
+            [code] => filtr-vozdushnyy-2
+            [sortIndex] => 1
+            [name] => Фильтр воздушный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 5
+        )
+
+    [18] => Array
+        (
+            [id] => 167
+            [idParent] => 165
+            [code] => filtr-vozdushnyy-6
+            [sortIndex] => 1
+            [name] => Фильтр воздушный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [19] => Array
+        (
+            [id] => 194
+            [idParent] => 192
+            [code] => filtr-vozdushnyy-7
+            [sortIndex] => 1
+            [name] => Фильтр воздушный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [20] => Array
+        (
+            [id] => 221
+            [idParent] => 219
+            [code] => filtr-vozdushnyy-8
+            [sortIndex] => 1
+            [name] => Фильтр воздушный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [21] => Array
+        (
+            [id] => 258
+            [idParent] => 246
+            [code] => podshipnik-stupicy-kolesa-9
+            [sortIndex] => 2
+            [name] => Подшипник ступицы колеса
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 3
+        )
+
+    [22] => Array
+        (
+            [id] => 5
+            [idParent] => 2
+            [code] => sharovaya-opora
+            [sortIndex] => 2
+            [name] => Шаровая опора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 5
+        )
+
+    [23] => Array
+        (
+            [id] => 20
+            [idParent] => 19
+            [code] => filtr-maslyanyy
+            [sortIndex] => 2
+            [name] => Фильтр масляный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 1
+            [countGoods] => 4
+        )
+
+    [24] => Array
+        (
+            [id] => 24
+            [idParent] => 1
+            [code] => stoyka-stabilizatora
+            [sortIndex] => 2
+            [name] => Стойка стабилизатора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 11
+        )
+
+    [25] => Array
+        (
+            [id] => 49
+            [idParent] => 46
+            [code] => filtr-salona-1
+            [sortIndex] => 2
+            [name] => Фильтр салона
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 5
+        )
+
+    [26] => Array
+        (
+            [id] => 74
+            [idParent] => 71
+            [code] => filtr-salona-2
+            [sortIndex] => 2
+            [name] => Фильтр салона
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 6
+        )
+
+    [27] => Array
+        (
+            [id] => 168
+            [idParent] => 165
+            [code] => filtr-salona-6
+            [sortIndex] => 2
+            [name] => Фильтр салона
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [28] => Array
+        (
+            [id] => 195
+            [idParent] => 192
+            [code] => filtr-salona-7
+            [sortIndex] => 2
+            [name] => Фильтр салона
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [29] => Array
+        (
+            [id] => 222
+            [idParent] => 219
+            [code] => filtr-salona-8
+            [sortIndex] => 2
+            [name] => Фильтр салона
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [30] => Array
+        (
+            [id] => 2
+            [idParent] => 1
+            [code] => i30-fd
+            [sortIndex] => 3
+            [name] => I30 FD
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 23
+            [countGoods] => 0
+        )
+
+    [31] => Array
+        (
+            [id] => 259
+            [idParent] => 246
+            [code] => stupica-9
+            [sortIndex] => 3
+            [name] => Ступица
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 5
+        )
+
+    [32] => Array
+        (
+            [id] => 6
+            [idParent] => 2
+            [code] => podshipnik-stupicy-kolesa
+            [sortIndex] => 3
+            [name] => Подшипник ступицы колеса
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 3
+        )
+
+    [33] => Array
+        (
+            [id] => 18
+            [idParent] => 
+            [code] => kia
+            [sortIndex] => 3
+            [name] => KIA
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 1
+            [countGoods] => 0
+        )
+
+    [34] => Array
+        (
+            [id] => 50
+            [idParent] => 46
+            [code] => filtr-toplivnyy-1
+            [sortIndex] => 3
+            [name] => Фильтр топливный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [35] => Array
+        (
+            [id] => 75
+            [idParent] => 71
+            [code] => filtr-toplivnyy-2
+            [sortIndex] => 3
+            [name] => Фильтр топливный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 1
+        )
+
+    [36] => Array
+        (
+            [id] => 169
+            [idParent] => 165
+            [code] => filtr-toplivnyy-5
+            [sortIndex] => 3
+            [name] => Фильтр топливный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [37] => Array
+        (
+            [id] => 196
+            [idParent] => 192
+            [code] => filtr-toplivnyy-6
+            [sortIndex] => 3
+            [name] => Фильтр топливный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [38] => Array
+        (
+            [id] => 223
+            [idParent] => 219
+            [code] => filtr-toplivnyy-7
+            [sortIndex] => 3
+            [name] => Фильтр топливный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [39] => Array
+        (
+            [id] => 260
+            [idParent] => 246
+            [code] => tormoznye-kolodki-10
+            [sortIndex] => 4
+            [name] => Тормозные колодки
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 10
+        )
+
+    [40] => Array
+        (
+            [id] => 7
+            [idParent] => 2
+            [code] => stupica
+            [sortIndex] => 4
+            [name] => Ступица
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 5
+        )
+
+    [41] => Array
+        (
+            [id] => 21
+            [idParent] => 19
+            [code] => filtr-vozdushnyy
+            [sortIndex] => 4
+            [name] => Фильтр воздушный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [42] => Array
+        (
+            [id] => 26
+            [idParent] => 1
+            [code] => remen-generatora
+            [sortIndex] => 4
+            [name] => Ремень генератора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 3
+        )
+
+    [43] => Array
+        (
+            [id] => 51
+            [idParent] => 46
+            [code] => stoyka-stabilizatora-1
+            [sortIndex] => 4
+            [name] => Стойка стабилизатора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 8
+        )
+
+    [44] => Array
+        (
+            [id] => 76
+            [idParent] => 71
+            [code] => stoyka-stabilizatora-2
+            [sortIndex] => 4
+            [name] => Стойка стабилизатора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 8
+        )
+
+    [45] => Array
+        (
+            [id] => 170
+            [idParent] => 165
+            [code] => stoyka-stabilizatora-6
+            [sortIndex] => 4
+            [name] => Стойка стабилизатора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 6
+        )
+
+    [46] => Array
+        (
+            [id] => 197
+            [idParent] => 192
+            [code] => stoyka-stabilizatora-7
+            [sortIndex] => 4
+            [name] => Стойка стабилизатора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 8
+        )
+
+    [47] => Array
+        (
+            [id] => 224
+            [idParent] => 219
+            [code] => stoyka-stabilizatora-8
+            [sortIndex] => 4
+            [name] => Стойка стабилизатора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 6
+        )
+
+    [48] => Array
+        (
+            [id] => 261
+            [idParent] => 246
+            [code] => amortizator-gazomaslyanyy-10
+            [sortIndex] => 5
+            [name] => Амортизатор газомасляный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 9
+        )
+
+    [49] => Array
+        (
+            [id] => 8
+            [idParent] => 2
+            [code] => tormoznye-kolodki
+            [sortIndex] => 5
+            [name] => Тормозные колодки
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 12
+        )
+
+    [50] => Array
+        (
+            [id] => 22
+            [idParent] => 19
+            [code] => filtr-salona
+            [sortIndex] => 5
+            [name] => Фильтр салона
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 3
+        )
+
+    [51] => Array
+        (
+            [id] => 27
+            [idParent] => 1
+            [code] => rolik-grm
+            [sortIndex] => 5
+            [name] => Ролик ГРМ
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [52] => Array
+        (
+            [id] => 52
+            [idParent] => 46
+            [code] => vtulka-stabilizatora-1
+            [sortIndex] => 5
+            [name] => Втулка стабилизатора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [53] => Array
+        (
+            [id] => 77
+            [idParent] => 71
+            [code] => vtulka-stabilizatora-2
+            [sortIndex] => 5
+            [name] => Втулка стабилизатора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 3
+        )
+
+    [54] => Array
+        (
+            [id] => 171
+            [idParent] => 165
+            [code] => vtulka-stabilizatora-6
+            [sortIndex] => 5
+            [name] => Втулка стабилизатора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [55] => Array
+        (
+            [id] => 198
+            [idParent] => 192
+            [code] => vtulka-stabilizatora-7
+            [sortIndex] => 5
+            [name] => Втулка стабилизатора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [56] => Array
+        (
+            [id] => 225
+            [idParent] => 219
+            [code] => vtulka-stabilizatora-8
+            [sortIndex] => 5
+            [name] => Втулка стабилизатора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [57] => Array
+        (
+            [id] => 262
+            [idParent] => 246
+            [code] => zaschitnyy-komplekt-amortizatora-10
+            [sortIndex] => 6
+            [name] => Защитный комплект амортизатора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 6
+        )
+
+    [58] => Array
+        (
+            [id] => 10
+            [idParent] => 2
+            [code] => zaschitnyy-komplekt-amortizatora
+            [sortIndex] => 6
+            [name] => Защитный комплект амортизатора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 6
+        )
+
+    [59] => Array
+        (
+            [id] => 28
+            [idParent] => 1
+            [code] => rolik-remnya
+            [sortIndex] => 6
+            [name] => Ролик ремня
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [60] => Array
+        (
+            [id] => 45
+            [idParent] => 
+            [code] => mitsubishi
+            [sortIndex] => 6
+            [name] => MITSUBISHI
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 2
+            [countGoods] => 0
+        )
+
+    [61] => Array
+        (
+            [id] => 53
+            [idParent] => 46
+            [code] => remen-grm
+            [sortIndex] => 6
+            [name] => Ремень ГРМ
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [62] => Array
+        (
+            [id] => 78
+            [idParent] => 71
+            [code] => remen-generatora-2
+            [sortIndex] => 6
+            [name] => Ремень генератора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [63] => Array
+        (
+            [id] => 172
+            [idParent] => 165
+            [code] => remen-grm-2
+            [sortIndex] => 6
+            [name] => Ремень ГРМ
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [64] => Array
+        (
+            [id] => 199
+            [idParent] => 192
+            [code] => remen-grm-3
+            [sortIndex] => 6
+            [name] => Ремень ГРМ
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [65] => Array
+        (
+            [id] => 226
+            [idParent] => 219
+            [code] => remen-grm-4
+            [sortIndex] => 6
+            [name] => Ремень ГРМ
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [66] => Array
+        (
+            [id] => 263
+            [idParent] => 246
+            [code] => komplekt-scepleniya-9
+            [sortIndex] => 7
+            [name] => Комплект сцепления
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [67] => Array
+        (
+            [id] => 11
+            [idParent] => 2
+            [code] => komplekt-scepleniya
+            [sortIndex] => 7
+            [name] => Комплект сцепления
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [68] => Array
+        (
+            [id] => 23
+            [idParent] => 1
+            [code] => filtr-toplivnyy
+            [sortIndex] => 7
+            [name] => Фильтр топливный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 3
+        )
+
+    [69] => Array
+        (
+            [id] => 54
+            [idParent] => 46
+            [code] => rolik-grm-1
+            [sortIndex] => 7
+            [name] => Ролик ГРМ
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [70] => Array
+        (
+            [id] => 79
+            [idParent] => 71
+            [code] => nakonechnik-rulevoy-tyagi-3
+            [sortIndex] => 7
+            [name] => Наконечник рулевой тяги
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [71] => Array
+        (
+            [id] => 173
+            [idParent] => 165
+            [code] => rolik-grm-3
+            [sortIndex] => 7
+            [name] => Ролик ГРМ
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 6
+        )
+
+    [72] => Array
+        (
+            [id] => 200
+            [idParent] => 192
+            [code] => rolik-grm-4
+            [sortIndex] => 7
+            [name] => Ролик ГРМ
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 6
+        )
+
+    [73] => Array
+        (
+            [id] => 227
+            [idParent] => 219
+            [code] => rolik-grm-5
+            [sortIndex] => 7
+            [name] => Ролик ГРМ
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 6
+        )
+
+    [74] => Array
+        (
+            [id] => 264
+            [idParent] => 246
+            [code] => termostat-8
+            [sortIndex] => 8
+            [name] => Термостат
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [75] => Array
+        (
+            [id] => 12
+            [idParent] => 2
+            [code] => termostat
+            [sortIndex] => 8
+            [name] => Термостат
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [76] => Array
+        (
+            [id] => 29
+            [idParent] => 1
+            [code] => nakonechnik-rulevoy-tyagi-1
+            [sortIndex] => 8
+            [name] => Наконечник рулевой тяги
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 8
+        )
+
+    [77] => Array
+        (
+            [id] => 55
+            [idParent] => 46
+            [code] => komplekt-grm
+            [sortIndex] => 8
+            [name] => Комплект ГРМ
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [78] => Array
+        (
+            [id] => 80
+            [idParent] => 71
+            [code] => rulevaya-tyaga-3
+            [sortIndex] => 8
+            [name] => Рулевая тяга
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [79] => Array
+        (
+            [id] => 174
+            [idParent] => 165
+            [code] => rolik-remnya-4
+            [sortIndex] => 8
+            [name] => Ролик ремня
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 3
+        )
+
+    [80] => Array
+        (
+            [id] => 201
+            [idParent] => 192
+            [code] => rolik-remnya-5
+            [sortIndex] => 8
+            [name] => Ролик ремня
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 3
+        )
+
+    [81] => Array
+        (
+            [id] => 228
+            [idParent] => 219
+            [code] => rolik-remnya-6
+            [sortIndex] => 8
+            [name] => Ролик ремня
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 3
+        )
+
+    [82] => Array
+        (
+            [id] => 265
+            [idParent] => 246
+            [code] => pompa-10
+            [sortIndex] => 9
+            [name] => Помпа
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [83] => Array
+        (
+            [id] => 13
+            [idParent] => 2
+            [code] => pompa
+            [sortIndex] => 9
+            [name] => Помпа
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [84] => Array
+        (
+            [id] => 30
+            [idParent] => 1
+            [code] => rulevaya-tyaga-1
+            [sortIndex] => 9
+            [name] => Рулевая тяга
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 5
+        )
+
+    [85] => Array
+        (
+            [id] => 56
+            [idParent] => 46
+            [code] => remen-generatora-1
+            [sortIndex] => 9
+            [name] => Ремень генератора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [86] => Array
+        (
+            [id] => 81
+            [idParent] => 71
+            [code] => sharovaya-opora-3
+            [sortIndex] => 9
+            [name] => Шаровая опора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [87] => Array
+        (
+            [id] => 175
+            [idParent] => 165
+            [code] => remen-generatora-6
+            [sortIndex] => 9
+            [name] => Ремень генератора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 3
+        )
+
+    [88] => Array
+        (
+            [id] => 202
+            [idParent] => 192
+            [code] => remen-generatora-7
+            [sortIndex] => 9
+            [name] => Ремень генератора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 3
+        )
+
+    [89] => Array
+        (
+            [id] => 229
+            [idParent] => 219
+            [code] => remen-generatora-8
+            [sortIndex] => 9
+            [name] => Ремень генератора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 3
+        )
+
+    [90] => Array
+        (
+            [id] => 266
+            [idParent] => 246
+            [code] => radiator-ohlazhdeniya-10
+            [sortIndex] => 10
+            [name] => Радиатор охлаждения
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 5
+        )
+
+    [91] => Array
+        (
+            [id] => 14
+            [idParent] => 2
+            [code] => radiator-ohlazhdeniya
+            [sortIndex] => 10
+            [name] => Радиатор охлаждения
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 6
+        )
+
+    [92] => Array
+        (
+            [id] => 32
+            [idParent] => 1
+            [code] => podshipnik-stupicy-kolesa-1
+            [sortIndex] => 10
+            [name] => Подшипник ступицы колеса
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 3
+        )
+
+    [93] => Array
+        (
+            [id] => 57
+            [idParent] => 46
+            [code] => remen-nasosa-gidrousilitelya
+            [sortIndex] => 10
+            [name] => Ремень насоса гидроусилителя
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 7
+        )
+
+    [94] => Array
+        (
+            [id] => 82
+            [idParent] => 71
+            [code] => podshipnik-stupicy-kolesa-3
+            [sortIndex] => 10
+            [name] => Подшипник ступицы колеса
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [95] => Array
+        (
+            [id] => 176
+            [idParent] => 165
+            [code] => remen-kondicionera
+            [sortIndex] => 10
+            [name] => Ремень кондиционера
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [96] => Array
+        (
+            [id] => 203
+            [idParent] => 192
+            [code] => remen-kondicionera-1
+            [sortIndex] => 10
+            [name] => Ремень кондиционера
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [97] => Array
+        (
+            [id] => 230
+            [idParent] => 219
+            [code] => remen-kondicionera-2
+            [sortIndex] => 10
+            [name] => Ремень кондиционера
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [98] => Array
+        (
+            [id] => 267
+            [idParent] => 246
+            [code] => shrus-6
+            [sortIndex] => 11
+            [name] => Шрус
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 1
+        )
+
+    [99] => Array
+        (
+            [id] => 15
+            [idParent] => 2
+            [code] => shrus
+            [sortIndex] => 11
+            [name] => Шрус
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 1
+        )
+
+    [100] => Array
+        (
+            [id] => 31
+            [idParent] => 1
+            [code] => sharovaya-opora-1
+            [sortIndex] => 11
+            [name] => Шаровая опора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 5
+        )
+
+    [101] => Array
+        (
+            [id] => 58
+            [idParent] => 46
+            [code] => nakonechnik-rulevoy-tyagi-2
+            [sortIndex] => 11
+            [name] => Наконечник рулевой тяги
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [102] => Array
+        (
+            [id] => 83
+            [idParent] => 71
+            [code] => stupica-3
+            [sortIndex] => 11
+            [name] => Ступица
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 1
+        )
+
+    [103] => Array
+        (
+            [id] => 177
+            [idParent] => 165
+            [code] => nakonechnik-rulevoy-tyagi-7
+            [sortIndex] => 11
+            [name] => Наконечник рулевой тяги
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 10
+        )
+
+    [104] => Array
+        (
+            [id] => 204
+            [idParent] => 192
+            [code] => nakonechnik-rulevoy-tyagi-8
+            [sortIndex] => 11
+            [name] => Наконечник рулевой тяги
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [105] => Array
+        (
+            [id] => 231
+            [idParent] => 219
+            [code] => nakonechnik-rulevoy-tyagi-9
+            [sortIndex] => 11
+            [name] => Наконечник рулевой тяги
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 10
+        )
+
+    [106] => Array
+        (
+            [id] => 268
+            [idParent] => 246
+            [code] => rychag-podveski-10
+            [sortIndex] => 12
+            [name] => Рычаг подвески
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 6
+        )
+
+    [107] => Array
+        (
+            [id] => 16
+            [idParent] => 2
+            [code] => rychag-podveski
+            [sortIndex] => 12
+            [name] => Рычаг подвески
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 6
+        )
+
+    [108] => Array
+        (
+            [id] => 33
+            [idParent] => 1
+            [code] => stupica-1
+            [sortIndex] => 12
+            [name] => Ступица
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 5
+        )
+
+    [109] => Array
+        (
+            [id] => 59
+            [idParent] => 46
+            [code] => rulevaya-tyaga-2
+            [sortIndex] => 12
+            [name] => Рулевая тяга
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [110] => Array
+        (
+            [id] => 84
+            [idParent] => 71
+            [code] => tormoznye-kolodki-3
+            [sortIndex] => 12
+            [name] => Тормозные колодки
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 11
+        )
+
+    [111] => Array
+        (
+            [id] => 178
+            [idParent] => 165
+            [code] => rulevaya-tyaga-7
+            [sortIndex] => 12
+            [name] => Рулевая тяга
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 3
+        )
+
+    [112] => Array
+        (
+            [id] => 205
+            [idParent] => 192
+            [code] => rulevaya-tyaga-8
+            [sortIndex] => 12
+            [name] => Рулевая тяга
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [113] => Array
+        (
+            [id] => 232
+            [idParent] => 219
+            [code] => rulevaya-tyaga-9
+            [sortIndex] => 12
+            [name] => Рулевая тяга
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 3
+        )
+
+    [114] => Array
+        (
+            [id] => 269
+            [idParent] => 246
+            [code] => saylentblok-rychaga-3
+            [sortIndex] => 13
+            [name] => Сайлентблок рычага
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [115] => Array
+        (
+            [id] => 17
+            [idParent] => 2
+            [code] => saylentblok-rychaga
+            [sortIndex] => 13
+            [name] => Сайлентблок рычага
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [116] => Array
+        (
+            [id] => 34
+            [idParent] => 1
+            [code] => tormoznye-kolodki-1
+            [sortIndex] => 13
+            [name] => Тормозные колодки
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 12
+        )
+
+    [117] => Array
+        (
+            [id] => 60
+            [idParent] => 46
+            [code] => sharovaya-opora-2
+            [sortIndex] => 13
+            [name] => Шаровая опора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 3
+        )
+
+    [118] => Array
+        (
+            [id] => 85
+            [idParent] => 71
+            [code] => amortizator-gazomaslyanyy-3
+            [sortIndex] => 13
+            [name] => Амортизатор газомасляный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 18
+        )
+
+    [119] => Array
+        (
+            [id] => 179
+            [idParent] => 165
+            [code] => sharovaya-opora-7
+            [sortIndex] => 13
+            [name] => Шаровая опора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [120] => Array
+        (
+            [id] => 206
+            [idParent] => 192
+            [code] => sharovaya-opora-8
+            [sortIndex] => 13
+            [name] => Шаровая опора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 3
+        )
+
+    [121] => Array
+        (
+            [id] => 233
+            [idParent] => 219
+            [code] => sharovaya-opora-9
+            [sortIndex] => 13
+            [name] => Шаровая опора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [122] => Array
+        (
+            [id] => 270
+            [idParent] => 2
+            [code] => filtr-maslyanyy-10
+            [sortIndex] => 14
+            [name] => Фильтр масляный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [123] => Array
+        (
+            [id] => 271
+            [idParent] => 2
+            [code] => filtr-vozdushnyy-10
+            [sortIndex] => 14
+            [name] => Фильтр воздушный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [124] => Array
+        (
+            [id] => 35
+            [idParent] => 1
+            [code] => amortizator-gazomaslyanyy-1
+            [sortIndex] => 14
+            [name] => Амортизатор газомасляный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 10
+        )
+
+    [125] => Array
+        (
+            [id] => 61
+            [idParent] => 46
+            [code] => podshipnik-stupicy-kolesa-2
+            [sortIndex] => 14
+            [name] => Подшипник ступицы колеса
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [126] => Array
+        (
+            [id] => 86
+            [idParent] => 71
+            [code] => zaschitnyy-komplekt-amortizatora-3
+            [sortIndex] => 14
+            [name] => Защитный комплект амортизатора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [127] => Array
+        (
+            [id] => 180
+            [idParent] => 165
+            [code] => podshipnik-stupicy-kolesa-6
+            [sortIndex] => 14
+            [name] => Подшипник ступицы колеса
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 3
+        )
+
+    [128] => Array
+        (
+            [id] => 207
+            [idParent] => 192
+            [code] => podshipnik-stupicy-kolesa-7
+            [sortIndex] => 14
+            [name] => Подшипник ступицы колеса
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 3
+        )
+
+    [129] => Array
+        (
+            [id] => 234
+            [idParent] => 219
+            [code] => podshipnik-stupicy-kolesa-8
+            [sortIndex] => 14
+            [name] => Подшипник ступицы колеса
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 3
+        )
+
+    [130] => Array
+        (
+            [id] => 247
+            [idParent] => 246
+            [code] => filtr-maslyanyy-9
+            [sortIndex] => 14
+            [name] => Фильтр масляный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [131] => Array
+        (
+            [id] => 37
+            [idParent] => 1
+            [code] => pruzhina-podveski
+            [sortIndex] => 15
+            [name] => Пружина подвески
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 6
+        )
+
+    [132] => Array
+        (
+            [id] => 62
+            [idParent] => 46
+            [code] => stupica-2
+            [sortIndex] => 15
+            [name] => Ступица
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [133] => Array
+        (
+            [id] => 87
+            [idParent] => 71
+            [code] => pruzhina-podveski-2
+            [sortIndex] => 15
+            [name] => Пружина подвески
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [134] => Array
+        (
+            [id] => 181
+            [idParent] => 165
+            [code] => stupica-6
+            [sortIndex] => 15
+            [name] => Ступица
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 8
+        )
+
+    [135] => Array
+        (
+            [id] => 208
+            [idParent] => 192
+            [code] => stupica-7
+            [sortIndex] => 15
+            [name] => Ступица
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 8
+        )
+
+    [136] => Array
+        (
+            [id] => 235
+            [idParent] => 219
+            [code] => stupica-8
+            [sortIndex] => 15
+            [name] => Ступица
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 8
+        )
+
+    [137] => Array
+        (
+            [id] => 248
+            [idParent] => 246
+            [code] => filtr-vozdushnyy-9
+            [sortIndex] => 15
+            [name] => Фильтр воздушный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [138] => Array
+        (
+            [id] => 272
+            [idParent] => 2
+            [code] => filtr-salona-10
+            [sortIndex] => 16
+            [name] => Фильтр салона
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 3
+        )
+
+    [139] => Array
+        (
+            [id] => 38
+            [idParent] => 1
+            [code] => komplekt-scepleniya-1
+            [sortIndex] => 16
+            [name] => Комплект сцепления
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [140] => Array
+        (
+            [id] => 63
+            [idParent] => 46
+            [code] => tormoznye-kolodki-2
+            [sortIndex] => 16
+            [name] => Тормозные колодки
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 12
+        )
+
+    [141] => Array
+        (
+            [id] => 88
+            [idParent] => 71
+            [code] => pompa-3
+            [sortIndex] => 16
+            [name] => Помпа
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 1
+        )
+
+    [142] => Array
+        (
+            [id] => 182
+            [idParent] => 165
+            [code] => tormoznye-kolodki-7
+            [sortIndex] => 16
+            [name] => Тормозные колодки
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 10
+        )
+
+    [143] => Array
+        (
+            [id] => 209
+            [idParent] => 192
+            [code] => tormoznye-kolodki-8
+            [sortIndex] => 16
+            [name] => Тормозные колодки
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 7
+        )
+
+    [144] => Array
+        (
+            [id] => 236
+            [idParent] => 219
+            [code] => tormoznye-kolodki-9
+            [sortIndex] => 16
+            [name] => Тормозные колодки
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 10
+        )
+
+    [145] => Array
+        (
+            [id] => 249
+            [idParent] => 246
+            [code] => filtr-salona-9
+            [sortIndex] => 16
+            [name] => Фильтр салона
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [146] => Array
+        (
+            [id] => 39
+            [idParent] => 1
+            [code] => termostat-1
+            [sortIndex] => 17
+            [name] => Термостат
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [147] => Array
+        (
+            [id] => 64
+            [idParent] => 46
+            [code] => amortizator-gazomaslyanyy-2
+            [sortIndex] => 17
+            [name] => Амортизатор газомасляный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 11
+        )
+
+    [148] => Array
+        (
+            [id] => 89
+            [idParent] => 71
+            [code] => radiator-ohlazhdeniya-3
+            [sortIndex] => 17
+            [name] => Радиатор охлаждения
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [149] => Array
+        (
+            [id] => 183
+            [idParent] => 165
+            [code] => amortizator-gazomaslyanyy-7
+            [sortIndex] => 17
+            [name] => Амортизатор газомасляный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 15
+        )
+
+    [150] => Array
+        (
+            [id] => 210
+            [idParent] => 192
+            [code] => amortizator-gazomaslyanyy-8
+            [sortIndex] => 17
+            [name] => Амортизатор газомасляный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 12
+        )
+
+    [151] => Array
+        (
+            [id] => 237
+            [idParent] => 219
+            [code] => amortizator-gazomaslyanyy-9
+            [sortIndex] => 17
+            [name] => Амортизатор газомасляный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 14
+        )
+
+    [152] => Array
+        (
+            [id] => 250
+            [idParent] => 246
+            [code] => filtr-toplivnyy-8
+            [sortIndex] => 17
+            [name] => Фильтр топливный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 3
+        )
+
+    [153] => Array
+        (
+            [id] => 273
+            [idParent] => 2
+            [code] => filtr-toplivnyy-9
+            [sortIndex] => 18
+            [name] => Фильтр топливный
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 3
+        )
+
+    [154] => Array
+        (
+            [id] => 40
+            [idParent] => 1
+            [code] => pompa-1
+            [sortIndex] => 18
+            [name] => Помпа
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [155] => Array
+        (
+            [id] => 65
+            [idParent] => 46
+            [code] => zaschitnyy-komplekt-amortizatora-2
+            [sortIndex] => 18
+            [name] => Защитный комплект амортизатора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 5
+        )
+
+    [156] => Array
+        (
+            [id] => 90
+            [idParent] => 71
+            [code] => rychag-podveski-3
+            [sortIndex] => 18
+            [name] => Рычаг подвески
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [157] => Array
+        (
+            [id] => 184
+            [idParent] => 165
+            [code] => zaschitnyy-komplekt-amortizatora-7
+            [sortIndex] => 18
+            [name] => Защитный комплект амортизатора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 5
+        )
+
+    [158] => Array
+        (
+            [id] => 211
+            [idParent] => 192
+            [code] => zaschitnyy-komplekt-amortizatora-8
+            [sortIndex] => 18
+            [name] => Защитный комплект амортизатора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 6
+        )
+
+    [159] => Array
+        (
+            [id] => 238
+            [idParent] => 219
+            [code] => zaschitnyy-komplekt-amortizatora-9
+            [sortIndex] => 18
+            [name] => Защитный комплект амортизатора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 5
+        )
+
+    [160] => Array
+        (
+            [id] => 251
+            [idParent] => 246
+            [code] => stoyka-stabilizatora-9
+            [sortIndex] => 18
+            [name] => Стойка стабилизатора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 11
+        )
+
+    [161] => Array
+        (
+            [id] => 274
+            [idParent] => 2
+            [code] => stoyka-stabilizatora-10
+            [sortIndex] => 19
+            [name] => Стойка стабилизатора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 11
+        )
+
+    [162] => Array
+        (
+            [id] => 41
+            [idParent] => 1
+            [code] => radiator-ohlazhdeniya-1
+            [sortIndex] => 19
+            [name] => Радиатор охлаждения
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 5
+        )
+
+    [163] => Array
+        (
+            [id] => 66
+            [idParent] => 46
+            [code] => pruzhina-podveski-1
+            [sortIndex] => 19
+            [name] => Пружина подвески
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 6
+        )
+
+    [164] => Array
+        (
+            [id] => 91
+            [idParent] => 71
+            [code] => saylentblok-rychaga-2
+            [sortIndex] => 19
+            [name] => Сайлентблок рычага
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 3
+        )
+
+    [165] => Array
+        (
+            [id] => 185
+            [idParent] => 165
+            [code] => pruzhina-podveski-6
+            [sortIndex] => 19
+            [name] => Пружина подвески
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 8
+        )
+
+    [166] => Array
+        (
+            [id] => 212
+            [idParent] => 192
+            [code] => pruzhina-podveski-7
+            [sortIndex] => 19
+            [name] => Пружина подвески
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [167] => Array
+        (
+            [id] => 239
+            [idParent] => 219
+            [code] => pruzhina-podveski-8
+            [sortIndex] => 19
+            [name] => Пружина подвески
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 8
+        )
+
+    [168] => Array
+        (
+            [id] => 252
+            [idParent] => 246
+            [code] => vtulka-stabilizatora-9
+            [sortIndex] => 19
+            [name] => Втулка стабилизатора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [169] => Array
+        (
+            [id] => 275
+            [idParent] => 2
+            [code] => vtulka-stabilizatora-10
+            [sortIndex] => 20
+            [name] => Втулка стабилизатора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [170] => Array
+        (
+            [id] => 42
+            [idParent] => 1
+            [code] => shrus-1
+            [sortIndex] => 20
+            [name] => Шрус
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 1
+        )
+
+    [171] => Array
+        (
+            [id] => 67
+            [idParent] => 46
+            [code] => komplekt-scepleniya-2
+            [sortIndex] => 20
+            [name] => Комплект сцепления
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 1
+        )
+
+    [172] => Array
+        (
+            [id] => 186
+            [idParent] => 165
+            [code] => komplekt-scepleniya-6
+            [sortIndex] => 20
+            [name] => Комплект сцепления
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [173] => Array
+        (
+            [id] => 213
+            [idParent] => 192
+            [code] => komplekt-scepleniya-7
+            [sortIndex] => 20
+            [name] => Комплект сцепления
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [174] => Array
+        (
+            [id] => 240
+            [idParent] => 219
+            [code] => komplekt-scepleniya-8
+            [sortIndex] => 20
+            [name] => Комплект сцепления
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [175] => Array
+        (
+            [id] => 253
+            [idParent] => 246
+            [code] => remen-generatora-9
+            [sortIndex] => 20
+            [name] => Ремень генератора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 3
+        )
+
+    [176] => Array
+        (
+            [id] => 276
+            [idParent] => 2
+            [code] => remen-generatora-10
+            [sortIndex] => 21
+            [name] => Ремень генератора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 3
+        )
+
+    [177] => Array
+        (
+            [id] => 36
+            [idParent] => 1
+            [code] => zaschitnyy-komplekt-amortizatora-1
+            [sortIndex] => 21
+            [name] => Защитный комплект амортизатора
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 6
+        )
+
+    [178] => Array
+        (
+            [id] => 68
+            [idParent] => 46
+            [code] => pompa-2
+            [sortIndex] => 21
+            [name] => Помпа
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 1
+        )
+
+    [179] => Array
+        (
+            [id] => 187
+            [idParent] => 165
+            [code] => termostat-5
+            [sortIndex] => 21
+            [name] => Термостат
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 1
+        )
+
+    [180] => Array
+        (
+            [id] => 214
+            [idParent] => 192
+            [code] => termostat-6
+            [sortIndex] => 21
+            [name] => Термостат
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 1
+        )
+
+    [181] => Array
+        (
+            [id] => 241
+            [idParent] => 219
+            [code] => termostat-7
+            [sortIndex] => 21
+            [name] => Термостат
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 1
+        )
+
+    [182] => Array
+        (
+            [id] => 254
+            [idParent] => 246
+            [code] => rolik-remnya-7
+            [sortIndex] => 21
+            [name] => Ролик ремня
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 1
+        )
+
+    [183] => Array
+        (
+            [id] => 277
+            [idParent] => 2
+            [code] => rolik-grm-6
+            [sortIndex] => 22
+            [name] => Ролик ГРМ
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [184] => Array
+        (
+            [id] => 43
+            [idParent] => 1
+            [code] => rychag-podveski-1
+            [sortIndex] => 22
+            [name] => Рычаг подвески
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 6
+        )
+
+    [185] => Array
+        (
+            [id] => 69
+            [idParent] => 46
+            [code] => radiator-ohlazhdeniya-2
+            [sortIndex] => 22
+            [name] => Радиатор охлаждения
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [186] => Array
+        (
+            [id] => 188
+            [idParent] => 165
+            [code] => pompa-7
+            [sortIndex] => 22
+            [name] => Помпа
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [187] => Array
+        (
+            [id] => 215
+            [idParent] => 192
+            [code] => pompa-8
+            [sortIndex] => 22
+            [name] => Помпа
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [188] => Array
+        (
+            [id] => 242
+            [idParent] => 219
+            [code] => pompa-9
+            [sortIndex] => 22
+            [name] => Помпа
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [189] => Array
+        (
+            [id] => 255
+            [idParent] => 246
+            [code] => nakonechnik-rulevoy-tyagi-10
+            [sortIndex] => 22
+            [name] => Наконечник рулевой тяги
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 8
+        )
+
+    [190] => Array
+        (
+            [id] => 278
+            [idParent] => 2
+            [code] => rolik-remnya-8
+            [sortIndex] => 23
+            [name] => Ролик ремня
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [191] => Array
+        (
+            [id] => 44
+            [idParent] => 1
+            [code] => saylentblok-rychaga-1
+            [sortIndex] => 23
+            [name] => Сайлентблок рычага
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [192] => Array
+        (
+            [id] => 70
+            [idParent] => 46
+            [code] => rychag-podveski-2
+            [sortIndex] => 23
+            [name] => Рычаг подвески
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [193] => Array
+        (
+            [id] => 189
+            [idParent] => 165
+            [code] => radiator-ohlazhdeniya-7
+            [sortIndex] => 23
+            [name] => Радиатор охлаждения
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 6
+        )
+
+    [194] => Array
+        (
+            [id] => 216
+            [idParent] => 192
+            [code] => radiator-ohlazhdeniya-8
+            [sortIndex] => 23
+            [name] => Радиатор охлаждения
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 5
+        )
+
+    [195] => Array
+        (
+            [id] => 243
+            [idParent] => 219
+            [code] => radiator-ohlazhdeniya-9
+            [sortIndex] => 23
+            [name] => Радиатор охлаждения
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 3
+        )
+
+    [196] => Array
+        (
+            [id] => 165
+            [idParent] => 1
+            [code] => accent-3-mc
+            [sortIndex] => 24
+            [name] => ACCENT 3 MC
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 26
+            [countGoods] => 0
+        )
+
+    [197] => Array
+        (
+            [id] => 190
+            [idParent] => 165
+            [code] => shrus-3
+            [sortIndex] => 24
+            [name] => Шрус
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 5
+        )
+
+    [198] => Array
+        (
+            [id] => 217
+            [idParent] => 192
+            [code] => shrus-4
+            [sortIndex] => 24
+            [name] => Шрус
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [199] => Array
+        (
+            [id] => 244
+            [idParent] => 219
+            [code] => shrus-5
+            [sortIndex] => 24
+            [name] => Шрус
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 5
+        )
+
+    [200] => Array
+        (
+            [id] => 191
+            [idParent] => 165
+            [code] => rychag-podveski-7
+            [sortIndex] => 25
+            [name] => Рычаг подвески
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [201] => Array
+        (
+            [id] => 192
+            [idParent] => 1
+            [code] => getz
+            [sortIndex] => 25
+            [name] => GETZ
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 26
+            [countGoods] => 0
+        )
+
+    [202] => Array
+        (
+            [id] => 218
+            [idParent] => 192
+            [code] => rychag-podveski-8
+            [sortIndex] => 25
+            [name] => Рычаг подвески
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 2
+        )
+
+    [203] => Array
+        (
+            [id] => 245
+            [idParent] => 219
+            [code] => rychag-podveski-9
+            [sortIndex] => 25
+            [name] => Рычаг подвески
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 0
+            [countGoods] => 4
+        )
+
+    [204] => Array
+        (
+            [id] => 246
+            [idParent] => 1
+            [code] => elantra-hd
+            [sortIndex] => 26
+            [name] => ELANTRA HD
+            [picture] => 
+            [pictureAlt] => 
+            [idModificationGroupDef] => 
+            [description] => 
+            [gcount] => 23
+            [countGoods] => 0
+        )
+
+)
+
+Array
+(
+    [id] => 1
+    [idParent] => 
+    [code] => hyundai
+    [sortIndex] => 0
+    [name] => HYUNDAI
+    [picture] => 
+    [pictureAlt] => 
+    [idModificationGroupDef] => 
+    [description] => 
+    [gcount] => 27
+    [countGoods] => 0
+)
+
+Array
+(
+    [id] => 18
+    [idParent] => 
+    [code] => kia
+    [sortIndex] => 3
+    [name] => KIA
+    [picture] => 
+    [pictureAlt] => 
+    [idModificationGroupDef] => 
+    [description] => 
+    [gcount] => 1
+    [countGoods] => 0
+)
+
+Array
+(
+    [id] => 45
+    [idParent] => 
+    [code] => mitsubishi
+    [sortIndex] => 6
+    [name] => MITSUBISHI
+    [picture] => 
+    [pictureAlt] => 
+    [idModificationGroupDef] => 
+    [description] => 
+    [gcount] => 2
+    [countGoods] => 0
+)
+

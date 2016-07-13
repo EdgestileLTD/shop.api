@@ -178,6 +178,7 @@ class Contact extends Base
 
             foreach ($accounts as $account) {
                 $u = new DB('se_user_account');
+                $account["userId"] = $id;
                 $u->setValuesFields($account);
                 $u->save();
             }

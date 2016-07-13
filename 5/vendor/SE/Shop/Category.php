@@ -12,13 +12,13 @@ class Category extends Base
     protected $sortBy = "position";
     protected $limit = null;
 
-    private function getPlainTree($items, $idParent = null)
+    private function getPlainView($items, $idParent = null)
     {
         $result = array();
         foreach ($items as $item) {
             if ($item["idParent"] == $idParent) {
                 $result[] = $item;
-                $result = array_merge($result, $this->getPlainTree($items, $item["id"]));
+                $result = array_merge($result, $this->getPlainView($items, $item["id"]));
             }
         }
         return $result;
@@ -42,13 +42,25 @@ class Category extends Base
         return $this->getPathName($parent, $items) . "/" . $item["name"];
     }
 
-    private function getGridTree($items)
+    private function getGridView($items)
     {
         foreach ($items as &$item) {
             $item["pathName"] = $this->getPathName($item, $items);
             $item["level"] = substr_count($item["pathName"], "/");
         }
         return $items;
+    }
+
+    private function getTreeView($items, $idParent = null)
+    {
+        $result = array();
+        foreach ($items as $item) {
+            if ($item["idParent"] == $idParent) {
+                $item["childs"] = $this->getTreeView($items, $item["id"]);
+                $result[] = $item;
+            }
+        }
+        return $result;
     }
 
     protected function getSettingsFetch()
@@ -81,17 +93,22 @@ class Category extends Base
     protected function correctValuesBeforeFetch($items = array())
     {
         $result = array();
-        $limit = $this->input["limit"];
-        if ($limit) {
-            $items = $this->getPlainTree($items);
-            $items = $this->getGridTree($items);
-            $count = count($items);
-            $offset = $this->offset;
-            if ($limit > $count)
-                $limit = $count;
-            for ($i = $offset; $i < ($offset + $limit); ++$i)
-                $result[] = $items[$i];
-        } else $result = $items;
+        $isTree = $this->input["isTree"];
+        if ($isTree) {
+            $result = $this->getTreeView($items);
+        } else {
+            $limit = $this->input["limit"];
+            if ($limit) {
+                $items = $this->getPlainView($items);
+                $items = $this->getGridView($items);
+                $count = count($items);
+                $offset = $this->offset;
+                if ($limit > $count)
+                    $limit = $count;
+                for ($i = $offset; $i < ($offset + $limit); ++$i)
+                    $result[] = $items[$i];
+            } else $result = $items;
+        }
         return $result;
     }
 
