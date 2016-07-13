@@ -90,7 +90,7 @@ class Category extends Base
         if (CORE_VERSION == "5.3") {
             $result["select"] = "sg.id, GROUP_CONCAT(CONCAT_WS(':', sgtp.level, sgt.id_parent) SEPARATOR ';') ids_parents,
                 sg.code_gr, sg.position, sg.name, sg.picture imageFile, sg.picture_alt imageAlt, sg.id_modification_group_def,
-                sg.description, sgtp.level level, sgt.id_parent id_parent";
+                sg.description, sgt.level level, sgt.id_parent id_parent";
             $joins[] = array(
                 "type" => "left",
                 "table" => 'shop_group_tree sgt',
@@ -267,7 +267,7 @@ class Category extends Base
         if (CORE_VERSION == "5.3") {
             $filter = array(
                 array("field" => "idParent", "value" => $idParent),
-                array("field" => "level", "value" => (int) $this->result["level"]));
+                array("field" => "level", "value" => ++$this->result["level"]));
             $category = new Category(array("filters" => $filter));
             $result = $category->fetch();
         } else {

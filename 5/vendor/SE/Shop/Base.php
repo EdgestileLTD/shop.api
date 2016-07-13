@@ -143,6 +143,7 @@ class Base
             $u->groupBy();
             $u->orderBy($this->sortBy, $this->sortOrder == 'desc');
             $this->result["items"] = $this->correctValuesBeforeFetch($u->getList($this->limit, $this->offset));
+            writeLog($u->getSql());
             $this->result["count"] = $u->getListCount();
             if (!empty($settingsFetch["aggregation"])) { 
                 if (!empty($settingsFetch["aggregation"]["type"]))
