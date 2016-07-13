@@ -31,4 +31,13 @@ class Review extends Base
         return $this->getSettingsFetch();
     }
 
+    public function fetchByIdProduct($idProduct)
+    {
+        if (!$idProduct)
+            return array();
+
+        $this->setFilters(array("field" => "idPrice", "value" => $idProduct));
+        return $this->fetch();
+    }
+
 }

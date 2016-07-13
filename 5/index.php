@@ -97,9 +97,9 @@ if ($token) {
         exit;
     }
     $coreVersion = "5.1";
-    $verFile = IS_EXT ? 'lib/version' : PATH_ROOT . $json->hostname . '/public_html/lib/version';
-    if (file_exists($ver_file)) {
-        $coreVersion = trim(file_get_contents($ver_file));
+    $verFile = DOCUMENT_ROOT . "/lib/version";
+    if (file_exists($verFile)) {
+        $coreVersion = trim(file_get_contents($verFile));
         $coreVersion = explode(':', $coreVersion);        
         $coreVersion = $coreVersion[1];
     }

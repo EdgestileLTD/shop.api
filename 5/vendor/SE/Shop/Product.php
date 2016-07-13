@@ -175,9 +175,14 @@ class Product extends Base
 
 	public function getComments($idProduct = null)
 	{
+		$id = $idProduct ? $idProduct : $this->input["id"];		
+		return (new Comment())->fetchByIdProduct($id);
+	}
+
+	public function getReviews($idProduct = null)
+	{
 		$id = $idProduct ? $idProduct : $this->input["id"];
-		$comment = new Comment();
-		return $comment->fetchByIdProduct($id);
+		return (new Review())->fetchByIdProduct($id);
 	}
 
 	public function getCrossGroups($idProduct = null)
@@ -341,6 +346,7 @@ class Product extends Base
 		$result["similarProducts"] = $this->getSimilarProducts();
 		$result["accompanyingProducts"] = $this->getAccompanyingProducts();
 		$result["comments"] = $this->getComments();
+		$result["reviews"] = $this->getReviews();
         $result["discounts"] = $this->getDiscounts();
 		$result["crossGroups"] = $this->getCrossGroups();
 		$result["modifications"] = $this->getModifications();
@@ -602,6 +608,35 @@ class Product extends Base
         }
     }
 
+	private function saveReviews()
+	{
+		try {
+			$idsProducts = $this->input["ids"];
+			$reviews = $this->input["reviews"];
+			$idsStr = implode(",", $idsProducts);
+			$idsExists = array();
+			foreach ($reviews as $review)
+				if ($review["id"])
+					$idsExists[] = $review["id"];
+			$idsExists = implode(",", $idsExists);
+			$u = new DB('shop_reviews');
+			if (!$idsExists)
+				$u->where('id_price IN (?)', $idsStr)->deleteList();
+			else $u->where("NOT id IN ({$idsExists}) AND id_price IN (?)", $idsStr)->deleteList();
+			foreach ($reviews as $review) {
+				foreach ($idsProducts as $idProduct) {
+					$review["idPrice"] = $idProduct;
+					$u = new DB('shop_reviews');
+					$u->setValuesFields($review);
+					$u->save();
+				}
+			}
+		} catch (Exception $e) {
+			$this->error = "Не удаётся сохранить отзывы товара!";
+			throw new Exception($this->error);
+		}
+	}
+
     private function saveCrossGroups()
     {
         try {
@@ -759,7 +794,7 @@ class Product extends Base
 
     protected function saveAddInfo()
 	{
-        if (!$this->input["ids"])
+		if (!$this->input["ids"])
             return false;
 
         $this->saveImages();
@@ -767,6 +802,7 @@ class Product extends Base
         $this->saveSimilarProducts();
 		$this->saveAccompanyingProducts();
         $this->saveComments();
+		$this->saveReviews();
         $this->saveCrossGroups();
         $this->saveDiscounts();
         $this->saveModifications();

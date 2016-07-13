@@ -12,7 +12,7 @@ class Category extends Base
     protected $sortBy = "position";
     protected $limit = null;
 
-    private function getPlainView($items, $idParent = null)
+    public function getPlainView($items, $idParent = null)
     {
         $result = array();
         foreach ($items as $item) {
@@ -42,7 +42,7 @@ class Category extends Base
         return $this->getPathName($parent, $items) . "/" . $item["name"];
     }
 
-    private function getGridView($items)
+    public function getGridView($items)
     {
         foreach ($items as &$item) {
             $item["pathName"] = $this->getPathName($item, $items);
@@ -63,12 +63,34 @@ class Category extends Base
         return $result;
     }
 
+    private function setIdMainParent($items)
+    {
+        $result = array();
+        foreach ($items as $item) {
+            if ($item['idsParents']) {
+                $idsLevels = explode(";", $item['idsParents']);
+                $idParent = 0;
+                $level = 0;
+                foreach ($idsLevels as $idLevel) {
+                    $ids = explode(":", $idLevel);
+                    if ($ids[0] >= $level) {
+                        $idParent = $ids[1];
+                        $level = $ids[0];
+                    }
+                }
+                $item['idParent'] = $idParent;
+            }
+            $result[] = $item;
+        }
+        return $result;
+    }
+
     protected function getSettingsFetch()
     {
         if (CORE_VERSION == "5.3") {
             $result["select"] = "sg.id, GROUP_CONCAT(CONCAT_WS(':', sgtp.level, sgt.id_parent) SEPARATOR ';') ids_parents,
-                sg.code_gr, sg.position, sg.name, sg.picture, sg.picture_alt, sg.id_modification_group_def,
-                sg.description, sgt.id_parent";
+                sg.code_gr, sg.position, sg.name, sg.picture imageFile, sg.picture_alt imageAlt, sg.id_modification_group_def,
+                sg.description, sgtp.level level, sgt.id_parent id_parent";
             $joins[] = array(
                 "type" => "left",
                 "table" => 'shop_group_tree sgt',
@@ -82,7 +104,7 @@ class Category extends Base
             $result["joins"] = $joins;
         } else {
             $result["select"] = "sg.id, sg.upid id_parent, sg.code_gr code, 
-                sg.position sort_index, sg.name, sg.picture, sg.picture_alt, 
+                sg.position sort_index, sg.name, sg.picture imageFile, sg.picture_alt imageAlt, 
                 sg.id_modification_group_def,
                 sg.description, (SELECT COUNT(*) FROM `shop_group` WHERE upid = sg.id) gcount,
                 (SELECT COUNT(*) FROM `shop_price` WHERE sg.id = id_group) count_goods";
@@ -90,25 +112,18 @@ class Category extends Base
         return $result;
     }
 
+    protected function getSettingsInfo()
+    {
+        return $this->getSettingsFetch();
+    }
+
     protected function correctValuesBeforeFetch($items = array())
     {
-        $result = array();
-        $isTree = $this->input["isTree"];
-        if ($isTree) {
+        if (CORE_VERSION == "5.3")
+            $items = $this->setIdMainParent($items);
+        if ($this->input["isTree"])
             $result = $this->getTreeView($items);
-        } else {
-            $limit = $this->input["limit"];
-            if ($limit) {
-                $items = $this->getPlainView($items);
-                $items = $this->getGridView($items);
-                $count = count($items);
-                $offset = $this->offset;
-                if ($limit > $count)
-                    $limit = $count;
-                for ($i = $offset; $i < ($offset + $limit); ++$i)
-                    $result[] = $items[$i];
-            } else $result = $items;
-        }
+        else $result = $this->getGridView($items);
         return $result;
     }
 
@@ -238,8 +253,8 @@ class Category extends Base
             if (empty($filter['name']))
                 $filter['name'] = $this->translate($item['defaultFilter']);
             $filter['code'] = $item['defaultFilter'];
-            $filter['sortIndex'] = (int) $item['sort'];
-            $filter['isActive'] = (bool) $item['expanded'];
+            $filter['sortIndex'] = (int)$item['sort'];
+            $filter['isActive'] = (bool)$item['expanded'];
             $result[] = $filter;
         }
         return $result;
@@ -249,9 +264,18 @@ class Category extends Base
     protected function getChilds()
     {
         $idParent = $this->input["id"];
-        $filter = array("field" => "idParent", "value" => $idParent);
-        $category = new Category(array("filters" => $filter));
-        return $category->fetch();
+        if (CORE_VERSION == "5.3") {
+            $filter = array(
+                array("field" => "idParent", "value" => $idParent),
+                array("field" => "level", "value" => (int) $this->result["level"]));
+            $category = new Category(array("filters" => $filter));
+            $result = $category->fetch();
+        } else {
+            $filter = array("field" => "idParent", "value" => $idParent);
+            $category = new Category(array("filters" => $filter));
+            $result = $category->fetch();
+        }
+        return $result;
     }
 
     protected function getAddInfo()
@@ -402,15 +426,46 @@ class Category extends Base
                     if ($filter["id"] || !empty($filter["code"]))
                         $data[] = array('id_group' => $idGroup, 'id_feature' => $filter["id"],
                             'default_filter' => $filter["code"], 'expanded' => (int)$filter["isActive"],
-                            'sort' => (int) $filter["sortIndex"]);
+                            'sort' => (int)$filter["sortIndex"]);
             }
-            if (!empty($data)) {                
+            if (!empty($data)) {
                 DB::insertList('shop_group_filter', $data);
             }
         } catch (Exception $e) {
             $this->error = "Не удаётся сохранить фильтры параметров!";
             throw new Exception($this->error);
         }
+    }
+
+    private function getUrl($code, $id)
+    {
+        $code_n = $code;
+        $id = (int)$id;
+        $u = new DB('shop_group', 'sg');
+        $i = 1;
+        while ($i < 1000) {
+            $data = $u->findList("sg.code_gr = '$code_n' AND id <> {$id}")->fetchOne();
+            if ($data["id"])
+                $code_n = $code . "-$i";
+            else return $code_n;
+            $i++;
+        }
+        return uniqid();
+    }
+
+    protected function correctValuesBeforeSave()
+    {
+        if (!$this->input["id"] && !$this->input["ids"] || isset($this->input["code"])) {
+            if (empty($this->input["code"]))
+                $this->input["code"] = strtolower(se_translite_url($this->input["name"]));
+            $this->input["codeGr"] = $this->getUrl($this->input["code"], $this->input["id"]);
+        }
+        if (isset($this->input["idParent"]))
+            $this->input["upid"] = $this->input["idParent"];
+        if (isset($this->input["imageFile"]))
+            $this->input["picture"] = $this->input["imageFile"];
+        if (isset($this->input["sortIndex"]))
+            $this->input["position"] = $this->input["sortIndex"];
     }
 
     protected function saveAddInfo()
@@ -423,7 +478,7 @@ class Category extends Base
         $this->saveImages();
         $this->saveLinksGroups();
         $this->saveParametersFilters();
-        
+
         return true;
     }
 }

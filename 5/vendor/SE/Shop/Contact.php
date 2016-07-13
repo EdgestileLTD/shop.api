@@ -256,6 +256,8 @@ class Contact extends Base
                 if ($isNew)
                     $this->input["regDate"] = date("Y-m-d H:i:s");
                 $this->input["id"] = $ids[0];
+                if (isset($this->input["imageFile"]))
+                    $this->input["avatar"] = $this->input["imageFile"];
                 $u = new DB('person', 'p');
                 $u->setValuesFields($this->input);
                 $id = $u->save($isNew);

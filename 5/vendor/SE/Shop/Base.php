@@ -43,7 +43,8 @@ class Base
         $this->search = $input["searchText"] ? $input["searchText"] : null;
         $this->filters = empty($this->input["filters"]) || !is_array($this->input["filters"]) ?
             array() : $this->input["filters"];
-
+        $this->input["ids"] = empty($this->input["ids"]) ?
+            (empty($this->input["id"]) ? null : array($this->input["id"])) : $this->input["ids"];
         if (empty($this->tableAlias) && !empty($this->tableName)) {
             $worlds = explode("_", $this->tableName);
             foreach ($worlds as $world)
