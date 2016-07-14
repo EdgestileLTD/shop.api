@@ -7,6 +7,7 @@ use SE\DB as DB;
 class SeoVariable extends Base
 {
     protected $tableName = "shop_variables";
+    protected $limit = null;
 
     public function fetch()
     {
@@ -72,12 +73,10 @@ class SeoVariable extends Base
         }
 
         $u = new DB('shop_variables', 'sv');
-        $u->select('sv.*');
         $u->orderBy('name');
-
         $objects = $u->getList();
         foreach ($objects as $item) {
-            $var = null;
+            $var = $item;
             $var['name'] = '{' . $item['name'] . '}';
             $var['note'] = $item['value'];
             $var['isDynamic'] = true;
@@ -87,5 +86,10 @@ class SeoVariable extends Base
         $this->result['items'] = $vars;
 
         return $vars;
+    }
+
+    protected function correctValuesBeforeSave()
+    {
+        $this->input["name"] = trim(trim($this->input["name"], "}"), "{");
     }
 }

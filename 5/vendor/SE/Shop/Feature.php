@@ -2,7 +2,6 @@
 
 namespace SE\Shop;
 
-
 class Feature extends Base
 {
     protected $tableName = "shop_feature";

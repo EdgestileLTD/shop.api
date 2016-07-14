@@ -143,7 +143,6 @@ class Base
             $u->groupBy();
             $u->orderBy($this->sortBy, $this->sortOrder == 'desc');
             $this->result["items"] = $this->correctValuesBeforeFetch($u->getList($this->limit, $this->offset));
-            writeLog($u->getSql());
             $this->result["count"] = $u->getListCount();
             if (!empty($settingsFetch["aggregation"])) { 
                 if (!empty($settingsFetch["aggregation"]["type"]))
@@ -208,6 +207,8 @@ class Base
             $u = new DB($this->tableName);
             $u->setValuesFields($this->input);
             $this->input["id"] = $u->save();
+            if (empty($this->input["ids"]) && $this->input["id"])
+                $this->input["ids"] = array($this->input["id"]);
             if ($this->input["id"] && $this->saveAddInfo()) {
                 $this->info();
                 DB::commit();
