@@ -809,4 +809,10 @@ class Product extends Base
 
 		return true;
 	}
+	
+	public function export()
+	{
+		
+	}
+
 }

@@ -4,6 +4,9 @@ namespace SE\Shop;
 
 use SE\DB as DB;
 use SE\Exception;
+use \PHPExcel as PHPExcel;
+use \PHPExcel_Writer_Excel2007 as PHPExcel_Writer_Excel2007;
+use \PHPExcel_Style_Fill as PHPExcel_Style_Fill;
 
 class Contact extends Base
 {
@@ -292,6 +295,81 @@ class Contact extends Base
             $this->error = empty($this->error) ? "Не удаётся сохранить контакт!" : $this->error;
         }
 
+    }
+
+    public function export()
+    {
+        $this->exportItem();
+    }
+
+    private function exportItem()
+    {
+        $idContact = $this->input["id"];
+        if (!$idContact) {
+            $this->result = "Отсутствует параметр: id контакта!";
+            return;
+        }
+        if (!class_exists("PHPExcel")) {
+            $this->result = "Отсутствуют необходимые библиотеки для экспорта!";
+            return;
+        }
+
+        $contact = new Contact();
+        $contact = $contact->info($idContact);
+        $fileName = "export_person_{$idContact}.xlsx";
+        $filePath = DOCUMENT_ROOT . "/files";
+        if (!file_exists($filePath) || !is_dir($filePath))
+            mkdir($filePath);
+        $filePath .= "/{$fileName}";
+        $urlFile = 'http://' . HOSTNAME . "/files/{$fileName}";
+
+        $xls = new PHPExcel();
+        $xls->setActiveSheetIndex(0);
+        $sheet = $xls->getActiveSheet();
+        $sheet->setTitle('Контакт ' . $contact["displayName"] ? $contact["displayName"] : $contact["id"]);
+        $sheet->setCellValue("A1", 'Ид. № ' . $contact["id"]);
+        $sheet->getStyle('A1')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID);
+        $sheet->getStyle('A1')->getFill()->getStartColor()->setRGB('EEEEEE');
+        $sheet->mergeCells('A1:B1');
+        $sheet->getColumnDimension('A')->setWidth(20);
+        $sheet->getColumnDimension('B')->setWidth(50);
+        $sheet->setCellValue("A2", 'Ф.И.О.');
+        $sheet->setCellValue("B2", $contact["fullName"]);
+        $sheet->setCellValue("A3", 'Телефон:');
+        $sheet->setCellValue("B3", $contact["phone"]);
+        $i = 4;
+        if ($contact["email"]) {
+            $sheet->setCellValue("A$i", 'Эл. почта:');
+            $sheet->setCellValue("B$i", $contact["email"]);
+            $i++;
+        }
+        if ($contact["country"]) {
+            $sheet->setCellValue("A$i", 'Страна:');
+            $sheet->setCellValue("B$i", $contact["country"]);
+            $i++;
+        }
+        if ($contact["city"]) {
+            $sheet->setCellValue("A$i", 'Город:');
+            $sheet->setCellValue("B$i", $contact["city"]);
+            $i++;
+        }
+        $sheet->setCellValue("A$i", 'Адрес:');
+        $sheet->setCellValue("B$i", $contact["address"]);
+        $i++;
+        if ($contact["docSer"]) {
+            $sheet->setCellValue("A$i", 'Документ:');
+            $sheet->setCellValue("B$i", $contact["docSer"] . " " . $contact["docNum"] . " " . $contact["docRegistr"]);
+        }
+
+        $sheet->getStyle('A1:B10')->getFont()->setSize(20);
+        $objWriter = new PHPExcel_Writer_Excel2007($xls);
+        $objWriter->save($filePath);
+
+        if (file_exists($filePath) && filesize($filePath)) {
+            $this->result['url'] = $urlFile;
+            $this->result['name'] = $fileName;
+        }
+        else $this->result = "Не удаётся экспортировать данные контакта!";
     }
 
 }

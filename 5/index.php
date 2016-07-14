@@ -1,6 +1,9 @@
 <?php
 
 define("CRYPT_KEY", "7YyDfvsH5mfdu8zkFppYczgMmpXWgBf08kmeT3xluEt4BTW1oIK6zCyvJhNTPYUi");
+$allowedMethods = array('FETCH', 'POST', 'DELETE', 'SAVE', 'INFO', 'GET', 'ADDPRICE', 'TRANSLIT', 'UPLOAD',
+        'CHECKNAMES', 'SORT', 'EXPORT', 'IMPORT');
+$allowedMethods = implode(",", $allowedMethods);
 
 function cryptDecodeStr($encrypted)
 {
@@ -42,9 +45,13 @@ if (IS_EXT) {
     define('SE_INDEX_INCLUDED', true);
     require_once 'system/main/init.php';
     require_once 'api/update.php';
+    require_once 'lib/PHPExcel.php';
+    require_once 'lib/PHPExcel/Writer/Excel2007.php';
 } else {
     require_once '/home/e/edgestile/admin/home/siteedit/lib/function.php';
     require_once '/home/e/edgestile/admin/home/siteedit/lib/lib_function.php';
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel.php';
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel/Writer/Excel2007.php';
 }
 
 require_once API_ROOT . "vendor/autoload.php";
@@ -63,7 +70,7 @@ if (!empty($origin)) {
             header("Access-Control-Allow-Origin: http://localhost:1337");
         header("Access-Control-Allow-Credentials: true");
         header("Access-Control-Allow-Headers: Token, Secookie");
-        header("Access-Control-Allow-Methods: FETCH, POST, DELETE, SAVE, INFO, GET, ADDPRICE, TRANSLIT, UPLOAD, CHECKNAMES, SORT");
+        header("Access-Control-Allow-Methods: $allowedMethods");
     }
     if ($apiMethod == "OPTIONS")
         exit;
