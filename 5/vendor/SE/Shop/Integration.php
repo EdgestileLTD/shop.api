@@ -92,6 +92,7 @@ class Integration extends Base
         $data = array();
         foreach ($parameters as $parameter) {
             if ($parameter["id"] > 0) {
+                $u = new DB('shop_integration_parameter', 'sip');
                 $u->setValuesFields($parameter);
                 $u->save();
             } else $data[] = array("code" => $parameter["code"], "value" => $parameter["value"]);
