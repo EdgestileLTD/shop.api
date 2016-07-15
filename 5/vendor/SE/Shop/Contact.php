@@ -16,7 +16,7 @@ class Contact extends Base
     {
         return array(
             "select" => 'p.*, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) display_name,                
-                su.username, su.password, (su.is_active = "Y") is_active',
+                su.username username, su.password, (su.is_active = "Y") is_active',
             "joins" => array(
                 array(
                     "type" => "inner",

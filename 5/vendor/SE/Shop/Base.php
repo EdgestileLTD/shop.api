@@ -132,10 +132,10 @@ class Base
         try {
             $u = $this->createTableForInfo($settingsFetch);
             $searchFields = $u->getFields();
-            if (!empty($patterns)) {
-                $this->sortBy = key_exists($this->sortBy, $patterns) ?
-                    $patterns[$this->sortBy] : $this->sortBy;
-                foreach ($patterns as $key => $field)
+            if (!empty($this->patterns)) {
+                $this->sortBy = key_exists($this->sortBy, $this->patterns) ?
+                    $this->patterns[$this->sortBy] : $this->sortBy;
+                foreach ($this->patterns as $key => $field)
                     $searchFields[$key] = array("Field" => $field, "Type" => "text");
             }
             if (!empty($this->search) || !empty($this->filters))
@@ -289,6 +289,7 @@ class Base
         foreach ($searchFields as $field) {
             if (strpos($field["Field"], ".") === false)
                 $field["Field"] = $this->tableAlias . "." . $field["Field"];
+            $time = strtotime($searchItem);
             // текст
             if ((strpos($field["Type"], "char") !== false) || (strpos($field["Type"], "text") !== false)) {
                 $result[] = "{$field["Field"]} LIKE '%{$searchItem}%'";
@@ -296,17 +297,33 @@ class Base
             }
             // дата
             if ($field["Type"] == "date") {
-                $searchItem = date("Y-m-d", strtotime($searchItem));
-                $result[] = "{$field["Field"]} = '$searchItem'";
+                if ($time) {
+                    $searchItem = date("Y-m-d", $time);
+                    $result[] = "{$field["Field"]} = '$searchItem'";
+                }
                 continue;
             }
             // время
             if ($field["Type"] == "time") {
-                $searchItem = date("H:m:s", strtotime($searchItem));
-                $result[] = "{$field["Field"]} = '$searchItem'";
+                if ($time) {
+                    $searchItem = date("H:i:s", $time);
+                    $result[] = "{$field["Field"]} = '$searchItem'";
+                }
                 continue;
             }
-            $result[] = "{$field["Field"]} = '{$searchItem}'";
+            // дата и время
+            if ($field["Type"] == "datetime") {
+                if ($time) {
+                    $searchItem = date("Y-m-d H:i:s", $time);
+                    $result[] = "{$field["Field"]} = '$searchItem'";
+                }
+                continue;
+            }
+            // число
+            if (strpos($field["Type"], "int") !== false && is_int($searchItem)) {
+                $result[] = "{$field["Field"]} = {$searchItem}";
+                continue;
+            }
         }
         return implode(" OR ", $result);
     }
