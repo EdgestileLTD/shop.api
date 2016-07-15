@@ -11,18 +11,7 @@ class Category extends Base
     protected $sortOrder = "asc";
     protected $sortBy = "position";
     protected $limit = null;
-
-    public function getPlainView($items, $idParent = null)
-    {
-        $result = array();
-        foreach ($items as $item) {
-            if ($item["idParent"] == $idParent) {
-                $result[] = $item;
-                $result = array_merge($result, $this->getPlainView($items, $item["id"]));
-            }
-        }
-        return $result;
-    }
+    protected $allowedSearch = false;
 
     private function getParentItem($item, $items)
     {
@@ -39,16 +28,21 @@ class Category extends Base
         $parent = $this->getParentItem($item, $items);
         if (!$parent)
             return $item["name"];
-        return $this->getPathName($parent, $items) . "/" . $item["name"];
+        return $this->getPathName($parent, $items) . " / " . $item["name"];
     }
 
-    public function getGridView($items)
+    public function getPatches($items)
     {
-        foreach ($items as &$item) {
-            $item["pathName"] = $this->getPathName($item, $items);
-            $item["level"] = substr_count($item["pathName"], "/");
+        $result = array();
+        $search = strtolower($this->input["searchText"]);
+        foreach ($items as $item) {
+            if (empty($search) || mb_strpos(strtolower($item["name"]), $search) !== false) {
+                $item["name"] = $this->getPathName($item, $items);
+                $item["level"] = substr_count($item["name"], "/");
+                $result[] = $item;
+            }
         }
-        return $items;
+        return $result;
     }
 
     private function getTreeView($items, $idParent = null)
@@ -121,9 +115,9 @@ class Category extends Base
     {
         if (CORE_VERSION == "5.3")
             $items = $this->setIdMainParent($items);
-        if ($this->input["isTree"])
+        if ($this->input["isTree"] && empty($this->input["searchText"]))
             $result = $this->getTreeView($items);
-        else $result = $this->getGridView($items);
+        else $result = $this->getPatches($items);
         return $result;
     }
 

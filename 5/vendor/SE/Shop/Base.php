@@ -28,6 +28,7 @@ class Base
     protected $tableAlias;
     protected $imageSize = 256;
     protected $imagePreviewSize = 64;
+    protected $allowedSearch = true;
     protected $availableSigns = array("=", "<=", "<", ">", ">=", "IN");
 
     private $patterns = array();
@@ -40,7 +41,7 @@ class Base
         $this->offset = $input["offset"] ? (int)$input["offset"] : $this->offset;
         $this->sortOrder = $input["sortOrder"] ? $input["sortOrder"] : $this->sortOrder;
         $this->sortBy = $input["sortBy"] ? $input["sortBy"] : $this->sortBy;
-        $this->search = $input["searchText"] ? $input["searchText"] : null;
+        $this->search = $input["searchText"] && $this->allowedSearch ? $input["searchText"] : null;
         $this->filters = empty($this->input["filters"]) || !is_array($this->input["filters"]) ?
             array() : $this->input["filters"];
         $this->input["ids"] = empty($this->input["ids"]) ?
