@@ -37,15 +37,15 @@ class Base
     {
         $input = $this->input = empty($input) || is_array($input) ? $input : json_decode($input, true);
         $this->hostname = HOSTNAME;
-        $this->limit = $input["limit"] && $this->limit ? (int) $input["limit"] : $this->limit;
+        $this->limit = $input["limit"] && $this->limit ? (int)$input["limit"] : $this->limit;
         $this->offset = $input["offset"] ? (int)$input["offset"] : $this->offset;
         $this->sortOrder = $input["sortOrder"] ? $input["sortOrder"] : $this->sortOrder;
         $this->sortBy = $input["sortBy"] ? $input["sortBy"] : $this->sortBy;
         $this->search = $input["searchText"] && $this->allowedSearch ? $input["searchText"] : null;
         $this->filters = empty($this->input["filters"]) || !is_array($this->input["filters"]) ?
             array() : $this->input["filters"];
-        $this->input["ids"] = empty($this->input["ids"]) ?
-            (empty($this->input["id"]) ? null : array($this->input["id"])) : $this->input["ids"];
+        if (!empty($this->input["id"]) && empty($this->input["ids"]))
+            $this->input["ids"] = array($this->input["id"]);
         if (empty($this->tableAlias) && !empty($this->tableName)) {
             $worlds = explode("_", $this->tableName);
             foreach ($worlds as $world)
@@ -145,7 +145,7 @@ class Base
             $u->orderBy($this->sortBy, $this->sortOrder == 'desc');
             $this->result["items"] = $this->correctValuesBeforeFetch($u->getList($this->limit, $this->offset));
             $this->result["count"] = $u->getListCount();
-            if (!empty($settingsFetch["aggregation"])) { 
+            if (!empty($settingsFetch["aggregation"])) {
                 if (!empty($settingsFetch["aggregation"]["type"]))
                     $settingsFetch["aggregation"] = array($settingsFetch["aggregation"]);
                 foreach ($settingsFetch["aggregation"] as $aggregation) {
@@ -230,7 +230,7 @@ class Base
             $sortIndexes = $this->input["indexes"];
             foreach ($sortIndexes as $index) {
                 $u = new DB($this->tableName);
-                $index["position"] = $index["sort"];                
+                $index["position"] = $index["sort"];
                 $u->setValuesFields($index);
                 $u->save();
             }
@@ -377,5 +377,60 @@ class Base
         }
         return $query;
     }
- 
+
+    public function getArrayFromCsv($file, $csvSeparator = ";")
+    {
+        if (!file_exists($file))
+            return null;
+
+        $result = array();
+        if (($handle = fopen($file, "r")) !== FALSE) {
+            $i = 0;
+            $keys = array();
+            while (($row = fgetcsv($handle, 10000, $csvSeparator)) !== FALSE) {
+                if (!$i) {
+                    foreach ($row as &$item)
+                        $keys[] = iconv('CP1251', 'utf-8', $item);
+                } else {
+                    $object = array();
+                    $j = 0;
+                    foreach ($row as &$item) {
+                        $object[$keys[$j]] = iconv('CP1251', 'utf-8', $item);
+                        $j++;
+                    }
+                    $result[] = $object;
+                }
+                $i++;
+            }
+            fclose($handle);
+        }
+        return $result;
+    }
+
+    public function post()
+    {
+        $countFiles = count($_FILES);
+        $ups = 0;
+        $items = array();
+        $dir = DOCUMENT_ROOT . "/files";
+        if (!file_exists($dir) || !is_dir($dir))
+            mkdir($dir);
+
+        for ($i = 0; $i < $countFiles; $i++) {
+            $file = empty($_FILES["file"]) ? $_FILES["file$i"]['name'] : $_FILES["file"]['name'];
+            $uploadFile = $dir . '/' . $file;
+            $fileTemp = $_FILES["file$i"]['tmp_name'];
+            $urlFile = 'http://' . HOSTNAME . "/files/{$file}";
+            if (!filesize($fileTemp) || move_uploaded_file($fileTemp, $uploadFile)) {
+                $items[] = array("url" => $urlFile, "name" => $file);
+                $ups++;
+            }
+        }
+        if ($ups == $countFiles)
+            $this->result['items'] = $items;
+        else $this->error = "Не удается загрузить файлы!";
+
+        return $items;
+    }
+
 }

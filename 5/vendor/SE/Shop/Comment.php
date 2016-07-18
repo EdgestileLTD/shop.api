@@ -18,6 +18,11 @@ class Comment extends Base
         );
     }
 
+    protected function getSettingsInfo()
+    {
+        return $this->getSettingsFetch();
+    }
+
     public function fetchByIdProduct($idProduct)
     {
         if (!$idProduct)

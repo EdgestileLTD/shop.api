@@ -157,6 +157,13 @@ class Order extends Base
         return (new Payment())->fetchByOrder($this->input["id"]);        
     }
 
+    protected function correctValuesBeforeSave()
+    {
+        if (empty($this->input["id"]))
+            $this->input["dateOrder"] = date("Y-m-d");
+        return true;
+    }
+
     protected function saveAddInfo()
     {
         $this->saveItems();
@@ -241,6 +248,19 @@ class Order extends Base
         $u = new DB('shop_delivery', 'sd');
         $u->setValuesFields($input);
         $u->save();
+    }
+
+    public function delete()
+    {
+        try {
+            $input = $this->input;
+            $input["isDelete"] = "Y";
+            $u = new DB('shop_order', 'so');
+            $u->setValuesFields($input);
+            $u->save();
+        } catch (Exception $e) {
+            $this->error = "Не удаётся отменить заказ!";
+        }
     }
 
 }

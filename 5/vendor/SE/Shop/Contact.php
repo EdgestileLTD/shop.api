@@ -225,10 +225,11 @@ class Contact extends Base
         }
     }
 
-    public function save()
+    public function save($contact = null)
     {
-
         try {
+            if ($contact)
+                $this->input = $contact;
             DB::beginTransaction();
 
             $ids = array();
@@ -299,7 +300,48 @@ class Contact extends Base
 
     public function export()
     {
-        $this->exportItem();
+        if (!empty($this->input["id"])) {
+            $this->exportItem();
+            return;
+        }
+
+        $fileName = "export_persons.csv";
+        $filePath = DOCUMENT_ROOT . "/files";
+        if (!file_exists($filePath) || !is_dir($filePath))
+            mkdir($filePath);
+        $filePath .= "/{$fileName}";
+        $fp = fopen($filePath, 'w');
+        $urlFile = 'http://' . HOSTNAME . "/files/{$fileName}";
+
+        $header = array();
+        $u = new DB('person', 'p');
+        $u->select('p.reg_date regDateTime, su.username, p.last_name, p.first_name Name, p.sec_name patronymic, 
+            p.sex gender, p.birth_date, p.email, p.phone, p.note');
+        $u->innerJoin('se_user su', 'p.id = su.id');
+        $u->leftJoin('se_user_group sug', 'p.id = sug.user_id');
+        $u->groupBy('p.id');
+        $u->orderBy('p.id');
+        $contacts = $u->getList();
+        foreach ($contacts as $contact) {
+            if (!$header) {
+                $header = array_keys($contact);
+                $headerCSV = array();
+                foreach ($header as $col) {
+                    $headerCSV[] = iconv('utf-8', 'CP1251', $col);
+                }
+                $list[] = $header;
+                fputcsv($fp, $headerCSV, ";");
+            }
+            $out = array();
+            foreach ($contact as $r)
+                $out[] = iconv('utf-8', 'CP1251', $r);
+            fputcsv($fp, $out, ";");
+        }
+        fclose($fp);
+        if (file_exists($filePath) && filesize($filePath)) {
+            $this->result['url'] = $urlFile;
+            $this->result['name'] = $fileName;
+        } else $this->result = "Не удаётся экспортировать контакты!";
     }
 
     private function exportItem()
@@ -368,8 +410,22 @@ class Contact extends Base
         if (file_exists($filePath) && filesize($filePath)) {
             $this->result['url'] = $urlFile;
             $this->result['name'] = $fileName;
-        }
-        else $this->result = "Не удаётся экспортировать данные контакта!";
+        } else $this->result = "Не удаётся экспортировать данные контакта!";
+    }
+
+    public function post()
+    {
+        if ($items = parent::post())
+            $this->import($items[0]["name"]);
+    }
+
+    public function import($fileName)
+    {
+        $dir = DOCUMENT_ROOT . "/files";
+        $filePath = $dir . "/{$fileName}";
+        $contacts = $this->getArrayFromCsv($filePath);
+        foreach ($contacts as $contact)
+            $this->save($contact);
     }
 
 }

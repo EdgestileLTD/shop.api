@@ -494,9 +494,12 @@ class DB
         $isInsert = !key_exists("id", $this->dataValues) && empty($this->whereDefinitions);
         $isInsert = $isInsert || $isInsertId && key_exists("id", $this->dataValues);
         if ($isInsert && key_exists("id", $this->dataValues) && !empty($this->dataValues["id"])) {
+            $values = $this->dataValues;
             $object = $this->getInfo($this->dataValues["id"]);
             $this->whereDefinitions = null;
             $isInsert = is_null($object);
+            if ($isInsert)
+                $this->dataValues = $values;
         }
         $values = $this->getValuesString($isInsert, $isInsertId);
         if (empty($values)) {
@@ -518,7 +521,7 @@ class DB
 
         try {
             $sql = implode($query, " ");
-            self::$lastQuery = $this->rawQuery = $sql;            
+            self::$lastQuery = $this->rawQuery = $sql;
             $stmt = self::$dbh->prepare($sql);
             $this->bindValues($stmt);
             if ($stmt->execute()) {
