@@ -168,6 +168,7 @@ class Order extends Base
     {
         $this->saveItems();
         $this->saveDelivery();
+        $this->savePayments();
         return true;
     }
 
@@ -248,6 +249,12 @@ class Order extends Base
         $u = new DB('shop_delivery', 'sd');
         $u->setValuesFields($input);
         $u->save();
+    }
+
+    private function savePayments()
+    {
+        $payments = $this->input["payments"];
+        writeLog($payments);
     }
 
     public function delete()

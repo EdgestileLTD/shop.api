@@ -809,10 +809,228 @@ class Product extends Base
 
 		return true;
 	}
-	
-	public function export()
+
+	private function getGroup($groups, $idGroup)
 	{
-		
+		if (!$idGroup)
+			return;
+
+		foreach ($groups as $group) {
+			if ($group["id"] == $idGroup) {
+				if ($group['upid'])
+					return getGroup($groups, $group['upid']) . "/" . $group["name"];
+				else return $group["name"];
+			}
+		}
 	}
 
+	private function getGroup53($groups, $idGroup)
+	{
+		if (!$idGroup)
+			return;
+
+		foreach ($groups as $group) {
+			if ($group["id"] == $idGroup)
+				return $group["name"];
+		}
+	}
+
+	public function export()
+	{
+		$fileName = "export_products.csv";
+		$filePath = DOCUMENT_ROOT . "/files";
+		if (!file_exists($filePath) || !is_dir($filePath))
+			mkdir($filePath);
+		$filePath .= "/{$fileName}";
+		$fp = fopen($filePath, 'w');
+		$urlFile = 'http://' . HOSTNAME . "/files/{$fileName}";
+
+		$limit = 1000;
+		$offset = 0;
+
+		$u = new DB('shop_price', 'sp');
+		$u->select('COUNT(*) `count`');
+		$result = $u->getList();
+		$count = $result[0]["count"];
+		$pages = ceil($count / $limit);
+
+		$u = new DB('shop_price', 'sp');
+		$select = 'sp.id id, NULL category, sp.code code, sp.article article,
+                sp.name name, sp.price price, sp.curr codeCurrency, sp.measure measurement, sp.presence_count count,
+                sp.presence presence,
+                sp.weight weight, sp.volume volume,
+                GROUP_CONCAT(si.picture SEPARATOR \';\') images,
+                sp.title metaHeader, sp.keywords metaKeywords, sp.description metaDescription,
+                sp.note description, sp.text fullDescription, sm.id idModification,
+                (SELECT GROUP_CONCAT(CONCAT_WS(\'#\', sf.name,
+                    IF(smf.id_value IS NOT NULL, sfvl.value, CONCAT(IFNULL(smf.value_number, \'\'),
+ 				 	  IFNULL(smf.value_bool, \'\'), IFNULL(smf.value_string, \'\')))) SEPARATOR \';\') features
+                    FROM shop_modifications_feature smf
+                    INNER JOIN shop_feature sf ON smf.id_feature = sf.id AND smf.id_modification IS NULL
+                    LEFT JOIN shop_feature_value_list sfvl ON smf.id_value = sfvl.id
+                    WHERE smf.id_price = sp.id
+                    GROUP BY smf.id_price) features';
+		if (CORE_VERSION == "5.3") {
+			$select .= ', spg.id_group idGroup';
+			$u->select($select);
+			$u->leftJoin("shop_price_group spg", "spg.id_price = sp.id AND spg.is_main");
+		} else {
+			$select .= ', sp.id_group IdGroup';
+			$u->select($select);
+		}
+		$u->leftJoin('shop_modifications sm', 'sm.id_price = sp.id');
+		$u->leftJoin('shop_img si', 'si.id_price = sp.id');
+		$u->orderBy('sp.id');
+		$u->groupBy('sp.id');
+
+		$goods = array();
+		$goodsL = array();
+		$goodsIndex = array();
+		for ($i = 0; $i < $pages; ++$i) {
+			$goodsL = array_merge($goodsL, $u->getList($offset, $limit));
+			$offset += $limit;
+		}
+		unset($u);
+
+		if (!$goodsL)
+			exit;
+
+		$u = new DB('shop_feature', 'sf');
+		$u->select('sf.id Id, CONCAT_WS(\'#\', smg.name, sf.name) name');
+		$u->innerJoin('shop_group_feature sgf', 'sgf.id_feature = sf.id');
+		$u->innerJoin('shop_modifications_group smg', 'smg.id = sgf.id_group');
+		$u->groupBy('sgf.id');
+		$u->orderBy('sgf.sort');
+		$modsCols = $u->getList();
+		unset($u);
+
+		$u = new DB('shop_group', 'sg');
+		if (CORE_VERSION == "5.3") {
+			$u->select('sg.id, GROUP_CONCAT(sgp.name ORDER BY sgt.level SEPARATOR "/") name');
+			$u->innerJoin("shop_group_tree sgt", "sg.id = sgt.id_child");
+			$u->innerJoin("shop_group sgp", "sgp.id = sgt.id_parent");
+			$u->orderBy('sgt.level');
+		} else {
+			$u->select('sg.*');
+			$u->orderBy('sg.id');
+		}
+		$u->groupBy('sg.id');
+		$groups = $u->getList();
+		foreach ($goodsL as &$good) {
+			if (CORE_VERSION == "5.3")
+				$good["category"] = $this->getGroup53($groups, $good["idGroup"]);
+			else $good["category"] = $this->getGroup($groups, $good["idGroup"]);
+		}
+		unset($u);
+
+		foreach ($goodsL as &$item) {
+			foreach ($modsCols as $col)
+				$item[$col['name']] = null;
+			$goodsIndex[$item["id"]] = &$item;
+		}
+
+		$u = new DB('shop_modifications', 'sm');
+		$u->select('sm.id id, sm.id_mod_group idGroup, sm.id_price idProduct, sm.code article, sm.value price, sm.count,
+        	smg.name nameGroup, smg.vtype typeGroup, 
+        	GROUP_CONCAT(CONCAT_WS(\'\t\', CONCAT_WS(\'#\', smg.name, sf.name), sfvl.value) SEPARATOR \'\n\') `values`,
+        	si.Picture images');
+		$u->innerJoin('shop_modifications_group smg', 'smg.id = sm.id_mod_group');
+		$u->innerJoin('shop_modifications_feature smf', 'sm.id = smf.id_modification');
+		$u->innerJoin('shop_feature sf', 'sf.id = smf.id_feature');
+		$u->innerJoin('shop_feature_value_list sfvl', 'smf.id_value = sfvl.id');
+		$u->leftJoin('shop_modifications_img smi', 'smi.id_modification = sm.id');
+		$u->leftJoin('shop_img si', 'si.id = smi.id_img');
+		$u->orderBy('sm.id_price');
+		$u->groupBy('sm.id');
+		$modifications = $u->getList();
+		unset($u);
+
+		$excludingKeys = array("idGroup", "presence", "idModification");
+		$rusCols = array("id" => "Ид.", "article" => "Артикул", "code" => "Код", "name" => "Наименование",
+			"price" => "Цена", "count" => "Кол-во", "category" => "Категория", "weight" => "Вес", "volume" => "Объем",
+			"measurement" => "Ед.Изм.", "description" => "Краткое описание", "fullDescription" => "Полное описание",
+			"features" => "Характеристики",
+			"images" => 'Изображения', "codeCurrency" => "КодВалюты",
+			"metaHeader" => "MetaHeader", "metaKeywords" => "MetaKeywords", "metaDescription" => "MetaDescription");
+		$fp = fopen($fileName, 'w');
+		$header = array_keys($goodsL[0]);
+		$headerCSV = array();
+		foreach ($header as $col)
+			if (!in_array($col, $excludingKeys)) {
+				$col = iconv('utf-8', 'CP1251', $rusCols[$col] ? $rusCols[$col] : $col);
+				$headerCSV[] = $col;
+			}
+		fputcsv($fp, $headerCSV, ";");
+
+		$i = 0;
+		$header = null;
+		$lastId = null;
+		$goodsItem = array();
+
+		// вывод товаров без модификаций
+		foreach ($goodsL as $row) {
+			if (empty($row['idModification'])) {
+				$out = array();
+				if ($row['count'] == "-1" || (empty($row["count"]) && $row["count"] !== "0"))
+					$row["count"] = $row['presence'];
+				foreach ($row as $key => $r) {
+					if (!in_array($key, $excludingKeys)) {
+						if ($key == "description" || $key == "fullDescription") {
+							$r = preg_replace('/\\\\+/', '', $r);
+							$r = preg_replace('/\r\n+/', '', $r);
+						}
+						$out[] = iconv('utf-8', 'CP1251', $r);
+					}
+				}
+				fputcsv($fp, $out, ";");
+			}
+		}
+
+		// вывод товаров с модификациями
+//		foreach ($modifications as $mod) {
+//			if ($lastId != $mod["IdProduct"]) {
+//				$goodsItem = $goodsIndex[$mod["IdProduct"]];
+//				$lastId = $mod["IdProduct"];
+//			}
+//			if ($goodsItem) {
+//				$row = $goodsItem;
+//				switch ($mod['TypeGroup']) {
+//					case 0:
+//						$row['Price'] = $row['Price'] . "+" . $mod['Price'];
+//						break;
+//					case 1:
+//						$row['Price'] = $row['Price'] . "*" . $mod['Price'];
+//						break;
+//					case 2:
+//						$row['Price'] = $mod['Price'];
+//						break;
+//				}
+//				if ($mod['Count'] == "-1" || (empty($mod["Count"]) && $mod["Count"] !== "0"))
+//					$row["Count"] = $row['Presence'];
+//				else $row["Count"] = $mod['Count'];
+//				if (!empty($mod['Images']))
+//					$row['Images'] = $mod['Images'];
+//				if (!empty($mod['Values'])) {
+//					$values = explode("\n", $mod['Values']);
+//					foreach ($values as $val) {
+//						$valCol = explode("\t", $val);
+//						if (count($valCol) == 2 && !(empty($valCol[0])) && !(empty($valCol[1])))
+//							$row[$valCol[0]] = $valCol[1];
+//					}
+//				}
+//				$out = array();
+//				foreach ($row as $key => $r) {
+//					if (!in_array($key, $excludingKeys)) {
+//						if ($key == "Description" || $key == "FullDescription") {
+//							$r = preg_replace('/\\\\+/', '', $r);
+//							$r = preg_replace('/\r\n+/', '', $r);
+//						}
+//						$out[] = iconv('utf-8', 'CP1251', $r);
+//					}
+//				}
+//				fputcsv($fp, $out, ";");
+//			}
+//		}
+//		fclose($fp);
+	}
 }
