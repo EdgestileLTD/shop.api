@@ -58,7 +58,7 @@ define('API_FOLDER', $apiFolder);
 define('API_ROOT', $_SERVER['DOCUMENT_ROOT'] . "/api/{$apiFolder}/");
 define('ROOTSERVER_URI', 'http://siteedit24.ru');
 define('URL_API_ORIGINAL', 'http://upload.beget.edgestile.net/api');
-define('SE_INDEX_INCLUDED', '');
+define('SE_INDEX_INCLUDED', true);
 define('API_ROOT_URL', "http://" . $_SERVER['SERVER_NAME'] . "/api/{$apiFolder}");
 define('MODULE_SE_SECTION', 'ashop_section');
 

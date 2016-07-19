@@ -2,6 +2,9 @@
 
 namespace SE\Shop;
 
+use SE\DB;
+use SE\Exception;
+
 class Feature extends Base
 {
     protected $tableName = "shop_feature";
@@ -35,16 +38,64 @@ class Feature extends Base
     protected function getSettingsInfo()
     {
         return $this->getSettingsFetch();
-    }    
-    
+    }
+
     private function getValues()
     {
         return (new FeatureValue())->fetchByIdFeature($this->input["id"]);
     }
-    
+
     protected function getAddInfo()
     {
         $result["values"] = $this->getValues();
         return $result;
+    }
+
+    private function saveValues()
+    {
+        if (!isset($this->input["values"]))
+            return;
+
+        try {
+            $idFeature = $this->input["id"];
+            $values = $this->input["values"];
+            $idsStore = "";
+            foreach ($values as $value) {
+                if ($value["id"] > 0) {
+                    if (!empty($idsStore))
+                        $idsStore .= ",";
+                    $idsStore .= $value["id"];
+                    $u = new DB('shop_feature_value_list');
+                    $u->setValuesFields($value);
+                    $u->save();
+                }
+            }
+
+            if (!empty($idsStore)) {
+                $u = new DB('shop_feature_value_list');
+                $u->where("id_feature = {$idFeature} AND NOT (id IN (?))", $idsStore)->deleteList();
+            } else {
+                $u = new DB('shop_feature_value_list');
+                $u->where("id_feature = ?", $idFeature)->deleteList();
+            }
+
+            $data = array();
+            foreach ($values as $value)
+                if (empty($value["id"]) || ($value["id"] <= 0)) {
+                    $data[] = array('id_feature' => $idFeature, 'value' => $value["value"], 'color' => $value["color"],
+                        'sort' => (int) $value["sort"], 'image' => $value["image"]);
+                }
+            if (!empty($data))
+                DB::insertList('shop_feature_value_list', $data);
+        } catch (Exception $e) {
+            $this->error = "Не удаётся сохранить значения параметра!";
+            throw new Exception($this->error);
+        }
+    }
+
+    public function saveAddInfo()
+    {
+        $this->saveValues();
+        return true;
     }
 }
