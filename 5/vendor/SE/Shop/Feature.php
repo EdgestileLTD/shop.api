@@ -36,4 +36,15 @@ class Feature extends Base
     {
         return $this->getSettingsFetch();
     }    
+    
+    private function getValues()
+    {
+        return (new FeatureValue())->fetchByIdFeature($this->input["id"]);
+    }
+    
+    protected function getAddInfo()
+    {
+        $result["values"] = $this->getValues();
+        return $result;
+    }
 }
