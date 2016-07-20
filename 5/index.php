@@ -53,6 +53,7 @@ if (IS_EXT) {
     require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel/Writer/Excel2007.php';
 }
 
+require_once API_ROOT . "version.php";
 require_once API_ROOT . "vendor/autoload.php";
 
 $apiMethod = $_SERVER['REQUEST_METHOD'];

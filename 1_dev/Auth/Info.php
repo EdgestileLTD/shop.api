@@ -87,7 +87,7 @@ if (empty($db_version))
     se_db_query("INSERT INTO se_settings (`version`, `db_version`) VALUE (1, 1)");
 
 if ($db_version < DB_VERSION) {
-    $pathRoot = $_SERVER['DOCUMENT_ROOT'] . '/api/update/sql/';
+    $pathRoot = $_SERVER['DOCUMENT_ROOT'] . '/api/update/scripts/';
     for ($i = $settings->db_version + 1; $i <= DB_VERSION; $i++) {
         $fileUpdate = $pathRoot . $i . '.php';
         if (file_exists($fileUpdate)) {

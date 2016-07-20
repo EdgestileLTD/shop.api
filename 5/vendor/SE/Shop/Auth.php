@@ -85,16 +85,16 @@ class Auth extends Base
             $settings->select("db_version");
             $result = $settings->fetchOne();
             if (empty($result["dbVersion"]))
-                DB::query("INSERT INTO se_settings (`version`, `db_version`) VALUE (1, 1)");
-
+                DB::query("INSERT INTO se_settings (`version`, `db_version`) VALUE (1, 1)");            
             if ($result["dbVersion"] < DB_VERSION) {
                 $pathRoot = $_SERVER['DOCUMENT_ROOT'] . '/api/update/sql/';
-                for ($i = $settings->db_version + 1; $i <= DB_VERSION; $i++) {
-                    $fileUpdate = $pathRoot . $i . '.php';
+                for ($i = $result["dbVersion"] + 1; $i <= DB_VERSION; $i++) {
+                    $fileUpdate = $pathRoot . $i . '.sql';
                     if (file_exists($fileUpdate)) {
                         if ($this->getMySQLVersion() < 56)
                             $this->correctFileUpdateForMySQL56($fileUpdate);
-                        require_once $fileUpdate;
+                        $query = file_get_contents($fileUpdate);
+                        DB::query($query);
                         DB::query("UPDATE se_settings SET db_version=$i");
                     }
                 }
