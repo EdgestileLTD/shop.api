@@ -114,7 +114,14 @@ if (!file_exists($root . $dir)) {
     }
 }
 
+$tables = array();
+$stmt = se_db_query("SHOW TABLES");
+$rows = mysqli_fetch_all($stmt);
+foreach ($rows as $row)
+    $tables[] = $row[0];
+
 $data['permission'] = getPermission($data['idUser']);
+$data['tables'] = $tables;
 $_SESSION['idUser'] = $data['idUser'];
 
 if (empty($error)) {
