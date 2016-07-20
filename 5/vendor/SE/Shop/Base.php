@@ -145,6 +145,7 @@ class Base
             $u->orderBy($this->sortBy, $this->sortOrder == 'desc');
             $this->result["items"] = $this->correctValuesBeforeFetch($u->getList($this->limit, $this->offset));
             $this->result["count"] = $u->getListCount();
+            writeLog($u->getSql());
             if (!empty($settingsFetch["aggregation"])) {
                 if (!empty($settingsFetch["aggregation"]["type"]))
                     $settingsFetch["aggregation"] = array($settingsFetch["aggregation"]);

@@ -254,7 +254,6 @@ class Order extends Base
     private function savePayments()
     {
         $payments = $this->input["payments"];
-        writeLog($payments);
     }
 
     public function delete()

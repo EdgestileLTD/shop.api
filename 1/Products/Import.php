@@ -88,8 +88,8 @@ function getGroup($groups, $idGroup)
     foreach ($groups as $group) {
         if ($group["id"] == $idGroup) {
             if ($group['upid'])
-                return getGroup($groups, $group['upid']) . "/" . $group["name"];
-            else return $group["name"];
+                return getGroup($groups, $group['upid']) . "/" . trim($group["name"]);
+            else return trim($group["name"]);
         }
     }
 }
@@ -101,27 +101,27 @@ function getGroup53($groups, $idGroup)
 
     foreach ($groups as $group) {
         if ($group["id"] == $idGroup)
-            return $group["name"];
+            return trim($group["name"]);
     }
 }
 
 function createGroup(&$groups, $idParent, $name)
 {
     foreach ($groups as $group) {
-        if ($group['upid'] == $idParent && $group['name'] == $name)
+        if ($group['upid'] == $idParent && trim($group['name']) == trim($name))
             return $group['id'];
     }
 
     $u = new seTable('shop_group', 'sg');
-    $u->code_gr = getCode(strtolower(se_translite_url($name)), 'shop_group', 'code_gr');
-    $u->name = $name;
+    $u->code_gr = getCode(strtolower(se_translite_url(trim($name))), 'shop_group', 'code_gr');
+    $u->name = trim($name);
     if ($idParent)
         $u->upid = $idParent;
     $id = $u->save();
 
     $group = array();
     $group["id"] = $id;
-    $group['name'] = $name;
+    $group['name'] = trim($name);
     $group["code_gr"] = $u->code_gr;
     $group['upid'] = $idParent;
     $groups[] = $group;
@@ -305,7 +305,7 @@ try {
             $lastRow = &$row;
             $lastVal = !empty($row['Id']) ? $row['Id'] : $row['Name'];
             if (!empty($row['Category']))
-                $groupsKeys[$row['Category']] = null;
+                $groupsKeys[str_replace("/ ", "/", $row['Category'])] = null;
             if (!empty($row['Features'])) {
                 $features = explode(';', $row['Features']);
                 foreach ($features as $feature) {
@@ -347,6 +347,7 @@ try {
             if ($path)
                 $groupsKeys[$path] = $group['id'];
         }
+
         foreach ($groupsKeys as $key => $value) {
             if (!$value) {
                 $names = explode("/", $key);

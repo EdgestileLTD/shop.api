@@ -2,116 +2,18 @@
 
 namespace SE\Yandex\Market;
 
+use SE\DB;
+
 class YandexMarketLoader {
 
-    public function __construct($filename = '', $action = 'compare') {
-        switch ($action) {
-            case 'insert':
-                include_once __DIR__ . '/yandex_market/InsertYM.php';
-                $this->ym = new InsertYM();
-                break;
-            case 'update':
-                include_once __DIR__ . '/yandex_market/UpdateYM.php';
-                $this->ym = new UpdateYM();
-                break;
-            case 'compare':
-            default:
-                include_once __DIR__ . '/yandex_market/CompareYM.php';
-                $this->ym = new CompareYM();
-                break;
-        }
-        $this->updateDB();
+    public function __construct($filename = null, $action = 'compare') {
         $this->loadFromMarket($filename);
     }
 
-    public function updateDB() {
-        //для параметров поле is_market
-        //для товаров поле market_category
-        //параметры интеграции exportModifications = 0, exportFeatures = 0, enabledVendorModel = 0, paramIdForModel = '', paramIdForTypePrefix = ''
-        if (!file_exists(SE_ROOT . '/system/logs/market_2.upd')) {
-            $u = new seTable('shop_feature');
-            if (!$u->isFindField('is_market'))
-                $u->addField('is_market', 'BOOL', 1);
-
-            $u = new seTable('shop_price');
-            if (!$u->isFindField('market_category'))
-                $u->addField('market_category', 'SMALLINT', 1);
-
-            $main = new seTable('main');
-            $main->select('id');
-            $main->where("`lang`='rus'");
-            $main->fetchOne();
-            $id_main = $main->id;
-
-            $params = new seTable('shop_integration_parameter');
-            $params->select('id');
-            $params->where("code='exportFeatures'");
-            $params->andWhere('id_main=?', $id_main);
-
-            if (!$params->fetchOne()) {
-                $params->insert();
-                $params->id_main = $id_main;
-                $params->code = 'exportFeatures';
-                $params->value = 0;
-                $params->save();
-            }
-
-            $params->where("code='exportModifications'");
-            $params->andWhere('id_main=?', $id_main);
-
-            if (!$params->fetchOne()) {
-                $params->insert();
-                $params->id_main = $id_main;
-                $params->code = 'exportModifications';
-                $params->value = 0;
-                $params->save();
-            }
-
-            $params->where("code='enabledVendorModel'");
-            $params->andWhere('id_main=?', $id_main);
-
-            if (!$params->fetchOne()) {
-                $params->insert();
-                $params->id_main = $id_main;
-                $params->code = 'enabledVendorModel';
-                $params->value = 0;
-                $params->save();
-            }
-
-            $params->where("code='paramIdForModel'");
-            $params->andWhere('id_main=?', $id_main);
-
-            if (!$params->fetchOne()) {
-                $params->insert();
-                $params->id_main = $id_main;
-                $params->code = 'paramIdForModel';
-                $params->value = '';
-                $params->save();
-            }
-
-            $params->where("code='paramIdForTypePrefix'");
-            $params->andWhere('id_main=?', $id_main);
-
-            if (!$params->fetchOne()) {
-                $params->insert();
-                $params->id_main = $id_main;
-                $params->code = 'paramIdForTypePrefix';
-                $params->value = '';
-                $params->save();
-            }
-
-            file_put_contents(SE_ROOT . '/system/logs/market_2.upd', date('Y-m-d H:i:s'));
-        }
-    }
-
     private function loadFromMarket($filename) {
-        if (!SE_DB_ENABLE) return;
-
         if (file_exists($filename))
             $xml = simplexml_load_file($filename);
-        else
-            $xml = simplexml_load_string($filename);
-echo "<pre>";
+        else $xml = simplexml_load_string($filename);
 
         $this->ym->currency($xml->shop->currencies->children());
         $this->ym->category($xml->shop->categories->children());
@@ -119,18 +21,18 @@ echo "<pre>";
     }
 
 
-    public function getVendorModel($id_product, $id_model, $id_type_prefix, $features = array()) {
-        $model = $type_prefix = '';
+    public function getVendorModel($idProduct, $idModel, $idTypePrefix, $features = array()) {
+        $model = $typePrefix = null;
         if (!empty($features)) {
             foreach ($features as $val) {
-                if ($id_model == $val['id'])
+                if ($idModel == $val['id'])
                     $model = $val['value'];
-                if ($id_type_prefix == $val['id'])
-                    $type_prefix = $val['value'];
+                if ($idTypePrefix == $val['id'])
+                    $typePrefix = $val['value'];
             }
         }
-        if (!$model || !$type_prefix) {
-            $shop_feature = new seTable('shop_feature', 'sf');
+        if (!$model || !$typePrefix) {
+            $shop_feature = new DB('shop_feature', 'sf');
             $shop_feature->select("DISTINCT sf.id,
 				GROUP_CONCAT(CASE    
 					WHEN (sf.type = 'list' OR sf.type = 'colorlist') THEN (SELECT sfvl.value FROM shop_feature_value_list sfvl WHERE sfvl.id = smf.id_value)
@@ -140,31 +42,31 @@ echo "<pre>";
 					ELSE NULL
 				END SEPARATOR ', ') AS value
 			");
-            $shop_feature->innerJoin('shop_modifications_feature smf', 'sf.id=smf.id_feature');
-            $shop_feature->where('smf.id_price=?', $id_product);
+            $shop_feature->innerJoin('shop_modifications_feature smf', 'sf.id = smf.id_feature');
+            $shop_feature->where('smf.id_price = ?', $idProduct);
             $shop_feature->andWhere('smf.id_modification IS NULL');
-            $shop_feature->andWhere('sf.id IN (?)', $id_model . ',' . $id_type_prefix);
+            $shop_feature->andWhere('sf.id IN (?)', $idModel . ',' . $idTypePrefix);
             $shop_feature->groupBy('sf.id');
             $list = $shop_feature->getList();
             foreach ($list as $val) {
-                if ($id_model == $val['id'])
+                if ($idModel == $val['id'])
                     $model = $val['value'];
-                if ($id_type_prefix == $val['id'])
-                    $type_prefix = $val['value'];
+                if ($idTypePrefix == $val['id'])
+                    $typePrefix = $val['value'];
             }
         }
 
-        return array($model, $type_prefix);
+        return array($model, $typePrefix);
     }
 
 
     private function getDeliveries() {
-        $delivery = new seTable('shop_deliverygroup', 'sg');
+        $delivery = new DB('shop_deliverygroup', 'sg');
         $delivery->select('sg.id_group, sd.price, sd.time');
-        $delivery->innerjoin('shop_deliverytype sd', 'sd.id=sg.id_type');
-        $delivery->where('sd.lang="rus" AND sd.status="Y"');
-        $delivery->orderby('sg.id_group');
-        $delivery->addorderby('sd.time');
+        $delivery->innerJoin('shop_deliverytype sd', 'sd.id = sg.id_type');
+        $delivery->where('sd.status = "Y"');
+        $delivery->orderBy('sg.id_group');
+        $delivery->addOrderBy('sd.time');
         $list = $delivery->getList();
 
         return $list;

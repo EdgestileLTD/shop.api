@@ -380,6 +380,9 @@ class Product extends Base
 
 	private function saveImages()
 	{
+		if (!isset($this->input["images"]))
+			return true;
+
 		try {
             $idsProducts = $this->input["ids"];
             $images = $this->input["images"];
@@ -422,6 +425,7 @@ class Product extends Base
 
             if (!empty($data))
                 DB::insertList('shop_img', $data);
+			return true;
         } catch (Exception $e) {
             $this->error = "Не удаётся сохранить изображения товара!";
             throw new Exception($this->error);
@@ -474,6 +478,9 @@ class Product extends Base
 
 	private function saveSpecifications()
 	{
+		if (!isset($this->input["specifications"]))
+			return true;
+
 		try {
             $idsProducts = $this->input["ids"];
 			$isAddSpecifications = $this->input["isAddSpecifications"];
@@ -520,7 +527,8 @@ class Product extends Base
 				}
 			}			
 			if (!empty($data)) 				
-				DB::insertList('shop_modifications_feature', $data);			
+				DB::insertList('shop_modifications_feature', $data);
+			return true;
 		} catch (Exception $e) {
 			$this->error = "Не удаётся сохранить спецификации товара!";
 			throw new Exception($this->error);
@@ -529,6 +537,9 @@ class Product extends Base
 
     private function saveSimilarProducts()
     {
+		if (!isset($this->input["similarProducts"]))
+			return true;
+
         try {
             $idsProducts = $this->input["ids"];
             $products = $this->input["similarProducts"];
@@ -562,6 +573,7 @@ class Product extends Base
                         $data[] = array('id_price' => $idProduct, 'id_acc' => $p["id"]);
             if (!empty($data))
                 DB::insertList('shop_sameprice', $data);
+			return true;
         } catch (Exception $e) {
             $this->error = "Не удаётся сохранить похожие товары!";
             throw new Exception($this->error);
@@ -570,10 +582,14 @@ class Product extends Base
 
     private function saveAccompanyingProducts()
     {
-        try {
+		if (!isset($this->input["accompanyingProducts"]))
+			return true;
+
+		try {
             foreach ($this->input["ids"] as $id)
                 DB::saveManyToMany($id, $this->input["accompanyingProducts"],
                     array("table" => "shop_accomp", "key" => "id_price", "link" => "id_acc"));
+			return true;
         } catch (Exception $e) {
             $this->error = "Не удаётся сохранить сопутствующие товары!";
             throw new Exception($this->error);
@@ -582,7 +598,10 @@ class Product extends Base
 
     private function saveComments()
     {
-        try {
+		if (!isset($this->input["comments"]))
+			return true;
+
+		try {
             $idsProducts = $this->input["ids"];
             $comments = $this->input["comments"];
             $idsStr = implode(",", $idsProducts);
@@ -602,6 +621,7 @@ class Product extends Base
             }
             if (!empty($data))
                 DB::insertList('shop_comm', $data);
+			return true;
         } catch (Exception $e) {
             $this->error = "Не удаётся сохранить комментарии товара!";
             throw new Exception($this->error);
@@ -610,6 +630,9 @@ class Product extends Base
 
 	private function saveReviews()
 	{
+		if (!isset($this->input["reviews"]))
+			return true;
+
 		try {
 			$idsProducts = $this->input["ids"];
 			$reviews = $this->input["reviews"];
@@ -631,6 +654,7 @@ class Product extends Base
 					$u->save();
 				}
 			}
+			return true;
 		} catch (Exception $e) {
 			$this->error = "Не удаётся сохранить отзывы товара!";
 			throw new Exception($this->error);
@@ -639,7 +663,10 @@ class Product extends Base
 
     private function saveCrossGroups()
     {
-        try {
+		if (!isset($this->input["crossGroups"]))
+			return true;
+
+		try {
             $idsProducts = $this->input["ids"];
             $groups = $this->input["crossGroups"];
             $idsStr = implode(",", $idsProducts);
@@ -656,6 +683,7 @@ class Product extends Base
                 foreach ($idsProducts as $id)
                     DB::saveManyToMany($id, $groups,
                         array("table" => "shop_group_price", "key" => "price_id", "link" => "group_id"));
+			return true;
         } catch (Exception $e) {
             $this->error = "Не удаётся сохранить дополнительные категории товара!";
             throw new Exception($this->error);
@@ -664,10 +692,14 @@ class Product extends Base
 
     private function saveDiscounts()
     {
-        try {
+		if (!isset($this->input["discounts"]))
+			return true;
+
+		try {
             foreach ($this->input["ids"] as $id)
                 DB::saveManyToMany($id, $this->input["discounts"],
                     array("table" => "shop_discount_links", "key" => "id_price", "link" => "discount_id"));
+			return true;
         } catch (Exception $e) {
             $this->error = "Не удаётся сохранить скидки товара!";
             throw new Exception($this->error);
@@ -676,7 +708,10 @@ class Product extends Base
 
     private function saveModifications()
     {
-        try {
+		if (!isset($this->input["modifications"]))
+			return true;
+
+		try {
             $idsProducts = $this->input["ids"];
             $modifications = $this->input["modifications"];
             $idsStr = implode(",", $idsProducts);
@@ -786,6 +821,7 @@ class Product extends Base
                     }
                 }
             }
+			return true;
         } catch (Exception $e) {
             $this->error = "Не удаётся сохранить модификации товара!";
             throw new Exception($this->error);
@@ -797,17 +833,9 @@ class Product extends Base
 		if (!$this->input["ids"])
             return false;
 
-        $this->saveImages();
-		$this->saveSpecifications();
-        $this->saveSimilarProducts();
-		$this->saveAccompanyingProducts();
-        $this->saveComments();
-		$this->saveReviews();
-        $this->saveCrossGroups();
-        $this->saveDiscounts();
-        $this->saveModifications();
-
-		return true;
+        return $this->saveImages() && $this->saveSpecifications() && $this->saveSimilarProducts() &&
+			$this->saveAccompanyingProducts() && $this->saveComments() && $this->saveReviews() &&
+        	$this->saveCrossGroups() && $this->saveDiscounts() && $this->saveModifications();
 	}
 
 	private function getGroup($groups, $idGroup)
