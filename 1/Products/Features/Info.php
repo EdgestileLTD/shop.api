@@ -25,6 +25,7 @@ foreach ($result as $item) {
     $feature['sortIndex'] = (int)$item['sort'];
     $feature['measure'] = $item['measure'];
     $feature['isYAMarket'] = (bool)$item['is_market'];
+    $feature['placeholder'] = $item['placeholder'];
     if ($feature['imageFile']) {
         if (strpos($feature['imageFile'], '://') === false) {
             $feature['imageUrl'] = 'http://' . $json->hostname . "/images/rus/shopfeature/" . $feature['imageFile'];

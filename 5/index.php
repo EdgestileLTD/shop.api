@@ -42,9 +42,8 @@ define('API_ROOT', $_SERVER['DOCUMENT_ROOT'] . '/api/' . API_VERSION . '/');
 define('API_ROOT_URL', "http://" . $_SERVER['SERVER_NAME'] . "/api/" . API_VERSION);
 
 if (IS_EXT) {
-    define('SE_INDEX_INCLUDED', true);
-    require_once 'system/main/init.php';
     require_once 'api/update.php';
+    require_once 'lib/lib_function.php';
     require_once 'lib/PHPExcel.php';
     require_once 'lib/PHPExcel/Writer/Excel2007.php';
 } else {

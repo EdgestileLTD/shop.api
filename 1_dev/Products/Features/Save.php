@@ -35,6 +35,7 @@ if ($isNew || !empty($ids)) {
     $isUpdated |= setField($isNew, $u, $json->imageFile, 'image');
     $isUpdated |= setField($isNew, $u, $json->description, 'description');
     $isUpdated |= setField($isNew, $u, $json->isYAMarket, 'is_market');
+    $isUpdated |= setField($isNew, $u, $json->placeholder, 'placeholder');
 
     if ($isUpdated) {
         if (!empty($idsStr)) {

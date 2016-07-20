@@ -70,6 +70,7 @@ foreach ($objects as $item) {
     $feature['measure'] = $item['measure'];
     $feature['isSEO'] = (bool)$item['seo'];
     $feature['isYAMarket'] = (bool)$item['is_market'];
+    $feature['placeholder'] = $item['placeholder'];
     if ($feature['imageFile']) {
         if (strpos($feature['imageFile'], '://') === false) {
             $feature['imageUrl'] = 'http://' . $json->hostname . "/images/rus/shopfeature/" . $feature['imageFile'];
