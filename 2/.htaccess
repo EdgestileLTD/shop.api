@@ -8,7 +8,7 @@ deny from all
 </Files>
 
 RewriteEngine On
-Options +FollowSymLinks
+Options +FollowSymLinks 
 RewriteBase /api/2
 
 RewriteRule ^(.*)$  index.php?%{QUERY_STRING}
