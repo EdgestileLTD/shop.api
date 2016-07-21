@@ -474,7 +474,7 @@ try {
         foreach ($goodsInsert as &$goodsItem) {
             $idProduct++;
             $images = !empty($goodsItem['Images']) ? explode(";", $goodsItem['Images']) : array();
-            $goodsItem['IdGroup'] = $IdGroup = !empty($goodsItem['Category']) ? $groupsKeys[$goodsItem['Category']] : null;
+            $goodsItem['IdGroup'] = $IdGroup = !empty($goodsItem['Category']) ? $groupsKeys[str_replace("/ ", "/", $goodsItem['Category'])] : null;
             if (empty($IdGroup))
                 $IdGroup = 'null';
             if (empty($goodsItem['Code']))
