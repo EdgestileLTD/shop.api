@@ -26,7 +26,7 @@ class Auth extends Base
         file_put_contents($fileName, str_replace(" ON UPDATE CURRENT_TIMESTAMP", "", file_get_contents($fileName)));
     }
 
-    private function getPermission($idUser)
+    public function getPermission($idUser)
     {
         if (!$idUser)
             return array();
@@ -145,9 +145,11 @@ class Auth extends Base
             $data['config'] = $authData;
             $data['permissions'] = $this->getPermission($data['idUser']);
             $data['accounts'] = $this->getAccounts();
+
             $_SESSION['idUser'] = $data['idUser'];
             $_SESSION['isAuth'] = true;
             $_SESSION['hostname'] = HOSTNAME;
+
             $this->result = $data;
 
         } catch (Exception $e) {
@@ -155,6 +157,9 @@ class Auth extends Base
         }
     }
 
-    
+    public function get()
+    {
+        $this->result["permissions"] = $this->getPermission($_SESSION['idUser']);
+    }
 
 }

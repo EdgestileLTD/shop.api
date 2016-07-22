@@ -26,7 +26,7 @@ class Auth extends Base
         file_put_contents($fileName, str_replace(" ON UPDATE CURRENT_TIMESTAMP", "", file_get_contents($fileName)));
     }
 
-    private function getPermission($idUser)
+    public function getPermission($idUser)
     {
         if (!$idUser)
             return array();
@@ -116,7 +116,7 @@ class Auth extends Base
             }
 
             if (!empty($this->error))
-               return $this;
+                return $this;
 
             $u = new DB("main", "m");
             $u->select("*");
@@ -127,7 +127,7 @@ class Auth extends Base
             $settings->select("db_version");
             $result = $settings->fetchOne();
             if (empty($result["dbVersion"]))
-                DB::query("INSERT INTO se_settings (`version`, `db_version`) VALUE (1, 1)");            
+                DB::query("INSERT INTO se_settings (`version`, `db_version`) VALUE (1, 1)");
             if ($result["dbVersion"] < DB_VERSION) {
                 $pathRoot = $_SERVER['DOCUMENT_ROOT'] . '/api/update/sql/';
                 for ($i = $result["dbVersion"] + 1; $i <= DB_VERSION; $i++) {
@@ -144,9 +144,12 @@ class Auth extends Base
 
             $data['config'] = $authData;
             $data['permissions'] = $this->getPermission($data['idUser']);
+            $data['accounts'] = $this->getAccounts();
+
             $_SESSION['idUser'] = $data['idUser'];
             $_SESSION['isAuth'] = true;
             $_SESSION['hostname'] = HOSTNAME;
+
             $this->result = $data;
 
         } catch (Exception $e) {
@@ -154,6 +157,9 @@ class Auth extends Base
         }
     }
 
-    
+    public function get()
+    {
+        $this->result["permissions"] = $this->getPermission($_SESSION['idUser']);
+    }
 
 }

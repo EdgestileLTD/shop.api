@@ -71,7 +71,6 @@ if ($apiClass == "Auth" && strtolower($apiMethod) == "get") {
         echo 'Сессия истекла! Необходима авторизация!';
         exit;
     }
-    exit;
 }
 
 $phpInput = file_get_contents('php://input');
