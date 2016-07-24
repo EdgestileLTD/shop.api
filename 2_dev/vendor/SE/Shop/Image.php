@@ -2,6 +2,8 @@
 
 namespace SE\Shop;
 
+use SE\DB;
+
 class Image extends Base
 {
     private $dir;
@@ -31,7 +33,7 @@ class Image extends Base
             }
         }
     }
-    
+
     public function fetch()
     {
         if (function_exists("mb_strtolower"))
@@ -42,7 +44,7 @@ class Image extends Base
         $listFiles = array();
         $count = 0;
         if (file_exists($this->dir) && is_dir($this->dir)) {
-            $handleDir = opendir($this->dir);         
+            $handleDir = opendir($this->dir);
             $i = 0;
             while (($file = readdir($handleDir)) !== false) {
                 if ($file == '.' || $file == '..')
@@ -75,7 +77,7 @@ class Image extends Base
         $this->result['items'] = $listFiles;
         return $listFiles;
     }
-    
+
     public function delete()
     {
         $files = $this->input["files"];
@@ -84,13 +86,13 @@ class Image extends Base
         $usedImages = array();
 
         if ($this->section == 'shopprice' && $isUnused) {
-            $u = new seTable('shop_price', 'sp');
+            $u = new DB('shop_price', 'sp');
             $u->select('img name');
             $images = $u->getList();
             foreach ($images as $image)
                 if ($image['name'])
                     $usedImages[] = $image['name'];
-            $u = new seTable('shop_img', 'si');
+            $u = new DB('shop_img', 'si');
             $u->select('picture name');
             $images = $u->getList();
             foreach ($images as $image)
@@ -99,13 +101,13 @@ class Image extends Base
         }
         if ($this->section == 'shopgroup' && $isUnused) {
 
-            $u = new seTable('shop_group', 'sg');
+            $u = new DB('shop_group', 'sg');
             $u->select('picture name');
             $images = $u->getList();
             foreach ($images as $image)
                 if ($image['name'])
                     $usedImages[] = $image['name'];
-            $u = new seTable('shop_img', 'si');
+            $u = new DB('shop_img', 'si');
             $u->select('picture name');
             $images = $u->getList();
             foreach ($images as $image)
@@ -113,13 +115,13 @@ class Image extends Base
                     $usedImages[] = $image['name'];
         }
         if ($this->section == 'newsimg' && $isUnused) {
-            $u = new seTable('news', 'n');
+            $u = new DB('news', 'n');
             $u->select('img name');
             $images = $u->getList();
             foreach ($images as $image)
                 if ($image['name'])
                     $usedImages[] = $image['name'];
-            $u = new seTable('news_img', 'ni');
+            $u = new DB('news_img', 'ni');
             $u->select('picture name');
             $images = $u->getList();
             foreach ($images as $image)
@@ -127,7 +129,7 @@ class Image extends Base
                     $usedImages[] = $image['name'];
         }
         if ($this->section== 'shopbrand' && $isUnused) {
-            $u = new seTable('shop_brand', 'sb');
+            $u = new DB('shop_brand', 'sb');
             $u->select('image name');
             $images = $u->getList();
             foreach ($images as $image)
@@ -135,7 +137,7 @@ class Image extends Base
                     $usedImages[] = $image['name'];
         }
 
-        if (!empty($section)) {
+        if (!empty($this->section)) {
             if ($isUnused) {
                 $handleDir = opendir($this->dir);
                 while (($file = readdir($handleDir)) !== false) {

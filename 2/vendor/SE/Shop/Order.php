@@ -202,7 +202,7 @@ class Order extends Base
         foreach ($products as $p) {
             if (!$p["id"]) {
                 $data[] = array('id_order' => $idOrder, 'id_price' => $p["idPrice"], 'article' => $p["article"],
-                    'nameitem' => $p["name"], 'price' => $p["price"],
+                    'nameitem' => $p["name"], 'price' => (float) $p["price"],
                     'discount' => $p["discount"], 'count' => $p["count"], 'modifications' => $p["idsModifications"],
                     'license' => $p["license"], 'commentary' => $p["note"], 'action' => $p["action"]);
             } else {

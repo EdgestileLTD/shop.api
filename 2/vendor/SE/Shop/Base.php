@@ -283,9 +283,11 @@ class Base
     protected function getSearchQuery($searchFields = array())
     {
         $result = array();
-        $searchItem = $this->search;
+        $searchItem = trim($this->search);
         if (empty($searchItem))
             return $result;
+        if (is_string($searchItem))
+            $searchItem = trim(DB::quote($searchItem), "'");
 
         foreach ($searchFields as $field) {
             if (strpos($field["Field"], ".") === false)

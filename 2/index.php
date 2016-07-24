@@ -84,8 +84,8 @@ $dbConfig = DOCUMENT_ROOT . '/system/config_db.php';
 if (file_exists($dbConfig))
     require_once $dbConfig;
 else {
-    header("HTTP/1.1 500 Internal Server Error");
-    echo 'Отсутствует конфигурация базы данных!';
+    header("HTTP/1.1 401 Unauthorized");
+    echo 'Сессия истекла! Необходима авторизация!';
     exit;
 }
 $coreVersion = "5.1";

@@ -151,10 +151,10 @@ class Order extends Base
         return $items;
 
     }
-    
+
     private function getPayments()
-    {        
-        return (new Payment())->fetchByOrder($this->input["id"]);        
+    {
+        return (new Payment())->fetchByOrder($this->input["id"]);
     }
 
     protected function correctValuesBeforeSave()
@@ -193,7 +193,7 @@ class Order extends Base
             SET sm.count = sm.count + st.count
             WHERE st.id_order = ({$idOrder}) AND sm.count IS NOT NULL AND sm.count >= 0");
 
-        $u = new DB('shop_tovarorder', 'st');        
+        $u = new DB('shop_tovarorder', 'st');
         if (!empty($idsUpdate))
             $u->where('NOT `id` IN (' . $idsUpdate . ') AND id_order = ?', $idOrder)->deleteList();
         else $u->where('id_order = ?', $idOrder)->deleteList();
@@ -202,7 +202,7 @@ class Order extends Base
         foreach ($products as $p) {
             if (!$p["id"]) {
                 $data[] = array('id_order' => $idOrder, 'id_price' => $p["idPrice"], 'article' => $p["article"],
-                    'nameitem' => $p["name"], 'price' => $p["price"],
+                    'nameitem' => $p["name"], 'price' => (float) $p["price"],
                     'discount' => $p["discount"], 'count' => $p["count"], 'modifications' => $p["idsModifications"],
                     'license' => $p["license"], 'commentary' => $p["note"], 'action' => $p["action"]);
             } else {

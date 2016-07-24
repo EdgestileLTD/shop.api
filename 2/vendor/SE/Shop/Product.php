@@ -615,8 +615,8 @@ class Product extends Base
                 if ($c["isActive"])
                     $isActive = 'Y';
                 foreach ($idsProducts as $idProduct)
-                    $data[] = array('id_price' => $idProduct, 'date' => $c["date"], 'name' => $c["contactTitle"],
-                        'email' => $c["contactEmail"], 'commentary' => $c["commentary"], 'response' => $c["response"],
+                    $data[] = array('id_price' => $idProduct, 'date' => $c["date"], 'name' => $c["name"],
+                        'email' => $c["email"], 'commentary' => $c["commentary"], 'response' => $c["response"],
                         'showing' => $showing, 'is_active' => $isActive);
             }
             if (!empty($data))
@@ -828,6 +828,32 @@ class Product extends Base
         }
     }
 
+    private function saveIdGroup()
+    {
+        if (CORE_VERSION != "5.3")
+            return true;
+
+        try {
+            $idsProducts = $this->input["ids"];
+            $idGroup = $this->input["idGroup"];
+            $idsStr = implode(",", $idsProducts);
+            $u = new DB('shop_price_group');
+            $u->where('is_main AND id_price IN (?)', $idsStr)->deleteList();
+            foreach ($idsProducts as $idProduct) {
+                $group["idPrice"] = $idProduct;
+                $group["idGroup"] = $idGroup;
+                $group["isMain"] = true;
+                $u = new DB('shop_price_group');
+                $u->setValuesFields($group);
+                $u->save();
+            }
+            return true;
+        } catch (Exception $e) {
+            $this->error = "Не удаётся сохранить категорию товара!";
+            throw new Exception($this->error);
+        }
+    }
+
     protected function saveAddInfo()
 	{
 		if (!$this->input["ids"])
@@ -835,7 +861,7 @@ class Product extends Base
 
         return $this->saveImages() && $this->saveSpecifications() && $this->saveSimilarProducts() &&
 			$this->saveAccompanyingProducts() && $this->saveComments() && $this->saveReviews() &&
-        	$this->saveCrossGroups() && $this->saveDiscounts() && $this->saveModifications();
+        	$this->saveCrossGroups() && $this->saveDiscounts() && $this->saveModifications() && $this->saveIdGroup();
 	}
 
 	private function getGroup($groups, $idGroup)

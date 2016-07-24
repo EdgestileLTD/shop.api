@@ -215,6 +215,11 @@ class DB
         }
     }
 
+    public static function quote($str)
+    {
+        return self::$dbh->quote($str);
+    }
+
     public function getFields()
     {
         if ($this->fields)
