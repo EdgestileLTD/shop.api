@@ -178,11 +178,11 @@ class Image extends Base
                     list($width, $height, $type, $attr) = getimagesize($uploadFile);
                     $item["sizeDisplay"] = $width . " x " . $height;
                     $item["imageUrl"] = !empty($this->section) ?
-                        'http://' . HOSTNAME . "/images/rus/{$this->section}/" . $file :
-                        'http://' . HOSTNAME . "/images/" . $file;
+                        'http://' . HOSTNAME . "/images/rus/{$this->section}/" . urlencode($file) :
+                        'http://' . HOSTNAME . "/images/" . urlencode($file);
                     $item["imageUrlPreview"] = !empty($this->section) ?
-                        "http://" . HOSTNAME . "/lib/image.php?size=64&img=images/rus/{$this->section}/" . $file :
-                        "http://" . HOSTNAME . "/lib/image.php?size=64&img=images/" . $file;
+                        "http://" . HOSTNAME . "/lib/image.php?size=64&img=images/rus/{$this->section}/" . urlencode($file) :
+                        "http://" . HOSTNAME . "/lib/image.php?size=64&img=images/" . urlencode($file);
                     $items[] = $item;
                 }
                 $ups++;

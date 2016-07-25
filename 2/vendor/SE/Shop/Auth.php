@@ -70,6 +70,7 @@ class Auth extends Base
     {
         $url = AUTH_SERVER . "/api/2/Auth/Register.api";
         $ch = curl_init($url);
+        $data["project"] =  str_replace(".e-stile.ru", "", HOSTNAME);
         $apiData = json_encode($data);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($ch, CURLOPT_POSTFIELDS, $apiData);
@@ -142,6 +143,8 @@ class Auth extends Base
                 }
             }
 
+            $authData["login"] = $this->input["login"];
+            $authData["hash"] = $this->input["hash"];
             $data['config'] = $authData;
             $data['permissions'] = $this->getPermission($data['idUser']);
             $data['accounts'] = $this->getAccounts();

@@ -25,7 +25,7 @@ for ($i = 0; $i < $countFiles; $i++) {
     $file = $_FILES["file$i"]['name'];
     $uploadFile = $uploadDir . '/' . $file;
     $fileTemp = $_FILES["file$i"]['tmp_name'];
-    if (!filesize($fileTemp) || move_uploaded_file($fileTemp, $uploadFile)) {
+    if (move_uploaded_file($fileTemp, $uploadFile)) {
         if (file_exists($uploadFile)) {
             $files[] = $uploadFile;
             $item = array();

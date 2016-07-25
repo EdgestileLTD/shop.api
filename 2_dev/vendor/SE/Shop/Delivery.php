@@ -134,18 +134,33 @@ class Delivery extends Base
 
     private function savePaySystem()
     {
-        $idDelivery = $this->input["id"];
-        $idsPaySystems = $this->input["idsPaySystems"];
-        $u = new seTable('shop_delivery_payment', 'sdp');
-        $u->findList("id_delivery = {$idDelivery}")->deletelist();
-
-        if (!empty($idsPaySystems)) {
+        try {
+            $idDelivery = $this->input["id"];
+            $idsPaySystems = $this->input["idsPaySystems"];
+            $idsExist = array();
+            foreach ($idsPaySystems as $id)
+                if ($id)
+                    $idsExist[] = $id;
+            $idsExistStr = implode(",", $idsExist);
+            $u = new seTable('shop_delivery_payment', 'sdp');
+            if (empty($idsExist))
+                $u->findList("id_delivery = {$idDelivery}")->deleteList();
+            else $u->findList("id_delivery = {$idDelivery} AND NOT id_payment IN ({$idsExistStr})")->deleteList();
+            $u = new seTable('shop_delivery_payment', 'sdp');
+            $u->where("id_delivery = ?", $idDelivery);
+            $idsExist = array();
+            $result = $u->getList();
+            foreach ($result as $item)
+                $idsExist[] = $item["idPayment"];
             foreach ($idsPaySystems as $id) {
-                $u = new seTable('shop_delivery_payment', 'sdp');
-                $u->idDelivery = $idDelivery;
-                $u->idPayment = $id;
-                $u->save();
+                if ($id && !in_array($id, $idsExist))
+                    $data[] = array('id_delivery' => $idDelivery, 'id_payment' => $id);
             }
+            if (!empty($data))
+                seTable::insertList('shop_delivery_payment', $data);
+        } catch (Exception $e) {
+            $this->error = "Не удаётся сохранить платежные системы доставки!";
+            throw new Exception($this->error);
         }
     }
 
