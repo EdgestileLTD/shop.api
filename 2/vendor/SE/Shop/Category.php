@@ -280,6 +280,7 @@ class Category extends Base
         $result['linksGroups'] = $this->getLinksGroups();
         $result['parametersFilters'] = $this->getFilterParams();
         $result["childs"] = $this->getChilds();
+        $result["modificationsGroups"] = (new Modification())->fetch();
         return $result;
     }
 
@@ -454,6 +455,8 @@ class Category extends Base
                 $this->input["code"] = strtolower(se_translite_url($this->input["name"]));
             $this->input["codeGr"] = $this->getUrl($this->input["code"], $this->input["id"]);
         }
+        if (isset($this->input["idModificationGroupDef"]) && empty($this->input["idModificationGroupDef"]))
+            $this->input["idModificationGroupDef"] = null;
         if (isset($this->input["idParent"]))
             $this->input["upid"] = $this->input["idParent"];
         if (isset($this->input["imageFile"]))

@@ -12,7 +12,8 @@ class Product extends Base
 
     protected function getSettingsFetch()
     {
-        $result["select"] = 'sp.*, sg.name name_group, sb.name name_brand';
+        $result["select"] = 'sp.*, sg.name name_group, sg.id_modification_group_def id_modification_group_def, 
+            sb.name name_brand';
         if (CORE_VERSION == "5.3") {
             $joins[] = array(
                 "type" => "left",
@@ -107,11 +108,11 @@ class Product extends Base
             $result = array();
             foreach ($items as $item) {
                 if ($item["type"] == "number")
-                    $item["value"] = (real) $item["valueNumber"];
+                    $item["value"] = (real)$item["valueNumber"];
                 elseif ($item["type"] == "string")
                     $item["value"] = $item["valueString"];
                 elseif ($item["type"] == "bool")
-                    $item["value"] = (bool) $item["valueBool"];
+                    $item["value"] = (bool)$item["valueBool"];
                 $result[] = $item;
             }
             return $result;
@@ -226,6 +227,23 @@ class Product extends Base
         $u->groupBy('smg.id');
         $u->orderBy('smg.sort');
         $objects = $u->getList();
+        $isDefModification = false;
+        if (empty($objects)) {
+            $idGroup = $this->result["idModificationGroupDef"];
+            if (empty($idGroup))
+                return $result;
+
+            $isDefModification = true;
+            $u = new DB('shop_modifications_group', 'smg');
+            $u->select('smg.*,
+                GROUP_CONCAT(DISTINCT(CONCAT_WS("\t", sf.id, sf.name, sf.`type`, sf.sort)) SEPARATOR "\n") `columns`');
+            $u->innerJoin('shop_group_feature sgf', 'smg.id = sgf.id_group');
+            $u->innerJoin('shop_feature sf', 'sf.id = sgf.id_feature');
+            $u->where('smg.id = ?', $idGroup);
+            $u->groupBy('smg.id');
+            $u->orderBy('smg.sort');
+            $objects = $u->getList();
+        }
         foreach ($objects as $item) {
             $group = null;
             $group['id'] = $item['id'];
@@ -251,6 +269,8 @@ class Product extends Base
         }
         if (!isset($groups))
             return $result;
+        if ($isDefModification)
+            return $groups;
 
         $u = new DB('shop_modifications', 'sm');
         $u->select('sm.*,
@@ -769,7 +789,7 @@ class Product extends Base
                             $dataM[] = array('id' => $i, 'code' => $item["article"],
                                 'id_mod_group' => $mod["id"], 'id_price' => $idProduct, 'value' => $item["price"],
                                 'value_opt' => $item["priceSmallOpt"], 'value_opt_corp' => $item["priceOpt"], 'count' => $count,
-                                'sort' => (int) $item["sortIndex"], 'description' => $item["description"]);
+                                'sort' => (int)$item["sortIndex"], 'description' => $item["description"]);
                             foreach ($item["values"] as $v)
                                 $dataF[] = array('id_price' => $idProduct, 'id_modification' => $i,
                                     'id_feature' => $v["idFeature"], 'id_value' => $v["id"]);
