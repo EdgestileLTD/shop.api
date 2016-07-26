@@ -52,7 +52,9 @@ date_default_timezone_set("Europe/Moscow");
 ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
-$apiFolder = array_pop(explode("/", __DIR__));
+$dir = __DIR__;
+$dir = explode("/", $dir);
+$apiFolder = array_pop($dir);
 define('IS_EXT', file_exists($_SERVER['DOCUMENT_ROOT'] . '/system/main/init.php'));
 define('API_FOLDER', $apiFolder);
 define('API_ROOT', $_SERVER['DOCUMENT_ROOT'] . "/api/{$apiFolder}/");
