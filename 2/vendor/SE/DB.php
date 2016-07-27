@@ -503,8 +503,7 @@ class DB
             $object = $this->getInfo($this->dataValues["id"]);
             $this->whereDefinitions = null;
             $isInsert = is_null($object);
-            if ($isInsert)
-                $this->dataValues = $values;
+            $this->dataValues = $values;
         }
         $values = $this->getValuesString($isInsert, $isInsertId);
         if (empty($values)) {
