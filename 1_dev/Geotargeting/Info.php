@@ -30,6 +30,7 @@ foreach($result as $item) {
     $contact = $item;
     $contact["isActive"] = (bool) $item["is_visible"];
     $contact["sortIndex"] = (int) $item["sort"];
+    $contact["additionalPhones"] = $item["additional_phones"];
     $contact["city"] = getCityById($item["idCity"]);
     $items[] = $contact;
 }

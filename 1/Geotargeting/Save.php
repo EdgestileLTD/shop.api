@@ -36,6 +36,7 @@ if ($isNew || !empty($ids)) {
     $isUpdated |= setField($isNew, $u, $json->name, 'name');
     $isUpdated |= setField($isNew, $u, $json->address, 'address');
     $isUpdated |= setField($isNew, $u, $json->phone, 'phone');
+    $isUpdated |= setField($isNew, $u, $json->additionalPhones, 'additional_phones');
     $isUpdated |= setField($isNew, $u, $json->description, 'description');
     $isUpdated |= setField($isNew, $u, $json->isActive, 'is_visible');
     $isUpdated |= setField($isNew, $u, $json->sortIndex, 'sort');

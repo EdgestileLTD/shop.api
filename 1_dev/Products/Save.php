@@ -305,7 +305,7 @@ function saveModifications($idsProducts, $modifications)
                     $isUpdated |= setField(0, $u, $item->priceSmallOpt, 'value_opt');
                     $isUpdated |= setField(0, $u, $item->priceOpt, 'value_opt_corp');
                     $isUpdated |= setField(0, $u, $item->description, 'description');
-                    $count = null;
+                    $count = -1;
                     if ($item->count >= 0)
                         $count = $item->count;
                     $isUpdated |= setField(0, $u, $count, 'count');
