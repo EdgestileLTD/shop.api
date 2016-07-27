@@ -1,8 +1,7 @@
 <?php
 
-define("CRYPT_KEY", "7YyDfvsH5mfdu8zkFppYczgMmpXWgBf08kmeT3xluEt4BTW1oIK6zCyvJhNTPYUi");
 $allowedMethods = array('FETCH', 'POST', 'DELETE', 'SAVE', 'INFO', 'GET', 'ADDPRICE', 'TRANSLIT', 'UPLOAD',
-    'CHECKNAMES', 'SORT', 'EXPORT', 'IMPORT');
+    'CHECKNAMES', 'SORT', 'EXPORT', 'IMPORT', 'LOGOUT');
 $allowedMethods = implode(",", $allowedMethods);
 
 $headers = getallheaders();
@@ -63,6 +62,13 @@ if (!empty($origin)) {
     }
     if ($apiMethod == "OPTIONS")
         exit;
+}
+
+if ($apiClass == "Auth" && strtolower($apiMethod) == "logout") {
+    $_SESSION = array();
+    session_destroy();
+    echo "Session destroy!";
+    exit;
 }
 
 if ($apiClass == "Auth" && strtolower($apiMethod) == "get") {

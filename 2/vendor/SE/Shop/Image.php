@@ -22,16 +22,8 @@ class Image extends Base
                 $this->dir .= "/tmp";
             else $this->dir .= "/$this->lang/{$this->section}";
         }
-        if (!file_exists($this->dir)) {
-            $dirs = explode('/', $this->dir);
-            $path = DOCUMENT_ROOT . "/";
-            foreach ($dirs as $d) {
-                $path .= $d;
-                if (!file_exists($path))
-                    mkdir($path, 0700);
-                $path .= '/';
-            }
-        }
+        if (!file_exists($this->dir))
+            mkdir($this->dir, 0700, true);
     }
 
     public function fetch()

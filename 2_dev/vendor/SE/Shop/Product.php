@@ -850,7 +850,7 @@ class Product extends Base
 
     private function saveIdGroup()
     {
-        if (CORE_VERSION != "5.3")
+        if (CORE_VERSION != "5.3" || !isset($this->input["idGroup"]))
             return true;
 
         try {
