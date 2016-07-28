@@ -81,8 +81,9 @@ if ($apiClass == "Auth" && strtolower($apiMethod) == "get") {
 
 $phpInput = file_get_contents('php://input');
 $hostname = $_SESSION['hostname'];
-if ($apiClass == "Auth" && strtolower($apiMethod) == "info") 
-    $hostname = $headers["Project"];
+
+if ($apiClass == "Auth" && strtolower($apiMethod) == "info")
+    $hostname = (strpos($headers["Project"], '.') !== false) ? $headers["Project"] : $headers["Project"] . '.e-stile.ru';
 
 define("HOSTNAME", $hostname);
 define('DOCUMENT_ROOT', IS_EXT ? $_SERVER['DOCUMENT_ROOT'] : '/home/e/edgestile/' . HOSTNAME . '/public_html');

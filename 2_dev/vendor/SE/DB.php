@@ -99,6 +99,12 @@ class DB
         return self::$dbh->exec($statement);
     }
 
+    public static function prepare($statement)
+    {
+        self::$lastQuery = $statement;
+        return self::$dbh->prepare($statement);
+    }
+
     public static function strToCamelCase($str)
     {
         $separator = '_';

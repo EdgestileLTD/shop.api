@@ -45,27 +45,6 @@ class Auth extends Base
         }
     }
 
-    private function getAccounts()
-    {
-        if (empty($_SESSION["fileAccount"])) {
-            $dir = API_ROOT . "../app-data/" . HOSTNAME . "/config";
-            if (!file_exists($dir))
-                mkdir($dir, 0700, true);
-            $_SESSION["fileAccount"] = $dir . "/" .
-                md5($this->input["project"] . $this->input["login"] . $this->input["hash"]);
-        }
-
-        $fileAccount = $_SESSION["fileAccount"];
-        $data = file_exists($fileAccount) ? json_decode(file_get_contents($fileAccount), true) : array();
-        $accounts = empty($data["accounts"]) ? array() : $data["accounts"];
-        if (key_exists($this->input["project"], $accounts))
-            return $accounts;
-        $this->input["alias"] = $this->input["project"];
-        $data["accounts"][] = $this->input;
-        file_put_contents($fileAccount, json_encode($data));
-        return $data["accounts"];
-    }
-
     public function getAuthData($data = array())
     {
         $url = AUTH_SERVER . "/api/2/Auth/Register.api";
@@ -147,8 +126,9 @@ class Auth extends Base
             $authData["hash"] = $this->input["hash"];
             $data['config'] = $authData;
             $data['permissions'] = $this->getPermission($data['idUser']);
-            $data['accounts'] = $this->getAccounts();
 
+            $_SESSION["login"] = $this->input["login"];
+            $_SESSION["hash"] = $this->input["hash"];
             $_SESSION['idUser'] = $data['idUser'];
             $_SESSION['isAuth'] = true;
             $_SESSION['hostname'] = HOSTNAME;

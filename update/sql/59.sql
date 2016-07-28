@@ -1,6 +1,4 @@
-<?php
-
-se_db_query("CREATE TABLE `shop_contacts` (
+CREATE TABLE `shop_contacts` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) DEFAULT NULL,
   `address` varchar(255) DEFAULT NULL,
@@ -13,9 +11,9 @@ se_db_query("CREATE TABLE `shop_contacts` (
   `updated_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AVG_ROW_LENGTH=512");
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AVG_ROW_LENGTH=512;
 
-se_db_query("CREATE TABLE `shop_contacts_geo` (
+CREATE TABLE `shop_contacts_geo` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `id_contact` int(10) unsigned NOT NULL,
   `id_city` int(10) unsigned NOT NULL,
@@ -23,6 +21,6 @@ se_db_query("CREATE TABLE `shop_contacts_geo` (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `UK_shop_contacts_geo` (`id_contact`,`id_city`),
-  CONSTRAINT `FK_shop_contacts_geo_shop_contacts_id` 
+  CONSTRAINT `FK_shop_contacts_geo_shop_contacts_id`
     FOREIGN KEY (`id_contact`) REFERENCES `shop_contacts` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AVG_ROW_LENGTH=512");
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AVG_ROW_LENGTH=512;
