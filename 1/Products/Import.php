@@ -273,9 +273,7 @@ try {
                     define('SE_ROOT', $se_root);
                 }
                 include_once  $filePluginYML;
-                if ($isInsertMode)
-                    new yandex_market_loader($file_market, "insert");
-                else new yandex_market_loader($file_market);
+                new yandex_market_loader($file_market);
             } else echo "Отсутствует плагин импорта YML!";
         }
     } else {
@@ -674,7 +672,6 @@ try {
 
     se_db_query("COMMIT");
     echo "ok";
-
 } catch (Exception $e) {
     se_db_query("ROLLBACK");
     echo "Ошибка импорта данных!";
