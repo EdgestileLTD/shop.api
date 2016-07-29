@@ -6,22 +6,32 @@ use \PDO as PDO;
 
 class DB
 {
+
+    /* @var $lastQuery string */
     static public $lastQuery;
     /* @var $dbh PDO */
     static protected $dbh = null;
     static private $tables = array();
 
     private $isCamelCaseMode = true;
+    /* @var $lastQuery string */
     private $rawQuery;
 
+    /* @var $tableName string */
     protected $tableName;
+    /* @var $aliasName string */
     protected $aliasName;
+    /* @var $selectExpression string */
     protected $selectExpression;
+    /* @var $groupBy string */
     protected $groupBy;
     protected $orderBy = array();
     protected $joins = array();
+    /* @var $limit integer */
     protected $limit;
+    /* @var $offset integer */
     protected $offset;
+    /* @var $whereDefinitions string */
     protected $whereDefinitions;
     protected $whereValues = array();
     protected $dataValues = array();

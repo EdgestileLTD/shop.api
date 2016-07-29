@@ -19,6 +19,7 @@ class Account extends Base
         try {
             $db = new DB("$this->tableName");
             $db->select("a.*");
+            $db->where("main_login = '?'", $_SESSION["login"]);
             $result = $db->getList();
             foreach ($result as $item) {
                 $item["isMain"] = false;
@@ -38,7 +39,7 @@ class Account extends Base
         $mainProject = str_replace(".e-stile.ru", "", HOSTNAME);
         $this->input["project"] = str_replace(".e-stile.ru", "", $this->input["project"]);
         if ($mainProject == $this->input["project"] ) {
-            $this->result = "Такой аккаунт уже существует!";
+            $this->error = "Такой аккаунт уже существует!";
             return null;
         }
         if ($isNew) {
@@ -46,11 +47,14 @@ class Account extends Base
                 $project = $this->input["project"];
                 $db = new DB("$this->tableName");
                 $db->select("a.*");
-                $db->where("project = '{$project}'");
-                if ($db->getList())
-                    $this->result = "Такой аккаунт уже существует!";
+                $db->where("project = '{$project}' AND main_login = '?'", $_SESSION["login"]);
+                if ($db->getList()) {
+                    $this->error = "Такой аккаунт уже существует!";
+                    return null;
+                }
                 else {
                     $db = new DB("$this->tableName");
+                    $this->input["mainLogin"] = $_SESSION["login"];
                     $db->setValuesFields($this->input);
                     $this->input["id"] = $db->save();
                 }
@@ -63,11 +67,10 @@ class Account extends Base
                 $db->setValuesFields($this->input);
                 $db->save();
             } catch (Exception $e) {
-                $this->result = "Не удаётся обновить данные аккаунта!";
+                $this->error = "Не удаётся обновить данные аккаунта!";
             }
         }
-        $this->info();
-        return $this;
+        $this->fetch();
     }
 
 }

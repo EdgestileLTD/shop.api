@@ -432,7 +432,7 @@ class Category extends Base
         }
     }
 
-    private function getUrl($code, $id)
+    static public function getUrl($code, $id = null)
     {
         $code_n = $code;
         $id = (int)$id;
