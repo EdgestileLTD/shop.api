@@ -96,7 +96,7 @@ class Auth extends Base
             }
 
             if (!empty($this->error))
-               return $this;
+                return $this;
 
             $u = new DB("main", "m");
             $u->select("*");
@@ -107,9 +107,10 @@ class Auth extends Base
             $settings->select("db_version");
             $result = $settings->fetchOne();
             if (empty($result["dbVersion"]))
-                DB::query("INSERT INTO se_settings (`version`, `db_version`) VALUE (1, 1)");            
+                DB::query("INSERT INTO se_settings (`version`, `db_version`) VALUE (1, 1)");
             if ($result["dbVersion"] < DB_VERSION) {
-                $pathRoot = $_SERVER['DOCUMENT_ROOT'] . '/api/update/sql/';
+                $pathRoot =  $_SERVER['DOCUMENT_ROOT'] . '/api/update/sql/';
+                DB::setErrorMode(\PDO::ERRMODE_SILENT);
                 for ($i = $result["dbVersion"] + 1; $i <= DB_VERSION; $i++) {
                     $fileUpdate = $pathRoot . $i . '.sql';
                     if (file_exists($fileUpdate)) {
@@ -120,6 +121,7 @@ class Auth extends Base
                         DB::query("UPDATE se_settings SET db_version=$i");
                     }
                 }
+                DB::setErrorMode(\PDO::ERRMODE_EXCEPTION);
             }
 
             $authData["login"] = $this->input["login"];
@@ -144,5 +146,4 @@ class Auth extends Base
     {
         $this->result["permissions"] = $this->getPermission($_SESSION['idUser']);
     }
-
 }

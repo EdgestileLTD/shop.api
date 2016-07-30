@@ -71,6 +71,16 @@ class DB
         }
     }
 
+    /**
+     * @param $errorMode int
+     */
+    public static function setErrorMode($errorMode)
+    {
+        if (self::$dbh)
+            self::$dbh->setAttribute(PDO::ATTR_ERRMODE, $errorMode);
+        else throw new Exception("The connection is not initialized!");
+    }
+
     public static function getTables()
     {
         if (self::$tables)
@@ -84,35 +94,47 @@ class DB
 
     public static function beginTransaction()
     {
-        self::$dbh->beginTransaction();
+        if (self::$dbh)
+            self::$dbh->beginTransaction();
+        else throw new Exception("The connection is not initialized!");
     }
 
     public static function commit()
     {
-        self::$dbh->commit();
+        if (self::$dbh)
+            self::$dbh->commit();
+        else throw new Exception("The connection is not initialized!");
     }
 
     public static function rollBack()
     {
-        self::$dbh->rollBack();
+        if (self::$dbh)
+            self::$dbh->rollBack();
+        else throw new Exception("The connection is not initialized!");
     }
 
     public static function query($statement)
     {
-        self::$lastQuery = $statement;
-        return self::$dbh->query($statement);
+        if (self::$dbh) {
+            self::$lastQuery = $statement;
+            return self::$dbh->query($statement);
+        } else throw new Exception("The connection is not initialized!");
     }
 
     public static function exec($statement)
     {
-        self::$lastQuery = $statement;
-        return self::$dbh->exec($statement);
+        if (self::$dbh) {
+            self::$lastQuery = $statement;
+            return self::$dbh->exec($statement);
+        } else throw new Exception("The connection is not initialized!");
     }
 
     public static function prepare($statement)
     {
-        self::$lastQuery = $statement;
-        return self::$dbh->prepare($statement);
+        if (self::$dbh) {
+            self::$lastQuery = $statement;
+            return self::$dbh->prepare($statement);
+        } else throw new Exception("The connection is not initialized!");
     }
 
     public static function strToCamelCase($str)
@@ -176,7 +198,7 @@ class DB
         try {
             $existIds = array();
             $sql = "SELECT {$setting['link']} FROM {$setting["table"]} WHERE {$setting['table']}.{$setting['key']} = {$idKey}";
-            $items = DB::query($sql)->fetchAll();            
+            $items = DB::query($sql)->fetchAll();
             foreach ($items as $item)
                 if (!empty($item[$setting["link"]]))
                     $existIds[] = $item[$setting["link"]];
@@ -227,7 +249,7 @@ class DB
             }
 
         } catch (\PDOException $e) {
-            throw new Exception("Query: " . self::$lastQuery . "\nError: " .   $e->getMessage());
+            throw new Exception("Query: " . self::$lastQuery . "\nError: " . $e->getMessage());
         }
     }
 
@@ -527,7 +549,7 @@ class DB
                 $this->dataValues["id"] = $this->inputData["ids"][0];
             return $this->dataValues["id"];
         }
-        
+
         $query[] = $isInsert ? "INSERT INTO" : "UPDATE";
         $query[] = $this->tableName;
         $query[] = "SET";
@@ -554,7 +576,7 @@ class DB
                 }
             } else return null;
         } catch (\PDOException $e) {
-            throw new Exception("Query: " . self::$lastQuery . "\nError: " .   $e->getMessage());
+            throw new Exception("Query: " . self::$lastQuery . "\nError: " . $e->getMessage());
         }
     }
 
@@ -581,7 +603,7 @@ class DB
 
     /* @var $stmt \PDOStatement */
     private function bindValues($stmt)
-    {        
+    {
         $values = array_merge($this->dataValues, $this->whereValues);
         foreach ($values as $key => $value) {
             $type = PDO::PARAM_STR;
