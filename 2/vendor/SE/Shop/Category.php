@@ -82,9 +82,8 @@ class Category extends Base
     protected function getSettingsFetch()
     {
         if (CORE_VERSION == "5.3") {
-            $result["select"] = "sg.id, GROUP_CONCAT(CONCAT_WS(':', sgtp.level, sgt.id_parent) SEPARATOR ';') ids_parents,
-                sg.code_gr, sg.position, sg.name, sg.picture imageFile, sg.picture_alt imageAlt, sg.id_modification_group_def,
-                sg.description, sgt.level level, sgt.id_parent id_parent";
+            $result["select"] = "sg.*, GROUP_CONCAT(CONCAT_WS(':', sgtp.level, sgt.id_parent) SEPARATOR ';') ids_parents,
+                sgt.id_parent id_parent";
             $joins[] = array(
                 "type" => "left",
                 "table" => 'shop_group_tree sgt',
@@ -97,10 +96,7 @@ class Category extends Base
             );
             $result["joins"] = $joins;
         } else {
-            $result["select"] = "sg.id, sg.upid id_parent, sg.code_gr code, 
-                sg.position sort_index, sg.name, sg.picture imageFile, sg.picture_alt imageAlt, 
-                sg.id_modification_group_def,
-                sg.description, (SELECT COUNT(*) FROM `shop_group` WHERE upid = sg.id) gcount,
+            $result["select"] = "sg.*, sg.upid id_parent, (SELECT COUNT(*) FROM `shop_group` WHERE upid = sg.id) gcount,
                 (SELECT COUNT(*) FROM `shop_price` WHERE sg.id = id_group) count_goods";
         }
         return $result;
@@ -272,8 +268,20 @@ class Category extends Base
         return $result;
     }
 
+    private function getNameParent()
+    {
+        if (!$this->result["upid"])
+            return null;
+
+        $db = new DB("shop_group");
+        $db->select("name");
+        $result = $db->getInfo($this->result["upid"]);
+        return $result["name"];
+    }
+
     protected function getAddInfo()
     {
+        $result["nameParent"] = $this->getNameParent();
         $result["discounts"] = $this->getDiscounts();
         $result["images"] = $this->getImages();
         $result["deliveries"] = $this->getDeliveries();
@@ -450,19 +458,28 @@ class Category extends Base
 
     protected function correctValuesBeforeSave()
     {
-        if (!$this->input["id"] && !$this->input["ids"] || isset($this->input["code"])) {
-            if (empty($this->input["code"]))
-                $this->input["code"] = strtolower(se_translite_url($this->input["name"]));
-            $this->input["codeGr"] = $this->getUrl($this->input["code"], $this->input["id"]);
+        if (!$this->input["id"] && !$this->input["ids"] || isset($this->input["codeGr"])) {
+            if (empty($this->input["codeGr"]))
+                $this->input["codeGr"] = strtolower(se_translite_url($this->input["name"]));
+            $this->input["codeGr"] = $this->getUrl($this->input["codeGr"], $this->input["id"]);
         }
         if (isset($this->input["idModificationGroupDef"]) && empty($this->input["idModificationGroupDef"]))
             $this->input["idModificationGroupDef"] = null;
-        if (isset($this->input["idParent"]))
-            $this->input["upid"] = $this->input["idParent"];
-        if (isset($this->input["imageFile"]))
-            $this->input["picture"] = $this->input["imageFile"];
-        if (isset($this->input["sortIndex"]))
-            $this->input["position"] = $this->input["sortIndex"];
+        if (isset($this->input["active"]) && is_bool($this->input["active"]))
+            $this->input["active"] = $this->input["active"] ? "Y" : "N";
+    }
+
+    private function saveIdParent()
+    {
+        try {
+            $idsGroups = $this->input["ids"];
+
+
+
+        } catch (Exception $e) {
+            $this->error = "Не удаётся сохранить родителя группы!";
+            throw new Exception($this->error);
+        }
     }
 
     protected function saveAddInfo()
@@ -475,6 +492,8 @@ class Category extends Base
         $this->saveImages();
         $this->saveLinksGroups();
         $this->saveParametersFilters();
+        if (CORE_VERSION == "5.3" && isset($this->input["upid"]))
+            $this->saveIdParent();
 
         return true;
     }
