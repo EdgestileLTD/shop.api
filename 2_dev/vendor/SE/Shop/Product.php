@@ -1569,38 +1569,6 @@ class Product extends Base
         return $id;
     }
 
-
-    function getLevel($id)
-    {
-        $level = 0;
-        $sqlLevel = 'SELECT `level` FROM shop_group_tree WHERE id_parent = :id_parent AND id_child = :id_parent LIMIT 1';
-        $sth = DB::prepare($sqlLevel);
-        $params = array("id_parent" => $id);
-        $answer = $sth->execute($params);
-        if ($answer !== false) {
-            $items = $sth->fetchAll(\PDO::FETCH_ASSOC);
-            if (count($items))
-                $level = $items[0]['level'];
-        }
-        return $level;
-    }
-
-    private function saveIdParent($id, $idParent)
-    {
-        $level = 0;
-        $sqlGroupTree = "INSERT INTO shop_group_tree (id_parent, id_child, `level`)
-                            SELECT id_parent, :id, `level` FROM shop_group_tree
-                            WHERE id_child = :id_parent
-                            UNION ALL
-                            SELECT :id, :id, :level";
-        $sthGroupTree = DB::prepare($sqlGroupTree);
-        if (!empty($idParent)) {
-            $level = $this->getLevel($idParent);
-            $level++;
-        }
-        $sthGroupTree->execute(array('id_parent' => $idParent, 'id' => $id, 'level' => $level));
-    }
-
     private function createGroup53(&$groups, $idParent, $name)
     {
         foreach ($groups as $group) {
@@ -1621,7 +1589,7 @@ class Product extends Base
         $group['upid'] = $idParent;
         $groups[] = $group;
 
-        $this->saveIdParent($id, $idParent);
+        Category::saveIdParent($id, $idParent);
 
         return $id;
     }

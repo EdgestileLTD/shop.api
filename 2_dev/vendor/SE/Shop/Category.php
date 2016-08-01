@@ -16,13 +16,13 @@ class Category extends Base
     private function getParentItem($item, $items)
     {
         foreach ($items as $it)
-            if ($it["id"] == $item["idParent"])
+            if ($it["id"] == $item["upid"])
                 return $it;
     }
 
     private function getPathName($item, $items)
     {
-        if (!$item["idParent"])
+        if (!$item["upid"])
             return $item["name"];
 
         $parent = $this->getParentItem($item, $items);
@@ -49,7 +49,7 @@ class Category extends Base
     {
         $result = array();
         foreach ($items as $item) {
-            if ($item["idParent"] == $idParent) {
+            if ($item["upid"] == $idParent) {
                 $item["childs"] = $this->getTreeView($items, $item["id"]);
                 $result[] = $item;
             }
@@ -72,7 +72,7 @@ class Category extends Base
                         $level = $ids[0];
                     }
                 }
-                $item['idParent'] = $idParent;
+                $item['upid'] = $idParent;
             }
             $result[] = $item;
         }
@@ -83,7 +83,7 @@ class Category extends Base
     {
         if (CORE_VERSION == "5.3") {
             $result["select"] = "sg.*, GROUP_CONCAT(CONCAT_WS(':', sgtp.level, sgt.id_parent) SEPARATOR ';') ids_parents,
-                sgt.id_parent id_parent";
+                sgt.level level";
             $joins[] = array(
                 "type" => "left",
                 "table" => 'shop_group_tree sgt',
@@ -96,8 +96,7 @@ class Category extends Base
             );
             $result["joins"] = $joins;
         } else {
-            $result["select"] = "sg.*, sg.upid id_parent, (SELECT COUNT(*) FROM `shop_group` WHERE upid = sg.id) gcount,
-                (SELECT COUNT(*) FROM `shop_price` WHERE sg.id = id_group) count_goods";
+            $result["select"] = "sg.*";
         }
         return $result;
     }
@@ -105,6 +104,15 @@ class Category extends Base
     protected function getSettingsInfo()
     {
         return $this->getSettingsFetch();
+    }
+
+    public function info()
+    {
+        $result = parent::info();
+        if (CORE_VERSION == "5.3")
+            $this->result = $this->setIdMainParent(array($result))[0];
+        $this->result["nameParent"] = $this->getNameParent();
+        return $this->result;
     }
 
     protected function correctValuesBeforeFetch($items = array())
@@ -256,12 +264,12 @@ class Category extends Base
         $idParent = $this->input["id"];
         if (CORE_VERSION == "5.3") {
             $filter = array(
-                array("field" => "idParent", "value" => $idParent),
+                array("field" => "upid", "value" => $idParent),
                 array("field" => "level", "value" => ++$this->result["level"]));
             $category = new Category(array("filters" => $filter));
             $result = $category->fetch();
         } else {
-            $filter = array("field" => "idParent", "value" => $idParent);
+            $filter = array("field" => "upid", "value" => $idParent);
             $category = new Category(array("filters" => $filter));
             $result = $category->fetch();
         }
@@ -281,7 +289,6 @@ class Category extends Base
 
     protected function getAddInfo()
     {
-        $result["nameParent"] = $this->getNameParent();
         $result["discounts"] = $this->getDiscounts();
         $result["images"] = $this->getImages();
         $result["deliveries"] = $this->getDeliveries();
@@ -456,6 +463,43 @@ class Category extends Base
         return uniqid();
     }
 
+    static public function getLevel($id)
+    {
+        $level = 0;
+        $sqlLevel = 'SELECT `level` FROM shop_group_tree WHERE id_parent = :id_parent AND id_child = :id_parent LIMIT 1';
+        $sth = DB::prepare($sqlLevel);
+        $params = array("id_parent" => $id);
+        $answer = $sth->execute($params);
+        if ($answer !== false) {
+            $items = $sth->fetchAll(\PDO::FETCH_ASSOC);
+            if (count($items))
+                $level = $items[0]['level'];
+        }
+        return $level;
+    }
+
+    static public function saveIdParent($id, $idParent)
+    {
+        try {
+            $level = 0;
+            DB::query("DELETE FROM shop_group_tree WHERE id_child = {$id}");
+
+            $sqlGroupTree = "INSERT INTO shop_group_tree (id_parent, id_child, `level`)
+                                SELECT id_parent, :id, `level` FROM shop_group_tree
+                                WHERE id_child = :id_parent
+                                UNION ALL
+                                SELECT :id, :id, :level";
+            $sthGroupTree = DB::prepare($sqlGroupTree);
+            if (!empty($idParent)) {
+                $level = self::getLevel($idParent);
+                $level++;
+            }
+            $sthGroupTree->execute(array('id_parent' => $idParent, 'id' => $id, 'level' => $level));
+        } catch (Exception $e) {
+            throw new Exception("Не удаётся сохранить родителя группы!");
+        }
+    }
+
     protected function correctValuesBeforeSave()
     {
         if (!$this->input["id"] && !$this->input["ids"] || isset($this->input["codeGr"])) {
@@ -469,19 +513,6 @@ class Category extends Base
             $this->input["active"] = $this->input["active"] ? "Y" : "N";
     }
 
-    private function saveIdParent()
-    {
-        try {
-            $idsGroups = $this->input["ids"];
-
-
-
-        } catch (Exception $e) {
-            $this->error = "Не удаётся сохранить родителя группы!";
-            throw new Exception($this->error);
-        }
-    }
-
     protected function saveAddInfo()
     {
         $this->input["ids"] = empty($this->input["ids"]) ? array($this->input["id"]) : $this->input["ids"];
@@ -492,9 +523,11 @@ class Category extends Base
         $this->saveImages();
         $this->saveLinksGroups();
         $this->saveParametersFilters();
-        if (CORE_VERSION == "5.3" && isset($this->input["upid"]))
-            $this->saveIdParent();
-
+        if (CORE_VERSION == "5.3" && isset($this->input["upid"])) {
+            $group = (new Category($this->input))->info();
+            if ($group["upid"] != $this->input["upid"])
+                self::saveIdParent($this->input["id"], $this->input["upid"]);
+        }
         return true;
     }
 }
