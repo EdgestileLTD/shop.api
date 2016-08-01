@@ -193,18 +193,11 @@ class Category extends Base
         if (!$id)
             return $result;
 
-        if (CORE_VERSION == "5.3") {
-            $u = new DB('shop_price_group', 'spg');
-            $u->select('sp.id, sp.name');
-            $u->innerJoin('shop_price sp', 'sp.id = spg.id_price');
-            $u->where('spg.id_group = ? AND NOT spg.is_main', $id);
-        } else {
-            $u = new DB('shop_crossgroup', 'scg');
-            $u->select('sg.id, sg.name');
-            $u->innerJoin('shop_group sg', 'scg.group_id = sg.id');
-            $u->orderBy();
-            $u->where('scg.id = ?', $id);
-        }
+        $u = new DB('shop_crossgroup', 'scg');
+        $u->select('sg.id, sg.name');
+        $u->innerJoin('shop_group sg', 'scg.group_id = sg.id');
+        $u->orderBy();
+        $u->where('scg.id = ?', $id);
 
         $items = $u->getList();
         foreach ($items as $item) {
@@ -372,49 +365,27 @@ class Category extends Base
             $idsExistsStr = implode(",", $idsExists);
             $idsStr = implode(",", $idsGroups);
 
-            if (CORE_VERSION == "5.3") {
-                $u = new DB('shop_price_group', 'spg');
-                if ($idsExistsStr)
-                    $u->where("(NOT id_price IN ({$idsExistsStr})) AND id_group IN (?)", $idsStr)->deleteList();
-                else $u->where('id_group IN (?)', $idsStr)->deleteList();
-                $idsExists = array();
-                if ($idsExistsStr) {
-                    $u->select("id_price, id_group");
-                    $u->where("(id_price IN ({$idsExistsStr})) AND id_group IN (?)", $idsStr);
-                    $objects = $u->getList();
-                    foreach ($objects as $item)
-                        $idsExists[] = $item["idPrice"];
-                };
-                $data = array();
-                foreach ($links as $group)
-                    if (empty($idsExists) || !in_array($group["id"], $idsExists))
-                        foreach ($idsGroups as $idGroup)
-                            $data[] = array('id_price' => $group["id"], 'id_group' => $idGroup, 'is_main' => 0);
-                if (!empty($data))
-                    DB::insertList('shop_price_group', $data);
-            } else {
-                $u = new DB('shop_crossgroup', 'scg');
-                if ($idsExistsStr)
-                    $u->where("(NOT group_id IN ({$idsExistsStr})) AND id IN (?)", $idsStr)->deleteList();
-                else $u->where('id IN (?)', $idsStr)->deleteList();
-                $idsExists = array();
-                if ($idsExistsStr) {
-                    $u->select("id, group_id");
-                    $u->where("(group_id IN ({$idsExistsStr})) AND id IN (?)", $idsStr);
-                    $objects = $u->getList();
-                    foreach ($objects as $item) {
-                        $idsExists[] = $item["id"];
-                        $idsExists[] = $item["groupId"];
-                    }
-                };
-                $data = array();
-                foreach ($links as $group)
-                    if (empty($idsExists) || !in_array($group["id"], $idsExists))
-                        foreach ($idsGroups as $idGroup)
-                            $data[] = array('id' => $idGroup, 'group_id' => $group['id']);
-                if (!empty($data))
-                    DB::insertList('shop_crossgroup', $data);
-            }
+            $u = new DB('shop_crossgroup', 'scg');
+            if ($idsExistsStr)
+                $u->where("(NOT group_id IN ({$idsExistsStr})) AND id IN (?)", $idsStr)->deleteList();
+            else $u->where('id IN (?)', $idsStr)->deleteList();
+            $idsExists = array();
+            if ($idsExistsStr) {
+                $u->select("id, group_id");
+                $u->where("(group_id IN ({$idsExistsStr})) AND id IN (?)", $idsStr);
+                $objects = $u->getList();
+                foreach ($objects as $item) {
+                    $idsExists[] = $item["id"];
+                    $idsExists[] = $item["groupId"];
+                }
+            };
+            $data = array();
+            foreach ($links as $group)
+                if (empty($idsExists) || !in_array($group["id"], $idsExists))
+                    foreach ($idsGroups as $idGroup)
+                        $data[] = array('id' => $idGroup, 'group_id' => $group['id']);
+            if (!empty($data))
+                DB::insertList('shop_crossgroup', $data);
         } catch (Exception $e) {
             $this->error = "Не удаётся сохранить связанные категории!";
             throw new Exception($this->error);
