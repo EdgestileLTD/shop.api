@@ -1113,7 +1113,8 @@ class Product extends Base
                 $this->result['name'] = $fileName;
             } else throw new Exception();
         } catch (Exception $e) {
-            $this->result = "Не удаётся экспортировать товары!";
+            $this->error = "Не удаётся экспортировать товары!";
+            throw new Exception($this->error);
         }
     }
 
@@ -1128,11 +1129,35 @@ class Product extends Base
         $dir = DOCUMENT_ROOT . "/files";
         $filePath = $dir . "/{$fileName}";
         if (!file_exists($filePath)) {
-            $this->result = "Не удаётся загрузить файл импорта!";
+            $this->error = "Не удаётся загрузить файл импорта!";
             return null;
         }
-
+        
+        $isRemoveAll = true;
         $ext = substr(strrchr($fileName, '.'), 1);
+
+        if ($isRemoveAll) {
+            DB::query("SET foreign_key_checks = 0");
+            DB::query("TRUNCATE TABLE shop_group");
+            DB::query("TRUNCATE TABLE shop_price");
+            DB::query("TRUNCATE TABLE shop_brand");
+            DB::query("TRUNCATE TABLE shop_img");
+            DB::query("TRUNCATE TABLE shop_group_price");
+            DB::query("TRUNCATE TABLE shop_discounts");
+            DB::query("TRUNCATE TABLE shop_discount_links");
+            DB::query("TRUNCATE TABLE shop_modifications");
+            DB::query("TRUNCATE TABLE shop_modifications_group");
+            DB::query("TRUNCATE TABLE shop_feature_group");
+            DB::query("TRUNCATE TABLE shop_feature");
+            DB::query("TRUNCATE TABLE shop_group_feature");
+            DB::query("TRUNCATE TABLE shop_modifications_feature");
+            DB::query("TRUNCATE TABLE shop_feature_value_list");
+            DB::query("TRUNCATE TABLE shop_modifications_img");
+            DB::query("TRUNCATE TABLE shop_tovarorder");
+            DB::query("TRUNCATE TABLE shop_order");
+            DB::query("SET foreign_key_checks = 1");
+        }
+        
         if ($ext == "yml")
             $this->importFromYml($filePath);
         else $this->importFromCsv($filePath);
@@ -1149,6 +1174,19 @@ class Product extends Base
         $rusCols = $this->rusCols;
         $trCols = array_flip($rusCols);
         $rows = $this->getArrayFromCsv($filePath);
+        $newsRows = array();
+        foreach ($rows as $row) {
+            $newRow = array();
+            foreach ($row as $key => $value) {
+                if (key_exists($key, $trCols)) {
+                    $newRow[$trCols[$key]] = $value;
+                } else $newRow[$key] = $value;
+            }
+            if ($newRow)
+                $newsRows[] = $newRow;
+        }
+        $rows = $newsRows;
+        unset($newsRows);        
 
         $isModificationMode = false; // режим с модификациями
         $featuresCols = array();
@@ -1265,7 +1303,6 @@ class Product extends Base
                         $groupsKeys[$key] = $idParent;
                     }
                 }
-
                 // добавление группы модификации
                 $newModsGroupsKeys = array();
                 if ($isModificationMode && $modsGroupsKeys) {
@@ -1288,7 +1325,6 @@ class Product extends Base
                     unset($modsGroupsKeys);
                     unset($dataModsGroups);
                 }
-
                 // добавление параметров для модификаций
                 $newFeaturesKeys = array();
                 if ($featuresKeys) {
@@ -1312,7 +1348,6 @@ class Product extends Base
                     unset($featuresKeys);
                     unset($dataFeatures);
                 }
-
                 // добавление значений для параметров
                 $newValuesKeys = array();
                 if ($featureValuesKeys) {
@@ -1339,7 +1374,6 @@ class Product extends Base
                     unset($dataFeaturesValues);
                     unset($featureValuesKeys);
                 }
-
                 // объединение модификаций в группу (shop_group_feature)
                 if ($isModificationMode && $groupTypesMods) {
                     $u = new DB('shop_group_feature', 'sgf');
@@ -1398,14 +1432,14 @@ class Product extends Base
                                 $valueM = !empty($mod['price']) ? $mod['price'] : 'null';
                                 if (($ind = strpos($valueM, '+')) || ($ind = strpos($valueM, '*')))
                                     $valueM = substr($valueM, $ind + 1, strlen($valueM) - $ind);
-                                $countM = !empty($mod['Count']) || ($mod['Count'] == '0.000') ? $mod['Count'] : 'null';
-                                $idModGroup = !empty($mod['GroupModifications']) ? $newModsGroupsKeys[$mod['GroupModifications']] : null;
+                                $countM = !empty($mod['count']) || ($mod['count'] == '0.000') ? $mod['count'] : 'null';
+                                $idModGroup = !empty($mod['groupModifications']) ? $newModsGroupsKeys[$mod['groupModifications']] : null;
                                 if ($idModGroup) {
                                     $dataModifications[] = array("id" => ++$idModification, "id_mod_group" => $idModGroup,
                                         "id_price" => $idProduct, 'code' => $codeM,
                                         'value' => $valueM, 'count' => $countM);
-                                    if (!empty($mod['Features'])) {
-                                        $featuresM = $mod['Features'];
+                                    if (!empty($mod['features'])) {
+                                        $featuresM = $mod['features'];
                                         foreach ($featuresM as $key => $val) {
                                             $idFeature = array_key_exists($key, $newFeaturesKeys) ? $newFeaturesKeys[$key] : null;
                                             if (!$idFeature)
@@ -1418,12 +1452,12 @@ class Product extends Base
                                         }
                                     }
                                 }
-                                $images = array_merge($images, !empty($mod['Images']) ? explode(";", $mod['Images']) : array());
+                                $images = array_merge($images, !empty($mod['images']) ? explode(";", $mod['images']) : array());
                             }
                         }
                     }
-                    if (!empty($goodsItem['Features'])) {
-                        $features = explode(';', $goodsItem['Features']);
+                    if (!empty($goodsItem['features'])) {
+                        $features = explode(';', $goodsItem['features']);
                         foreach ($features as $feature) {
                             $f = explode('#', $feature);
                             if (count($f) == 2) {
@@ -1442,19 +1476,19 @@ class Product extends Base
                     $images = array_unique($images);
                     if (empty($count) && $count != "0.000")
                         $count = -1;
-                    $measure = !empty($goodsItem['Measurement']) ? $goodsItem['Measurement'] : 'null';
-                    $weight = !empty($goodsItem['Weight']) ? $goodsItem['Weight'] : 'null';
-                    $volume = !empty($goodsItem['Volume']) ? $goodsItem['Volume'] : 'null';
-                    $description = !empty($goodsItem['Description']) ? $goodsItem['Description'] : 'null';
-                    $fullDescription = !empty($goodsItem['FullDescription']) ? $goodsItem['FullDescription'] : 'null';
-                    $codeCurrency = !empty($goodsItem['CodeCurrency']) ? $goodsItem['CodeCurrency'] : 'RUB';
-                    $metaHeader = !empty($goodsItem['MetaHeader']) ? $goodsItem['MetaHeader'] : 'null';
-                    $metaKeywords = !empty($goodsItem['MetaKeywords']) ? $goodsItem['MetaKeywords'] : 'null';
-                    $metaDescription = !empty($goodsItem['MetaDescription']) ? $goodsItem['MetaDescription'] : 'null';
-                    if (CORE_VERSION == "5.3" && $goodsItem['IdGroup'])
-                        $dataGoodsGroups[] = array("id_group" => $goodsItem['IdGroup'], "id_price" => $idProduct, "is_main" => 1);
-                    $dataGoods[] = array("id" => $idProduct, "code" => $goodsItem['Code'], "article" => $goodsItem['Article'],
-                        "id_group" => $IdGroup, "name" => $goodsItem['Name'], 'price' => $price, 'presence_count' => $count,
+                    $measure = !empty($goodsItem['measurement']) ? $goodsItem['measurement'] : 'null';
+                    $weight = !empty($goodsItem['weight']) ? $goodsItem['weight'] : 'null';
+                    $volume = !empty($goodsItem['volume']) ? $goodsItem['volume'] : 'null';
+                    $description = !empty($goodsItem['description']) ? $goodsItem['description'] : 'null';
+                    $fullDescription = !empty($goodsItem['fullDescription']) ? $goodsItem['fullDescription'] : 'null';
+                    $codeCurrency = !empty($goodsItem['codeCurrency']) ? $goodsItem['codeCurrency'] : 'RUB';
+                    $metaHeader = !empty($goodsItem['metaHeader']) ? $goodsItem['metaHeader'] : 'null';
+                    $metaKeywords = !empty($goodsItem['metaKeywords']) ? $goodsItem['metaKeywords'] : 'null';
+                    $metaDescription = !empty($goodsItem['metaDescription']) ? $goodsItem['metaDescription'] : 'null';
+                    if (CORE_VERSION == "5.3" && $goodsItem['idGroup'])
+                        $dataGoodsGroups[] = array("id_group" => $goodsItem['idGroup'], "id_price" => $idProduct, "is_main" => 1);
+                    $dataGoods[] = array("id" => $idProduct, "code" => $goodsItem['code'], "article" => $goodsItem['article'],
+                        "id_group" => $IdGroup, "name" => $goodsItem['name'], 'price' => $price, 'presence_count' => $count,
                         'text' => $fullDescription, 'note' => $description, 'measure' => $measure, 'weight' => $weight,
                         'volume' => $volume, 'curr' => $codeCurrency, "title" => $metaHeader, "keywords" => $metaKeywords,
                         "description" => $metaDescription);
@@ -1463,35 +1497,34 @@ class Product extends Base
                         $dataImages[] = array("id_price" => $idProduct, "picture" => $image, "default" => !$i);
                         $i++;
                     }
-
                     ++$rowCount;
                     if (++$rowInsert == 500 || ($rowCount >= $countGoods)) {
                         if (!empty($dataGoods)) {
-                            se_db_InsertList('shop_price', $dataGoods);
+                            DB::insertList('shop_price', $dataGoods);
                             $dataGoods = null;
                         }
                         if (!empty($dataImages)) {
-                            se_db_InsertList('shop_img', $dataImages);
+                            DB::insertList('shop_img', $dataImages);
                             $dataImages = null;
                         }
                         if (!empty($dataModifications)) {
-                            se_db_InsertList('shop_modifications', $dataModifications);
+                            DB::insertList('shop_modifications', $dataModifications);
                             $dataModifications = null;
                         }
                         if (!empty($dataModFeatures)) {
-                            se_db_InsertList('shop_modifications_feature', $dataModFeatures);
+                            DB::insertList('shop_modifications_feature', $dataModFeatures);
                             $dataModFeatures = null;
                         }
                         if (!empty($dataGoodsGroups)) {
-                            se_db_InsertList('shop_price_group', $dataGoodsGroups);
+                            DB::insertList('shop_price_group', $dataGoodsGroups);
                             $dataGoodsGroups = null;
                         }
                         $rowInsert = 0;
                     }
                 }
             }
-//
-//
+
+
 //            // обновление товаров
 //            //        if ($goodsUpdate) {
 //            //            $sql = null;
