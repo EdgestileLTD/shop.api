@@ -1,2 +1,0 @@
-Exception: SQLSTATE[23000]: Integrity constraint violation: 1452 Cannot add or update a child row: a foreign key constraint fails (`edgestile_146514`.`shop_price_group`, CONSTRAINT `FK_shop_price_group_shop_price_id` FOREIGN KEY (`id_price`) REFERENCES `shop_price` (`id`) ON DELETE CASCADE ON UPDATE CASCADE)
-Exception: Не удаётся сохранить связанные категории!
