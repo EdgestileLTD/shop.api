@@ -20,7 +20,6 @@ class SettingSynhro1C extends Base
                 'Content-Length: ' . strlen($apiData))
         );
         $result = json_decode(curl_exec($ch), 1);
-        writeLog($result);
         if ($result["status"] == "ok") {
             $this->result = $result["data"];
             return $result["data"];

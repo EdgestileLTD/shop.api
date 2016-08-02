@@ -1,0 +1,1 @@
+ALTER TABLE shop_group MODIFY code_gr VARCHAR(255) NOT NULL;
