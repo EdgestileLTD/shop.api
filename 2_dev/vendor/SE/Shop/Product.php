@@ -1133,7 +1133,7 @@ class Product extends Base
             return null;
         }
         
-        $isRemoveAll = true;
+        $isRemoveAll = false;
         $ext = substr(strrchr($fileName, '.'), 1);
 
         if ($isRemoveAll) {
@@ -1618,7 +1618,7 @@ class Product extends Base
         $group = array();
         $group["id"] = $id;
         $group['name'] = $name;
-        $group["codeGr"] = $u->codeGr;
+        $group["codeGr"] = $data["codeGr"];
         $group['upid'] = $idParent;
         $groups[] = $group;
 
