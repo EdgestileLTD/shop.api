@@ -651,8 +651,8 @@ if ($isNew || !empty($ids)) {
 
     if ($isUpdated) {
         if (!empty($idsStr)) {
-            if (strpos($idsStr, "all") === false)
-                $u->where('id in (?)', $idsStr);
+            if (strpos($idsStr, "*") === false)
+                $u->where('id IN (?)', $idsStr);
             else $u->where('TRUE');
         }
         $idv = $u->save();

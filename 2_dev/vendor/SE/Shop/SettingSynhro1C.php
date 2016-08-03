@@ -33,9 +33,9 @@ class SettingSynhro1C extends Base
     {
         $url = AUTH_SERVER . "/api/2/SettingSynhro1C/Save.api";
         $ch = curl_init($url);
-        $data["project"] =  str_replace(".e-stile.ru", "", HOSTNAME);
         $data["login"] = $_SESSION["login"];
         $data["hash"] = $_SESSION["hash"];
+        $data["data"] = $this->input;
         $apiData = json_encode($data);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($ch, CURLOPT_POSTFIELDS, $apiData);
@@ -46,9 +46,11 @@ class SettingSynhro1C extends Base
                 'Content-Length: ' . strlen($apiData))
         );
         $result = json_decode(curl_exec($ch), 1);
-        if ($result["status"] == "ok")
-            return $result["data"];
-        return null;
+        if ($result["status"] == "ok") {
+            $this->info();
+        } else {
+            $this->error = "Не удаётся сохранить данные по синхронизации с 1С!";
+        }
     }
 
     public function delete()
@@ -60,5 +62,4 @@ class SettingSynhro1C extends Base
     {
 
     }
-
 }
