@@ -257,25 +257,18 @@ try {
             $projectDir = PATH_ROOT . $json->hostname . '/public_html';
             chdir($projectDir);
             $file_market = file_get_contents($fileName);
-            if(empty($file_market))
+            if (empty($file_market))
                 exit;
             $filePluginYML = $projectDir . '/lib/plugins/plugin_shop/plugin_yandex_market_loader.class.php';
             if (file_exists($filePluginYML)) {
                 define('SE_DB_ENABLE', true);
                 define('SE_SAFE', '');
                 define('SE_DIR', '');
-                include_once  $projectDir . '/lib/lib_se_function.php';
-                include_once  $projectDir . '/lib/plugins/plugin_shop/plugin_shopgroups.class.php';
-                if (empty($_SERVER['DOCUMENT_ROOT'])) {
-                    define('SE_ROOT', '');
-                } else {
-                    $se_root = (substr($_SERVER['DOCUMENT_ROOT'], -1) == '/') ? $_SERVER['DOCUMENT_ROOT'] : $_SERVER['DOCUMENT_ROOT'] . '/';
-                    define('SE_ROOT', $se_root);
-                }
-                include_once  $filePluginYML;
-                if ($isInsertMode)
-                    new yandex_market_loader($file_market, "insert");
-                else new yandex_market_loader($file_market);
+                define('SE_ROOT', $projectDir);
+                include_once $projectDir . '/lib/lib_se_function.php';
+                include_once $projectDir . '/lib/plugins/plugin_shop/plugin_shopgroups.class.php';
+                include_once $filePluginYML;
+                new yandex_market_loader($file_market);
             } else echo "Отсутствует плагин импорта YML!";
         }
     } else {
@@ -674,7 +667,6 @@ try {
 
     se_db_query("COMMIT");
     echo "ok";
-
 } catch (Exception $e) {
     se_db_query("ROLLBACK");
     echo "Ошибка импорта данных!";
