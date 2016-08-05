@@ -1121,10 +1121,10 @@ class Product extends Base
     public function post()
     {
         if ($items = parent::post())
-            $this->import($items[0]["name"]);
+            $this->import($items[0]["url"], $items[0]["name"]);
     }
 
-    public function import($fileName)
+    public function import($url, $fileName)
     {
         $dir = DOCUMENT_ROOT . "/files";
         $filePath = $dir . "/{$fileName}";
@@ -1158,14 +1158,25 @@ class Product extends Base
             DB::query("SET foreign_key_checks = 1");
         }
 
-        if ($ext == "yml")
-            $this->importFromYml($filePath);
+        if ($ext == "xml")
+            $this->importFromYml($url);
         else $this->importFromCsv($filePath);
     }
 
-    private function importFromYml($filePath)
+    private function importFromYml($fileUrl)
     {
-
+        $url = "http://" . HOSTNAME . "/lib/loader_from_yml.php";
+        $ch = curl_init($url);
+        $data["serial"] = DB::$dbSerial;
+        $data["db_password"] = DB::$dbPassword;
+        $data["url_yml"] = $fileUrl;
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $result = curl_exec($ch);
+        if ($result != "ok")
+            $this->error = "Не удаётся импортировать товары с заданными параметрами!";
     }
 
     private function importFromCsv($filePath)

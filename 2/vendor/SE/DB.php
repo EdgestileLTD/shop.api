@@ -9,6 +9,10 @@ class DB
 
     /* @var $lastQuery string */
     static public $lastQuery;
+    /* @var $dbSerial string */
+    static public $dbSerial;
+    /* @var $dbPassword string */
+    static public $dbPassword;
     /* @var $dbh PDO */
     static protected $dbh = null;
     static private $tables = array();
@@ -64,6 +68,8 @@ class DB
     public static function initConnection($connection)
     {
         try {
+            self::$dbSerial = $connection['DBSerial'];
+            self::$dbPassword = $connection['DBPassword'];
             self::$dbh = new PDO("mysql:host={$connection['HostName']};dbname={$connection['DBName']}",
                 $connection['DBUserName'], $connection['DBPassword'], array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION));
         } catch (\PDOException $e) {

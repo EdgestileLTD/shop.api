@@ -649,6 +649,9 @@ if ($isNew || !empty($ids)) {
     $isUpdated |= setField($isNew, $u, $json->seoDescription, 'description');
     $isUpdated |= setField($isNew, $u, $json->idYAMarketCategory, 'market_category');
 
+    writeLog($idsStr);
+    writeLog($json);
+
     if ($isUpdated) {
         if (!empty($idsStr)) {
             if (strpos($idsStr, "*") === false)
