@@ -415,22 +415,33 @@ class Base
         $ups = 0;
         $items = array();
         $dir = DOCUMENT_ROOT . "/files";
+        $url = !empty($_POST["url"]) ? $_POST["url"] : null;
         if (!file_exists($dir) || !is_dir($dir))
             mkdir($dir);
 
-        for ($i = 0; $i < $countFiles; $i++) {
-            $file = empty($_FILES["file"]) ? $_FILES["file$i"]['name'] : $_FILES["file"]['name'];
-            $uploadFile = $dir . '/' . $file;
-            $fileTemp = $_FILES["file$i"]['tmp_name'];
-            $urlFile = 'http://' . HOSTNAME . "/files/{$file}";
-            if (!filesize($fileTemp) || move_uploaded_file($fileTemp, $uploadFile)) {
-                $items[] = array("url" => $urlFile, "name" => $file);
-                $ups++;
+        if ($url) {
+            $content = file_get_contents($url);
+            if (empty($content)) {
+                $this->error = "Не удается загрузить данные по указанному URL!";
+            } else {
+                $items[] = array("url" => $url, "name" => array_pop(explode("/", $url)));
+                $this->result['items'] = $items;
             }
+        } else {
+            for ($i = 0; $i < $countFiles; $i++) {
+                $file = empty($_FILES["file"]) ? $_FILES["file$i"]['name'] : $_FILES["file"]['name'];
+                $uploadFile = $dir . '/' . $file;
+                $fileTemp = $_FILES["file$i"]['tmp_name'];
+                $urlFile = 'http://' . HOSTNAME . "/files/{$file}";
+                if (!filesize($fileTemp) || move_uploaded_file($fileTemp, $uploadFile)) {
+                    $items[] = array("url" => $urlFile, "name" => $file);
+                    $ups++;
+                }
+            }
+            if ($ups == $countFiles)
+                $this->result['items'] = $items;
+            else $this->error = "Не удается загрузить файлы!";
         }
-        if ($ups == $countFiles)
-            $this->result['items'] = $items;
-        else $this->error = "Не удается загрузить файлы!";
 
         return $items;
     }

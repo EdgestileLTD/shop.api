@@ -1128,12 +1128,7 @@ class Product extends Base
     {
         $dir = DOCUMENT_ROOT . "/files";
         $filePath = $dir . "/{$fileName}";
-        if (!file_exists($filePath)) {
-            $this->error = "Не удаётся загрузить файл импорта!";
-            return null;
-        }
-        
-        $isRemoveAll = false;
+        $isRemoveAll = !empty($_POST["reset"]) ? $_POST["reset"] : false;
         $ext = substr(strrchr($fileName, '.'), 1);
 
         if ($isRemoveAll) {
@@ -1158,7 +1153,7 @@ class Product extends Base
             DB::query("SET foreign_key_checks = 1");
         }
         
-        if ($ext == "xml")
+        if ($ext != "csv")
             $this->importFromYml($url);
         else $this->importFromCsv($filePath);
     }
@@ -1181,7 +1176,7 @@ class Product extends Base
 
     private function importFromCsv($filePath)
     {
-        $isInsertMode = true;
+        $isInsertMode = !empty($_POST["type"]) ? $_POST["type"] : false;
         $rusCols = $this->rusCols;
         $trCols = array_flip($rusCols);
         $rows = $this->getArrayFromCsv($filePath);
