@@ -539,9 +539,7 @@ if ($isNew || !empty($ids)) {
             $json->count = 0.0;
     }
 
-    if (CORE_VERSION != "5.3")
-        $isUpdated |= setField($isNew, $u, $json->idGroup, 'id_group');
-
+    $isUpdated |= setField($isNew, $u, $json->idGroup, 'id_group');
     $isUpdated |= setField($isNew, $u, $json->idType, 'id_type');
     $isUpdated |= setField($isNew, $u, $json->price, 'price');
     $isUpdated |= setField($isNew, $u, $json->pricePurchase, 'price_purchase', "DECIMAL(10, 2) UNSIGNED DEFAULT NULL COMMENT 'Закупочная цена товара' AFTER price");

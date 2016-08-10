@@ -539,9 +539,7 @@ if ($isNew || !empty($ids)) {
             $json->count = 0.0;
     }
 
-    if (CORE_VERSION != "5.3")
-        $isUpdated |= setField($isNew, $u, $json->idGroup, 'id_group');
-
+    $isUpdated |= setField($isNew, $u, $json->idGroup, 'id_group');
     $isUpdated |= setField($isNew, $u, $json->idType, 'id_type');
     $isUpdated |= setField($isNew, $u, $json->price, 'price');
     $isUpdated |= setField($isNew, $u, $json->pricePurchase, 'price_purchase', "DECIMAL(10, 2) UNSIGNED DEFAULT NULL COMMENT 'Закупочная цена товара' AFTER price");
@@ -692,7 +690,7 @@ if (!se_db_error()) {
     file_get_contents('http://' . $json->hostname . "/lib/shoppreorder_checkCount.php?id={$data["id"]}");
 } else {
     $status['status'] = 'error';
-    $status['errortext'] = se_db_error();//'Не удаётся сохранить данные о товаре!';
+    $status['errortext'] = 'Не удаётся сохранить данные о товаре!';
 }
 
 outputData($status);

@@ -25,19 +25,20 @@ if (!$currency)
 
 function getSortIndex()
 {
-    $u = new seTable('shop_deliverytype','sdt');
+    $u = new seTable('shop_deliverytype', 'sdt');
     $u->select('MAX(sort) AS sort');
     $u->fetchOne();
     return $u->sort + 1;
 }
 
-function savePaySystem($idpaysystems, $idDelivery){
-    $u = new seTable('shop_delivery_payment','sdp');
+function savePaySystem($idpaysystems, $idDelivery)
+{
+    $u = new seTable('shop_delivery_payment', 'sdp');
     $u->findlist("id_delivery=$idDelivery")->deletelist();
 
     if (!empty($idpaysystems)) {
-        foreach($idpaysystems as $id) {
-            $u = new seTable('shop_delivery_payment','sdp');
+        foreach ($idpaysystems as $id) {
+            $u = new seTable('shop_delivery_payment', 'sdp');
             $u->id_delivery = $idDelivery;
             $u->id_payment = $id;
             $u->save();
@@ -45,22 +46,32 @@ function savePaySystem($idpaysystems, $idDelivery){
     }
 }
 
-function saveGroups($idsGroups, $idDelivery) {
-
-    $u = new seTable('shop_deliverygroup','sd');
-    $u->findlist("id_type=$idDelivery")->deletelist();
-
+function saveGroups($idsGroups, $idDelivery)
+{
+    $idsGroupsStr = implode(",", $idsGroups);
+    $u = new seTable('shop_deliverygroup', 'sd');
+    if ($idsGroups)
+        $u->findList("id_type = {$idDelivery} AND NOT id_group IN ({$idsGroupsStr})")->deleteList();
+    else $u->findList("id_type = {$idDelivery}")->deleteList();
+    $u = new seTable('shop_deliverygroup', 'sd');
+    $u->select("id_group");
+    $u->where("id_type = {$idDelivery}");
+    $items = $u->getList();
+    $idsExist = [];
+    foreach ($items as $item)
+        $idsExist[] = $item["id_group"];
     if (!empty($idsGroups)) {
-        foreach($idsGroups as $id)
-            if ($id)
+        foreach ($idsGroups as $id)
+            if (!in_array($id, $idsExist))
                 $data[] = array('id_group' => $id, 'id_type' => $idDelivery);
     }
     if (!empty($data))
         se_db_InsertList('shop_deliverygroup', $data);
 }
 
-function saveConditionsParams($conditions, $idDelivery) {
-    $u = new seTable('shop_delivery_param','sp');
+function saveConditionsParams($conditions, $idDelivery)
+{
+    $u = new seTable('shop_delivery_param', 'sp');
     $u->where('id_delivery=(?)', $idDelivery)->deletelist();
 
     foreach ($conditions as $c)
@@ -71,7 +82,8 @@ function saveConditionsParams($conditions, $idDelivery) {
         se_db_InsertList('shop_delivery_param', $data);
 }
 
-function saveConditionsRegions($deliveries, $idDelivery) {
+function saveConditionsRegions($deliveries, $idDelivery)
+{
     GLOBAL $json;
 
     $idsUpdate = array();
@@ -95,8 +107,8 @@ function saveConditionsRegions($deliveries, $idDelivery) {
     $u = new seTable('shop_deliverytype');
     $u->select('MAX(id) AS maxId');
     $u->fetchOne();
-    $idNew = (int) $u->maxId;
-    foreach($deliveries as $delivery) {
+    $idNew = (int)$u->maxId;
+    foreach ($deliveries as $delivery) {
         if (empty($delivery->id)) {
             $idNew++;
             $dataD[] = array('id' => $idNew, 'id_parent' => $idDelivery, 'code' => 'region',
@@ -121,12 +133,12 @@ function saveConditionsRegions($deliveries, $idDelivery) {
     }
     if (!empty($dataD))
         se_db_InsertList('shop_deliverytype', $dataD);
-    if (!empty($dataR)){
+    if (!empty($dataR)) {
         se_db_InsertList('shop_delivery_region', $dataR);
     }
 
     // обновление
-    foreach($deliveries as $delivery) {
+    foreach ($deliveries as $delivery) {
         if (!empty($delivery->id)) {
             $u = new seTable('shop_deliverytype');
             setField(0, $u, $idDelivery, 'id_parent');
@@ -162,7 +174,8 @@ function saveConditionsRegions($deliveries, $idDelivery) {
     }
 }
 
-function saveGeoLocationsRegions($regions, $idDelivery) {
+function saveGeoLocationsRegions($regions, $idDelivery)
+{
 
     $idsUpdate = array();
     foreach ($regions as $region)
@@ -175,7 +188,7 @@ function saveGeoLocationsRegions($regions, $idDelivery) {
         $u->andWhere('NOT id IN (' . $idsUpdate . ')');
     $u->deleteList();
 
-    foreach($regions as $region) {
+    foreach ($regions as $region) {
         if (empty($region->id)) {
             if (!empty($region->idCityTo)) {
                 $region->idCountryTo = 'null';
@@ -194,7 +207,7 @@ function saveGeoLocationsRegions($regions, $idDelivery) {
     if (!empty($data))
         se_db_InsertList('shop_delivery_region', $data);
 
-    foreach($regions as $region) {
+    foreach ($regions as $region) {
         if (!empty($region->id)) {
             if (!empty($region->idCityTo)) {
                 $region->idCountryTo = null;
@@ -240,8 +253,8 @@ if (!empty($name)) {
         $isUpdated |= setField($isNew, $u, (($json->onePosition) ? 'Y' : 'N'), 'forone');
     if (isset($json->needAddress))
         $isUpdated |= setField($isNew, $u, (($json->needAddress) ? 'Y' : 'N'), 'need_address');
-    if ($isUpdated){
-        if (!empty($id)){
+    if ($isUpdated) {
+        if (!empty($id)) {
             $u->where('id=?', $id);
             $u->save();
         } else
