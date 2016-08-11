@@ -570,6 +570,7 @@ class DB
         try {
             $sql = implode($query, " ");
             self::$lastQuery = $this->rawQuery = $sql;
+            writeLog($sql);
             $stmt = self::$dbh->prepare($sql);
             $this->bindValues($stmt);
             if ($stmt->execute()) {
