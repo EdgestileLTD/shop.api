@@ -15,7 +15,9 @@ class Contact extends Base
     protected function getSettingsFetch()
     {
         return array(
-            "select" => 'p.*, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) display_name,                
+            "select" => 'p.*, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) display_name,
+                COUNT(so.id) count_orders, SUM(so.amount) amount_orders,                
+                SUM(sop.amount) paid_orders,    
                 su.username username, su.password password, (su.is_active = "Y") is_active',
             "joins" => array(
                 array(
@@ -25,8 +27,19 @@ class Contact extends Base
                 ),
                 array(
                     "type" => "left",
-                    "table" => 'shop_order so',
-                    "condition" => 'so.id_author = p.id AND is_delete="N"'
+                    "table" =>
+                        '(SELECT so.id, so.id_author, 
+                            (SUM((sto.price - IFNULL(sto.discount, 0)) * sto.count) - IFNULL(so.discount, 0) + 
+                            IFNULL(so.delivery_payee, 0)) amount 
+                            FROM shop_order so 
+                            INNER JOIN shop_tovarorder sto ON sto.id_order = so.id AND is_delete="N"
+                            GROUP BY so.id) so',
+                    "condition" => 'so.id_author = p.id'
+                ),
+                array(
+                    "type" => "left",
+                    "table" => 'shop_order_payee sop',
+                    "condition" => 'sop.id_order = so.id'
                 )
             ),
             "patterns" => array("displayName" => "p.last_name")
