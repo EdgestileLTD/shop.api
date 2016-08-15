@@ -20,7 +20,6 @@ class Account extends Base
             $db = new DB("$this->tableName");
             $db->select("a.*");
             $db->where("main_login = '?'", $_SESSION["login"]);
-            writeLog($db->getSql());
             $result = $db->getList();
             foreach ($result as $item) {
                 $item["isMain"] = false;

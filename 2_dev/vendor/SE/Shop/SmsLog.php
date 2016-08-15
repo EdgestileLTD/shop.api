@@ -9,6 +9,12 @@ class SmsLog extends Base
 {
     protected $tableName = "sms_log";
 
+    public function fetch()
+    {
+        $this->updateSmsStatuses();
+        return parent::fetch();
+    }
+
     protected function getSettingsFetch()
     {
         return array(
@@ -27,6 +33,24 @@ class SmsLog extends Base
                 )
             )
         );
+    }
+
+    private function updateSmsStatuses()
+    {
+        $providers = array("sms.ru", "qtelecom.ru");
+        foreach ($providers as $provider) {
+            $url = "http://" . HOSTNAME . "/lib/sms.php";
+            $ch = curl_init($url);
+            $data["serial"] = DB::$dbSerial;
+            $data["db_password"] = DB::$dbPassword;
+            $data["action"] = "status";
+            $data["provider"] = $provider;
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_exec($ch);
+        }
     }
 
 }

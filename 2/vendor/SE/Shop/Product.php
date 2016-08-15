@@ -17,9 +17,11 @@ class Product extends Base
 
     protected function getSettingsFetch()
     {
-        $result["select"] = 'sp.*, sg.name name_group, sg.id_modification_group_def id_modification_group_def, 
-            sb.name name_brand';
         if (CORE_VERSION == "5.3") {
+            $select = 'sp.id, sp.code, sp.article, sp.name, sp.price, sp.img, sp.img_alt, sp.description, sp.curr, sp.presence,
+                sp.flag_hit, sp.enabled, sp.flag_new, 
+                spg.id_group id_group, sg.name name_group, sg.id_modification_group_def id_modification_group_def, 
+                sb.name name_brand';
             $joins[] = array(
                 "type" => "left",
                 "table" => 'shop_price_group spg',
@@ -30,12 +32,15 @@ class Product extends Base
                 "table" => 'shop_group sg',
                 "condition" => 'sg.id = spg.id_group'
             );
-        } else
+        } else {
+            $select = 'sp.*, sg.name name_group, sg.id_modification_group_def id_modification_group_def, 
+                sb.name name_brand';
             $joins[] = array(
                 "type" => "left",
                 "table" => 'shop_group sg',
                 "condition" => 'sg.id = sp.id_group'
             );
+        }
         $joins[] = array(
             "type" => "left",
             "table" => 'shop_brand sb',
@@ -46,6 +51,7 @@ class Product extends Base
             "table" => 'shop_group_price sgp',
             "condition" => 'sp.id = sgp.price_id'
         );
+        $result["select"] = $select;
         $result["joins"] = $joins;
         return $result;
     }
