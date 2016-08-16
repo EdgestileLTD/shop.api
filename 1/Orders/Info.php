@@ -181,6 +181,7 @@ else $u->where("so.id IS NULL");
 $u->groupby('so.id');
 
 $result = $u->getList();
+
 unset($u);
 
 $items = array();

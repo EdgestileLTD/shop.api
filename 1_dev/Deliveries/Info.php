@@ -28,6 +28,7 @@ function getConditionsRegions($id, $currency)
     $u->select('sd.*, sdr.id idGeo, sdr.id_city, sdr.id_country, sdr.id_region');
     $u->innerjoin('shop_delivery_region sdr', 'sd.id = sdr.id_delivery');
     $u->where('sd.id_parent = ?', $id);
+    $u->orderBy('sd.note');
 
     $result = $u->getList();
     $regions = array();
