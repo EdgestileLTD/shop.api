@@ -18,9 +18,12 @@ $data = array('action' => 'city',
     'search' => $search,
     'ids' => $ids);
 $data = http_build_query($data);
-$url = "https://api.siteedit.ru/api/geo/?".$data;
+$url = "https://api.siteedit.ru/api/geo/";
 $curl = curl_init($url);
 curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($curl, CURLOPT_POST, true);
+curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+
 $data = json_decode(curl_exec($curl), true);
 $status['status'] = 'ok';
 $status['data'] = $data;

@@ -112,6 +112,7 @@ class Order extends Base
         $result = array();
         $result["items"] = $this->getOrderItems();
         $result['payments'] = $this->getPayments();
+        $result['dynFields'] = $this->getDynFields();
         return $result;
     }
 
@@ -151,10 +152,29 @@ class Order extends Base
         return $items;
 
     }
-    
+
     private function getPayments()
-    {        
-        return (new Payment())->fetchByOrder($this->input["id"]);        
+    {
+        return (new Payment())->fetchByOrder($this->input["id"]);
+    }
+
+    private function getDynFields()
+    {
+        $idOrder = $this->input["id"];
+        $u = new DB('shop_userfields', 'su');
+        $u->select("sou.id, sou.id_order, sou.value, su.id id_userfield, su.name, su.type, su.values");
+        $u->leftJoin('shop_order_userfields sou', "sou.id_userfield = su.id AND id_order = {$idOrder}");
+        $u->groupBy('su.id');
+        $u->orderBy('su.sort');
+        $result = $u->getList();
+        $items = array();
+        foreach ($result as $item) {
+            if ($item['type'] == "date")
+                $item['value'] = date('Y-m-d', strtotime($item['value']));
+            $items[] = $item;
+        }
+        return $items;
+
     }
 
     protected function correctValuesBeforeSave()
@@ -169,6 +189,7 @@ class Order extends Base
         $this->saveItems();
         $this->saveDelivery();
         $this->savePayments();
+        $this->saveDynFields();
         return true;
     }
 
@@ -193,7 +214,7 @@ class Order extends Base
             SET sm.count = sm.count + st.count
             WHERE st.id_order = ({$idOrder}) AND sm.count IS NOT NULL AND sm.count >= 0");
 
-        $u = new DB('shop_tovarorder', 'st');        
+        $u = new DB('shop_tovarorder', 'st');
         if (!empty($idsUpdate))
             $u->where('NOT `id` IN (' . $idsUpdate . ') AND id_order = ?', $idOrder)->deleteList();
         else $u->where('id_order = ?', $idOrder)->deleteList();
@@ -202,7 +223,7 @@ class Order extends Base
         foreach ($products as $p) {
             if (!$p["id"]) {
                 $data[] = array('id_order' => $idOrder, 'id_price' => $p["idPrice"], 'article' => $p["article"],
-                    'nameitem' => $p["name"], 'price' => (float) $p["price"],
+                    'nameitem' => $p["name"], 'price' => (float)$p["price"],
                     'discount' => $p["discount"], 'count' => $p["count"], 'modifications' => $p["idsModifications"],
                     'license' => $p["license"], 'commentary' => $p["note"], 'action' => $p["action"]);
             } else {
@@ -234,6 +255,19 @@ class Order extends Base
                 $u->setValuesFields($p);
                 $u->save();
             }
+    }
+
+    private function saveDynFields()
+    {
+        $idOrder = $this->input["id"];
+        $dynFields = $this->input["dynFields"];
+
+        foreach ($dynFields as $field) {
+            $field["idOrder"] = $idOrder;
+            $u = new DB('shop_order_userfields', 'sou');
+            $u->setValuesFields($field);
+            $u->save();
+        }
     }
 
     private function saveDelivery()

@@ -25,27 +25,26 @@ function getPersonalAccount($id)
     return $account;
 }
 
-function getCompanyRequisites($id)
+function getListContacts($id)
 {
-    GLOBAL $json;
-
-    $u = new seTable('user_rekv_type', 'urt');
-    $u->select('ur.*, urt.size, urt.title');
-    $u->leftjoin('user_rekv ur', 'ur.rekv_code=urt.code');
-    $u->where('ur.id_author=?', $id);
-    $u->groupby('urt.code');
-    $u->orderby('urt.id');
+    $u = new seTable('company_person', 'cp');
+    $u->select('p.*, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) fullName');
+    $u->innerJoin('person p', 'p.id = cp.id_person');
+    $u->where('cp.id_company = ?', $id);
+    $u->orderby('cp.id');
     $result = $u->getList();
-    $requisites = array();
+    $contacts = array();
     foreach ($result as $item) {
-        $requisite['id'] = $item['id'];
-        $requisite['code'] = $item['rekv_code'];
-        $requisite['name'] = $item['title'];
-        $requisite['value'] = $item['value'];
-        $requisite['size'] = (int)$item['size'];
-        $requisites[] = $requisite;
+        $contact['id'] = $item['id'];
+        $contact['fullName'] = $item['fullName'];
+        $contact['firstName'] = $item['first_name'];
+        $contact['secondName'] = $item['sec_name'];
+        $contact['lastName'] = $item['last_name'];
+        $contact['email'] = $item['email'];
+        $contact['phone'] = $item['phone'];
+        $contacts[] = $contact;
     }
-    return $requisites;
+    return $contacts;
 }
 
 function getGroups($id)
@@ -77,6 +76,7 @@ foreach ($result as $item) {
     $company['phone'] = $item['phone'];
     $company['note'] = $item['note'];
     $company['address'] = $item['address'];
+    $company['contacts'] = getListContacts($company["id"]);
     $items[] = $company;
 }
 
