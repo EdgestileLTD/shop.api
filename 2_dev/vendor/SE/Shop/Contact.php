@@ -15,9 +15,10 @@ class Contact extends Base
     protected function getSettingsFetch()
     {
         return array(
-            "select" => 'p.*, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) display_name,
+            "select" => 'p.*, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) display_name, 
+                c.name company,
                 COUNT(so.id) count_orders, SUM(so.amount) amount_orders,                
-                SUM(sop.amount) paid_orders,    
+                SUM(sop.amount) paid_orders,     
                 su.username username, su.password password, (su.is_active = "Y") is_active',
             "joins" => array(
                 array(
@@ -40,6 +41,16 @@ class Contact extends Base
                     "type" => "left",
                     "table" => 'shop_order_payee sop',
                     "condition" => 'sop.id_order = so.id'
+                ),
+                array(
+                    "type" => "left",
+                    "table" => 'company_person cp',
+                    "condition" => 'cp.id_person = p.id'
+                ),
+                array(
+                    "type" => "left",
+                    "table" => 'company c',
+                    "condition" => 'c.id = cp.id_company'
                 )
             ),
             "patterns" => array("displayName" => "p.last_name")

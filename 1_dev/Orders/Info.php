@@ -163,12 +163,14 @@ unset($u);
 $u = new seTable('shop_order', 'so');
 $u->select('so.*, sto.nameitem, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) as customer, p.phone as customerPhone,
                 p.email as customerEmail,
+                c.name company, c.phone companyPhone, c.email companyEmail,
                 (SUM((sto.price-IFNULL(sto.discount, 0))*sto.count)-IFNULL(so.discount, 0)+IFNULL(so.delivery_payee, 0)) as summ,
                 sdt.name as delivery_name, sdt.note AS delivery_note,
                 sd.id_city,sd.name_recipient, sd.telnumber, sd.email, sd.calltime, sd.address, sd.postindex,
                 CONCAT_WS(" ",  pm.last_name, pm.first_name, pm.sec_name) as manager, sp.name_payment,
                 sdts.note delivery_note_add');
-$u->innerjoin('person p', 'p.id = so.id_author');
+$u->leftjoin('person p', 'p.id = so.id_author');
+$u->leftjoin('company c', 'c.id=so.id_company');
 $u->leftjoin('person pm', 'pm.id = so.id_admin');
 $u->innerjoin('shop_tovarorder sto', 'sto.id_order = so.id');
 $u->leftjoin('shop_deliverytype sdt', 'sdt.id = so.delivery_type');
@@ -193,12 +195,13 @@ if (!empty($result)) {
         $order['datePayee'] = $item['date_payee'];
         $order['dateCredit'] = date('Y-m-d', strtotime($item['date_credit']));
         $order['idCustomer'] = $item['id_author'];
-        $order['customer'] = $item['customer'];
+        $order['idCompany'] = $item['id_company'];
+        $order['customer'] = $item['company'] ? $item['company'] : $item['customer'];
         $order['idManager'] = $item['id_admin'];
         $order['managers'] = $item['managers'];
         $order['currency'] = $item['curr'];
-        $order['customerPhone'] = $item['customerPhone'];
-        $order['customerEmail'] = $item['customerEmail'];
+        $order['customerPhone'] = $item['companyPhone'] ? $item['companyPhone'] : $item['customerPhone'];
+        $order['customerEmail'] = $item['companyEmail'] ? $item['companyEmail'] : $item['customerEmail'];
         $order['statusOrder'] = $item['status'];
         $order['sum'] = (real)$item['summ'];
         $order['discountSum'] = (real)$item['discount'];

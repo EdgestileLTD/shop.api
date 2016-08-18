@@ -9,18 +9,28 @@ class Order extends Base
 {
     protected $tableName = "shop_order";
 
+    public static function fetchByCompany($idCompany)
+    {
+        return (new Order(array("filters" => array("field" => "idCompany", "value" => $idCompany))))->fetch();
+    }
+
     protected function getSettingsFetch()
     {
         return array(
-            "select" => 'so.*, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) customer, 
-                p.phone customer_phone, p.email customer_email, 
+            "select" => 'so.*, IFNULL(c.name, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name)) customer, 
+                IFNULL(c.phone, p.phone) customer_phone, IFNULL(c.email, p.email) customer_email, 
                 (SUM((sto.price-IFNULL(sto.discount, 0))*sto.count)-IFNULL(so.discount, 0) + IFNULL(so.delivery_payee, 0)) amount, 
                 sp.name_payment name_payment_primary, spp.name_payment, sch.id_coupon id_coupon, sch.discount coupon_discount',
             "joins" => array(
                 array(
-                    "type" => "inner",
+                    "type" => "left",
                     "table" => 'person p',
                     "condition" => 'p.id = so.id_author'
+                ),
+                array(
+                    "type" => "left",
+                    "table" => 'company c',
+                    "condition" => 'c.id = so.id_company'
                 ),
                 array(
                     "type" => "inner",
@@ -59,8 +69,8 @@ class Order extends Base
     protected function getSettingsInfo()
     {
         return array(
-            "select" => 'so.*, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) customer, 
-                p.phone customer_phone, p.email customer_email,
+            "select" => 'so.*, IFNULL(c.name, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name)) customer, 
+                IFNULL(c.phone, p.phone) customer_phone, IFNULL(c.email, p.email) customer_email,
                 (SUM((sto.price-IFNULL(sto.discount, 0))*sto.count)-IFNULL(so.discount, 0)+IFNULL(so.delivery_payee, 0)) amount,
                 sdt.name delivery_name, sdt.note delivery_note,
                 sd.id_city, sd.name_recipient, 
@@ -69,9 +79,14 @@ class Order extends Base
                 sdts.note delivery_note_add',
             "joins" => array(
                 array(
-                    "type" => "inner",
+                    "type" => "left",
                     "table" => 'person p',
                     "condition" => 'p.id = so.id_author'
+                ),
+                array(
+                    "type" => "left",
+                    "table" => 'company c',
+                    "condition" => 'c.id = so.id_company'
                 ),
                 array(
                     "type" => "left",

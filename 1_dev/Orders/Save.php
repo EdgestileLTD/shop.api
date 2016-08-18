@@ -184,6 +184,7 @@
         $isUpdated = false;
         $isUpdated |= setField($isNew, $u, $json->idCustomer, 'id_author');
         $isUpdated |= setField($isNew, $u, $json->idManager, 'id_admin');
+        $isUpdated |= setField($isNew, $u, $json->idCompany, 'id_company');
         $isUpdated |= setField($isNew, $u, $json->dateOrder, 'date_order');
         if (empty($json->datePayee) && ($json->statusOrder == 'Y' || $json->statusOrder == 'K'))
             $json->datePayee = date("Y-m-d");

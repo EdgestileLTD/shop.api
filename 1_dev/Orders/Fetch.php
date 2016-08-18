@@ -10,16 +10,20 @@ function convertFields($str)
     $str = str_replace('[dateOrder]', 'so.date_order', $str);
     $str = str_replace('[statusDelivery]', 'so.delivery_status', $str);
     $str = str_replace('[idCustomer]', 'p.id ', $str);
+    $str = str_replace('[idCompany]', 'c.id ', $str);
     $str = str_replace('[idCoupon]', 'id_coupon', $str);
     $str = str_replace('idCoupon', 'id_coupon', $str);
     return $str;
 }
 
 $u = new seTable('shop_order', 'so');
-$u->select('so.*, sto.nameitem, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) as customer, p.phone as customerPhone, p.email as customerEmail,
+$u->select('so.*, sto.nameitem, 
+            CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) as customer, p.phone as customerPhone, p.email as customerEmail,
+            c.name company, c.phone companyPhone, c.email companyEmail, 
             (SUM((sto.price-IFNULL(sto.discount, 0))*sto.count)-IFNULL(so.discount, 0) + IFNULL(so.delivery_payee, 0)) as summ, sp.name_payment paymentTypePrimary,
             spp.name_payment paymentType');
-$u->innerjoin('person p', 'p.id=so.id_author');
+$u->leftjoin('person p', 'p.id=so.id_author');
+$u->leftjoin('company c', 'c.id=so.id_company');
 $u->innerjoin('shop_tovarorder sto', 'sto.id_order=so.id');
 $u->leftjoin('shop_order_payee sop', 'sop.id_order=so.id');
 $u->leftjoin('shop_payment spp', 'spp.id=sop.payment_type');
@@ -96,10 +100,11 @@ if ($count > 0) {
             $order['dateOrderDisplay'] = date("d.m.Y", strtotime($item['date_order']));;
         $order['datePayee'] = $item['date_payee'];
         $order['idCustomer'] = $item['id_author'];
-        $order['customer'] = $item['customer'];
+        $order['idCompany'] = $item['id_company'];
+        $order['customer'] = $item['company'] ? $item['company'] : $item['customer'];
         $order['currency'] = $item['curr'];
-        $order['customerPhone'] = $item['customerPhone'];
-        $order['customerEmail'] = $item['customerEmail'];
+        $order['customerPhone'] = $item['companyPhone'] ? $item['companyPhone'] : $item['customerPhone'];
+        $order['customerEmail'] = $item['companyEmail'] ? $item['companyEmail'] : $item['customerEmail'];
         $order['deliveryDate'] = $item['delivery_date'];
         $order['note'] = htmlspecialchars_decode($item['commentary']);
         $order['paymentTypePrimary'] = $item['paymentTypePrimary'];

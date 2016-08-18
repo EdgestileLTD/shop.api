@@ -16,6 +16,7 @@ function convertFields($str)
     $str = str_replace('emailValid', 'email_valid', $str);
     $str = str_replace('display', 'last_name', $str);
     $str = str_replace('login', 'su.username', $str);
+    $str = str_replace('company', 'c.name', $str);
     return $str;
 }
 
@@ -26,10 +27,12 @@ se_db_add_index('person', 'created_at', 1);
 //-----------------------------------------------------------------------
 $u = new seTable('person', 'p');
 $u->select('p.*, count(so.id) as countorders, GROUP_CONCAT(sug.group_id SEPARATOR ";") AS idsGroups,
-            su.username, su.password, su.is_active');
-$u->innerjoin('se_user su', 'p.id=su.id');
-$u->leftjoin('shop_order so', 'so.id_author=p.id AND is_delete="N"');
-$u->leftjoin('se_user_group sug', 'p.id=sug.user_id');
+            su.username, su.password, su.is_active, c.name company');
+$u->innerjoin('se_user su', 'p.id = su.id');
+$u->leftjoin('shop_order so', 'so.id_author = p.id AND is_delete="N"');
+$u->leftjoin('se_user_group sug', 'p.id = sug.user_id');
+$u->leftjoin('company_person cp', 'cp.id_person = p.id');
+$u->leftjoin('company c', 'c.id = cp.id_company');
 
 if (!empty($json->filter))
     $filter = convertFields($json->filter);
@@ -86,6 +89,7 @@ foreach ($result as $item) {
     $contact['firstName'] = $item['first_name'];
     $contact['secondName'] = $item['sec_name'];
     $contact['lastName'] = $item['last_name'];
+    $contact['company'] = $item['company'];
     $contact['title'] = $item['last_name'] . ' ' . $item['first_name'] . ' ' . $item['sec_name'];
     $contact['email'] = $item['email'];
     $contact['phone'] = $item['phone'];
