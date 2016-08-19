@@ -13,7 +13,7 @@ class ContactCategory extends Base
     {
         try {
             $u = new DB('se_group', 'sg');
-            $u->select('sg.*, sg.title, (SELECT COUNT(*) FROM se_user_group WHERE group_id=sg.id) user_count');
+            $u->select('sg.*, (SELECT COUNT(*) FROM se_user_group WHERE group_id=sg.id) user_count');
             $u->where('sg.title IS NOT NULL AND  sg.name <> "" AND sg.name IS NOT NULL');
             $this->result["items"] = $u->getList();
             $this->result["count"] = count($this->result["items"]);

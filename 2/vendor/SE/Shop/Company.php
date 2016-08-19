@@ -8,6 +8,20 @@ class Company extends Base
 {
     protected $tableName = "company";
 
+    protected function getSettingsFetch()
+    {
+        return array(
+            "select" => 'c.*, sug.group_id id_group',
+            "joins" => array(
+                array(
+                    "type" => "left",
+                    "table" => "se_user_group sug",
+                    "condition" => "c.id = sug.company_id"
+                )
+            )
+        );
+    }
+
     public function getContacts($idCompany)
     {
         $u = new DB('company_person', 'cp');

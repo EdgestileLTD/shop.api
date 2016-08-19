@@ -16,7 +16,7 @@ class Contact extends Base
     {
         return array(
             "select" => 'p.*, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) display_name, 
-                c.name company,
+                c.name company, sug.group_id id_group,
                 COUNT(so.id) count_orders, SUM(so.amount) amount_orders,                
                 SUM(sop.amount) paid_orders,     
                 su.username username, su.password password, (su.is_active = "Y") is_active',
@@ -41,6 +41,11 @@ class Contact extends Base
                     "type" => "left",
                     "table" => 'shop_order_payee sop',
                     "condition" => 'sop.id_order = so.id'
+                ),
+                array(
+                    "type" => "left",
+                    "table" => "se_user_group sug",
+                    "condition" => "p.id = sug.user_id"
                 ),
                 array(
                     "type" => "left",
