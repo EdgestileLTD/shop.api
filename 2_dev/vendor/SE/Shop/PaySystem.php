@@ -61,6 +61,32 @@ class PaySystem extends Base
         }
     }
 
+    public function save()
+    {
+        try {
+            $this->correctValuesBeforeSave();
+            DB::beginTransaction();
+            $u = new DB($this->tableName);
+            $u->setValuesFields($this->input);
+            $this->input["id"] = $u->save();
+            if (empty($this->input["ids"]) && $this->input["id"])
+                $this->input["ids"] = array($this->input["id"]);
+            if ($this->input["id"]) {
+                $this->info();
+                DB::commit();
+                if (!empty($this->input["identifier"])) {
+                    $scriptPlugin = 'http://' . HOSTNAME . "/lib/merchant/result.php?payment=" . $this->input["identifier"];
+                    file_get_contents($scriptPlugin);
+                }
+                $this->saveParams();
+                return $this;
+            } else throw new Exception();
+        } catch (Exception $e) {
+            DB::rollBack();
+            $this->error = empty($this->error) ? "Не удаётся сохранить информацию об объекте!" : $this->error;
+        }
+    }
+
     private function getParams()
     {
         $idPayment = $this->input["id"];
@@ -105,7 +131,6 @@ class PaySystem extends Base
             $result[]['name'] = $host;
         return $result;
     }
-
 
     public function info()
     {
@@ -185,17 +210,6 @@ class PaySystem extends Base
             $this->input["hosts"] = $this->getHostsStr($this->input["hosts"]);
         if (isset($this->input["filters"]))
             $this->input["filters"] = $this->getFiltersStr($this->input["filters"]);
-        if (!empty($this->input["identifier"])) {
-            $scriptPlugin = 'http://' . HOSTNAME .
-                "/lib/merchant/result.php?payment=" . $this->input["identifier"];
-            file_get_contents($scriptPlugin);
-        }
-    }
-
-    protected function saveAddInfo()
-    {
-        $this->saveParams();
-        return true;
     }
 
     private function getSortIndex()
@@ -208,15 +222,17 @@ class PaySystem extends Base
 
     private function saveParams()
     {
-        $params = $this->input["params"];
-        $u = new DB('bank_accounts', 'ba');
-        $u->where('id_payment = ?', $this->input["id"])->deleteList();
-
-        foreach ($params as $p)
-            $data[] = array('id_payment' => $this->input["id"],
-                'codename' => $p["code"], 'title' => $p["name"], 'value' => $p["value"]);
-        if (!empty($data))
-            DB::insertList('bank_accounts', $data);
+        try {
+            $params = $this->input["params"];
+            foreach ($params as $p) {
+                $u = new DB("bank_accounts", "ba");
+                $u->setValuesFields(array('id' => $p["id"], 'value' => $p["value"]));
+                $u->save();
+            }
+        } catch (Exception $e) {
+            $this->error = "Не удаётся сохранить параметры платежной системы!";
+            throw new Exception($this->error);
+        }
     }
 
     private function getHostsStr($hosts)

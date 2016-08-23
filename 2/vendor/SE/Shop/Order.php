@@ -14,6 +14,37 @@ class Order extends Base
         return (new Order(array("filters" => array("field" => "idCompany", "value" => $idCompany))))->fetch();
     }
 
+    public static function checkStatusOrder($idOrder, $paymentType = null)
+    {
+        $u = new DB('shop_order', 'so');
+        $u->select('(SUM((st.price - IFNULL(st.discount, 0)) * st.count) - IFNULL(so.discount, 0) +
+                IFNULL(so.delivery_payee, 0)) sum_order');
+        $u->innerJoin('shop_tovarorder st', 'st.id_order = so.id');
+        $u->where('so.id = ?', $idOrder);
+        $u->groupBy('so.id');
+        $result = $u->fetchOne();
+        $sumOrder = $result["sumOrder"];
+
+        $u = new DB('shop_order_payee', 'sop');
+        $u->select('SUM(sop.amount) sum_payee, MAX(sop.date) date_payee');
+        $u->where(' sop.id_order = ?', $idOrder);
+        $result = $u->fetchOne();
+        $sumPayee = $result['sumPayee'];
+        $datePayee = $result['datePayee'];
+
+        if ($sumPayee >= $sumOrder) {
+            $u = new DB('shop_order', 'so');
+            $data["status"] = "Y";
+            $data["isDelete"] = "N";
+            $data["datePayee"] = $datePayee;
+            if ($paymentType)
+                $data["paymentType"] = $paymentType;
+            $data["id"] = $idOrder;
+            $u->setValuesFields($data);
+            $u->save();
+        };
+    }
+
     protected function getSettingsFetch()
     {
         return array(
@@ -125,10 +156,23 @@ class Order extends Base
     protected function getAddInfo()
     {
         $result = array();
+        $this->result["amount"] = (real)$this->result["amount"];
         $result["items"] = $this->getOrderItems();
         $result['payments'] = $this->getPayments();
         $result['dynFields'] = $this->getDynFields();
+        $result['paid'] = $this->getPaidSum();
+        $result['surcharge'] = $this->result["amount"] - $result['paid'];
         return $result;
+    }
+
+    private function getPaidSum()
+    {
+        $idOrder = $this->result["id"];
+        $u = new DB('shop_order_payee', 'sop');
+        $u->select('SUM(amount) amount');
+        $u->where("sop.id_order = ?", $idOrder);
+        $result = $u->fetchOne();
+        return (real)$result['amount'];
     }
 
     private function getOrderItems()

@@ -163,6 +163,7 @@ class Base
     public function info($id = null)
     {
         $id = empty($id) ? $this->input["id"] : $id;
+        $this->input["id"] = $id;
         $settingsInfo = $this->getSettingsInfo();
         try {
             $u = $this->createTableForInfo($settingsInfo);

@@ -353,8 +353,11 @@ class DB
             $items = array();
             while ($row = $stmt->fetch()) {
                 $item = array();
-                foreach ($row as $key => $value)
+                foreach ($row as $key => $value) {
+                    if (is_numeric($value))
+                        $value += 0;
                     $item[$this->convertFieldToModel($key)] = $value;
+                }
                 $items[] = $item;
             }
             return $items;
