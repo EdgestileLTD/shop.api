@@ -2,7 +2,7 @@
 
 namespace SE\Shop;
 
-class AddFieldOrderGroup extends Base
+class CustomFieldGroup extends Base
 {
     protected $tableName = "shop_userfield_groups";
     protected $sortBy = "sort";

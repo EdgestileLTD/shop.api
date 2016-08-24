@@ -3,6 +3,7 @@
 namespace SE\Shop;
 
 use SE\DB as DB;
+use SE\Exception;
 
 class Company extends Base
 {
@@ -37,11 +38,71 @@ class Company extends Base
         return (new Order())->fetchByCompany($idCompany);
     }
 
+    private function getCustomFields($idCompany)
+    {
+        $u = new DB('shop_userfields', 'su');
+        $u->select("cu.id, cu.id_company, cu.value, su.id id_userfield, 
+                    su.name, su.type, su.values, sug.id id_group, sug.name name_group");
+        $u->leftJoin('company_userfields cu', "cu.id_userfield = su.id AND id_company = {$idCompany}");
+        $u->leftJoin('shop_userfield_groups sug', 'su.id_group = sug.id');
+        $u->where('su.data = "company"');
+        $u->groupBy('su.id');
+        $u->orderBy('sug.sort');
+        $u->addOrderBy('su.sort');
+        $result = $u->getList();
+
+        $groups = array();
+        foreach ($result as $item) {
+            $isNew = true;
+            $newGroup = array();
+            $newGroup["id"] = $item["idGroup"];
+            $newGroup["name"] = empty($item["nameGroup"]) ? "Без категории": $item["nameGroup"];
+            foreach ($groups as $group)
+                if ($group["id"] == $item["idGroup"]) {
+                    $isNew = false;
+                    $newGroup = $group;
+                    break;
+                }
+            if ($item['type'] == "date")
+                $item['value'] = date('Y-m-d', strtotime($item['value']));
+            $newGroup["items"][] = $item;
+            if ($isNew)
+                $groups[] = $newGroup;
+        }
+        return $groups;
+    }
+
     protected function getAddInfo()
     {
         $result["contacts"] = $this->getContacts($this->result["id"]);
         $result["orders"] = $this->getOrders($this->result["id"]);
+        $result["customFields"] = $this->getCustomFields($this->result["id"]);
         return $result;
+    }
+
+    private function saveCustomFields()
+    {
+        if (!isset($this->input["customFields"]))
+            return true;
+
+        try {
+            $idCompany = $this->input["id"];
+            $groups = $this->input["customFields"];
+            $customFields = array();
+            foreach ($groups as $group)
+                foreach ($group["items"] as $item)
+                    $customFields[] = $item;
+            foreach ($customFields as $field) {
+                $field["idCompany"] = $idCompany;
+                $u = new DB('company_userfields', 'cu');
+                $u->setValuesFields($field);
+                $u->save();
+            }
+            return true;
+        } catch (Exception $e) {
+            $this->error = "Не удаётся сохранить доп. информацию о компании!";
+            throw new Exception($this->error);
+        }
     }
 
     private function saveContacts()
@@ -62,7 +123,7 @@ class Company extends Base
 
     protected function saveAddInfo()
     {
-        return $this->saveContacts();
+        return $this->saveContacts() && $this->saveCustomFields();
     }
 
 }
