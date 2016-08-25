@@ -162,14 +162,14 @@ class DB
         return strtolower($result);
     }
 
-    public static function insertList($tableName, $data)
+    public static function insertList($tableName, $data, $isIgnoreMode = false)
     {
         if (empty($data) || !is_array($data))
             return false;
 
         try {
             reset($data);
-            $query[] = 'INSERT INTO';
+            $query[] = $isIgnoreMode ? 'INSERT IGNORE INTO' : 'INSERT INTO';
             $query[] = $tableName;
             $query[] = "SET";
             $fields = array();
@@ -354,7 +354,7 @@ class DB
             while ($row = $stmt->fetch()) {
                 $item = array();
                 foreach ($row as $key => $value) {
-                    if (is_numeric($value))
+                    if (is_numeric($value) && strpos($value, "0") !== 0)
                         $value += 0;
                     $item[$this->convertFieldToModel($key)] = $value;
                 }

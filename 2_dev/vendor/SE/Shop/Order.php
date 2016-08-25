@@ -159,7 +159,7 @@ class Order extends Base
         $this->result["amount"] = (real)$this->result["amount"];
         $result["items"] = $this->getOrderItems();
         $result['payments'] = $this->getPayments();
-        $result['dynFields'] = $this->getDynFields();
+        $result['customFields'] = $this->getCustomFields($this->input["id"]);
         $result['paid'] = $this->getPaidSum();
         $result['surcharge'] = $this->result["amount"] - $result['paid'];
         return $result;
@@ -217,23 +217,38 @@ class Order extends Base
         return (new Payment())->fetchByOrder($this->input["id"]);
     }
 
-    private function getDynFields()
+    private function getCustomFields($idOrder)
     {
-        $idOrder = $this->input["id"];
         $u = new DB('shop_userfields', 'su');
-        $u->select("sou.id, sou.id_order, sou.value, su.id id_userfield, su.name, su.type, su.values");
+        $u->select("sou.id, sou.id_order, sou.value, su.id id_userfield, 
+                    su.name, su.type, su.values, sug.id id_group, sug.name name_group");
         $u->leftJoin('shop_order_userfields sou', "sou.id_userfield = su.id AND id_order = {$idOrder}");
+        $u->leftJoin('shop_userfield_groups sug', 'su.id_group = sug.id');
+        $u->where('su.data = "order"');
         $u->groupBy('su.id');
-        $u->orderBy('su.sort');
+        $u->orderBy('sug.sort');
+        $u->addOrderBy('su.sort');
         $result = $u->getList();
-        $items = array();
+
+        $groups = array();
         foreach ($result as $item) {
+            $isNew = true;
+            $newGroup = array();
+            $newGroup["id"] = $item["idGroup"];
+            $newGroup["name"] = empty($item["nameGroup"]) ? "Без категории": $item["nameGroup"];
+            foreach ($groups as $group)
+                if ($group["id"] == $item["idGroup"]) {
+                    $isNew = false;
+                    $newGroup = $group;
+                    break;
+                }
             if ($item['type'] == "date")
                 $item['value'] = date('Y-m-d', strtotime($item['value']));
-            $items[] = $item;
+            $newGroup["items"][] = $item;
+            if ($isNew)
+                $groups[] = $newGroup;
         }
-        return $items;
-
+        return $groups;
     }
 
     protected function correctValuesBeforeSave()
@@ -248,7 +263,7 @@ class Order extends Base
         $this->saveItems();
         $this->saveDelivery();
         $this->savePayments();
-        $this->saveDynFields();
+        $this->saveCustomFields();
         return true;
     }
 
@@ -316,22 +331,35 @@ class Order extends Base
             }
     }
 
-    private function saveDynFields()
+    private function saveCustomFields()
     {
-        $idOrder = $this->input["id"];
-        $dynFields = $this->input["dynFields"];
+        if (!isset($this->input["customFields"]))
+            return true;
 
-        foreach ($dynFields as $field) {
-            $field["idOrder"] = $idOrder;
-            $u = new DB('shop_order_userfields', 'sou');
-            $u->setValuesFields($field);
-            $u->save();
+        try {
+            $idOrder = $this->input["id"];
+            $groups = $this->input["customFields"];
+            $customFields = array();
+            foreach ($groups as $group)
+                foreach ($group["items"] as $item)
+                    $customFields[] = $item;
+            foreach ($customFields as $field) {
+                $field["idOrder"] = $idOrder;
+                $u = new DB('shop_order_userfields', 'cu');
+                $u->setValuesFields($field);
+                $u->save();
+            }
+            return true;
+        } catch (Exception $e) {
+            $this->error = "Не удаётся сохранить доп. информацию о заказе!";
+            throw new Exception($this->error);
         }
     }
 
     private function saveDelivery()
     {
         $input = $this->input;
+        unset($input["ids"]);
         $idOrder = $input["id"];
         $p = new DB('shop_delivery', 'sd');
         $p->select("id");

@@ -2,7 +2,7 @@
 
 namespace SE\Shop;
 
-use SE\DB as seTable;
+use SE\DB as DB;
 use SE\Exception;
 
 class Delivery extends Base
@@ -12,10 +12,10 @@ class Delivery extends Base
     public function fetch()
     {
         try {
-            $u = new seTable('shop_deliverytype', 'sd');
+            $u = new DB('shop_deliverytype', 'sd');
             $u->select('sd.*');
             $u->where('sd.id_parent IS NULL');
-            $u->orderby('sort', false);
+            $u->orderBy('sort', false);
 
             $objects = $u->getList();
             foreach ($objects as $item) {
@@ -41,15 +41,14 @@ class Delivery extends Base
 
     private function getConditionsParams($id)
     {
-        $u = new seTable('shop_delivery_param', 'sdp');
-        $u->select('sdp.*');
+        $u = new DB('shop_delivery_param');
         $u->where('sdp.id_delivery = ?', $id);
         return $u->getList();
     }
 
     private function getConditionsRegions($id, $currency)
     {
-        $u = new seTable('shop_deliverytype', 'sd');
+        $u = new DB('shop_deliverytype', 'sd');
         $u->select('sd.*, sdr.id idGeo, sdr.id_city, sdr.id_country, sdr.id_region');
         $u->innerJoin('shop_delivery_region sdr', 'sd.id = sdr.id_delivery');
         $u->where('sd.id_parent = ?', $id);
@@ -70,7 +69,7 @@ class Delivery extends Base
 
     private function getGeoLocationsRegions($id)
     {
-        $u = new seTable('shop_delivery_region', 'sdr');
+        $u = new DB('shop_delivery_region', 'sdr');
         $u->select('sdr.*');
         $u->where('sdr.id_delivery = ?', $id);
         $result = $u->getList();
@@ -90,7 +89,7 @@ class Delivery extends Base
     public function info()
     {
         try {
-            $u = new seTable('shop_deliverytype', 'sd');
+            $u = new DB('shop_deliverytype', 'sd');
             $u->select('sd.*, GROUP_CONCAT(DISTINCT(sdp.id_payment) SEPARATOR ";") idsPayments,
                         GROUP_CONCAT(DISTINCT(sdg.id_group) SEPARATOR ";") idsGroups');
             $u->leftJoin('shop_delivery_payment sdp', 'sd.id = sdp.id_delivery');
@@ -126,7 +125,7 @@ class Delivery extends Base
 
     private function getSortIndex()
     {
-        $u = new seTable('shop_deliverytype', 'sdt');
+        $u = new DB('shop_deliverytype', 'sdt');
         $u->select('MAX(sort) AS sort');
         $u->fetchOne();
         return $u->sort + 1;
@@ -142,11 +141,11 @@ class Delivery extends Base
                 if ($id)
                     $idsExist[] = $id;
             $idsExistStr = implode(",", $idsExist);
-            $u = new seTable('shop_delivery_payment', 'sdp');
+            $u = new DB('shop_delivery_payment', 'sdp');
             if (empty($idsExist))
                 $u->findList("id_delivery = {$idDelivery}")->deleteList();
             else $u->findList("id_delivery = {$idDelivery} AND NOT id_payment IN ({$idsExistStr})")->deleteList();
-            $u = new seTable('shop_delivery_payment', 'sdp');
+            $u = new DB('shop_delivery_payment', 'sdp');
             $u->where("id_delivery = ?", $idDelivery);
             $idsExist = array();
             $result = $u->getList();
@@ -157,7 +156,7 @@ class Delivery extends Base
                     $data[] = array('id_delivery' => $idDelivery, 'id_payment' => $id);
             }
             if (!empty($data))
-                seTable::insertList('shop_delivery_payment', $data);
+                DB::insertList('shop_delivery_payment', $data);
         } catch (Exception $e) {
             $this->error = "Не удаётся сохранить платежные системы доставки!";
             throw new Exception($this->error);
@@ -168,7 +167,7 @@ class Delivery extends Base
     {
         $idsGroups = $this->input["idsGroups"];
         $idDelivery = $this->input["id"];
-        $u = new seTable('shop_deliverygroup', 'sd');
+        $u = new DB('shop_deliverygroup', 'sd');
         $u->findList("id_type = $idDelivery")->deleteList();
 
         if (!empty($idsGroups)) {
@@ -177,21 +176,28 @@ class Delivery extends Base
                     $data[] = array('id_group' => $id, 'id_type' => $idDelivery);
         }
         if (!empty($data))
-            seTable::insertList('shop_deliverygroup', $data);
+            DB::insertList('shop_deliverygroup', $data);
     }
 
     private function saveConditionsParams()
     {
-        $conditions = $this->input["id"];
-        $idDelivery = $this->input["conditionsParams"];
-        $u = new seTable('shop_delivery_param', 'sp');
-        $u->where('id_delivery = ?', $idDelivery)->deleteList();
-        foreach ($conditions as $c)
-            $data[] = array('id_delivery' => $idDelivery, 'type_param' => $c["typeParam"], 'price' => $c["price"],
-                'min_value' => $c["minValue"], 'max_value' => $c["maxValue"], 'priority' => $c["priority"], 'operation' =>
-                    $c["operation"], "type_price" => $c["typePrice"]);
-        if (!empty($data))
-            seTable::insertList('shop_delivery_param', $data);
+        $idDelivery = $this->input["id"];
+        $conditions = $this->input["conditionsParams"];
+        $idsExist = array();
+        foreach ($conditions as $condition)
+            if (!empty($condition["id"]))
+                $idsExist[] = $condition["id"];
+        $idsExistStr = implode(",", $idsExist);
+        $u = new DB('shop_delivery_param', 'sp');
+        if (empty($idsExist))
+            $u->where('id_delivery = ?', $idDelivery)->deleteList();
+        else $u->where("NOT id IN ({$idsExistStr}) AND id_delivery = ?", $idDelivery)->deleteList();
+        foreach ($conditions as $condition) {
+            $u = new DB('shop_delivery_param', 'sp');
+            $condition["idDelivery"] = $idDelivery;
+            $u->setValuesFields($condition);
+            $u->save();
+        }
     }
 
     private function saveConditionsRegions()
@@ -207,7 +213,7 @@ class Delivery extends Base
                 $idsGeoUpdate[] = $delivery["idGeo"];
         }
         $idsUpdate = implode(',', $idsUpdate);
-        $u = new seTable('shop_deliverytype', 'sd');
+        $u = new DB('shop_deliverytype', 'sd');
         if (!empty($idsUpdate))
             $u->where('id_parent = ' . $idDelivery . ' AND NOT id IN (' . $idsUpdate . ')')->deleteList();
         else $u->where('id_parent = ' . $idDelivery)->deleteList();
@@ -215,7 +221,7 @@ class Delivery extends Base
         // вставка новых
         $dataD = array();
         $dataR = array();
-        $u = new seTable('shop_deliverytype');
+        $u = new DB('shop_deliverytype');
         $u->select('MAX(id) AS maxId');
         $u->fetchOne();
         $idNew = (int)$u->maxId;
@@ -244,15 +250,15 @@ class Delivery extends Base
             }
         }
         if (!empty($dataD))
-            seTable::insertList('shop_deliverytype', $dataD);
+            DB::insertList('shop_deliverytype', $dataD);
         if (!empty($dataR)) {
-            seTable::insertList('shop_delivery_region', $dataR);
+            DB::insertList('shop_delivery_region', $dataR);
         }
 
         // обновление
         foreach ($deliveries as $delivery) {
             if (!empty($delivery["id"])) {
-                $u = new seTable('shop_deliverytype');
+                $u = new DB('shop_deliverytype');
                 $delivery["idParent"] = $idDelivery;
                 if (isset($delivery["period"]))
                     $delivery["time"] = $delivery["period"];
@@ -274,7 +280,7 @@ class Delivery extends Base
                         $delivery["idRegionTo"] = null;
                         $delivery["idCityTo"] = null;
                     }
-                    $u = new seTable('shop_delivery_region');
+                    $u = new DB('shop_delivery_region');
                     $delivery["id"] = $delivery["idGeo"];
                     $u->setValuesFields($delivery);
                     $u->save();
@@ -292,7 +298,7 @@ class Delivery extends Base
             if (!empty($region["id"]))
                 $idsUpdate[] = $region["id"];
         $idsUpdate = implode(',', $idsUpdate);
-        $u = new seTable('shop_delivery_region', 'sdr');
+        $u = new DB('shop_delivery_region', 'sdr');
         $u->where('id_delivery = ?', $idDelivery);
         if (!empty($idsUpdate))
             $u->andWhere('NOT id IN (' . $idsUpdate . ')');
@@ -316,7 +322,7 @@ class Delivery extends Base
             }
         }
         if (!empty($data))
-            seTable::insertList('shop_delivery_region', $data);
+            DB::insertList('shop_delivery_region', $data);
 
         foreach ($regions as $region) {
             if (!empty($region["id"])) {
@@ -330,7 +336,7 @@ class Delivery extends Base
                     $region["idRegionTo"] = null;
                     $region["idCityTo"] = null;
                 }
-                $u = new seTable('shop_delivery_region');
+                $u = new DB('shop_delivery_region');
                 $region["idCountry"] = $region->idCountryTo;
                 $region["idRegion"] = $region->idRegionTo;
                 $region["idCity"] = $region->idCityTo;
@@ -363,8 +369,8 @@ class Delivery extends Base
     {
         $this->saveGroups();
         $this->savePaySystem();
-//        $this->saveConditionsParams();
-//        $this->saveConditionsRegions();
+        $this->saveConditionsParams();
+        $this->saveConditionsRegions();
         $this->saveGeoLocationsRegions();
         return true;
     }

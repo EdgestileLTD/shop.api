@@ -62,6 +62,41 @@ class Contact extends Base
         );
     }
 
+    private function getCustomFields($idContact)
+    {
+        $u = new DB('shop_userfields', 'su');
+        $u->select("cu.id, cu.id_person, cu.value, su.id id_userfield, 
+                    su.name, su.type, su.values, sug.id id_group, sug.name name_group");
+        $u->leftJoin('person_userfields cu', "cu.id_userfield = su.id AND id_person = {$idContact}");
+        $u->leftJoin('shop_userfield_groups sug', 'su.id_group = sug.id');
+        $u->where('su.data = "contact"');
+        $u->groupBy('su.id');
+        $u->orderBy('sug.sort');
+        $u->addOrderBy('su.sort');
+        $result = $u->getList();
+
+        $groups = array();
+        foreach ($result as $item) {
+            $isNew = true;
+            $newGroup = array();
+            $newGroup["id"] = $item["idGroup"];
+            $newGroup["name"] = empty($item["nameGroup"]) ? "Без категории": $item["nameGroup"];
+            foreach ($groups as $group)
+                if ($group["id"] == $item["idGroup"]) {
+                    $isNew = false;
+                    $newGroup = $group;
+                    break;
+                }
+            if ($item['type'] == "date")
+                $item['value'] = date('Y-m-d', strtotime($item['value']));
+            $newGroup["items"][] = $item;
+            if ($isNew)
+                $groups[] = $newGroup;
+        }
+        return $groups;
+    }
+
+
     public function info($id = null)
     {
         $id = empty($id) ? $this->input["id"] : $id;
@@ -78,6 +113,7 @@ class Contact extends Base
             $contact['companyRequisites'] = $this->getCompanyRequisites($contact['id']);
             $contact['personalAccount'] = $this->getPersonalAccount($contact['id']);
             $contact['accountOperations'] = (new BankAccountTypeOperation())->fetch();
+            $contact["customFields"] = $this->getCustomFields($contact["id"]);
             if ($count = count($contact['personalAccount']))
                 $contact['balance'] = $contact['personalAccount'][$count - 1]['balance'];
             $this->result = $contact;
@@ -254,6 +290,32 @@ class Contact extends Base
         }
     }
 
+    private function saveCustomFields()
+    {
+        if (!isset($this->input["customFields"]))
+            return true;
+
+        try {
+            $idContact = $this->input["id"];
+            $groups = $this->input["customFields"];
+            $customFields = array();
+            foreach ($groups as $group)
+                foreach ($group["items"] as $item)
+                    $customFields[] = $item;
+            foreach ($customFields as $field) {
+                $field["idPerson"] = $idContact;
+                $u = new DB('person_userfields', 'cu');
+                $u->setValuesFields($field);
+                $u->save();
+            }
+            return true;
+        } catch (Exception $e) {
+            $this->error = "Не удаётся сохранить доп. информацию о контакте!";
+            throw new Exception($this->error);
+        }
+    }
+
+
     public function save($contact = null)
     {
         try {
@@ -315,6 +377,8 @@ class Contact extends Base
                     }
                 }
                 $this->setUserGroup($ids[0]);
+                if ($ids && isset($this->input["customFields"]))
+                    $this->saveCustomFields();
             }
             DB::commit();
             $this->info();
