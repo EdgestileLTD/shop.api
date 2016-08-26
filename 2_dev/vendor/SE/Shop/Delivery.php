@@ -49,7 +49,7 @@ class Delivery extends Base
     private function getConditionsRegions($id, $currency)
     {
         $u = new DB('shop_deliverytype', 'sd');
-        $u->select('sd.*, sdr.id idGeo, sdr.id_city, sdr.id_country, sdr.id_region');
+        $u->select('sd.*, sdr.id id_geo, sdr.id_city, sdr.id_country, sdr.id_region');
         $u->innerJoin('shop_delivery_region sdr', 'sd.id = sdr.id_delivery');
         $u->where('sd.id_parent = ?', $id);
         $result = $u->getList();
@@ -204,7 +204,8 @@ class Delivery extends Base
     {
         $idDelivery = $this->input["id"];
         $deliveries = $this->input["conditionsRegions"];
-        $idsUpdate = array();
+
+                $idsUpdate = array();
         $idsGeoUpdate = array();
         foreach ($deliveries as $delivery) {
             if (!empty($delivery["id"]))
@@ -222,16 +223,15 @@ class Delivery extends Base
         $dataD = array();
         $dataR = array();
         $u = new DB('shop_deliverytype');
-        $u->select('MAX(id) AS maxId');
-        $u->fetchOne();
-        $idNew = (int)$u->maxId;
+        $u->select('MAX(id) max');
+        $result = $u->fetchOne();
+        $idNew = (int) $result["max"];
         foreach ($deliveries as $delivery) {
             if (empty($delivery["id"])) {
                 $idNew++;
                 $dataD[] = array('id' => $idNew, 'id_parent' => $idDelivery, 'code' => 'region',
-                    'time' => $delivery["period"], 'price' => $delivery["price"],
-                    'curr' => $delivery["currency"], 'note' => $delivery["note"],
-                    'max_volume' => $delivery["maxVolume"], 'max_weight' => $delivery["maxWeight"],
+                    'time' => $delivery["period"], 'price' => (real) $delivery["price"],
+                    'note' => $delivery["note"], 'max_volume' => $delivery["maxVolume"], 'max_weight' => $delivery["maxWeight"],
                     'status' => $delivery["isActive"] ? 'Y' : 'N');
                 if (empty($delivery["idGeo"])) {
                     if (!empty($delivery["idCityTo"])) {
@@ -239,7 +239,7 @@ class Delivery extends Base
                         $delivery["idRegionTo"] = null;
                     } elseif (!empty($delivery["idRegionTo"])) {
                         $delivery["idCountryTo"] = null;
-                        $delivery["idCityTo"] = 'null';
+                        $delivery["idCityTo"] = null;
                     } elseif (!empty($delivery["idCountryTo"])) {
                         $delivery["idRegionTo"] = null;
                         $delivery["idCityTo"] = null;
@@ -251,9 +251,9 @@ class Delivery extends Base
         }
         if (!empty($dataD))
             DB::insertList('shop_deliverytype', $dataD);
-        if (!empty($dataR)) {
+        if (!empty($dataR))
             DB::insertList('shop_delivery_region', $dataR);
-        }
+
 
         // обновление
         foreach ($deliveries as $delivery) {
