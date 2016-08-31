@@ -49,6 +49,7 @@
         $isUpdated |= setField($isNew, $u, $json->discount, 'discount');
         $isUpdated |= setField($isNew, $u, $json->typeDiscount, 'type_discount');
         $isUpdated |= setField($isNew, $u, $json->typeSum, 'summ_type');
+        $isUpdated |= setField($isNew, $u, $json->customerType, 'customer_type');
         if ($isUpdated){
             if (!empty($idsStr)) {
                 if ($idsStr != "all")

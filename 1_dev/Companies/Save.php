@@ -18,6 +18,29 @@ function existINN($inn, $id)
     return $u->isFind();
 }
 
+function saveLogin($id, $login, $password)
+{
+    $u = new seTable('se_user', 'su');
+    $u->where("username = '?'", trim($login));
+    $u->andWhere("id_company <> ?", $id);
+    $u->fetchOne();
+    if ($u->isFind()) {
+        $status['status'] = 'error';
+        $status['errortext'] = 'Такой логин уже существует!';
+        outputData($status);
+        exit;
+    }
+
+    $u = new seTable('se_user', 'su');
+    $u->where("id_company = ?", $id);
+    $u->fetchOne();
+    $u->id_company = $id;
+    $u->username = $login;
+    if ($password)
+        $u->password = $password;
+    $u->save();
+}
+
 function saveContacts($idCompany, $contacts)
 {
     $idsContacts = array();
@@ -94,6 +117,8 @@ if ($isNew || !empty($ids)) {
         else $u->save();
         if ($ids[0] && isset($json->contacts))
             saveContacts($ids[0], $json->contacts);
+        if ($ids[0] && (isset($json->login) || isset($json->passwordHash)))
+            saveLogin($ids[0], $json->login, $json->passwordHash);
     }
     if ($ids[0] && isset($json->idsGroups))
         saveGroups($json->idsGroups, $ids);

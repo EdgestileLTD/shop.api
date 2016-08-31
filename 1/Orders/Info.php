@@ -136,8 +136,7 @@ function getDynFields($idOrder)
 {
     $u = new seTable('shop_userfields', 'su');
     $u->select("sou.*, su.id idMain, su.type");
-    $u->leftjoin('shop_order_userfields sou', 'sou.id_userfield = su.id');
-    $u->where("id_order IS NULL OR id_order=?", $idOrder);
+    $u->leftjoin('shop_order_userfields sou', "(sou.id_userfield = su.id AND id_order = {$idOrder}) OR id_order IS NULL");
     $u->groupby('su.id');
     $u->orderby('su.sort');
     $result = $u->getList();
@@ -195,6 +194,7 @@ if (!empty($result)) {
         $order['datePayee'] = $item['date_payee'];
         $order['dateCredit'] = date('Y-m-d', strtotime($item['date_credit']));
         $order['idCustomer'] = $item['id_author'];
+        $order['idCompany'] = $item['id_company'];
         $order['customer'] = $item['company'] ? $item['company'] : $item['customer'];
         $order['idManager'] = $item['id_admin'];
         $order['managers'] = $item['managers'];
