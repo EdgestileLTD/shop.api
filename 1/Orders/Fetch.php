@@ -101,7 +101,7 @@ if ($count > 0) {
         $order['datePayee'] = $item['date_payee'];
         $order['idCustomer'] = $item['id_author'];
         $order['idCompany'] = $item['id_company'];
-        $order['customer'] = $item['company'] ? $item['company'] : $item['customer'];
+        $order['customer'] = $item['company'] ? trim($item['company']) : trim($item['customer']);
         $order['currency'] = $item['curr'];
         $order['customerPhone'] = $item['companyPhone'] ? $item['companyPhone'] : $item['customerPhone'];
         $order['customerEmail'] = $item['companyEmail'] ? $item['companyEmail'] : $item['customerEmail'];

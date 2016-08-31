@@ -88,6 +88,7 @@
         $isUpdated |= setField($isNew, $u, $json->pageBlank, 'blank');
         $isUpdated |= setField($isNew, $u, $json->pageResult, 'result');
         $isUpdated |= setField($isNew, $u, $json->pageMainInfo, 'startform');
+        $isUpdated |= setField($isNew, $u, $json->customerType, 'customer_type');
         if (isset($json->hosts))
             $isUpdated |= setField($isNew, $u, getHostsStr($json->hosts), 'hosts');
         if (isset($json->filters))

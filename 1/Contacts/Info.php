@@ -1,8 +1,10 @@
 <?php
+
 if (empty($json->ids))
     exit;
 
-function getPersonalAccount($id) {
+function getPersonalAccount($id)
+{
     $u = new seTable('se_user_account', 'sua');
     $u->select('id, order_id AS idOrder, account, date_payee AS datePayee, in_payee AS inPayee,
               out_payee AS outPayee, curr AS currency, operation AS typeOperation, docum AS note');
@@ -11,12 +13,11 @@ function getPersonalAccount($id) {
     $result = $u->getList();
     $account = array();
     $balance = 0;
-    foreach($result as $item) {
+    foreach ($result as $item) {
         settype($item['inPayee'], float);
         settype($item['outPayee'], float);
         settype($item['typeOperation'], int);
         $item['datePayee'] = date('Y-m-d', strtotime($item['datePayee']));
-        $item['datePayeeDisplay'] = date('d.m.Y', strtotime($item['datePayee']));
         $balance += ($item['inPayee'] - $item['outPayee']);
         $item['balance'] = $balance;
         $account[] = $item;
@@ -24,7 +25,8 @@ function getPersonalAccount($id) {
     return $account;
 }
 
-function getCompanyRequisites($id) {
+function getCompanyRequisites($id)
+{
     GLOBAL $json;
 
     $u = new seTable('user_rekv_type', 'urt');
@@ -35,18 +37,40 @@ function getCompanyRequisites($id) {
     $u->orderby('urt.id');
     $result = $u->getList();
     $requisites = array();
-    foreach($result as $item) {
+    foreach ($result as $item) {
         $requisite['id'] = $item['id'];
         $requisite['code'] = $item['rekv_code'];
         $requisite['name'] = $item['title'];
         $requisite['value'] = $item['value'];
-        $requisite['size'] = (int) $item['size'];
+        $requisite['size'] = (int)$item['size'];
         $requisites[] = $requisite;
     }
     return $requisites;
 }
 
-function getGroups($id) {
+function getDynFields($idPerson)
+{
+    $u = new seTable('shop_userfields', 'su');
+    $u->select("pu.*, su.id idMain, su.type");
+    $u->leftjoin('person_userfields pu', "(pu.id_userfield = su.id AND id_person = {$idPerson}) OR id_person IS NULL");
+    $u->groupby('su.id');
+    $u->orderby('su.sort');
+    $result = $u->getList();
+    $items = array();
+    foreach ($result as $item) {
+        $field['id'] = $item['id'];
+        $field['idMain'] = $item['idMain'];
+        $field['value'] = $item['value'];
+        if ($item['type'] == "date")
+            $field['value'] = date('Y-m-d', strtotime($item['value']));
+        $items[] = $field;
+    }
+    return $items;
+}
+
+
+function getGroups($id)
+{
     $u = new seTable('se_group', 'sg');
     $u->select('sg.id, sg.title name');
     $u->innerjoin('se_user_group sug', 'sg.id = sug.group_id');
@@ -56,7 +80,7 @@ function getGroups($id) {
 
 $ids = implode(",", $json->ids);
 
-$u = new seTable('person','p');
+$u = new seTable('person', 'p');
 $u->select('p.*, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) fullName,
             GROUP_CONCAT(DISTINCT(sug.group_id) SEPARATOR ";") AS idsGroups,
             su.username AS login, su.password, su.is_active, uu.company, uu.director,
@@ -70,7 +94,7 @@ $result = $u->getList();
 $status = array();
 $items = array();
 
-foreach($result as $item) {
+foreach ($result as $item) {
     $contact = null;
     $contact['id'] = $item['id'];
     $contact['regDate'] = date('Y-m-d', strtotime($item['reg_date']));
@@ -82,7 +106,7 @@ foreach($result as $item) {
     $contact['firstName'] = $item['first_name'];
     $contact['secondName'] = $item['sec_name'];
     $contact['lastName'] = $item['last_name'];
-    $contact['loyalty'] = (int) $item['loyalty'];
+    $contact['loyalty'] = (int)$item['loyalty'];
     $contact['gender'] = $item['sex'];
     $contact['email'] = $item['email'];
     $contact['phone'] = $item['phone'];
@@ -97,7 +121,7 @@ foreach($result as $item) {
     $contact['country'] = $item['country'];
     $contact['city'] = $item['city'];
     $contact['docRegistr'] = $item['doc_registr'];
-    $contact['discount'] = (real) $item['discount'];
+    $contact['discount'] = (real)$item['discount'];
     $contact['isRead'] = $item['is_read'];
     $contact['imageFile'] = $item['avatar'];
     $contact['emailValid'] = (isset($item['email_valid'])) ? $item['email_valid'] : 'C';
@@ -113,14 +137,13 @@ foreach($result as $item) {
     $contact['companyRequisites'] = getCompanyRequisites($contact['id']);
 
     $idsGroups = explode(';', $item['idsGroups']);
-    foreach($idsGroups as $idGroup) {
+    foreach ($idsGroups as $idGroup) {
         $contact['idsGroups'][] = $idGroup;
         if ($idGroup == 3)
             $contact["isAdmin"] = true;
     }
     $contact['personalAccount'] = getPersonalAccount($item['id']);
-    if ($count = count($contact['personalAccount']))
-        $contact['balance'] = $contact['personalAccount'][$count - 1]['balance'];
+    $contact['dynFields'] = getDynFields($item['id']);
     $items[] = $contact;
 }
 

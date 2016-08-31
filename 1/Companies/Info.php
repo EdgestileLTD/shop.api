@@ -47,19 +47,12 @@ function getListContacts($id)
     return $contacts;
 }
 
-function getGroups($id)
-{
-    $u = new seTable('se_group', 'sg');
-    $u->select('sg.id, sg.title name');
-    $u->innerjoin('se_user_group sug', 'sg.id = sug.group_id');
-    $u->where('sg.title IS NOT NULL AND sg.name <> "" AND sg.name IS NOT NULL AND sug.user_id = ?', $id);
-    return $u->getList();
-}
-
 $ids = implode(",", $json->ids);
 
 $u = new seTable('company', 'c');
-$u->select('c.*');
+$u->select('c.*, su.username, su.password, GROUP_CONCAT(DISTINCT(sug.group_id) SEPARATOR ";") ids_groups');
+$u->leftJoin('se_user su', 'su.id_company = c.id');
+$u->leftJoin('se_user_group sug', 'c.id = sug.company_id');
 $u->where("c.id in ($ids)");
 $result = $u->getList();
 
@@ -76,7 +69,13 @@ foreach ($result as $item) {
     $company['phone'] = $item['phone'];
     $company['note'] = $item['note'];
     $company['address'] = $item['address'];
+    $company['login'] = $item['username'];
+    $company['password'] = $item['password'];
     $company['contacts'] = getListContacts($company["id"]);
+    $idsGroups = explode(';', $item['ids_groups']);
+    foreach ($idsGroups as $idGroup)
+        $company['idsGroups'][] = $idGroup;
+
     $items[] = $company;
 }
 

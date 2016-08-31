@@ -69,6 +69,7 @@ foreach ($result as $item) {
     $paySystem['pageFail'] = $item['fail'];
     $paySystem['pageBlank'] = $item['blank'];
     $paySystem['pageResult'] = $item['result'];
+    $paySystem['customerType'] = (int) $item['customer_type'];
     $paySystem['pageMainInfo'] = $item['startform'];
     $paySystem['isActive'] = $item['active'] == 'Y';
     $paySystem['sortIndex'] = (int)$item['sort'];

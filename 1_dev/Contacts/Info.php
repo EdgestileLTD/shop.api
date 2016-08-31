@@ -48,6 +48,27 @@ function getCompanyRequisites($id)
     return $requisites;
 }
 
+function getDynFields($idPerson)
+{
+    $u = new seTable('shop_userfields', 'su');
+    $u->select("pu.*, su.id idMain, su.type");
+    $u->leftjoin('person_userfields pu', "(pu.id_userfield = su.id AND id_person = {$idPerson}) OR id_person IS NULL");
+    $u->groupby('su.id');
+    $u->orderby('su.sort');
+    $result = $u->getList();
+    $items = array();
+    foreach ($result as $item) {
+        $field['id'] = $item['id'];
+        $field['idMain'] = $item['idMain'];
+        $field['value'] = $item['value'];
+        if ($item['type'] == "date")
+            $field['value'] = date('Y-m-d', strtotime($item['value']));
+        $items[] = $field;
+    }
+    return $items;
+}
+
+
 function getGroups($id)
 {
     $u = new seTable('se_group', 'sg');
@@ -122,6 +143,7 @@ foreach ($result as $item) {
             $contact["isAdmin"] = true;
     }
     $contact['personalAccount'] = getPersonalAccount($item['id']);
+    $contact['dynFields'] = getDynFields($item['id']);
     $items[] = $contact;
 }
 

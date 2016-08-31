@@ -114,6 +114,7 @@
             $discount['countTo'] = 0;
         $discount['discount'] = (float) $item['discount'];
         $discount['typeDiscount'] = $item['type_discount'];
+        $discount['customerType'] = (int) $item['customer_type'];
         $discount['typeSum'] = (int) $item['summ_type'];
         $discount['listGroupsProducts'] = getListGroupsProducts($discount['id']);
         $discount['listProducts'] = getListProducts($discount['id']);
