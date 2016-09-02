@@ -47,6 +47,26 @@ function getListContacts($id)
     return $contacts;
 }
 
+function getDynFields($idCompany)
+{
+    $u = new seTable('shop_userfields', 'su');
+    $u->select("cu.*, su.id idMain, su.type");
+    $u->leftjoin('company_userfields cu', "(cu.id_userfield = su.id AND id_company = {$idCompany}) OR id_company IS NULL");
+    $u->groupby('su.id');
+    $u->orderby('su.sort');
+    $result = $u->getList();
+    $items = array();
+    foreach ($result as $item) {
+        $field['id'] = $item['id'];
+        $field['idMain'] = $item['idMain'];
+        $field['value'] = $item['value'];
+        if ($item['type'] == "date")
+            $field['value'] = date('Y-m-d', strtotime($item['value']));
+        $items[] = $field;
+    }
+    return $items;
+}
+
 $ids = implode(",", $json->ids);
 
 $u = new seTable('company', 'c');
@@ -76,6 +96,7 @@ foreach ($result as $item) {
     $idsGroups = explode(';', $item['ids_groups']);
     foreach ($idsGroups as $idGroup)
         $company['idsGroups'][] = $idGroup;
+    $company['dynFields'] = getDynFields($item['id']);
 
     $items[] = $company;
 }
