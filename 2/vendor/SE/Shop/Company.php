@@ -23,6 +23,25 @@ class Company extends Base
         );
     }
 
+    protected function getSettingsInfo()
+    {
+        return array(
+            "select" => 'c.*, sug.group_id id_group, su.username',
+            "joins" => array(
+                array(
+                    "type" => "left",
+                    "table" => "se_user_group sug",
+                    "condition" => "c.id = sug.company_id"
+                ),
+                array(
+                    "type" => "left",
+                    "table" => "se_user su",
+                    "condition" => "c.id = su.id_company"
+                )
+            )
+        );
+    }
+
     public function getContacts($idCompany)
     {
         $u = new DB('company_person', 'cp');
@@ -121,9 +140,43 @@ class Company extends Base
         }
     }
 
+    private function saveLogin()
+    {
+        if (!isset($this->input["username"]))
+            return true;
+
+        try {
+            $idCompany = $this->input["id"];
+            $userName = trim($this->input["username"]);
+            $u = new DB('se_user', 'su');
+            $u->where("username = '?'", $userName);
+            $u->andWhere("id_company <> ?", $idCompany);
+            $result = $u->fetchOne();
+            if ($result) {
+                $this->error = "Такой логин уже существует!";
+                throw new Exception($this->error);
+            }
+
+            $u = new DB('se_user', 'su');
+            $u->where("id_company = ?", $idCompany);
+            $result = $u->fetchOne();
+            if ($result)
+                $data["id"] = $result["id"];
+            $data["username"] = $userName;
+            if (isset($this->input["password"]))
+                $data["password"] = trim($this->input["password"]);
+            $u->setValuesFields($data);
+            $u->save();
+            return true;
+        } catch (Exception $e) {
+            $this->error = "Не удаётся сохранить авторизационные данные компании!";
+            throw new Exception($this->error);
+        }
+    }
+
     protected function saveAddInfo()
     {
-        return $this->saveContacts() && $this->saveCustomFields();
+        return $this->saveLogin() && $this->saveContacts() && $this->saveCustomFields();
     }
 
 }

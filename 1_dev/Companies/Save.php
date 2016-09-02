@@ -104,6 +104,7 @@ if ($isNew || !empty($ids)) {
     $isUpdated = false;
     $isUpdated |= setField($isNew, $u, $json->name, 'name');
     $isUpdated |= setField($isNew, $u, $json->inn, 'inn');
+    $isUpdated |= setField($isNew, $u, $json->kpp, 'kpp');
     $isUpdated |= setField($isNew, $u, $json->phone, 'phone');
     $isUpdated |= setField($isNew, $u, $json->email, 'email');
     $isUpdated |= setField($isNew, $u, $json->address, 'address');

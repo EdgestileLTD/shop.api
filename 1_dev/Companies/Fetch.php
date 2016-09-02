@@ -62,6 +62,7 @@ foreach ($result as $item) {
     $company['id'] = $item['id'];
     $company['regDate'] = date('Y-m-d', strtotime($item['reg_date']));
     $company['inn'] = $item['inn'];
+    $company['kpp'] = $item['kpp'];
     $company['name'] = $item['name'];
     $company['email'] = $item['email'];
     $company['phone'] = $item['phone'];

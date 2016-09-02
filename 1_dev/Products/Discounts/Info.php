@@ -101,7 +101,9 @@
         $discount['name'] = $item['title'];
         $discount['stepTime'] = (int) $item['step_time'];
         $discount['stepDiscount'] = (float) $item['step_discount'];
+        $discount['isDateTimeFrom'] = !empty($item['date_from']);
         $discount['dateTimeFrom'] = $item['date_from'];
+        $discount['isDateTimeTo'] = !empty($item['date_to']);
         $discount['dateTimeTo'] = $item['date_to'];
         $discount['week'] = $item['week'];
         $discount['sumFrom'] = (float) $item['summ_from'];

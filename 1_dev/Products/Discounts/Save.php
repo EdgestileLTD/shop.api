@@ -39,6 +39,10 @@
         $isUpdated |= setField($isNew, $u, $json->name, 'title');
         $isUpdated |= setField($isNew, $u, $json->stepTime, 'step_time');
         $isUpdated |= setField($isNew, $u, $json->stepDiscount, 'step_discount');
+        if (!$json->isDateTimeFrom && !$isNew)
+            $json->dateTimeFrom = 0;
+        if (!$json->isDateTimeTo && !$isNew)
+            $json->dateTimeTo = 0;
         $isUpdated |= setField($isNew, $u, $json->dateTimeFrom, 'date_from');
         $isUpdated |= setField($isNew, $u, $json->dateTimeTo, 'date_to');
         $isUpdated |= setField($isNew, $u, $json->week, 'week');
