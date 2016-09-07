@@ -556,7 +556,7 @@ if ($isNew || !empty($ids)) {
     if (isset($json->count) && empty($json->count))
         $json->count = 0;
 
-    if (isset($json->images) && empty($json->imageFile)) {
+    if (isset($json->images)) {
         foreach ($json->images as $image) {
             if ($image->isMain) {
                 $json->imageFile = $image->imageFile;

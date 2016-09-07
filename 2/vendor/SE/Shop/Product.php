@@ -417,8 +417,14 @@ class Product extends Base
         try {
             $idsProducts = $this->input["ids"];
             $images = $this->input["images"];
+            if ($this->isNew) {
+                foreach ($images as &$image)
+                    unset($image["id"]);
+                unset($image);
+            }
             // обновление изображений
             $idsStore = "";
+
             foreach ($images as $image) {
                 if ($image["id"] > 0) {
                     if (!empty($idsStore))
@@ -433,7 +439,6 @@ class Product extends Base
                     $u->save();
                 }
             }
-
             $idsStr = implode(",", $idsProducts);
             if (!empty($idsStore)) {
                 $u = new DB('shop_img', 'si');
@@ -745,6 +750,12 @@ class Product extends Base
         try {
             $idsProducts = $this->input["ids"];
             $modifications = $this->input["modifications"];
+
+            if ($this->isNew)
+                foreach ($modifications as &$mod)
+                    foreach ($mod["items"] as &$item)
+                        $item["id"] = null;
+
             $idsStr = implode(",", $idsProducts);
             $isMultiMode = sizeof($idsProducts) > 1;
 

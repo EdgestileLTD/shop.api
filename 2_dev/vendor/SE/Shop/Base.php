@@ -30,6 +30,7 @@ class Base
     protected $imagePreviewSize = 64;
     protected $allowedSearch = true;
     protected $availableSigns = array("=", "<=", "<", ">", ">=", "IN");
+    protected $isNew;
 
     private $patterns = array();
 
@@ -46,6 +47,7 @@ class Base
             array() : $this->input["filters"];
         if (!empty($this->input["id"]) && empty($this->input["ids"]))
             $this->input["ids"] = array($this->input["id"]);
+        $this->isNew = empty($this->input["id"]) && empty($this->input["ids"]);
         if (empty($this->tableAlias) && !empty($this->tableName)) {
             $worlds = explode("_", $this->tableName);
             foreach ($worlds as $world)
