@@ -105,9 +105,11 @@ class Contact extends Base
             $u->select('p.*, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) display_name,
                 p.avatar imageFile,
                 su.username login, su.password, (su.is_active = "Y") isActive, uu.company, uu.director,
-                uu.tel, uu.fax, uu.uradres, uu.fizadres');
+                uu.tel, uu.fax, uu.uradres, uu.fizadres,
+                CONCAT_WS(" ", pr.last_name, pr.first_name, pr.sec_name) refer_name');
             $u->leftJoin('se_user su', 'p.id=su.id');
             $u->leftJoin('user_urid uu', 'uu.id=su.id');
+            $u->leftJoin('person pr', 'pr.id=p.id_up');
             $contact = $u->getInfo($id);
             $contact['groups'] = $this->getGroups($contact['id']);
             $contact['companyRequisites'] = $this->getCompanyRequisites($contact['id']);

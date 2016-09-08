@@ -84,10 +84,12 @@ $u = new seTable('person', 'p');
 $u->select('p.*, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) fullName,
             GROUP_CONCAT(DISTINCT(sug.group_id) SEPARATOR ";") AS idsGroups,
             su.username AS login, su.password, su.is_active, uu.company, uu.director,
-            uu.tel, uu.fax, uu.uradres, uu.fizadres');
+            uu.tel, uu.fax, uu.uradres, uu.fizadres,
+            CONCAT_WS(" ", pr.last_name, pr.first_name, pr.sec_name) referContact');
 $u->leftjoin('se_user_group sug', 'p.id=sug.user_id');
 $u->leftjoin('se_user su', 'p.id=su.id');
 $u->leftjoin('user_urid uu', 'uu.id=su.id');
+$u->leftjoin('person pr', 'pr.id=p.id_up');
 $u->where("p.id in ($ids)");
 $result = $u->getList();
 
@@ -100,6 +102,8 @@ foreach ($result as $item) {
     $contact['regDate'] = date('Y-m-d', strtotime($item['reg_date']));
     $contact['regDateDisplay'] = date('d.m.Y', strtotime($item['reg_date']));
     $contact['login'] = $item['login'];
+    $contact['idReferContact'] = $item['id_up'];
+    $contact['referContact'] = $item['referContact'];
     $contact['passwordHash'] = $item['password'];
     $contact['isActive'] = $item['is_active'] == 'Y';
     $contact['fullName'] = $item['fullName'];
