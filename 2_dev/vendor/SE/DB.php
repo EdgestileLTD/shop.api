@@ -354,7 +354,7 @@ class DB
             while ($row = $stmt->fetch()) {
                 $item = array();
                 foreach ($row as $key => $value) {
-                    if (is_numeric($value) && strpos($value, "0") !== 0)
+                    if ($this->isNumericField($key) && !is_null($value))
                         $value += 0;
                     $item[$this->convertFieldToModel($key)] = $value;
                 }
@@ -575,6 +575,7 @@ class DB
             self::$lastQuery = $this->rawQuery = $sql;
             $stmt = self::$dbh->prepare($sql);
             $this->bindValues($stmt);
+
             if ($stmt->execute()) {
                 if ($isInsert && !$isInsertId)
                     return self::$dbh->lastInsertId();
@@ -587,6 +588,19 @@ class DB
         } catch (\PDOException $e) {
             throw new Exception("Query: " . self::$lastQuery . "\nError: " . $e->getMessage());
         }
+    }
+
+    private function isNumericField($name)
+    {
+        $fields = $this->getFields();
+        foreach ($fields as $field) {
+            if ($field["Field"] == $name)
+                if (strpos($field["Type"], "int") !== false || strpos($field["Type"], "decimal") !== false ||
+                    strpos($field["Type"], "float") !== false || strpos($field["Type"], "double") !== false
+                )
+                    return true;
+        }
+        return false;
     }
 
     private function getValuesString($isInsert, $isInsertId = false)
