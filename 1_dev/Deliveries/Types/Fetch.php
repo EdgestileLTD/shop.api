@@ -36,6 +36,12 @@ $type['code'] = "post";
 $type['name'] = "Почта России";
 $types[] = $type;
 
+$type = null;
+$type['id'] = "sdek";
+$type['code'] = "sdek";
+$type['name'] = "СДЭК";
+$types[] = $type;
+
 $data['count'] = sizeof($types);
 $data['items'] = $types;
 

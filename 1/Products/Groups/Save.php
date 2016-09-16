@@ -204,6 +204,7 @@ function saveIdParent($id, $idParent)
         $level++;
     }
     $sthGroupTree->execute(array('id_parent' => $idParent, 'id' => $id, 'level' => $level));
+
 }
 
 $ids = array();

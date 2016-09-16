@@ -232,23 +232,17 @@ class Order extends Base
 
         $groups = array();
         foreach ($result as $item) {
-            $isNew = true;
-            $newGroup = array();
-            $newGroup["id"] = $item["idGroup"];
-            $newGroup["name"] = empty($item["nameGroup"]) ? "Без категории": $item["nameGroup"];
-            foreach ($groups as $group)
-                if ($group["id"] == $item["idGroup"]) {
-                    $isNew = false;
-                    $newGroup = $group;
-                    break;
-                }
+            $key = (int)$item["idGroup"];
+            $group = key_exists($key, $groups) ? $groups[$key] : array();
+            $group["id"] = $item["idGroup"];
+            $group["name"] = empty($item["nameGroup"]) ? "Без категории" : $item["nameGroup"];
             if ($item['type'] == "date")
                 $item['value'] = date('Y-m-d', strtotime($item['value']));
-            $newGroup["items"][] = $item;
-            if ($isNew)
-                $groups[] = $newGroup;
+            if (!key_exists($key, $groups))
+                $groups[$key] = $group;
+            $groups[$key]["items"][] = $item;
         }
-        return $groups;
+        return array_values($groups);
     }
 
     protected function correctValuesBeforeSave()
