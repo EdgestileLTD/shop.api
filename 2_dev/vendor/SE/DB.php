@@ -135,6 +135,13 @@ class DB
         } else throw new Exception("The connection is not initialized!");
     }
 
+    public static function quote($string)
+    {
+        if (self::$dbh) {
+            return self::$dbh->quote($string);
+        } else throw new Exception("The connection is not initialized!");
+    }
+
     public static function prepare($statement)
     {
         if (self::$dbh) {
@@ -257,11 +264,6 @@ class DB
         } catch (\PDOException $e) {
             throw new Exception("Query: " . self::$lastQuery . "\nError: " . $e->getMessage());
         }
-    }
-
-    public static function quote($str)
-    {
-        return self::$dbh->quote($str);
     }
 
     public function getFields()

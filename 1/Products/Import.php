@@ -507,6 +507,7 @@ try {
                     $IdGroup = 'null';
                 if (empty($goodsItem['Code']))
                     $goodsItem['Code'] = strtolower(se_translite_url($goodsItem['Name']));
+                else $goodsItem['Code'] = strtolower(se_translite_url($goodsItem['Code']));
                 $goodsItem['Code'] = getCode($goodsItem['Code'], 'shop_price', 'code', $codes);
                 $codes[] = $goodsItem['Code'];
                 if (empty($goodsItem['Article']))

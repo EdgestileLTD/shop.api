@@ -30,9 +30,6 @@ class Analytics extends Base
             $this->result["countAllCustomers"] = $this->countCustomers();
             $this->result["sumPaidOrders"] = $this->sumPaidOrders();
             $this->result["sumPurchase"] = $this->sumPurchase();
-
-            $this->result["funnel"] = $this->getFunnel();
-            $this->result["statisticsOrders"] = $this->getStatisticsOrders();
         } elseif ($this->data == "funnel")
             $this->result["funnel"] = $this->getFunnel();
         elseif ($this->data == "statisticsOrders")
@@ -152,7 +149,7 @@ class Analytics extends Base
     {
         $rows = array();
 
-        $result["countVisitors"] = $this->result["countVisitors"];
+        $result["countVisitors"] = $this->countVisitors();
 
         try {
             $u = new DB("shop_stat_events", 'sse');

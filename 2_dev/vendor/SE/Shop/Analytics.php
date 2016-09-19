@@ -149,7 +149,7 @@ class Analytics extends Base
     {
         $rows = array();
 
-        $result["countVisitors"] = $this->result["countVisitors"];
+        $result["countVisitors"] = $this->countVisitors();
 
         try {
             $u = new DB("shop_stat_events", 'sse');

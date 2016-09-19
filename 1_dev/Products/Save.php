@@ -520,11 +520,12 @@ if ($isNew || !empty($ids)) {
         $isUpdated |= setField($isNew, $u, $json->isActive, 'enabled');
     }
     $isUpdated |= setField($isNew, $u, $json->name, 'name');
-    $isUpdated |= setField($isNew, $u, $json->code, 'code');
     if ($isNew || isset($json->code)) {
-        if (!$u->code)
-            $u->code = strtolower(se_translite_url($json->name));
-        $u->code = getCode($u->code);
+        if (empty($json->code))
+            $json->code = strtolower(se_translite_url($json->name));
+        else $json->code = strtolower(se_translite_url($json->code));
+        $json->code = getCode($json->code);
+        $isUpdated |= setField($isNew, $u, $json->code, 'code');
     }
 
     if (isset($json->article) && empty($json->article))
