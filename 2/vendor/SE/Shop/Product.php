@@ -19,7 +19,7 @@ class Product extends Base
     {
         if (CORE_VERSION == "5.3") {
             $select = 'sp.id, sp.code, sp.article, sp.name, sp.price, sp.img, sp.img_alt, sp.description, sp.curr, sp.presence,
-                sp.flag_hit, sp.enabled, sp.flag_new, sp.note, sp.text,
+                sp.flag_hit, sp.enabled, sp.flag_new, sp.note, sp.text, sp.price_purchase price_purchase,
                 spg.id_group id_group, sg.name name_group, sg.id_modification_group_def id_modification_group_def, 
                 sb.name name_brand';
             $joins[] = array(
@@ -96,6 +96,25 @@ class Product extends Base
             $result[] = $image;
         }
         return $result;
+    }
+
+    public function addPrice()
+    {
+        try {
+            $idsProducts = $this->input["ids"];
+            $idsStr = implode(",", $idsProducts);
+            $type = $this->input["value"];
+            $price = $this->input["price"];
+            $sql = "UPDATE shop_price SET price = ";
+            if ($type == "a")
+                $sql .= "price+" . $price;
+            if ($type == "p")
+                $sql .= "price+price*" . $price / 100;
+            $sql .= " WHERE id IN ({$idsStr})";
+            DB::query($sql);
+        } catch (Exception $e) {
+            $this->error = "Не удаётся произвести наценку выбранных товаров!";
+        }
     }
 
     public function getSpecifications($idProduct = null)

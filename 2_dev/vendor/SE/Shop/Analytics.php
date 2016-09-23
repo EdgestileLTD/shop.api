@@ -200,13 +200,14 @@ class Analytics extends Base
             $result["countConfirmOrder"] = $u->getList()[0]["count"];
 
             $u = new DB("shop_stat_events", 'sse');
-            $u->select("COUNT(sse.id_session) `count`");
+            $u->select("COUNT(DISTINCT sse.id_session) `count`");
             $u->innerJoin("shop_order so", "sse.content = so.id");
             $u->where('so.is_delete = "N" AND so.status = "Y"');
             if ($this->startDate)
                 $u->andWhere('sse.created_at >= "?"', date("Y-m-d", $this->startDate));
             if ($this->endDate)
                 $u->andWhere('sse.created_at <= "?"', date("Y-m-d", $this->endDate));
+            $u->groupBy("so.id_author");
             $result["countPaidOrder"] = $u->getList()[0]["count"];
 
             $rows[] = array("Name" => "countVisitors",
