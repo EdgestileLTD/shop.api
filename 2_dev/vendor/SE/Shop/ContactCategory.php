@@ -26,4 +26,14 @@ class ContactCategory extends Base
     {
         $this->input["title"] = $this->input["name"];
     }
+
+    public function save()
+    {
+        $result = parent::save();
+        if ($this->isNew) {
+            $emailService = new EmailProvider();
+            $emailService->createAddressBook($this->input);
+        }
+        return $result;
+    }
 }

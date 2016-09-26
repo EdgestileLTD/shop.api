@@ -2,7 +2,7 @@
 
 namespace SE\Shop;
 
-class LetterTemplate extends Base
+class EmailTemplate extends Base
 {
     protected $tableName = "shop_mail";
 }
