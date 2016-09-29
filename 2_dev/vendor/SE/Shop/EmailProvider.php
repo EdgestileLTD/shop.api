@@ -60,6 +60,11 @@ class EmailProvider extends Base
             $this->getInstanceSendPulseApi()->removeAddressBook($idBook);
     }
 
+    public function addEmails($idBooks = array(), $emails = array())
+    {
+
+    }
+
     private function getBalance()
     {
         return (float)$this->requestSmsProviderInfo($this->result["name"], "balance");

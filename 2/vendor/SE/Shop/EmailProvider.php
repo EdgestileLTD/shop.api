@@ -37,27 +37,27 @@ class EmailProvider extends Base
         }
     }
 
+    /*
+     *  @return SendpulseApi
+     */
+    public function getInstanceSendPulseApi()
+    {
+        return new SendpulseApi($this->settingsProvider["ID"]["value"],
+            $this->settingsProvider["SECRET"]["value"], "session");
+    }
+
     public function createAddressBook($bookName)
     {
         $this->initProvider();
-        if ($this->providerName == "sendpulse") {
-            $api = new SendpulseApi($this->settingsProvider["ID"]["value"],
-                $this->settingsProvider["SECRET"]["value"], "session");
-            return $api->createAddressBook($bookName)->id;
-        }
+        if ($this->providerName == "sendpulse")
+            return $this->getInstanceSendPulseApi()->createAddressBook($bookName)->id;
     }
 
     public function removeAddressBook($idBook)
     {
-        try {
-            $this->initProvider();
-            if ($this->providerName == "sendpulse") {
-                $api = new SendpulseApi($this->settingsProvider["ID"]["value"],
-                    $this->settingsProvider["SECRET"]["value"], "session");
-                $api->removeAddressBook($idBook);
-            }
-        } catch (Exception $e) {
-        }
+        $this->initProvider();
+        if ($this->providerName == "sendpulse")
+            $this->getInstanceSendPulseApi()->removeAddressBook($idBook);
     }
 
     private function getBalance()

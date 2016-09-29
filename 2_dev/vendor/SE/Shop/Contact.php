@@ -199,13 +199,20 @@ class Contact extends Base
             $u->where("user_id IN ($idsContactsS)");
             $objects = $u->getList();
             $idsExists = array();
+            $u = new DB('se_group');
+            $u->select("email_settings");
+            $u->where('id IN (?)', $idsGroupsS);
+
+
             foreach ($objects as $object)
                 $idsExists[] = $object["groupId"];
             if (!empty($newIdsGroups)) {
-                foreach ($newIdsGroups as $id)
+                foreach ($newIdsGroups as $id) {
+
                     if (!empty($id) && !in_array($id, $idsExists))
                         foreach ($idsContact as $idContact)
                             $data[] = array('user_id' => $idContact, 'group_id' => $id);
+                }
                 if (!empty($data))
                     DB::insertList('se_user_group', $data);
             }
