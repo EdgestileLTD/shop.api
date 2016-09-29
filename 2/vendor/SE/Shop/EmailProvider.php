@@ -3,10 +3,15 @@
 namespace SE\Shop;
 
 use SE\DB as DB;
+use SE\Exception;
+use SendPulse\SendpulseApi as SendPulseApi;
 
 class EmailProvider extends Base
 {
     protected $tableName = "email_providers";
+
+    private $providerName;
+    private $settingsProvider;
 
     public function save()
     {
@@ -21,14 +26,43 @@ class EmailProvider extends Base
         return $this->result;
     }
 
+    public function initProvider()
+    {
+        $u = new DB("email_providers");
+        $u->where("is_active");
+        $result = $u->fetchOne();
+        if ($result) {
+            $this->providerName = strtolower($result["name"]);
+            $this->settingsProvider = json_decode($result["settings"], 1);
+        }
+    }
+
     public function createAddressBook($bookName)
     {
-        return $this->requestSmsProviderInfo($this->result["name"], "createBook", ["name" => $bookName])["id"];
+        $this->initProvider();
+        if ($this->providerName == "sendpulse") {
+            $api = new SendpulseApi($this->settingsProvider["ID"]["value"],
+                $this->settingsProvider["SECRET"]["value"], "session");
+            return $api->createAddressBook($bookName)->id;
+        }
+    }
+
+    public function removeAddressBook($idBook)
+    {
+        try {
+            $this->initProvider();
+            if ($this->providerName == "sendpulse") {
+                $api = new SendpulseApi($this->settingsProvider["ID"]["value"],
+                    $this->settingsProvider["SECRET"]["value"], "session");
+                $api->removeAddressBook($idBook);
+            }
+        } catch (Exception $e) {
+        }
     }
 
     private function getBalance()
     {
-        return (float) $this->requestSmsProviderInfo($this->result["name"], "balance");
+        return (float)$this->requestSmsProviderInfo($this->result["name"], "balance");
     }
 
     private function requestSmsProviderInfo($provider, $action, $parameters = null)

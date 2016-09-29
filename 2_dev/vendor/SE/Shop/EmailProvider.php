@@ -4,10 +4,14 @@ namespace SE\Shop;
 
 use SE\DB as DB;
 use SE\Exception;
+use SendPulse\SendpulseApi as SendPulseApi;
 
 class EmailProvider extends Base
 {
     protected $tableName = "email_providers";
+
+    private $providerName;
+    private $settingsProvider;
 
     public function save()
     {
@@ -22,21 +26,35 @@ class EmailProvider extends Base
         return $this->result;
     }
 
-    public function createAddressBook($group)
+    public function initProvider()
+    {
+        $u = new DB("email_providers");
+        $u->where("is_active");
+        $result = $u->fetchOne();
+        if ($result) {
+            $this->providerName = strtolower($result["name"]);
+            $this->settingsProvider = json_decode($result["settings"], 1);
+        }
+    }
+
+    public function createAddressBook($bookName)
+    {
+        $this->initProvider();
+        if ($this->providerName == "sendpulse") {
+            $api = new SendpulseApi($this->settingsProvider["ID"]["value"],
+                $this->settingsProvider["SECRET"]["value"], "session");
+            return $api->createAddressBook($bookName)->id;
+        }
+    }
+
+    public function removeAddressBook($idBook)
     {
         try {
-            $idGroup = $group["id"];
-            $bookName = $group["name"];
-            $u = new DB("email_providers");
-            $u->where("is_active");
-            $result = $u->fetchOne();
-            if ($result) {
-                $id = $this->requestSmsProviderInfo($result["name"], "createBook", ["name" => $bookName]);
-                $data["id"] = $idGroup;
-                $data["email_settings"] = json_encode(["idBook" => $id]);
-                $u = new DB("se_group");
-                $u->setValuesFields($data);
-                $u->save();
+            $this->initProvider();
+            if ($this->providerName == "sendpulse") {
+                $api = new SendpulseApi($this->settingsProvider["ID"]["value"],
+                    $this->settingsProvider["SECRET"]["value"], "session");
+                $api->removeAddressBook($idBook);
             }
         } catch (Exception $e) {
         }

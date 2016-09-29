@@ -456,7 +456,7 @@ class Category extends Base
             DB::query("DELETE FROM shop_group_tree WHERE id_child = {$id}");
 
             $sqlGroupTree = "INSERT INTO shop_group_tree (id_parent, id_child, `level`)
-                                SELECT id_parent, :id, `level` FROM shop_group_tree
+                                SELECT id_parent, :id, :level FROM shop_group_tree
                                 WHERE id_child = :id_parent
                                 UNION ALL
                                 SELECT :id, :id, :level";

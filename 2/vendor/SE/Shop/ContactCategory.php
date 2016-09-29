@@ -13,7 +13,7 @@ class ContactCategory extends Base
     {
         try {
             $u = new DB('se_group', 'sg');
-            $u->select('sg.*, sg.title, (SELECT COUNT(*) FROM se_user_group WHERE group_id=sg.id) user_count');
+            $u->select('sg.*, (SELECT COUNT(*) FROM se_user_group WHERE group_id=sg.id) user_count');
             $u->where('sg.title IS NOT NULL AND  sg.name <> "" AND sg.name IS NOT NULL');
             $this->result["items"] = $u->getList();
             $this->result["count"] = count($this->result["items"]);
@@ -25,5 +25,36 @@ class ContactCategory extends Base
     public function correctValuesBeforeSave()
     {
         $this->input["title"] = $this->input["name"];
+    }
+
+    public function save()
+    {
+        $result = parent::save();
+        if ($this->isNew) {
+            $emailService = new EmailProvider();
+            if ($idBook = $emailService->createAddressBook($this->input["name"])) {
+                $data["id"] = $this->input["id"];
+                $data["emailSettings"] = json_encode(["idBook" => $idBook]);
+                $u = new DB("se_group");
+                $u->setValuesFields($data);
+                $u->save();
+            }
+        }
+        return $result;
+    }
+
+    public function delete()
+    {
+        $group = null;
+        if ($this->input["ids"]) {
+            $idGroup = $this->input["ids"][0];
+            $group = $this->info($idGroup);
+        };
+        if (parent::delete() && !empty($group["emailSettings"])) {
+            if ($data = json_decode($group["emailSettings"], true)) {
+                $emailService = new EmailProvider();
+                $emailService->removeAddressBook($data["idBook"]);
+            }
+        }
     }
 }

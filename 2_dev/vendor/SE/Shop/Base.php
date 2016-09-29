@@ -198,9 +198,11 @@ class Base
                 $u = new DB($this->tableName);
                 $u->where('id IN (?)', $ids)->deleteList();
             }
+            return true;
         } catch (Exception $e) {
             $this->error = "Не удаётся произвести удаление!";
         }
+        return false;
     }
 
     public function save()
