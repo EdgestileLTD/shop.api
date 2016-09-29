@@ -103,6 +103,15 @@ class News extends Base
         return $result;
     }
 
+    private function getSubscribersGroups($id)
+    {
+        $u = new DB('news_subscriber_se_group', 's');
+        $u->select('s.id_group id, gr.name');
+        $u->innerJoin('se_group gr', 'gr.id = s.id_group');
+        $u->where('id_news = ?', $id);
+        return $u->getList();
+    }
+
     public function info()
     {
         try {
@@ -131,6 +140,7 @@ class News extends Base
                     $news['imageUrlPreview'] = $news['imageFile'];
                 }
             }
+            $news['subscribersGroups'] = $this->getSubscribersGroups($item['id']);
             $this->result = $news;
         } catch (Exception $e) {
             $this->error = "Не удаётся получить информацию о запрошенной новсти!";
@@ -149,6 +159,30 @@ class News extends Base
             $data[] = array('id_news' => $this->input["id"], 'picture' => $image["imageFile"],
                 'sort' => (int) $image["sortIndex"], 'picture_alt' => $image["imageAlt"]);
         DB::insertList('news_img', $data);
+    }
+
+    private function saveSubscribersGroups()
+    {
+        if (!$this->input["id"] || !isset($this->input["subscribersGroups"]))
+            return;
+        DB::saveManyToMany($this->input["id"], $this->input["subscribersGroups"],
+            array("table" => "news_subscriber_se_group", "key" => "id_news", "link" => "id_group"));
+    }
+
+    private function createCampaignForMails()
+    {
+        $idsGroups = array();
+        foreach ($this->input["subscribersGroups"] as $group)
+            $idsGroups[] = $group["id"];
+        $idsBooks = ContactCategory::getIdsBooksByIdGroups($idsGroups);
+
+        foreach ($idsBooks as $idBook)
+            (new EmailProvider())->createCampaign($this->input["name"], $this->input["text"], $idBook, $this->input["pubDate"]);
+    }
+
+    private function deleteCampaignForMails()
+    {
+
     }
 
     public function save()
@@ -172,6 +206,10 @@ class News extends Base
             $u->setValuesFields($this->input);
             $this->input["id"] = $u->save();
             $this->saveImages();
+            $this->saveSubscribersGroups();
+            if ($this->isNew)
+                $this->deleteCampaignForMails();
+            $this->createCampaignForMails();
             $this->info();
             DB::commit();
             

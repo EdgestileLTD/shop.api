@@ -481,11 +481,12 @@ class SendpulseApi {
      * @param $subject
      * @param $body
      * @param $bookId
+     * @param $sendDate
      * @param string $name
      * @param string $attachments
      * @return mixed
      */
-    public function createCampaign( $senderName, $senderEmail, $subject, $body, $bookId, $name = '', $attachments = '' ) {
+    public function createCampaign( $senderName, $senderEmail, $subject, $body, $bookId, $sendDate, $name = '', $attachments = '' ) {
         if( empty( $senderName ) || empty( $senderEmail ) || empty( $subject ) || empty( $body ) || empty( $bookId ) ) {
             return $this->handleError( 'Not all data.' );
         }
@@ -500,6 +501,7 @@ class SendpulseApi {
             'body'         => base64_encode( $body ),
             'list_id'      => $bookId,
             'name'         => $name,
+            'send_date'    => date("Y-m-d H:i:s", $sendDate),
             'attachments'  => $attachments
         );
 

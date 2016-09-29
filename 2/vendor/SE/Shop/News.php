@@ -103,6 +103,15 @@ class News extends Base
         return $result;
     }
 
+    private function getSubscribersGroups($id)
+    {
+        $u = new DB('news_subscriber_se_group', 's');
+        $u->select('s.id_group id, gr.name');
+        $u->innerJoin('se_group gr', 'gr.id = s.id_group');
+        $u->where('id_news = ?', $id);
+        return $u->getList();
+    }
+
     public function info()
     {
         try {
@@ -131,6 +140,7 @@ class News extends Base
                     $news['imageUrlPreview'] = $news['imageFile'];
                 }
             }
+            $news['subscribersGroups'] = $this->getSubscribersGroups($item['id']);
             $this->result = $news;
         } catch (Exception $e) {
             $this->error = "Не удаётся получить информацию о запрошенной новсти!";
@@ -151,6 +161,25 @@ class News extends Base
         DB::insertList('news_img', $data);
     }
 
+    private function saveSubscribersGroups()
+    {
+        if (!$this->input["id"] || !isset($this->input["subscribersGroups"]))
+            return;
+        DB::saveManyToMany($this->input["id"], $this->input["subscribersGroups"],
+            array("table" => "news_subscriber_se_group", "key" => "id_news", "link" => "id_group"));
+    }
+
+    private function createCampaignForMails()
+    {
+        $idsGroups = array();
+        foreach ($this->input["subscribersGroups"] as $group)
+            $idsGroups[] = $group["id"];
+        $idsBooks = ContactCategory::getIdsBooksByIdGroups($idsGroups);
+
+        foreach ($idsBooks as $idBook)
+            (new EmailProvider())->createCampaign($this->input["name"], $this->input["text"], $idBook, $this->input["pubDate"]);
+    }
+
     public function save()
     {
         try {
@@ -160,7 +189,7 @@ class News extends Base
             if (isset($this->input["newsDate"]))
                 $this->input["newsDate"] = strtotime($this->input["newsDate"]);
             if (isset($this->input["publicationDate"]))
-                $this->input["pubDate"] = strtotime($this->input["publicationDate"]);            
+                $this->input["pubDate"] = strtotime($this->input["publicationDate"]);
             if (isset($this->input["fullDescription"]))
                 $this->input["text"] = $this->input["fullDescription"];
             if (isset($this->input["imageFile"]))
@@ -172,14 +201,18 @@ class News extends Base
             $u->setValuesFields($this->input);
             $this->input["id"] = $u->save();
             $this->saveImages();
+            if ($this->isNew || 1) {
+                $this->saveSubscribersGroups();
+                $this->createCampaignForMails();
+            }
             $this->info();
             DB::commit();
-            
+
         } catch (Exception $e) {
             DB::rollBack();
             $this->error = "Не удаётся сохранить новость!";
         }
-        
+
         return $this;
     }
 

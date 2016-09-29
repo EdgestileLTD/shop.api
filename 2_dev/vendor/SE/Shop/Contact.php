@@ -80,7 +80,7 @@ class Contact extends Base
             $isNew = true;
             $newGroup = array();
             $newGroup["id"] = $item["idGroup"];
-            $newGroup["name"] = empty($item["nameGroup"]) ? "Без категории": $item["nameGroup"];
+            $newGroup["name"] = empty($item["nameGroup"]) ? "Без категории" : $item["nameGroup"];
             foreach ($groups as $group)
                 if ($group["id"] == $item["idGroup"]) {
                     $isNew = false;
@@ -124,6 +124,26 @@ class Contact extends Base
         }
 
         return $this->result;
+    }
+
+    public function delete()
+    {
+        $emails = array();
+        $u = new DB('person');
+        $u->select('email');
+        $u->where('id IN (?)', implode(",", $this->input["ids"]));
+        $u->andWhere('email IS NOT NULL');
+        $u->andWhere('email <> ""');
+        $list = $u->getList();
+        foreach ($list as $value)
+            $emails[] = $value["email"];
+        if (parent::delete()) {
+            if (!empty($emails))
+                foreach($emails as $email)
+                    (new EmailProvider())->removeEmailFromAllBooks($email);
+            return true;
+        }
+        return false;
     }
 
     private function getPersonalAccount($id)
@@ -182,6 +202,26 @@ class Contact extends Base
         return uniqid();
     }
 
+    private function addInAddressBookEmail($idsContacts, $idsNewsGroups, $idsDelGroups)
+    {
+        $emails = array();
+        $u = new DB('person');
+        $u->select('email');
+        $u->where('id IN (?)', implode(",", $idsContacts));
+        $u->andWhere('email IS NOT NULL');
+        $u->andWhere('email <> ""');
+        $list = $u->getList();
+        foreach ($list as $value)
+            $emails[] = $value["email"];
+        if (empty($emails))
+            return;
+
+        if ($idsNewsGroups && ($idsBooks = ContactCategory::getIdsBooksByIdGroups($idsNewsGroups)))
+            (new EmailProvider())->addEmails($idsBooks, $emails);
+        if ($idsDelGroups && ($idsBooks = ContactCategory::getIdsBooksByIdGroups($idsDelGroups)))
+            (new EmailProvider())->removeEmails($idsBooks, $emails);
+    }
+
     private function saveGroups($groups, $idsContact)
     {
         try {
@@ -190,32 +230,40 @@ class Contact extends Base
                 $newIdsGroups[] = $group["id"];
             $idsGroupsS = implode(",", $newIdsGroups);
             $idsContactsS = implode(",", $idsContact);
+
             $u = new DB('se_user_group', 'sug');
+            $u->select("id, group_id");
             if ($newIdsGroups)
-                $u->where("NOT group_id IN ($idsGroupsS) AND user_id IN ($idsContactsS)")->deleteList();
-            else $u->where("user_id IN ($idsContactsS)")->deleteList();
+                $u->where("NOT group_id IN ($idsGroupsS) AND user_id IN ($idsContactsS)");
+            else $u->where("user_id IN ($idsContactsS)");
+            $groupsDel = $u->getList();
+            $idsGroupsDelEmail = array();
+            foreach ($groupsDel as $group)
+                $idsGroupsDelEmail[] = $group["groupId"];
+            $u->deleteList();
+
             $u = new DB('se_user_group', 'sug');
             $u->select("group_id");
             $u->where("user_id IN ($idsContactsS)");
             $objects = $u->getList();
+
             $idsExists = array();
-            $u = new DB('se_group');
-            $u->select("email_settings");
-            $u->where('id IN (?)', $idsGroupsS);
-
-
+            $idsGroupsNewEmail = array();
             foreach ($objects as $object)
                 $idsExists[] = $object["groupId"];
             if (!empty($newIdsGroups)) {
                 foreach ($newIdsGroups as $id) {
-
-                    if (!empty($id) && !in_array($id, $idsExists))
+                    if (!empty($id) && !in_array($id, $idsExists)) {
+                        $idsGroupsNewEmail[] = $id;
                         foreach ($idsContact as $idContact)
                             $data[] = array('user_id' => $idContact, 'group_id' => $id);
+                    }
                 }
                 if (!empty($data))
                     DB::insertList('se_user_group', $data);
             }
+
+            $this->addInAddressBookEmail($idsContact, $idsGroupsNewEmail, $idsGroupsDelEmail);
         } catch (Exception $e) {
             $this->error = "Не удаётся сохранить группы контакта!";
             throw new Exception($this->error);

@@ -13,6 +13,9 @@ class EmailProvider extends Base
     private $providerName;
     private $settingsProvider;
 
+    /* @var $sendPulseApi SendPulseApi */
+    private $sendPulseApi;
+
     public function save()
     {
         DB::query("UPDATE email_providers SET is_active = FALSE");
@@ -37,13 +40,13 @@ class EmailProvider extends Base
         }
     }
 
-    /*
-     *  @return SendpulseApi
-     */
+    /* @return SendpulseApi */
     public function getInstanceSendPulseApi()
     {
-        return new SendpulseApi($this->settingsProvider["ID"]["value"],
-            $this->settingsProvider["SECRET"]["value"], "session");
+        if (!$this->sendPulseApi)
+            $this->sendPulseApi = new SendpulseApi($this->settingsProvider["ID"]["value"],
+                $this->settingsProvider["SECRET"]["value"], "session");
+        return $this->sendPulseApi;
     }
 
     public function createAddressBook($bookName)
@@ -58,6 +61,55 @@ class EmailProvider extends Base
         $this->initProvider();
         if ($this->providerName == "sendpulse")
             $this->getInstanceSendPulseApi()->removeAddressBook($idBook);
+    }
+
+    public function addEmails($idsBooks = array(), $emails = array())
+    {
+        $this->initProvider();
+        if ($this->providerName == "sendpulse") {
+            foreach ($idsBooks as $idBook)
+                $this->getInstanceSendPulseApi()->addEmails($idBook, $emails);
+        }
+    }
+
+    public function removeEmails($idsBooks = array(), $emails = array())
+    {
+        $this->initProvider();
+        if ($this->providerName == "sendpulse") {
+            foreach ($idsBooks as $idBook)
+                $this->getInstanceSendPulseApi()->removeEmails($idBook, $emails);
+        }
+    }
+
+    public function removeEmailFromAllBooks($email)
+    {
+        $this->initProvider();
+        if ($this->providerName == "sendpulse")
+            $this->getInstanceSendPulseApi()->removeEmailFromAllBooks($email);
+    }
+
+    public function createCampaign($subject, $body, $idBook, $sendDate)
+    {
+        $this->initProvider();
+        $info = (new Main())->info();
+        $senderName = $info["shopname"];
+        $senderEmail = $info["esales"];
+        if ($this->providerName == "sendpulse") {
+            $senders = $this->getInstanceSendPulseApi()->listSenders();
+            $isExist = false;
+            $senderEmailDef = null;
+            foreach ($senders as $sender) {
+                $senderEmailDef = empty($senderEmailDef) ? $sender->email : $senderEmailDef;
+                if ($isExist = ($sender->email == $senderEmail))
+                    break;
+            }
+            if (!$isExist) {
+                $this->getInstanceSendPulseApi()->addSender($senderName, $senderEmail);
+                $senderEmail = $senderEmailDef;
+            }
+            $this->getInstanceSendPulseApi()->createCampaign($senderName, $senderEmail,
+                $subject, $body, $idBook, $sendDate);
+        }
     }
 
     private function getBalance()

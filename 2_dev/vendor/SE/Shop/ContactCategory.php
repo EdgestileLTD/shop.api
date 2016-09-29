@@ -9,6 +9,21 @@ class ContactCategory extends Base
 {
     protected $tableName = "se_group";
 
+    static public function getIdsBooksByIdGroups($idsGroups)
+    {
+        $idsBooks = array();
+        $u = new DB('se_group', 'sg');
+        $u->select("email_settings");
+        $u->where('id IN (?)', implode(",", $idsGroups));
+        $list = $u->getList();
+        foreach ($list as $value) {
+            $data = json_decode($value["emailSettings"], true);
+            if (!empty($data["idBook"]))
+                $idsBooks[] = $data["idBook"];
+        }
+        return $idsBooks;
+    }
+
     public function fetch()
     {
         try {
