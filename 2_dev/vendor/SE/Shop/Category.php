@@ -494,9 +494,9 @@ class Category extends Base
         $this->saveImages();
         $this->saveLinksGroups();
         $this->saveParametersFilters();
-        if (CORE_VERSION == "5.3" && isset($this->input["upid"])) {
+        if (CORE_VERSION == "5.3" && (isset($this->input["upid"]) || $this->isNew)) {
             $group = (new Category($this->input))->info();
-            if ($group["upid"] != $this->input["upid"])
+            if ($group["upid"] != $this->input["upid"] || $this->isNew)
                 self::saveIdParent($this->input["id"], $this->input["upid"]);
         }
         return true;
