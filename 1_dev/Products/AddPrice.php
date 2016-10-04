@@ -11,8 +11,9 @@
             $u->update('price', "price+" . $json->price);
         if ($json->value == "p")
             $u->update('price', "price+price*" . $json->price/100);
-        if ($idsStr != "all")
-            $u->where("id in (?)", $idsStr);
+        if (strpos($idsStr, "*") === false)
+            $u->where('id IN (?)', $idsStr);
+        else $u->where('TRUE');
         $u->save();
     }
 

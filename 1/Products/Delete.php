@@ -1,16 +1,22 @@
 <?php
-    if ($json->ids) {
-        $ids = implode(",", $json->ids);
-        $u = new seTable('shop_price','sp');
-        $u->where('id in (?)', $ids)->deletelist();
-    }
+if ($json->ids) {
+    $ids = implode(",", $json->ids);
+    $u = new seTable('shop_price', 'sp');
+    if (strpos($ids, "*") === false)
+        $u->where('id IN (?)', $ids)->deletelist();
+    else {
+        if (!empty($json->filter)) {
 
-    $status = array();
-    if (!se_db_error()) {
-        $status['status'] = 'ok';
-    } else {
-        $status['status'] = 'error';
-        $status['errortext'] = se_db_error();
+        } else $u->where('TRUE')->deletelist();
     }
+}
 
-    outputData($status);
+$status = array();
+if (!se_db_error()) {
+    $status['status'] = 'ok';
+} else {
+    $status['status'] = 'error';
+    $status['errortext'] = 'Не удаётся удалить товары!';
+}
+
+outputData($status);

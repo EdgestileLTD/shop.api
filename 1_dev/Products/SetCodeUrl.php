@@ -30,8 +30,9 @@
 
         $u->select('id, name');
         $idsStr = implode(",", $ids);
-        if ($idsStr != "all")
-            $u->where("id in (?)", $idsStr);
+        if (strpos($idsStr, "*") === false)
+            $u->where('id IN (?)', $idsStr);
+        else $u->where('TRUE');
         $objects = $u->getList();
         foreach($objects as $item) {
             $u = new seTable('shop_price','sp');
