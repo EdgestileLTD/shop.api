@@ -200,7 +200,7 @@ class Analytics extends Base
             $result["countConfirmOrder"] = $u->getList()[0]["count"];
 
             $u = new DB("shop_stat_events", 'sse');
-            $u->select("COUNT(DISTINCT sse.id_session) `count`");
+            $u->select("COUNT(DISTINCT sse.content) `count`");
             $u->innerJoin("shop_order so", "sse.content = so.id");
             $u->where('so.is_delete = "N" AND so.status = "Y"');
             if ($this->startDate)
@@ -254,7 +254,7 @@ class Analytics extends Base
     {
         try {
             $u = new DB('shop_tovarorder', 'st');
-            $u->select("IFNULL(sp.name, 'Услуга') name, SUM(st.count) count, 
+            $u->select("st.nameitem name, SUM(st.count) count, 
                     IFNULL((1 - (IFNULL(sp.price_purchase, sp.price)) / sp.price) * 100, 100) profitability,
                     IFNULL(SUM(sp.price - sp.price_purchase), AVG(st.price)) profit");
             $u->innerJoin('shop_order so', "so.id = st.id_order");
