@@ -103,13 +103,15 @@ class Product extends Base
         try {
             $idsProducts = $this->input["ids"];
             $idsStr = implode(",", $idsProducts);
+            $source = $this->input["source"];
             $type = $this->input["value"];
             $price = $this->input["price"];
             $sql = "UPDATE shop_price SET price = ";
+            $priceField = $source ? "price_purchase" : "price";
             if ($type == "a")
-                $sql .= "price+" . $price;
+                $sql .= "{$priceField}+" . $price;
             if ($type == "p")
-                $sql .= "price+price*" . $price / 100;
+                $sql .= "{$priceField}+{$priceField}*" . $price / 100;
             $sql .= " WHERE id IN ({$idsStr})";
             DB::query($sql);
         } catch (Exception $e) {
