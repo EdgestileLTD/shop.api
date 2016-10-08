@@ -63,7 +63,7 @@ class Product extends Base
 
     public function getImages($idProduct = null)
     {
-        $result = array();
+        $result = [];
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
             return $result;
@@ -121,7 +121,7 @@ class Product extends Base
 
     public function getSpecifications($idProduct = null)
     {
-        $result = array();
+        $result = [];
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
             return $result;
@@ -137,7 +137,7 @@ class Product extends Base
             $u->orderBy('sfg.sort');
             $u->addOrderBy('sf.sort');
             $items = $u->getList();
-            $result = array();
+            $result = [];
             foreach ($items as $item) {
                 if ($item["type"] == "number")
                     $item["value"] = (real)$item["valueNumber"];
@@ -155,7 +155,7 @@ class Product extends Base
 
     public function getSimilarProducts($idProduct = null)
     {
-        $result = array();
+        $result = [];
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
             return $result;
@@ -184,7 +184,7 @@ class Product extends Base
 
     public function getAccompanyingProducts($idProduct = null)
     {
-        $result = array();
+        $result = [];
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
             return $result;
@@ -220,7 +220,7 @@ class Product extends Base
 
     public function getCrossGroups($idProduct = null)
     {
-        $result = array();
+        $result = [];
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
             return $result;
@@ -241,13 +241,13 @@ class Product extends Base
 
     public function getModifications($idProduct = null)
     {
-        $result = array();
+        $result = [];
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
             return $result;
 
         $newTypes = array("string" => "S", "number" => "D", "bool" => "B", "list" => "L", "colorlist" => "CL");
-        $product = array();
+        $product = [];
 
         $u = new DB('shop_modifications', 'sm');
         $u->select('smg.*,
@@ -296,7 +296,7 @@ class Product extends Base
                 $column['valueType'] = $newTypes[$column['type']];
                 $group['columns'][] = $column;
             }
-            $group['items'] = array();
+            $group['items'] = [];
             $groups[] = $group;
         }
         if (!isset($groups))
@@ -315,7 +315,7 @@ class Product extends Base
         $u->where('sm.id_price = ?', $id);
         $u->groupBy();
         $objects = $u->getList();
-        $existFeatures = array();
+        $existFeatures = [];
         foreach ($objects as $item) {
             if ($item['id']) {
                 $modification = null;
@@ -333,7 +333,7 @@ class Product extends Base
                 $modification['priceOpt'] = (real)$item['valueOptCorp'];
                 $modification['description'] = $item['description'];
                 $features = explode("\n", $item['valuesFeature']);
-                $sorts = array();
+                $sorts = [];
                 foreach ($features as $feature) {
                     $feature = explode("\t", $feature);
                     $value = null;
@@ -378,7 +378,7 @@ class Product extends Base
 
     public function getDiscounts($idProduct = null)
     {
-        $result = array();
+        $result = [];
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
             return $result;
@@ -405,7 +405,7 @@ class Product extends Base
         return $result;
     }
 
-    private function getUrl($code, $id, $existCodes = array())
+    private function getUrl($code, $id, $existCodes = [])
     {
         $code_n = $code;
         $id = (int)$id;
@@ -469,7 +469,7 @@ class Product extends Base
                 $u->where('id_price IN (?)', $idsStr)->deleteList();
             }
 
-            $data = array();
+            $data = [];
             foreach ($images as $image)
                 if (empty($image["id"]) || ($image["id"] <= 0)) {
                     foreach ($idsProducts as $idProduct) {
@@ -519,7 +519,7 @@ class Product extends Base
             return $result["id"];
 
         $u = new DB('shop_feature', 'sf');
-        $data = array();
+        $data = [];
         if ($idGroup)
             $data["idFeatureGroup"] = $idGroup;
         $data["name"] = $name;
@@ -600,7 +600,7 @@ class Product extends Base
         try {
             $idsProducts = $this->input["ids"];
             $products = $this->input["similarProducts"];
-            $idsExists = array();
+            $idsExists = [];
             foreach ($products as $p)
                 if ($p["id"])
                     $idsExists[] = $p["id"];
@@ -612,7 +612,7 @@ class Product extends Base
                 $u->where("((NOT id_acc IN ({$idsExistsStr})) AND id_price IN (?)) OR 
                            ((NOT id_price IN ({$idsExistsStr})) AND id_acc IN (?))", $idsStr)->deleteList();
             else $u->where('id_price IN (?) OR id_acc IN (?)', $idsStr)->deleteList();
-            $idsExists = array();
+            $idsExists = [];
             if ($idsExistsStr) {
                 $u->select("id_price, id_acc");
                 $u->where("((id_acc IN ({$idsExistsStr})) AND id_price IN (?)) OR 
@@ -623,7 +623,7 @@ class Product extends Base
                     $idsExists[] = $item["idPrice"];
                 }
             };
-            $data = array();
+            $data = [];
             foreach ($products as $p)
                 if (empty($idsExists) || !in_array($p["id"], $idsExists))
                     foreach ($idsProducts as $idProduct)
@@ -694,7 +694,7 @@ class Product extends Base
             $idsProducts = $this->input["ids"];
             $reviews = $this->input["reviews"];
             $idsStr = implode(",", $idsProducts);
-            $idsExists = array();
+            $idsExists = [];
             foreach ($reviews as $review)
                 if ($review["id"])
                     $idsExists[] = $review["id"];
@@ -780,7 +780,7 @@ class Product extends Base
             $idsStr = implode(",", $idsProducts);
             $isMultiMode = sizeof($idsProducts) > 1;
 
-            $namesToIds = array();
+            $namesToIds = [];
             if (!empty($this->newImages)) {
                 $imagesStr = '';
                 foreach ($this->newImages as $image) {
@@ -816,9 +816,9 @@ class Product extends Base
             else $u->where("id_price IN (?)", $idsStr)->deleteList();
 
             // новые модификации
-            $dataM = array();
-            $dataF = array();
-            $dataI = array();
+            $dataM = [];
+            $dataF = [];
+            $dataI = [];
             $result = DB::query("SELECT MAX(id) FROM shop_modifications")->fetch();
             $i = $result[0] + 1;
             foreach ($modifications as $mod) {
@@ -871,7 +871,7 @@ class Product extends Base
 
                             $u = new DB('shop_modifications_img', 'smi');
                             $u->where("id_modification = ?", $item["id"])->deleteList();
-                            $dataI = array();
+                            $dataI = [];
                             foreach ($item["images"] as $img) {
                                 if ($img["id"] <= 0)
                                     $img["id"] = $namesToIds[$img["imageFile"]];
@@ -1002,8 +1002,8 @@ class Product extends Base
             $u->orderBy('sp.id');
             $u->groupBy('sp.id');
 
-            $goodsL = array();
-            $goodsIndex = array();
+            $goodsL = [];
+            $goodsIndex = [];
             for ($i = 0; $i < $pages; ++$i) {
                 $goodsL = array_merge($goodsL, $u->getList($offset, $limit));
                 $offset += $limit;
@@ -1068,7 +1068,7 @@ class Product extends Base
 
             $fp = fopen($filePath, 'w');
             $header = array_keys($goodsL[0]);
-            $headerCSV = array();
+            $headerCSV = [];
             foreach ($header as $col)
                 if (!in_array($col, $excludingKeys)) {
                     $col = iconv('utf-8', 'CP1251', $rusCols[$col] ? $rusCols[$col] : $col);
@@ -1079,12 +1079,12 @@ class Product extends Base
             $i = 0;
             $header = null;
             $lastId = null;
-            $goodsItem = array();
+            $goodsItem = [];
 
             // вывод товаров без модификаций
             foreach ($goodsL as $row) {
                 if (empty($row['idModification'])) {
-                    $out = array();
+                    $out = [];
                     if ($row['count'] == "-1" || (empty($row["count"]) && $row["count"] !== "0"))
                         $row["count"] = $row['presence'];
                     foreach ($row as $key => $r) {
@@ -1132,7 +1132,7 @@ class Product extends Base
                                 $row[$valCol[0]] = $valCol[1];
                         }
                     }
-                    $out = array();
+                    $out = [];
                     foreach ($row as $key => $r) {
                         if (!in_array($key, $excludingKeys)) {
                             if ($key == "description" || $key == "fullDescription") {
@@ -1218,9 +1218,9 @@ class Product extends Base
         $rusCols = $this->rusCols;
         $trCols = array_flip($rusCols);
         $rows = $this->getArrayFromCsv($filePath);
-        $newsRows = array();
+        $newsRows = [];
         foreach ($rows as $row) {
-            $newRow = array();
+            $newRow = [];
             foreach ($row as $key => $value) {
                 if (key_exists($key, $trCols)) {
                     $newRow[$trCols[$key]] = $value;
@@ -1233,9 +1233,9 @@ class Product extends Base
         unset($newsRows);
 
         $isModificationMode = false; // режим с модификациями
-        $featuresCols = array();
-        $featuresKeys = array();
-        $modsGroupsKeys = array();
+        $featuresCols = [];
+        $featuresKeys = [];
+        $modsGroupsKeys = [];
         if ($rows) {
             $cols = array_keys($rows[0]);
             foreach ($cols as $col)
@@ -1254,14 +1254,14 @@ class Product extends Base
 
         $lastVal = null;
         $lastRow = null;
-        $goodsInsert = array();
-        $goodsUpdate = array();
-        $groupsKeys = array();
-        $featureValuesKeys = array();
-        $groupTypesMods = array();
+        $goodsInsert = [];
+        $goodsUpdate = [];
+        $groupsKeys = [];
+        $featureValuesKeys = [];
+        $groupTypesMods = [];
         $i = 0;
         foreach ($rows as &$row) {
-            $mods = array();
+            $mods = [];
             $mods['article'] = $row['article'];
             $mods['price'] = $row['price'];
             $mods['count'] = $row['count'];
@@ -1348,7 +1348,7 @@ class Product extends Base
                     }
                 }
                 // добавление группы модификации
-                $newModsGroupsKeys = array();
+                $newModsGroupsKeys = [];
                 if ($isModificationMode && $modsGroupsKeys) {
                     $u = new DB('shop_modifications_group', 'smg');
                     $u->select('id, name');
@@ -1370,7 +1370,7 @@ class Product extends Base
                     unset($dataModsGroups);
                 }
                 // добавление параметров для модификаций
-                $newFeaturesKeys = array();
+                $newFeaturesKeys = [];
                 if ($featuresKeys) {
                     $u = new DB('shop_feature', 'sf');
                     $u->select('id, name, type');
@@ -1393,7 +1393,7 @@ class Product extends Base
                     unset($dataFeatures);
                 }
                 // добавление значений для параметров
-                $newValuesKeys = array();
+                $newValuesKeys = [];
                 if ($featureValuesKeys) {
                     $u = new DB('shop_feature_value_list', 'sfvl');
                     $u->select('sfvl.id, sfvl.value, sf.name feature');
@@ -1448,14 +1448,14 @@ class Product extends Base
                 $u->select('MAX(id) maxId');
                 $result = $u->fetchOne();
                 $idModification = $result["maxId"];
-                $dataGoodsGroups = array();
+                $dataGoodsGroups = [];
                 $rowInsert = 0;
                 $rowCount = 0;
                 $countGoods = count($goodsInsert);
-                $codes = array();
+                $codes = [];
                 foreach ($goodsInsert as &$goodsItem) {
                     $idProduct++;
-                    $images = !empty($goodsItem['images']) ? explode(";", $goodsItem['images']) : array();
+                    $images = !empty($goodsItem['images']) ? explode(";", $goodsItem['images']) : [];
                     $goodsItem['idGroup'] = $IdGroup = !empty($goodsItem['category']) ?
                         $groupsKeys[str_replace("/ ", "/", $goodsItem['category'])] : null;
                     if (empty($goodsItem['code']))
@@ -1496,7 +1496,7 @@ class Product extends Base
                                         }
                                     }
                                 }
-                                $images = array_merge($images, !empty($mod['images']) ? explode(";", $mod['images']) : array());
+                                $images = array_merge($images, !empty($mod['images']) ? explode(";", $mod['images']) : []);
                             }
                         }
                     }
@@ -1574,7 +1574,7 @@ class Product extends Base
 //            //            $sql = null;
 //            //            foreach ($goodsUpdate as $goodsItem) {
 //            //                $sqlItem = 'UPDATE shop_price SET ';
-//            //                $fields = array();
+//            //                $fields = [];
 //            //                if (!empty($goodsItem['Code']))
 //            //                    $fields[] = "code = '{$goodsItem['Code']}'";
 //            //                if (!empty($goodsItem['Article']))
@@ -1636,7 +1636,7 @@ class Product extends Base
         $u->setValuesFields($data);
         $id = $u->save();
 
-        $group = array();
+        $group = [];
         $group["id"] = $id;
         $group['name'] = trim($name);
         $group["codeGr"] = $data["codeGr"];
@@ -1659,7 +1659,7 @@ class Product extends Base
         $u->setValuesFields($data);
         $id = $u->save();
 
-        $group = array();
+        $group = [];
         $group["id"] = $id;
         $group['name'] = $name;
         $group["codeGr"] = $data["codeGr"];

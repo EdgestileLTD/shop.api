@@ -15,7 +15,7 @@ class DB
     static public $dbPassword;
     /* @var $dbh PDO */
     static protected $dbh = null;
-    static private $tables = array();
+    static private $tables = [];
 
     private $isCamelCaseMode = true;
     /* @var $lastQuery string */
@@ -29,19 +29,19 @@ class DB
     protected $selectExpression;
     /* @var $groupBy string */
     protected $groupBy;
-    protected $orderBy = array();
-    protected $joins = array();
+    protected $orderBy = [];
+    protected $joins = [];
     /* @var $limit integer */
     protected $limit;
     /* @var $offset integer */
     protected $offset;
     /* @var $whereDefinitions string */
     protected $whereDefinitions;
-    protected $whereValues = array();
-    protected $dataValues = array();
-    protected $inputData = array();
+    protected $whereValues = [];
+    protected $dataValues = [];
+    protected $inputData = [];
 
-    private $fields = array();
+    private $fields = [];
 
     function __construct($tableName, $alias = null, $isCamelCaseMode = true)
     {
@@ -172,7 +172,7 @@ class DB
             $query[] = $isIgnoreMode ? 'INSERT IGNORE INTO' : 'INSERT INTO';
             $query[] = $tableName;
             $query[] = "SET";
-            $fields = array();
+            $fields = [];
             while (list($columns,) = each($data[0])) {
                 $columns = str_replace('`', '', $columns);
                 $fields[] = '`' . str_replace('`', '', $columns) . '` = :' . $columns;
@@ -199,17 +199,17 @@ class DB
         }
     }
 
-    public static function saveManyToMany($idKey, $links = array(), $setting = array())
+    public static function saveManyToMany($idKey, $links = [], $setting = [])
     {
         try {
-            $existIds = array();
+            $existIds = [];
             $sql = "SELECT {$setting['link']} FROM {$setting["table"]} WHERE {$setting['table']}.{$setting['key']} = {$idKey}";
             $items = DB::query($sql)->fetchAll();
             foreach ($items as $item)
                 if (!empty($item[$setting["link"]]))
                     $existIds[] = $item[$setting["link"]];
 
-            $deleteIds = array();
+            $deleteIds = [];
             foreach ($existIds as $id) {
                 $isFind = false;
                 foreach ($links as $link) {
@@ -226,8 +226,8 @@ class DB
                                   {$setting['table']}.{$setting['key']} = {$idKey} AND {$setting['link']} IN ({$ids})");
             }
 
-            $newLinks = array();
-            $updateLinks = array();
+            $newLinks = [];
+            $updateLinks = [];
             foreach ($links as $link) {
                 $item = empty($setting["isSort"]) ? array("id" => $link["id"]) :
                     array("id" => $link["id"], "sort" => $link["sort"]);
@@ -236,7 +236,7 @@ class DB
                 else $updateLinks[] = $item;
             }
             if ($newLinks) {
-                $sql = array();
+                $sql = [];
                 foreach ($newLinks as $link)
                     $sql[] = empty($setting["isSort"]) ? "({$link["id"]}, {$idKey})" :
                         "({$link["id"]}, {$idKey}, {$link["sort"]})";
@@ -246,7 +246,7 @@ class DB
                 DB::exec($sql);
             }
             if ($updateLinks && !empty($setting["isSort"])) {
-                $sql = array();
+                $sql = [];
                 foreach ($updateLinks as $link)
                     $sql[] = "UPDATE {$setting['table']} SET sort = {$link["sort"]} 
                               WHERE ({$setting['link']} = {$link["id"]} AND {$setting['key']} = {$idKey})";
@@ -310,7 +310,7 @@ class DB
     public function orderBy($field = null, $desc = false)
     {
         $field = empty($field) ? $this->aliasName . ".id" : $field;
-        $this->orderBy = array();
+        $this->orderBy = [];
         $this->addOrderBy($field, $desc);
     }
 
@@ -350,9 +350,9 @@ class DB
             $this->bindValues($stmt);
             $stmt->execute();
             $stmt->setFetchMode(PDO::FETCH_ASSOC);
-            $items = array();
+            $items = [];
             while ($row = $stmt->fetch()) {
-                $item = array();
+                $item = [];
                 foreach ($row as $key => $value) {
                     if ($this->isNumericField($key) && !is_null($value))
                         $value += 0;
@@ -482,7 +482,7 @@ class DB
         if (!$countMode) {
             if (!empty($this->orderBy)) {
                 $result[] = "ORDER BY";
-                $orders = array();
+                $orders = [];
                 foreach ($this->orderBy as $orderBy) {
                     $field = $orderBy["field"];
                     if (!$orderBy["asc"])
@@ -604,7 +604,7 @@ class DB
 
     private function getValuesString($isInsert, $isInsertId = false)
     {
-        $result = array();
+        $result = [];
         foreach ($this->dataValues as $field => $value) {
             if ($isInsert && !$isInsertId && in_array($field, array("id", "ids")))
                 continue;

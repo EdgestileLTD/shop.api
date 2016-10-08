@@ -81,7 +81,7 @@ class Payment extends Base
         $this->saveOrderAccount();
     }
 
-    protected function correctValuesBeforeFetch($items = array())
+    protected function correctValuesBeforeFetch($items = [])
     {
         foreach ($items as &$item)
             $item["name"] = empty($item["name"]) ? "С лицевого счёта" : $item["name"];
@@ -130,7 +130,7 @@ class Payment extends Base
 
     protected function getAddInfo()
     {
-        $result = array();
+        $result = [];
         if ($idAuthor = $this->result["idAuthor"]) {
             $contact = new Contact();
             $result["contact"] = $contact->info($idAuthor);

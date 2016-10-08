@@ -8,7 +8,7 @@ class GeoCountry extends Base
     public function fetch()
     {
         $search = $this->input["searchText"];
-        $ids = array();
+        $ids = [];
         if (empty($this->input["ids"]) && !empty($this->input["id"]))
             $ids[] = $this->input["id"];
         else $ids = $this->input["ids"];

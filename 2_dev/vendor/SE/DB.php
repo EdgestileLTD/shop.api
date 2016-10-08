@@ -11,11 +11,13 @@ class DB
     static public $lastQuery;
     /* @var $dbSerial string */
     static public $dbSerial;
+    /* @var $projectKey string */
+    static public $projectKey;
     /* @var $dbPassword string */
     static public $dbPassword;
     /* @var $dbh PDO */
     static protected $dbh = null;
-    static private $tables = array();
+    static private $tables = [];
 
     private $isCamelCaseMode = true;
     /* @var $lastQuery string */
@@ -29,23 +31,23 @@ class DB
     protected $selectExpression;
     /* @var $groupBy string */
     protected $groupBy;
-    protected $orderBy = array();
-    protected $joins = array();
+    protected $orderBy = [];
+    protected $joins = [];
     /* @var $limit integer */
     protected $limit;
     /* @var $offset integer */
     protected $offset;
     /* @var $whereDefinitions string */
     protected $whereDefinitions;
-    protected $whereValues = array();
-    protected $dataValues = array();
-    protected $inputData = array();
+    protected $whereValues = [];
+    protected $dataValues = [];
+    protected $inputData = [];
 
-    private $fields = array();
+    private $fields = [];
 
     function __construct($tableName, $alias = null, $isCamelCaseMode = true)
     {
-        $this->tableName = $tableName;
+        $this->tableName = trim($tableName, "`");
         $this->aliasName = !empty($alias) ? $alias : $this->getAliasByTableName($tableName);
         $this->isCamelCaseMode = $isCamelCaseMode;
     }
@@ -70,6 +72,7 @@ class DB
         try {
             self::$dbSerial = $connection['DBSerial'];
             self::$dbPassword = $connection['DBPassword'];
+            self::$projectKey = $connection['ProjectKey'];
             self::$dbh = new PDO("mysql:host={$connection['HostName']};dbname={$connection['DBName']}",
                 $connection['DBUserName'], $connection['DBPassword'], array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION));
         } catch (\PDOException $e) {
@@ -94,8 +97,16 @@ class DB
 
         $stmt = self::$dbh->query('SHOW TABLES');
         $stmt->setFetchMode(PDO::FETCH_NUM);
-        self::$tables[] = $stmt->fetchAll();
+        $items = $stmt->fetchAll();
+        foreach ($items as $item)
+            self::$tables[] = $item[0];
         return self::$tables;
+    }
+
+    public static function existTable($tableName)
+    {
+        $tableName = trim($tableName, "`");
+        return in_array($tableName, self::getTables());
     }
 
     public static function beginTransaction()
@@ -179,7 +190,7 @@ class DB
             $query[] = $isIgnoreMode ? 'INSERT IGNORE INTO' : 'INSERT INTO';
             $query[] = $tableName;
             $query[] = "SET";
-            $fields = array();
+            $fields = [];
             while (list($columns,) = each($data[0])) {
                 $columns = str_replace('`', '', $columns);
                 $fields[] = '`' . str_replace('`', '', $columns) . '` = :' . $columns;
@@ -206,17 +217,17 @@ class DB
         }
     }
 
-    public static function saveManyToMany($idKey, $links = array(), $setting = array())
+    public static function saveManyToMany($idKey, $links = [], $setting = [])
     {
         try {
-            $existIds = array();
+            $existIds = [];
             $sql = "SELECT {$setting['link']} FROM {$setting["table"]} WHERE {$setting['table']}.{$setting['key']} = {$idKey}";
             $items = DB::query($sql)->fetchAll();
             foreach ($items as $item)
                 if (!empty($item[$setting["link"]]))
                     $existIds[] = $item[$setting["link"]];
 
-            $deleteIds = array();
+            $deleteIds = [];
             foreach ($existIds as $id) {
                 $isFind = false;
                 foreach ($links as $link) {
@@ -233,8 +244,8 @@ class DB
                                   {$setting['table']}.{$setting['key']} = {$idKey} AND {$setting['link']} IN ({$ids})");
             }
 
-            $newLinks = array();
-            $updateLinks = array();
+            $newLinks = [];
+            $updateLinks = [];
             foreach ($links as $link) {
                 $item = empty($setting["isSort"]) ? array("id" => $link["id"]) :
                     array("id" => $link["id"], "sort" => $link["sort"]);
@@ -243,7 +254,7 @@ class DB
                 else $updateLinks[] = $item;
             }
             if ($newLinks) {
-                $sql = array();
+                $sql = [];
                 foreach ($newLinks as $link)
                     $sql[] = empty($setting["isSort"]) ? "({$link["id"]}, {$idKey})" :
                         "({$link["id"]}, {$idKey}, {$link["sort"]})";
@@ -253,7 +264,7 @@ class DB
                 DB::exec($sql);
             }
             if ($updateLinks && !empty($setting["isSort"])) {
-                $sql = array();
+                $sql = [];
                 foreach ($updateLinks as $link)
                     $sql[] = "UPDATE {$setting['table']} SET sort = {$link["sort"]} 
                               WHERE ({$setting['link']} = {$link["id"]} AND {$setting['key']} = {$idKey})";
@@ -312,7 +323,7 @@ class DB
     public function orderBy($field = null, $desc = false)
     {
         $field = empty($field) ? $this->aliasName . ".id" : $field;
-        $this->orderBy = array();
+        $this->orderBy = [];
         $this->addOrderBy($field, $desc);
     }
 
@@ -352,9 +363,9 @@ class DB
             $this->bindValues($stmt);
             $stmt->execute();
             $stmt->setFetchMode(PDO::FETCH_ASSOC);
-            $items = array();
+            $items = [];
             while ($row = $stmt->fetch()) {
-                $item = array();
+                $item = [];
                 foreach ($row as $key => $value) {
                     if ($this->isNumericField($key) && !is_null($value))
                         $value += 0;
@@ -364,6 +375,7 @@ class DB
             }
             return $items;
         } catch (\PDOException $e) {
+            writeLog($e->getMessage());
             throw new Exception($e->getMessage());
         }
     }
@@ -450,8 +462,8 @@ class DB
         $result[] = "SELECT";
         $result[] = !empty($this->selectExpression) ? $this->selectExpression : "*";
         $result[] = "FROM";
-        $result[] = $this->tableName;
-        $result[] = $this->aliasName;
+        $result[] = "`{$this->tableName}`";
+        $result[] = "`{$this->aliasName}`";
         if ($this->joins) {
             foreach ($this->joins as $join) {
                 switch ($join["type"]) {
@@ -484,7 +496,7 @@ class DB
         if (!$countMode) {
             if (!empty($this->orderBy)) {
                 $result[] = "ORDER BY";
-                $orders = array();
+                $orders = [];
                 foreach ($this->orderBy as $orderBy) {
                     $field = $orderBy["field"];
                     if (!$orderBy["asc"])
@@ -521,6 +533,7 @@ class DB
     {
         $this->inputData = $values;
         $fields = $this->getFields();
+        $this->whereDefinitions = null;
         foreach ($values as $key => $value) {
             if (($key == "id" && empty($value)) || (is_array($value) && $key != "ids") || is_object($value))
                 continue;
@@ -558,13 +571,18 @@ class DB
         if (empty($values)) {
             if (!empty($this->inputData["ids"]))
                 $this->dataValues["id"] = $this->inputData["ids"][0];
-            return $this->dataValues["id"];
+            if (!empty($this->dataValues["id"]))
+                return $this->dataValues["id"];
         }
 
         $query[] = $isInsert ? "INSERT INTO" : "UPDATE";
         $query[] = $this->tableName;
-        $query[] = "SET";
-        $query[] = $values;
+        if (!empty($values)) {
+            $query[] = "SET";
+            $query[] = $values;
+        } elseif ($isInsert)
+            $query[] = "() VALUE ()";
+
         if (!$isInsert) {
             $query[] = "WHERE";
             if (empty($this->whereDefinitions))
@@ -576,7 +594,8 @@ class DB
             $sql = implode($query, " ");
             self::$lastQuery = $this->rawQuery = $sql;
             $stmt = self::$dbh->prepare($sql);
-            $this->bindValues($stmt);
+            if (!empty($values))
+                $this->bindValues($stmt);
 
             if ($stmt->execute()) {
                 if ($isInsert && !$isInsertId)
@@ -607,7 +626,7 @@ class DB
 
     private function getValuesString($isInsert, $isInsertId = false)
     {
-        $result = array();
+        $result = [];
         foreach ($this->dataValues as $field => $value) {
             if ($isInsert && !$isInsertId && in_array($field, array("id", "ids")))
                 continue;
@@ -645,9 +664,10 @@ class DB
         $this->joins[] = array("type" => $type, "name" => $tableName, "condition" => $condition);
     }
 
-    private function getAliasByTableName($tableName)
+    static public function getAliasByTableName($tableName)
     {
         $result = null;
+        $tableName = trim($tableName, "`");
         $words = explode("_", $tableName);
         foreach ($words as $char)
             $result .= $char[0];

@@ -26,7 +26,7 @@ class Comment extends Base
     public function fetchByIdProduct($idProduct)
     {
         if (!$idProduct)
-            return array();
+            return [];
 
         $this->setFilters(array("field" => "idPrice", "value" => $idProduct));
         return $this->fetch();

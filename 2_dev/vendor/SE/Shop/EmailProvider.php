@@ -63,7 +63,7 @@ class EmailProvider extends Base
             $this->getInstanceSendPulseApi()->removeAddressBook($idBook);
     }
 
-    public function addEmails($idsBooks = array(), $emails = array())
+    public function addEmails($idsBooks = [], $emails = [])
     {
         $this->initProvider();
         if ($this->providerName == "sendpulse") {
@@ -72,7 +72,7 @@ class EmailProvider extends Base
         }
     }
 
-    public function removeEmails($idsBooks = array(), $emails = array())
+    public function removeEmails($idsBooks = [], $emails = [])
     {
         $this->initProvider();
         if ($this->providerName == "sendpulse") {
