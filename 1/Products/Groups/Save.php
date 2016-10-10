@@ -227,7 +227,7 @@ if ($isNew || !empty($ids)) {
     }
     $isUpdated |= setField($isNew, $u, $json->name, 'name');
 
-    if (CORE_VERSION != "5.3" && isset($json->idParent)) {
+    if (isset($json->idParent)) {
         if ($json->idParent && $json->idParent != $json->id)
             $isUpdated |= setField($isNew, $u, $json->idParent, 'upid');
         else $isUpdated |= setField($isNew, $u, "", 'upid');
