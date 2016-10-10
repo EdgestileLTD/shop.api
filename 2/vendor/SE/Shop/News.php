@@ -81,7 +81,7 @@ class News extends Base
         $u = new DB('news_img', 'ni');
         $u->where('ni.id_news=?', $id);
         $objects = $u->getList();
-        $result = array();
+        $result = [];
         foreach ($objects as $item) {
             $image = null;
             $image['id'] = $item['id'];
@@ -171,7 +171,7 @@ class News extends Base
 
     private function createCampaignForMails()
     {
-        $idsGroups = array();
+        $idsGroups = [];
         foreach ($this->input["subscribersGroups"] as $group)
             $idsGroups[] = $group["id"];
         $idsBooks = ContactCategory::getIdsBooksByIdGroups($idsGroups);

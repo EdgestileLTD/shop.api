@@ -14,7 +14,7 @@ class PaySystem extends Base
         $urlRoot = 'http://' . HOSTNAME;
         $buffer = file_get_contents($urlRoot . "/lib/merchant/getlist.php");
         $items = explode("|", $buffer);
-        $plugins = array();
+        $plugins = [];
         foreach ($items as $item)
             if (!empty($item)) {
                 $plugin['id'] = $item;
@@ -32,7 +32,7 @@ class PaySystem extends Base
             $u->orderBy('sort');
             $u->addOrderBy('id');
             $objects = $u->getList($this->limit, $this->offset);
-            $paySystems = array();
+            $paySystems = [];
             foreach ($objects as $item) {
                 $paySystem = $item;
                 $paySystem['imageFile'] = $item['logoimg'];
@@ -94,7 +94,7 @@ class PaySystem extends Base
         $u->select('ba.*');
         $u->where('ba.id_payment = ?', $idPayment);
         $objects = $u->getList();
-        $items = array();
+        $items = [];
         foreach ($objects as $item) {
             $value = null;
             $value['id'] = $item['id'];
@@ -110,7 +110,7 @@ class PaySystem extends Base
     private function getFilters($articles)
     {
         if (empty($articles))
-            return array();
+            return [];
 
         foreach ($articles as $article)
             if ($article) {
@@ -126,7 +126,7 @@ class PaySystem extends Base
 
     private function getHosts($hosts)
     {
-        $result = array();
+        $result = [];
         foreach ($hosts as $host)
             $result[]['name'] = $host;
         return $result;

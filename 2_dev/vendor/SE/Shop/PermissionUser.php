@@ -25,7 +25,7 @@ class PermissionUser extends Base
             $u->orderBy('su.id');
             $u->groupBy('su.id');
 
-            $items = array();
+            $items = [];
             $count = $u->getListCount();
             $result = $u->getList();
             foreach ($result as $item) {

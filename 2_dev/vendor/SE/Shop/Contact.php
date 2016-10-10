@@ -75,10 +75,10 @@ class Contact extends Base
         $u->addOrderBy('su.sort');
         $result = $u->getList();
 
-        $groups = array();
+        $groups = [];
         foreach ($result as $item) {
             $isNew = true;
-            $newGroup = array();
+            $newGroup = [];
             $newGroup["id"] = $item["idGroup"];
             $newGroup["name"] = empty($item["nameGroup"]) ? "Без категории" : $item["nameGroup"];
             foreach ($groups as $group)
@@ -128,7 +128,7 @@ class Contact extends Base
 
     public function delete()
     {
-        $emails = array();
+        $emails = [];
         $u = new DB('person');
         $u->select('email');
         $u->where('id IN (?)', implode(",", $this->input["ids"]));
@@ -152,7 +152,7 @@ class Contact extends Base
         $u->where('user_id = ?', $id);
         $u->orderBy("date_payee");
         $result = $u->getList();
-        $account = array();
+        $account = [];
         $balance = 0;
         foreach ($result as $item) {
             $balance += ($item['inPayee'] - $item['outPayee']);
@@ -204,7 +204,7 @@ class Contact extends Base
 
     private function addInAddressBookEmail($idsContacts, $idsNewsGroups, $idsDelGroups)
     {
-        $emails = array();
+        $emails = [];
         $u = new DB('person');
         $u->select('email');
         $u->where('id IN (?)', implode(",", $idsContacts));
@@ -225,7 +225,7 @@ class Contact extends Base
     private function saveGroups($groups, $idsContact)
     {
         try {
-            $newIdsGroups = array();
+            $newIdsGroups = [];
             foreach ($groups as $group)
                 $newIdsGroups[] = $group["id"];
             $idsGroupsS = implode(",", $newIdsGroups);
@@ -237,7 +237,7 @@ class Contact extends Base
                 $u->where("NOT group_id IN ($idsGroupsS) AND user_id IN ($idsContactsS)");
             else $u->where("user_id IN ($idsContactsS)");
             $groupsDel = $u->getList();
-            $idsGroupsDelEmail = array();
+            $idsGroupsDelEmail = [];
             foreach ($groupsDel as $group)
                 $idsGroupsDelEmail[] = $group["groupId"];
             $u->deleteList();
@@ -247,8 +247,8 @@ class Contact extends Base
             $u->where("user_id IN ($idsContactsS)");
             $objects = $u->getList();
 
-            $idsExists = array();
-            $idsGroupsNewEmail = array();
+            $idsExists = [];
+            $idsGroupsNewEmail = [];
             foreach ($objects as $object)
                 $idsExists[] = $object["groupId"];
             if (!empty($newIdsGroups)) {
@@ -355,7 +355,7 @@ class Contact extends Base
         try {
             $idContact = $this->input["id"];
             $groups = $this->input["customFields"];
-            $customFields = array();
+            $customFields = [];
             foreach ($groups as $group)
                 foreach ($group["items"] as $item)
                     $customFields[] = $item;
@@ -380,7 +380,7 @@ class Contact extends Base
                 $this->input = $contact;
             DB::beginTransaction();
 
-            $ids = array();
+            $ids = [];
             if (empty($this->input["ids"]) && !empty($this->input["id"]))
                 $ids[] = $this->input["id"];
             else $ids = $this->input["ids"];
@@ -463,7 +463,7 @@ class Contact extends Base
         $fp = fopen($filePath, 'w');
         $urlFile = 'http://' . HOSTNAME . "/files/{$fileName}";
 
-        $header = array();
+        $header = [];
         $u = new DB('person', 'p');
         $u->select('p.reg_date regDateTime, su.username, p.last_name, p.first_name Name, p.sec_name patronymic, 
             p.sex gender, p.birth_date, p.email, p.phone, p.note');
@@ -475,14 +475,14 @@ class Contact extends Base
         foreach ($contacts as $contact) {
             if (!$header) {
                 $header = array_keys($contact);
-                $headerCSV = array();
+                $headerCSV = [];
                 foreach ($header as $col) {
                     $headerCSV[] = iconv('utf-8', 'CP1251', $col);
                 }
                 $list[] = $header;
                 fputcsv($fp, $headerCSV, ";");
             }
-            $out = array();
+            $out = [];
             foreach ($contact as $r)
                 $out[] = iconv('utf-8', 'CP1251', $r);
             fputcsv($fp, $out, ";");

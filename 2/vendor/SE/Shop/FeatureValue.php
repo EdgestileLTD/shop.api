@@ -11,7 +11,7 @@ class FeatureValue extends Base
     public function fetchByIdFeature($idFeature)
     {
         if (!$idFeature)
-            return array();
+            return [];
 
         $this->setFilters(array("field" => "idFeature", "value" => $idFeature));
         return $this->fetch();

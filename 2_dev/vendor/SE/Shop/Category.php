@@ -33,7 +33,7 @@ class Category extends Base
 
     public function getPatches($items)
     {
-        $result = array();
+        $result = [];
         $search = strtolower($this->input["searchText"]);
         foreach ($items as $item) {
             if (empty($search) || mb_strpos(strtolower($item["name"]), $search) !== false) {
@@ -47,7 +47,7 @@ class Category extends Base
 
     private function getTreeView($items, $idParent = null)
     {
-        $result = array();
+        $result = [];
         foreach ($items as $item) {
             if ($item["upid"] == $idParent) {
                 $item["childs"] = $this->getTreeView($items, $item["id"]);
@@ -59,7 +59,7 @@ class Category extends Base
 
     private function setIdMainParent($items)
     {
-        $result = array();
+        $result = [];
         foreach ($items as $item) {
             if ($item['idsParents']) {
                 $idsLevels = explode(";", $item['idsParents']);
@@ -115,7 +115,7 @@ class Category extends Base
         return $this->result;
     }
 
-    protected function correctValuesBeforeFetch($items = array())
+    protected function correctValuesBeforeFetch($items = [])
     {
         if (CORE_VERSION == "5.3")
             $items = $this->setIdMainParent($items);
@@ -127,7 +127,7 @@ class Category extends Base
 
     public function getDiscounts($idCategory = null)
     {
-        $result = array();
+        $result = [];
         $id = $idCategory ? $idCategory : $this->input["id"];
         if (!$id)
             return $result;
@@ -142,7 +142,7 @@ class Category extends Base
 
     public function getImages($idCategory = null)
     {
-        $result = array();
+        $result = [];
         $id = $idCategory ? $idCategory : $this->input["id"];
         if (!$id)
             return $result;
@@ -178,7 +178,7 @@ class Category extends Base
 
     public function getDeliveries($idCategory = null)
     {
-        $result = array();
+        $result = [];
         $id = $idCategory ? $idCategory : $this->input["id"];
         if (!$id)
             return $result;
@@ -188,7 +188,7 @@ class Category extends Base
 
     public function getLinksGroups($idCategory = null)
     {
-        $result = array();
+        $result = [];
         $id = $idCategory ? $idCategory : $this->input["id"];
         if (!$id)
             return $result;
@@ -225,7 +225,7 @@ class Category extends Base
 
     public function getFilterParams($idCategory = null)
     {
-        $result = array();
+        $result = [];
         $id = $idCategory ? $idCategory : $this->input["id"];
         if (!$id)
             return $result;
@@ -333,7 +333,7 @@ class Category extends Base
                 $u->where('id_group IN (?)', $idsStr)->deleteList();
             }
 
-            $data = array();
+            $data = [];
             foreach ($images as $image)
                 if (empty($image["id"]) || ($image["id"] <= 0)) {
                     foreach ($idsGroups as $idProduct) {
@@ -356,7 +356,7 @@ class Category extends Base
         try {
             $idsGroups = $this->input["ids"];
             $links = $this->input["linksGroups"];
-            $idsExists = array();
+            $idsExists = [];
             foreach ($links as $group)
                 if ($group["id"])
                     $idsExists[] = $group["id"];
@@ -369,7 +369,7 @@ class Category extends Base
             if ($idsExistsStr)
                 $u->where("(NOT group_id IN ({$idsExistsStr})) AND id IN (?)", $idsStr)->deleteList();
             else $u->where('id IN (?)', $idsStr)->deleteList();
-            $idsExists = array();
+            $idsExists = [];
             if ($idsExistsStr) {
                 $u->select("id, group_id");
                 $u->where("(group_id IN ({$idsExistsStr})) AND id IN (?)", $idsStr);
@@ -379,7 +379,7 @@ class Category extends Base
                     $idsExists[] = $item["groupId"];
                 }
             };
-            $data = array();
+            $data = [];
             foreach ($links as $group)
                 if (empty($idsExists) || !in_array($group["id"], $idsExists))
                     foreach ($idsGroups as $idGroup)

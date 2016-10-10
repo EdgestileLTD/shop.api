@@ -155,7 +155,7 @@ class Order extends Base
 
     protected function getAddInfo()
     {
-        $result = array();
+        $result = [];
         $this->result["amount"] = (real)$this->result["amount"];
         $result["items"] = $this->getOrderItems();
         $result['payments'] = $this->getPayments();
@@ -186,7 +186,7 @@ class Order extends Base
         $u->groupBy('sto.id');
         $result = $u->getList();
         unset($u);
-        $items = array();
+        $items = [];
         if (!empty($result)) {
             foreach ($result as $item) {
                 if ($item['picture']) $item['img'] = $item['picture'];
@@ -230,10 +230,10 @@ class Order extends Base
         $u->addOrderBy('su.sort');
         $result = $u->getList();
 
-        $groups = array();
+        $groups = [];
         foreach ($result as $item) {
             $key = (int)$item["idGroup"];
-            $group = key_exists($key, $groups) ? $groups[$key] : array();
+            $group = key_exists($key, $groups) ? $groups[$key] : [];
             $group["id"] = $item["idGroup"];
             $group["name"] = empty($item["nameGroup"]) ? "Без категории" : $item["nameGroup"];
             if ($item['type'] == "date")
@@ -333,7 +333,7 @@ class Order extends Base
         try {
             $idOrder = $this->input["id"];
             $groups = $this->input["customFields"];
-            $customFields = array();
+            $customFields = [];
             foreach ($groups as $group)
                 foreach ($group["items"] as $item)
                     $customFields[] = $item;

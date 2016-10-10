@@ -11,7 +11,7 @@ class SeoVariable extends Base
 
     public function fetch()
     {
-        $vars = array();
+        $vars = [];
 
         if ($this->input["type"] == 'goods') {
             $var['name'] = '{name}';

@@ -44,7 +44,7 @@ class Currency extends Base
             $u = new seTable('money_title', 'mt');
             $u->select('mt.*');
             $objects = $u->getList();
-            $rates = array();
+            $rates = [];
             if ($isManualMode) {
                 $m = new seTable('money', 'm');
                 $m->select('m.*');

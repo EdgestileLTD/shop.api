@@ -7,7 +7,7 @@ class GeoRegion extends Base
 
     public function fetch()
     {
-        $ids = array();
+        $ids = [];
         if (empty($this->input["ids"]) && !empty($this->input["id"]))
             $ids[] = $this->input["id"];
         else $ids = $this->input["ids"];

@@ -147,7 +147,7 @@ class Analytics extends Base
 
     private function getFunnel()
     {
-        $rows = array();
+        $rows = [];
 
         $result["countVisitors"] = $this->countVisitors();
 
