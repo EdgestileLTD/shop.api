@@ -47,7 +47,7 @@ class MySQLDump
             throw new Exception('Argument must be stream resource.');
         }
 
-        $tables = $views = [];
+        $tables = $views = array();
 
         $res =  DB::query('SHOW FULL TABLES');
         while ($row = $res->fetch(PDO::FETCH_NUM)) {
@@ -106,9 +106,9 @@ class MySQLDump
         }
 
         if (!$view && ($mode & self::DATA)) {
-            $numeric = [];
+            $numeric = array();
             $res = DB::query("SHOW COLUMNS FROM $delTable");
-            $cols = [];
+            $cols = array();
             while ($row = $res->fetch(PDO::FETCH_ASSOC)) {
                 $col = $row['Field'];
                 $cols[] = $this->delimite($col);

@@ -1,9 +1,6 @@
 <?php
 
-namespace SE\Shop;
-
-use SE\DB as DB;
-use SE\Exception;
+namespace SE;
 
 class Auth extends Base
 {

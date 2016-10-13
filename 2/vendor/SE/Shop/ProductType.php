@@ -72,4 +72,5 @@ class ProductType extends Base
 
         return $this->saveFeatures();
     }
+
 }

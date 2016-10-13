@@ -30,7 +30,7 @@ function writeLog($data)
     fclose($file);
 }
 
-if (IS_EXT) {
+if (IS_EXT) {  
     require_once 'api/update.php';
     require_once 'lib/lib_function.php';
     require_once 'lib/PHPExcel.php';
@@ -64,6 +64,9 @@ if (!empty($origin)) {
         exit;
 }
 
+if (strpos($apiClass, "/Auth"))
+    $apiClass = "Auth";
+
 if ($apiClass == "Auth" && strtolower($apiMethod) == "logout") {
     $_SESSION = array();
     session_destroy();
@@ -81,8 +84,9 @@ if ($apiClass == "Auth" && strtolower($apiMethod) == "get") {
 
 $phpInput = file_get_contents('php://input');
 $hostname = $_SESSION['hostname'];
+
 if ($apiClass == "Auth" && strtolower($apiMethod) == "info")
-    $hostname = $headers["Project"];
+    $hostname = (strpos($headers["Project"], '.') !== false) ? $headers["Project"] : $headers["Project"] . '.e-stile.ru';
 
 define("HOSTNAME", $hostname);
 define('DOCUMENT_ROOT', IS_EXT ? $_SERVER['DOCUMENT_ROOT'] : '/home/e/edgestile/' . HOSTNAME . '/public_html');
@@ -110,7 +114,7 @@ if ($apiClass != "Auth" && empty($_SESSION['isAuth']) && !in_array($_SERVER["REM
 }
 
 $apiObject = $apiClass;
-if (!class_exists($apiClass = "\\SE\\Shop\\" . str_replace("/", "\\", $apiClass))) {
+if (!class_exists($apiClass = "\\SE\\" . str_replace("/", "\\", $apiClass))) {
     header("HTTP/1.1 501 Not Implemented");
     echo "Объект '{$apiObject}' не найден!";
     exit;

@@ -180,6 +180,11 @@ class News extends Base
             (new EmailProvider())->createCampaign($this->input["name"], $this->input["text"], $idBook, $this->input["pubDate"]);
     }
 
+    private function deleteCampaignForMails()
+    {
+
+    }
+
     public function save()
     {
         try {
@@ -189,7 +194,7 @@ class News extends Base
             if (isset($this->input["newsDate"]))
                 $this->input["newsDate"] = strtotime($this->input["newsDate"]);
             if (isset($this->input["publicationDate"]))
-                $this->input["pubDate"] = strtotime($this->input["publicationDate"]);
+                $this->input["pubDate"] = strtotime($this->input["publicationDate"]);            
             if (isset($this->input["fullDescription"]))
                 $this->input["text"] = $this->input["fullDescription"];
             if (isset($this->input["imageFile"]))
@@ -201,18 +206,18 @@ class News extends Base
             $u->setValuesFields($this->input);
             $this->input["id"] = $u->save();
             $this->saveImages();
-            if ($this->isNew || 1) {
-                $this->saveSubscribersGroups();
-                $this->createCampaignForMails();
-            }
+            $this->saveSubscribersGroups();
+            if ($this->isNew)
+                $this->deleteCampaignForMails();
+            $this->createCampaignForMails();
             $this->info();
             DB::commit();
-
+            
         } catch (Exception $e) {
             DB::rollBack();
             $this->error = "Не удаётся сохранить новость!";
         }
-
+        
         return $this;
     }
 

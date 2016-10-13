@@ -205,7 +205,7 @@ class Delivery extends Base
         $idDelivery = $this->input["id"];
         $deliveries = $this->input["conditionsRegions"];
 
-        $idsUpdate = [];
+                $idsUpdate = [];
         $idsGeoUpdate = [];
         foreach ($deliveries as $delivery) {
             if (!empty($delivery["id"]))

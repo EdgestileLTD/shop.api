@@ -4,13 +4,10 @@ namespace SE\Shop;
 
 use SE\DB as DB;
 use SE\Exception;
+use SE\Base as CustomBase;
 
-class Base
+class Base extends CustomBase
 {
-    protected $result;
-    protected $input;
-    protected $error;
-    protected $statusAnswer = 200;
     protected $isTableMode = true;
     protected $limit = 100;
     protected $offset = 0;
@@ -18,26 +15,19 @@ class Base
     protected $sortOrder = "desc";
     protected $availableFields;
     protected $filterFields;
-    protected $protocol = 'http';
     protected $search;
     protected $filters = [];
-    protected $hostname;
-    protected $urlImages;
-    protected $dirImages;
     protected $tableName;
     protected $tableAlias;
-    protected $imageSize = 256;
-    protected $imagePreviewSize = 64;
     protected $allowedSearch = true;
     protected $availableSigns = array("=", "<=", "<", ">", ">=", "IN");
     protected $isNew;
-
     private $patterns = [];
 
     function __construct($input = null)
     {
-        $input = $this->input = empty($input) || is_array($input) ? $input : json_decode($input, true);
-        $this->hostname = HOSTNAME;
+        parent::__construct($input);
+        $input = $this->input;
         $this->limit = $input["limit"] && $this->limit ? (int)$input["limit"] : $this->limit;
         $this->offset = $input["offset"] ? (int)$input["offset"] : $this->offset;
         $this->sortOrder = $input["sortOrder"] ? $input["sortOrder"] : $this->sortOrder;
@@ -52,51 +42,6 @@ class Base
             $worlds = explode("_", $this->tableName);
             foreach ($worlds as $world)
                 $this->tableAlias .= $world[0];
-        }
-    }
-
-    function __set($name, $value)
-    {
-        if (is_array($this->input))
-            $this->input[$name] = $value;
-    }
-
-    function __get($name)
-    {
-        if (is_array($this->input) && isset($this->input[$name]))
-            return $this->input[$name];
-    }
-
-    public function initConnection($connection)
-    {
-        try {
-            DB::initConnection($connection);
-            return true;
-        } catch (Exception $e) {
-            $this->error = 'Не удаётся подключиться к базе данных!';
-            return false;
-        }
-    }
-
-    public function output()
-    {
-        if (!empty($this->error) && $this->statusAnswer == 200)
-            $this->statusAnswer = 500;
-        switch ($this->statusAnswer) {
-            case 200: {
-                echo json_encode($this->result);
-                exit;
-            }
-            case 404: {
-                header("HTTP/1.1 404 Not found");
-                echo $this->error;
-                exit;
-            }
-            case 500: {
-                header("HTTP/1.1 500 Internal Server Error");
-                echo $this->error;
-                exit;
-            }
         }
     }
 
@@ -198,9 +143,11 @@ class Base
                 $u = new DB($this->tableName);
                 $u->where('id IN (?)', $ids)->deleteList();
             }
+            return true;
         } catch (Exception $e) {
             $this->error = "Не удаётся произвести удаление!";
         }
+        return false;
     }
 
     public function save()

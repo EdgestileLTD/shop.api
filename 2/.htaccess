@@ -11,6 +11,8 @@ RewriteEngine On
 Options +FollowSymLinks 
 RewriteBase /api/2
 
+php_value session.gc_maxlifetime 86400
+
 RewriteRule ^(.*)$  index.php?%{QUERY_STRING}
 
 php_flag display_startup_errors on

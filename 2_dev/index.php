@@ -64,6 +64,9 @@ if (!empty($origin)) {
         exit;
 }
 
+if (strpos($apiClass, "/Auth"))
+    $apiClass = "Auth";
+
 if ($apiClass == "Auth" && strtolower($apiMethod) == "logout") {
     $_SESSION = array();
     session_destroy();
@@ -111,7 +114,7 @@ if ($apiClass != "Auth" && empty($_SESSION['isAuth']) && !in_array($_SERVER["REM
 }
 
 $apiObject = $apiClass;
-if (!class_exists($apiClass = "\\SE\\Shop\\" . str_replace("/", "\\", $apiClass))) {
+if (!class_exists($apiClass = "\\SE\\" . str_replace("/", "\\", $apiClass))) {
     header("HTTP/1.1 501 Not Implemented");
     echo "Объект '{$apiObject}' не найден!";
     exit;

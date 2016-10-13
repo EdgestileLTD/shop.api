@@ -11,6 +11,8 @@ class DB
     static public $lastQuery;
     /* @var $dbSerial string */
     static public $dbSerial;
+    /* @var $projectKey string */
+    static public $projectKey;
     /* @var $dbPassword string */
     static public $dbPassword;
     /* @var $dbh PDO */
@@ -45,7 +47,7 @@ class DB
 
     function __construct($tableName, $alias = null, $isCamelCaseMode = true)
     {
-        $this->tableName = $tableName;
+        $this->tableName = trim($tableName, "`");
         $this->aliasName = !empty($alias) ? $alias : $this->getAliasByTableName($tableName);
         $this->isCamelCaseMode = $isCamelCaseMode;
     }
@@ -70,6 +72,7 @@ class DB
         try {
             self::$dbSerial = $connection['DBSerial'];
             self::$dbPassword = $connection['DBPassword'];
+            self::$projectKey = $connection['ProjectKey'];
             self::$dbh = new PDO("mysql:host={$connection['HostName']};dbname={$connection['DBName']}",
                 $connection['DBUserName'], $connection['DBPassword'], array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION));
         } catch (\PDOException $e) {
@@ -94,8 +97,16 @@ class DB
 
         $stmt = self::$dbh->query('SHOW TABLES');
         $stmt->setFetchMode(PDO::FETCH_NUM);
-        self::$tables[] = $stmt->fetchAll();
+        $items = $stmt->fetchAll();
+        foreach ($items as $item)
+            self::$tables[] = $item[0];
         return self::$tables;
+    }
+
+    public static function existTable($tableName)
+    {
+        $tableName = trim($tableName, "`");
+        return in_array($tableName, self::getTables());
     }
 
     public static function beginTransaction()
@@ -132,6 +143,13 @@ class DB
         if (self::$dbh) {
             self::$lastQuery = $statement;
             return self::$dbh->exec($statement);
+        } else throw new Exception("The connection is not initialized!");
+    }
+
+    public static function quote($string)
+    {
+        if (self::$dbh) {
+            return self::$dbh->quote($string);
         } else throw new Exception("The connection is not initialized!");
     }
 
@@ -259,11 +277,6 @@ class DB
         }
     }
 
-    public static function quote($str)
-    {
-        return self::$dbh->quote($str);
-    }
-
     public function getFields()
     {
         if ($this->fields)
@@ -362,6 +375,7 @@ class DB
             }
             return $items;
         } catch (\PDOException $e) {
+            writeLog($e->getMessage());
             throw new Exception($e->getMessage());
         }
     }
@@ -448,8 +462,8 @@ class DB
         $result[] = "SELECT";
         $result[] = !empty($this->selectExpression) ? $this->selectExpression : "*";
         $result[] = "FROM";
-        $result[] = $this->tableName;
-        $result[] = $this->aliasName;
+        $result[] = "`{$this->tableName}`";
+        $result[] = "`{$this->aliasName}`";
         if ($this->joins) {
             foreach ($this->joins as $join) {
                 switch ($join["type"]) {
@@ -519,6 +533,7 @@ class DB
     {
         $this->inputData = $values;
         $fields = $this->getFields();
+        $this->whereDefinitions = null;
         foreach ($values as $key => $value) {
             if (($key == "id" && empty($value)) || (is_array($value) && $key != "ids") || is_object($value))
                 continue;
@@ -556,13 +571,18 @@ class DB
         if (empty($values)) {
             if (!empty($this->inputData["ids"]))
                 $this->dataValues["id"] = $this->inputData["ids"][0];
-            return $this->dataValues["id"];
+            if (!empty($this->dataValues["id"]))
+                return $this->dataValues["id"];
         }
 
         $query[] = $isInsert ? "INSERT INTO" : "UPDATE";
         $query[] = $this->tableName;
-        $query[] = "SET";
-        $query[] = $values;
+        if (!empty($values)) {
+            $query[] = "SET";
+            $query[] = $values;
+        } elseif ($isInsert)
+            $query[] = "() VALUE ()";
+
         if (!$isInsert) {
             $query[] = "WHERE";
             if (empty($this->whereDefinitions))
@@ -574,7 +594,9 @@ class DB
             $sql = implode($query, " ");
             self::$lastQuery = $this->rawQuery = $sql;
             $stmt = self::$dbh->prepare($sql);
-            $this->bindValues($stmt);
+            if (!empty($values))
+                $this->bindValues($stmt);
+
             if ($stmt->execute()) {
                 if ($isInsert && !$isInsertId)
                     return self::$dbh->lastInsertId();
@@ -642,9 +664,10 @@ class DB
         $this->joins[] = array("type" => $type, "name" => $tableName, "condition" => $condition);
     }
 
-    private function getAliasByTableName($tableName)
+    static public function getAliasByTableName($tableName)
     {
         $result = null;
+        $tableName = trim($tableName, "`");
         $words = explode("_", $tableName);
         foreach ($words as $char)
             $result .= $char[0];
