@@ -1,1 +1,16 @@
-/home/e/edgestile/test7777.e-stile.ru/public_html/projects
+Array
+(
+    [name] => home
+    [description] => Новое описание
+)
+
+Array
+(
+    [name] => home
+    [content] => Array
+        (
+            [description] => Новое описание
+        )
+
+)
+
