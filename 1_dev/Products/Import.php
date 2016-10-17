@@ -51,8 +51,8 @@ if (strpos($content, "<?xml") === FALSE) {
 $rusCols = array("Id" => "Ид.", "Article" => "Артикул", "Code" => "Код", "Name" => "Наименование",
     "Price" => "Цена", "Count" => "Кол-во", "Category" => "Категория", "Weight" => "Вес", "Volume" => "Объем",
     "Measurement" => "Ед.Изм.", "Description" => "Краткое описание", "FullDescription" => "Полное описание",
-    "Features" => "Характеристики",
-    "Images" => 'Изображения', "CodeCurrency" => "КодВалюты",
+    "Features" => "Характеристики","Images" => 'Изображения', "CodeCurrency" => "КодВалюты",
+    "IsMarket" => "Я.М.",
     "MetaHeader" => "MetaHeader", "MetaKeywords" => "MetaKeywords", "MetaDescription" => "MetaDescription");
 $trCols = array_flip($rusCols);
 
@@ -579,13 +579,14 @@ try {
                 $metaHeader = !empty($goodsItem['MetaHeader']) ? $goodsItem['MetaHeader'] : 'null';
                 $metaKeywords = !empty($goodsItem['MetaKeywords']) ? $goodsItem['MetaKeywords'] : 'null';
                 $metaDescription = !empty($goodsItem['MetaDescription']) ? $goodsItem['MetaDescription'] : 'null';
+                $isMarket = (int) !empty($goodsItem['IsMarket']) ? 1 : 0;
                 if (CORE_VERSION == "5.3" && $goodsItem['IdGroup'])
                     $dataGoodsGroups[] = array("id_group" => $goodsItem['IdGroup'], "id_price" => $idProduct, "is_main" => 1);
                 $dataGoods[] = array("id" => $idProduct, "code" => $goodsItem['Code'], "article" => $goodsItem['Article'],
                     "id_group" => $IdGroup, "name" => $goodsItem['Name'], 'price' => $price, 'presence_count' => $count,
                     'text' => $fullDescription, 'note' => $description, 'measure' => $measure, 'weight' => $weight,
                     'volume' => $volume, 'curr' => $codeCurrency, "title" => $metaHeader, "keywords" => $metaKeywords,
-                    "description" => $metaDescription);
+                    "description" => $metaDescription, "is_market" => $isMarket);
                 $i = 0;
                 foreach ($images as $image) {
                     $dataImages[] = array("id_price" => $idProduct, "picture" => $image, "default" => !$i);
@@ -657,6 +658,8 @@ try {
                     $fields[] = "keywords = '{$goodsItem['MetaKeywords']}'";
                 if (!empty($goodsItem['MetaDescription']))
                     $fields[] = "description = '{$goodsItem['MetaDescription']}'";
+                if (isset($goodsItem['IsMarket']))
+                    $fields[] = "is_market = '{$goodsItem['IsMarket']}'";
                 $sqlItem .= implode(",", $fields);
                 $sqlItem .= ' WHERE id = ' . $goodsItem['Id'] . ';';
                 $sql .= $sqlItem . "\n";

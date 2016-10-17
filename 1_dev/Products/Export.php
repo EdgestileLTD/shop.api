@@ -111,6 +111,7 @@ if ($format == "xml") {
                 SUM(swp.count) Count, sp.step_count StepCount, sp.presence Presence,
                 sp.flag_new IsNew, sp.flag_hit IsHit, sp.id_brand IdBrand, sb.name NameBrand, sp.volume Volume,
                 sp.weight Weight, sp.discount IsDiscount, sp.max_discount MaxDiscount, sp.note Description,
+                sp.is_market IsMarket,
                 sp.text FullDescription, sp.title SeoHeader, sp.keywords SeoKeywords, sp.description SeoDescription, sp.lang Language');
     $u->leftjoin('shop_group sg', 'sg.id=sp.id_group');
     $u->leftjoin('shop_brand sb', 'sb.id = sp.id_brand');
@@ -313,7 +314,7 @@ if ($format == "xml") {
     $u = new seTable('shop_price', 'sp');
     $select = 'sp.id Id, NULL Category, sp.code Code, sp.article Article,
                 sp.name Name, sp.price Price, sp.curr CodeCurrency, sp.measure Measurement, sp.presence_count Count, 
-                sp.presence Presence,
+                sp.presence Presence, sp.is_market IsMarket,
                 sp.weight Weight, sp.volume Volume,
                 GROUP_CONCAT(si.picture SEPARATOR \';\') Images,
                 sp.title MetaHeader, sp.keywords MetaKeywords, sp.description MetaDescription,
@@ -403,7 +404,7 @@ if ($format == "xml") {
     $rusCols = array("Id" => "Ид.", "Article" => "Артикул", "Code" => "Код", "Name" => "Наименование",
         "Price" => "Цена", "Count" => "Кол-во", "Category" => "Категория", "Weight" => "Вес", "Volume" => "Объем",
         "Measurement" => "Ед.Изм.", "Description" => "Краткое описание", "FullDescription" => "Полное описание", "Features" => "Характеристики",
-        "Images" => 'Изображения', "CodeCurrency" => "КодВалюты",
+        "Images" => 'Изображения', "CodeCurrency" => "КодВалюты", "IsMarket" => "Я.М.",
         "MetaHeader" => "MetaHeader", "MetaKeywords" => "MetaKeywords", "MetaDescription" => "MetaDescription");
     $fp = fopen($fileName, 'w');
     $header = array_keys($goodsL[0]);

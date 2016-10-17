@@ -2,7 +2,7 @@
 
 se_db_query("CREATE TABLE company (
     id int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-  reg_date datetime DEFAULT CURRENT_TIMESTAMP,
+  reg_date datetime DEFAULT NULL,
   name varchar(255) NOT NULL,
   fullname varchar(255) DEFAULT NULL,
   inn varchar(50) DEFAULT NULL,
