@@ -119,6 +119,7 @@ function getOrderItems($idOrder, $currency)
             $product['measurement'] = $item['measure'];
             $product['idGroup'] = $item['id_group'];
             $product['price'] = (real)$item['price'];
+            $product['pricePurchase'] = (real)$item['price_purchase'];
             $product['count'] = (real)$item['count'];
             $product['bonus'] = (real)$item['bonus'];
             $product['discount'] = (real)$item['discount'];

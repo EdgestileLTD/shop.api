@@ -200,6 +200,7 @@ function getModifications($ids, &$product)
             $modification['price'] = (real)$item['value'];
             $modification['priceSmallOpt'] = (real)$item['value_opt'];
             $modification['priceOpt'] = (real)$item['value_opt_corp'];
+            $modification['pricePurchase'] = (real)$item['value_purchase'];
             $modification['description'] = $item['description'];
             if (in_array($item['values_feature'], $existFeatures) && sizeof($ids) > 1)
                 continue;

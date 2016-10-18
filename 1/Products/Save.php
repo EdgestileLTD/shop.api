@@ -319,7 +319,8 @@ function saveModifications($idsProducts, $modifications)
                 foreach ($idsProducts as $idProduct) {
                     $i++;
                     $dataM[] = array('id' => $i, '`code`' => $item->article, 'id_mod_group' => $mod->id, 'id_price' => $idProduct, 'value' => $item->price,
-                        'value_opt' => $item->priceSmallOpt, 'value_opt_corp' => $item->priceOpt, 'count' => $count,
+                        'value_opt' => $item->priceSmallOpt, 'value_opt_corp' => $item->priceOpt,
+                        'value_purchase' => (real) $item->pricePurchase, 'count' => $count,
                         'sort' => $item->sortIndex, 'description' => $item->description);
                     foreach ($item->values as $v)
                         $dataF[] = array('id_price' => $idProduct, 'id_modification' => $i,
@@ -354,6 +355,7 @@ function saveModifications($idsProducts, $modifications)
                     $isUpdated |= setField(0, $u, $item->price, 'value');
                     $isUpdated |= setField(0, $u, $item->priceSmallOpt, 'value_opt');
                     $isUpdated |= setField(0, $u, $item->priceOpt, 'value_opt_corp');
+                    $isUpdated |= setField(0, $u, $item->pricePurchase, 'value_purchase');
                     $isUpdated |= setField(0, $u, $item->description, 'description');
                     $count = -1;
                     if ($item->count >= 0)
