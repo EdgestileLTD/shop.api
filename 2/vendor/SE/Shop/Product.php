@@ -428,6 +428,8 @@ class Product extends Base
                 $this->input["code"] = strtolower(se_translite_url($this->input["name"]));
             $this->input["code"] = $this->getUrl($this->input["code"], $this->input["id"]);
         }
+        if (isset($this->input["presence"]) && empty($this->input["presence"]))
+            $this->input["presence"] = null;
     }
 
     private function saveImages()
