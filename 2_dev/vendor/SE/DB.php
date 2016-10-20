@@ -282,11 +282,16 @@ class DB
         if ($this->fields)
             return $this->fields;
 
-        $stmt = self::$dbh->query("SHOW COLUMNS FROM `{$this->tableName}`");
-        $stmt->setFetchMode(PDO::FETCH_ASSOC);
-        while ($row = $stmt->fetch())
-            if (!in_array($row['Field'], array("updated_at", "created_at")))
-                $this->fields[$row['Field']] = $row;
+        try {
+            $stmt = self::$dbh->query("SHOW COLUMNS FROM `{$this->tableName}`");
+            $stmt->setFetchMode(PDO::FETCH_ASSOC);
+            while ($row = $stmt->fetch())
+                if (!in_array($row['Field'], array("updated_at", "created_at")))
+                    $this->fields[$row['Field']] = $row;
+        } catch (Exception $e) {
+            throw new Exception("Отсутствует таблица {$this->tableName}");
+        }
+
         return $this->fields;
     }
 
@@ -375,7 +380,6 @@ class DB
             }
             return $items;
         } catch (\PDOException $e) {
-            writeLog($e->getMessage());
             throw new Exception($e->getMessage());
         }
     }

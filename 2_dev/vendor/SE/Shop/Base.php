@@ -27,7 +27,6 @@ class Base extends CustomBase
     function __construct($input = null)
     {
         parent::__construct($input);
-        writeLog(HOSTNAME);
         $input = $this->input;
         $this->limit = $input["limit"] && $this->limit ? (int)$input["limit"] : $this->limit;
         $this->offset = $input["offset"] ? (int)$input["offset"] : $this->offset;
@@ -91,6 +90,7 @@ class Base extends CustomBase
                 $u->where($this->getWhereQuery($searchFields));
             $u->groupBy();
             $u->orderBy($this->sortBy, $this->sortOrder == 'desc');
+
             $this->result["items"] = $this->correctValuesBeforeFetch($u->getList($this->limit, $this->offset));
             $this->result["count"] = $u->getListCount();
             if (!empty($settingsFetch["aggregation"])) {

@@ -45,6 +45,12 @@ class DeliveryType extends Base
         $type['name'] = "Почта России";
         $types[] = $type;
 
+        $type = null;
+        $type['id'] = "sdek";
+        $type['code'] = "sdek";
+        $type['name'] = "СДЭК";
+        $types[] = $type;
+
         $this->result['count'] = sizeof($types);
         $this->result['items'] = $types;
 
