@@ -1,6 +1,6 @@
 <?php
 
-namespace SE\Shop;
+namespace SE\CMS;
 
 use SE\DB;
 use SE\Exception;
@@ -12,7 +12,7 @@ class Account extends Base
 
     public function fetch()
     {
-        $items = [];
+        $items = array();
         $project = str_replace(".e-stile.ru", "", HOSTNAME);
         $items[] = array("alias" => $project, "project" => $project, "login" => $_SESSION["login"],
             "hash" => $_SESSION["hash"], "isMain" => true);

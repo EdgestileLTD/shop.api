@@ -2,7 +2,7 @@
 
 namespace SE\CMS;
 
-class Page extends Base
+class Pages extends Base
 {
     private $pathPages;
     private $pathEdit;
@@ -30,7 +30,12 @@ class Page extends Base
         if (!file_exists($filePages))
             copy($fileSource, $filePages);
         $pages = simplexml_load_file($filePages);
-        $this->result = $this->getTree($pages);
+        if (!empty($this->input["searchText"])){
+            $items = $this->getPatches($pages);
+        } else {
+            $items = $this->getTree($pages);
+        }
+        $this->result = array('items'=>$items, 'count'=>count($items));
     }
 
     public function info()
@@ -49,6 +54,22 @@ class Page extends Base
         $this->info();
     }
 
+    private function getPatches($items)
+    {
+        $result = array();
+        $search = strtolower($this->input["searchText"]);
+        foreach ($items as $item) {
+            if (!empty($search)
+                && (mb_strpos(strtolower($item->title), $search) !== false
+                    || mb_strpos(strtolower($item["name"]), $search) !== false)
+            ) {
+                $result[] = ["id" => (string) $item["name"], "title" => (string) $item->title];
+            }
+        }
+        return $result;
+    }
+
+
     private function getTree($pages)
     {
         $oldLevel = 1;
@@ -59,7 +80,7 @@ class Page extends Base
         if (!empty($pages))
             foreach ($pages as $value) {
                 $level = (int)$value->level;
-                $value = ["name" => (string) $value["name"], "title" => (string) $value->title];
+                $value = ["id" => (string) $value["name"], "title" => (string) $value->title];
                 if ($level > $oldLevel)
                     $tmpLevel[$level] = -1;
                 if ($level < $oldLevel)
