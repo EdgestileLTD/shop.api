@@ -98,6 +98,7 @@ class Delivery extends Base
             $result = $u->getList();
             foreach ($result as $item) {
                 $delivery = $item;
+                $delivery['idsGroups'] = [];
                 $delivery['period'] = $item['time'];
                 $delivery['idCityFrom'] = $item['cityFromDelivery'];
                 $delivery['isActive'] = $item['status'] == 'Y';
@@ -105,10 +106,15 @@ class Delivery extends Base
                 $delivery['onePosition'] = $item['forone'] == 'Y';
                 $delivery['needAddress'] = $item['needAddress'] == 'Y';
                 $idsPaySystems = explode(';', $item['idsPayments']);
-                if (trim($item['idsGroups']))
-                    $delivery['idsGroups'] = explode(';', $item['idsGroups']);
+                if (trim($item['idsGroups'])) {
+                    $idsGroups = explode(';', $item['idsGroups']);
+                    foreach($idsGroups as  $gr) {
+                        $delivery['idsGroups'][] = intval($gr);
+                    }
+                }
+
                 foreach ($idsPaySystems as $idGroup)
-                    $delivery['idsPaySystems'][] = $idGroup;
+                    $delivery['idsPaySystems'][] = intval($idGroup);
                 $delivery['conditionsParams'] = $this->getConditionsParams($delivery['id']);
                 $delivery['conditionsRegions'] = $this->getConditionsRegions($delivery['id'], $delivery['currency']);
                 $delivery['geoLocationsRegions'] = $this->getGeoLocationsRegions($delivery['id']);
@@ -226,9 +232,12 @@ class Delivery extends Base
         $u->select('MAX(id) max');
         $result = $u->fetchOne();
         $idNew = (int) $result["max"];
+        $fl_region = false;
+        $fl_type = false;
         foreach ($deliveries as $delivery) {
             if (empty($delivery["id"])) {
                 $idNew++;
+                $fl_type = true;
                 $dataD[] = array('id' => $idNew, 'id_parent' => $idDelivery, 'code' => 'region',
                     'time' => $delivery["period"], 'price' => (real) $delivery["price"],
                     'note' => $delivery["note"], 'max_volume' => $delivery["maxVolume"], 'max_weight' => $delivery["maxWeight"],
@@ -244,6 +253,7 @@ class Delivery extends Base
                         $delivery["idRegionTo"] = null;
                         $delivery["idCityTo"] = null;
                     }
+                    $fl_region = true;
                     $dataR[] = array('id_delivery' => $idNew, 'id_country' => $delivery["idCountryTo"],
                         'id_region' => $delivery["idRegionTo"], 'id_city' => $delivery["idCityTo"]);
                 }
@@ -251,7 +261,7 @@ class Delivery extends Base
         }
         if (!empty($dataD))
             DB::insertList('shop_deliverytype', $dataD);
-        if (!empty($dataR))
+        if (!empty($dataR) && ($fl_region || !$fl_type))
             DB::insertList('shop_delivery_region', $dataR);
 
 
@@ -294,15 +304,17 @@ class Delivery extends Base
         $regions = $this->input["geoLocationsRegions"];
         $idDelivery = $this->input["id"];
         $idsUpdate = [];
-        foreach ($regions as $region)
+        foreach ($regions as $region) {
             if (!empty($region["id"]))
-                $idsUpdate[] = $region["id"];
+                $idsUpdate[] = intval($region["id"]);
+        }
         $idsUpdate = implode(',', $idsUpdate);
         $u = new DB('shop_delivery_region', 'sdr');
         $u->where('id_delivery = ?', $idDelivery);
         if (!empty($idsUpdate))
             $u->andWhere('NOT id IN (' . $idsUpdate . ')');
         $u->deleteList();
+        $data = array();
 
         foreach ($regions as $region) {
             if (empty($region["id"])) {
@@ -336,11 +348,13 @@ class Delivery extends Base
                     $region["idRegionTo"] = null;
                     $region["idCityTo"] = null;
                 }
+                $regionl = array();
                 $u = new DB('shop_delivery_region');
-                $region["idCountry"] = $region->idCountryTo;
-                $region["idRegion"] = $region->idRegionTo;
-                $region["idCity"] = $region->idCityTo;
-                $u->setValuesFields($region);
+                $regionl["id_country"] = $region['idCountryTo'];
+                $regionl["id_region"] = $region['idRegionTo'];
+                $regionl["id_city"] = $region['idCityTo'];
+                $u->setValuesFields($regionl);
+                $u->where('id=?', $region["id"]);
                 $u->save();
             }
         }
