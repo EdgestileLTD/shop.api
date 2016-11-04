@@ -25,7 +25,7 @@ class Product extends Base
             $joins[] = array(
                 "type" => "left",
                 "table" => 'shop_price_group spg',
-                "condition" => 'spg.id_price = sp.id'
+                "condition" => 'spg.id_price = sp.id AND spg.is_main=1'
             );
             $joins[] = array(
                 "type" => "left",

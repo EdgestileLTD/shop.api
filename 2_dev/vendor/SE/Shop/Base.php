@@ -274,9 +274,11 @@ class Base extends CustomBase
                 continue;
             }
             // число
-            if (strpos($field["Type"], "int") !== false && is_int($searchItem)) {
-                $result[] = "{$field["Field"]} = {$searchItem}";
-                continue;
+            if (strpos($field["Type"], "int") !== false) {
+                if (intval($searchItem)) {
+                    $result[] = "{$field["Field"]} = {$searchItem}";
+                    continue;
+                }
             }
         }
         return implode(" OR ", $result);
