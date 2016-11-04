@@ -41,7 +41,7 @@ class News extends Base
                 $u->orderby($sortBy, $this->sortOrder === 'desc');
 
             $count = $u->getListCount();
-            $objects = $u->getList($this->offset, $this->limit);
+            $objects = $u->getList($this->limit, $this->offset);
             foreach ($objects as $item) {
                 $new = $item;
                 $new['name'] = $item['title'];
