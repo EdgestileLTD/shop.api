@@ -157,7 +157,7 @@ class News extends Base
         $u->where('id_news = (?)', $this->input["id"])->deleteList();
         foreach ($images as $image)
             $data[] = array('id_news' => $this->input["id"], 'picture' => $image["imageFile"],
-                'sort' => (int) $image["sortIndex"], 'picture_alt' => $image["imageAlt"]);
+                'sort' => (int)$image["sortIndex"], 'picture_alt' => $image["imageAlt"]);
         DB::insertList('news_img', $data);
     }
 
@@ -194,7 +194,7 @@ class News extends Base
             if (isset($this->input["newsDate"]))
                 $this->input["newsDate"] = strtotime($this->input["newsDate"]);
             if (isset($this->input["publicationDate"]))
-                $this->input["pubDate"] = strtotime($this->input["publicationDate"]);            
+                $this->input["pubDate"] = strtotime($this->input["publicationDate"]);
             if (isset($this->input["fullDescription"]))
                 $this->input["text"] = $this->input["fullDescription"];
             if (isset($this->input["imageFile"]))
@@ -212,12 +212,12 @@ class News extends Base
             $this->createCampaignForMails();
             $this->info();
             DB::commit();
-            
+
         } catch (Exception $e) {
             DB::rollBack();
             $this->error = "Не удаётся сохранить новость!";
         }
-        
+
         return $this;
     }
 

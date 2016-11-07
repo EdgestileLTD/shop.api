@@ -45,6 +45,11 @@ class Order extends Base
         };
     }
 
+    protected function getSettingsFind()
+    {
+        return array('so.id', 'so.date_order', 'so.date_payee', 'so.serial', 'so.commentary');
+    }
+
     protected function getSettingsFetch()
     {
         return array(

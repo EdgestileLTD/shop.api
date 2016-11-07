@@ -210,6 +210,11 @@ class Base extends CustomBase
         return [];
     }
 
+    protected function getSettingsFind()
+    {
+        return array();
+    }
+
     protected function getSettingsInfo()
     {
         return [];
@@ -240,10 +245,18 @@ class Base extends CustomBase
         if (is_string($searchItem))
             $searchItem = trim(DB::quote($searchItem), "'");
 
+        $finds = $this->getSettingsFind();
+        $time = 0;
+        if (strpos($searchItem, "-") !== false) {
+            $time = strtotime($searchItem);
+        }
+
         foreach ($searchFields as $field) {
             if (strpos($field["Field"], ".") === false)
                 $field["Field"] = $this->tableAlias . "." . $field["Field"];
-            $time = strtotime($searchItem);
+
+            if (!empty($finds) && !in_array($field["Field"], $finds)) continue;
+
             // текст
             if ((strpos($field["Type"], "char") !== false) || (strpos($field["Type"], "text") !== false)) {
                 $result[] = "{$field["Field"]} LIKE '%{$searchItem}%'";
