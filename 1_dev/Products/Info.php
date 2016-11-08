@@ -429,6 +429,7 @@ if ($u->id) {
     $product['measurement'] = $u->measure;
     $product['currency'] = $u->curr;
     $product['bonus'] = (float)$u->bonus;
+    $product['rate'] = (float)$u->rate;
     $product['tax'] = (float)$u->nds;
     $product['isInfinitely'] = true;
     if ($u->presence_count != '' && $u->presence_count >= 0) {

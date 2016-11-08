@@ -2,6 +2,9 @@
 
 namespace SE\Shop;
 
+use SE\Exception;
+use SE\DB;
+
 class GeoTargeting extends Base
 {
     protected $tableName = "shop_contacts";
@@ -11,7 +14,7 @@ class GeoTargeting extends Base
     protected function getSettingsFetch()
     {
         return [
-            "select" => "sc.*, scg.id_contact id_contact, scg.id_city id_city",
+            "select" => "sc.*, scg.id id_geo, scg.id_contact id_contact, scg.id_city id_city",
             "joins" => [
                 [
                     "type" => "left",
@@ -49,6 +52,30 @@ class GeoTargeting extends Base
                 $result["city"] = $cities[$this->result["idCity"]];
         }
         return $result;
+    }
+
+    protected function saveAddInfo()
+    {
+        return $this->saveContactGeo();
+    }
+
+    private function saveContactGeo()
+    {
+        $data = $this->input;
+        $data["idContact"] = $data["id"];
+        unset($data["ids"]);
+        if (!empty($data["idGeo"]))
+            $data["id"] = $data["idGeo"];
+        else unset($data["id"]);
+        try {
+            $t = new DB('shop_contacts_geo');
+            $t->setValuesFields($data);
+            $t->save();
+            return true;
+        } catch (Exception $e) {
+            $this->error = "Не удаётся сохранить город для контакта геотаргетинга!";
+        }
+        return false;
     }
 
     private function getCitiesByIds($ids = [])

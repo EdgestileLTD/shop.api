@@ -74,7 +74,6 @@ $u->orderby("id");
 
 $shops = array();
 $result = $u->getList();
-writeLog($json->hostname);
 
 $data['hostname'] = $json->hostname;
 $settings = new seTable('se_settings', 'ss');

@@ -601,6 +601,7 @@ if ($isNew || !empty($ids)) {
     $isUpdated |= setField($isNew, $u, $json->measurement, 'measure');
     $isUpdated |= setField($isNew, $u, $json->currency, 'curr');
     $isUpdated |= setField($isNew, $u, $json->bonus, 'bonus');
+    $isUpdated |= setField($isNew, $u, $json->rate, 'rate');
     $isUpdated |= setField($isNew, $u, $json->tax, 'nds');
     $isUpdated |= setField($isNew, $u, $json->sortIndex, 'sort');
 
