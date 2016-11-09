@@ -541,7 +541,7 @@ try {
                                         $idValue = $newValuesKeys[$key][$val];
                                         if (!$idValue)
                                             continue;
-                                        $dataModFeatures[] = array("id_price" => $idProduct, 'id_modification' => $idModification,
+                                        $dataModFeaturesM[] = array("id_price" => $idProduct, 'id_modification' => $idModification,
                                             'id_feature' => $idFeature, 'id_value' => $idValue);
                                     }
                                 }
@@ -603,8 +603,10 @@ try {
                         se_db_InsertList('shop_img', $dataImages);
                         $dataImages = null;
                     }
-                    if (!empty($dataModifications)) {
+                    if (!empty($dataModifications) && !empty($dataModFeaturesM)) {
                         se_db_InsertList('shop_modifications', $dataModifications);
+                        se_db_InsertList('shop_modifications_feature', $dataModFeaturesM);
+                        $dataModFeaturesM = null;
                         $dataModifications = null;
                     }
                     if (!empty($dataModFeatures)) {
