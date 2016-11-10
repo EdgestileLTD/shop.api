@@ -34,7 +34,7 @@ class Discount extends Base
 
     protected function saveAddInfo()
     {
-        return $this->saveProducts() && $this->saveGroupsProducts() && $this->saveContacts();
+        return $this->saveProducts() && $this->saveGroupsProducts() && $this->saveContacts() && $this->saveGroupsContacts() ;
     }
 
     private function getListProducts($id) {
