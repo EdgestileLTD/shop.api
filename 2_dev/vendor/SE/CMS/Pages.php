@@ -43,6 +43,17 @@ class Pages extends Base
         $this->result = simplexml_load_file($this->fileEdit);
     }
 
+    private function parseSections($sections)
+    {
+
+    }
+
+
+    private function parseRecords($records)
+    {
+
+    }
+
     public function save()
     {
         $xml = simplexml_load_file($this->fileEdit);
