@@ -624,6 +624,7 @@ if ($isNew || !empty($ids)) {
     $isUpdated |= setField($isNew, $u, $json->imageAlt, 'img_alt');
     $isUpdated |= setField($isNew, $u, $json->count, 'presence_count');
     $isUpdated |= setField($isNew, $u, $json->stepCount, 'step_count');
+    $isUpdated |= setField($isNew, $u, $json->minCount, 'min_count');
     $isUpdated |= setField($isNew, $u, $json->precense, 'presence');
     if (isset($json->isYAMarket) && !$json->isYAMarket)
         $json->isYAMarket = "0";

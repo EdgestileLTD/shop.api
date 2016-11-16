@@ -437,6 +437,7 @@ if ($u->id) {
         $product['isInfinitely'] = false;
     }
     $product['stepCount'] = (float)$u->step_count;
+    $product['minCount'] = (float)$u->min_count;
     $product['presence'] = $u->presence;
     $product['isNew'] = (bool)($u->flag_new === 'Y');
     $product['isHit'] = (bool)($u->flag_hit === 'Y');

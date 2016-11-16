@@ -1,0 +1,95 @@
+Array
+(
+    [0] => 1
+    [1] => 6
+    [2] => 15
+)
+
+Array
+(
+    [0] => 1
+    [1] => 6
+    [2] => 15
+)
+
+Exception: Неправильное имя пользователя или пароль!
+SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_149038.se_settings' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_149038.se_settings' doesn't exist
+Exception: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '52-16' for key 'UK_shop_price_group'
+Exception: Не удаётся сохранить дополнительные категории товара!
+Exception: Неправильное имя пользователя или пароль!
+Exception: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '118-16' for key 'UK_shop_price_group'
+Exception: Не удаётся сохранить дополнительные категории товара!
+SQLSTATE[42S22]: Column not found: 1054 Unknown column 'db_version' in 'field list'
+Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'db_version' in 'field list'
+SQLSTATE[42S22]: Column not found: 1054 Unknown column 'db_version' in 'field list'
+Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'db_version' in 'field list'
+Exception: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '42-16' for key 'UK_shop_price_group'
+Exception: Не удаётся сохранить дополнительные категории товара!
+Exception: Query: INSERT INTO shop_price_group SET `id_price` = :id_price, `id_group` = :id_group, `is_main` = :is_main
+Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '42-16' for key 'UK_shop_price_group'
+Exception: Не удаётся сохранить категорию товара!
+Exception: Query: INSERT INTO shop_price_group SET `id_price` = :id_price, `id_group` = :id_group, `is_main` = :is_main
+Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '42-17' for key 'UK_shop_price_group'
+Exception: Не удаётся сохранить категорию товара!
+Exception: Query: INSERT INTO shop_price_group SET `id_price` = :id_price, `id_group` = :id_group, `is_main` = :is_main
+Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '42-17' for key 'UK_shop_price_group'
+Exception: Не удаётся сохранить категорию товара!
+Exception: Query: INSERT INTO shop_price_group SET `id_price` = :id_price, `id_group` = :id_group, `is_main` = :is_main
+Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '42-17' for key 'UK_shop_price_group'
+Exception: Не удаётся сохранить категорию товара!
+Exception: Query: INSERT INTO shop_price_group SET `id_price` = :id_price, `id_group` = :id_group, `is_main` = :is_main
+Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '42-17' for key 'UK_shop_price_group'
+Exception: Не удаётся сохранить категорию товара!
+Exception: Query: INSERT INTO shop_price_group SET `id_price` = :id_price, `id_group` = :id_group, `is_main` = :is_main
+Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '42-17' for key 'UK_shop_price_group'
+Exception: Не удаётся сохранить категорию товара!
+Exception: Query: INSERT INTO shop_price_group SET `id_price` = :id_price, `id_group` = :id_group, `is_main` = :is_main
+Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '42-17' for key 'UK_shop_price_group'
+Exception: Не удаётся сохранить категорию товара!
+SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '' at line 1
+Exception: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '' at line 1
+SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '' at line 1
+Exception: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '' at line 1
+Exception: Неправильное имя пользователя или пароль!
+SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sdl.id_usergroup' in 'on clause'
+Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sdl.id_usergroup' in 'on clause'
+Exception: Неправильное имя пользователя или пароль!
+SQLSTATE[42S22]: Column not found: 1054 Unknown column 'main_login' in 'where clause'
+Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'main_login' in 'where clause'
+SQLSTATE[42S22]: Column not found: 1054 Unknown column 'main_login' in 'where clause'
+Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'main_login' in 'where clause'
+SQLSTATE[42S22]: Column not found: 1054 Unknown column 'main_login' in 'where clause'
+Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'main_login' in 'where clause'
+SQLSTATE[42S22]: Column not found: 1054 Unknown column 'main_login' in 'where clause'
+Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'main_login' in 'where clause'
+SQLSTATE[42S22]: Column not found: 1054 Unknown column 'main_login' in 'where clause'
+Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'main_login' in 'where clause'
+Exception: 
+Exception: Не удаётся экспортировать товары!
+SQLSTATE[42S22]: Column not found: 1054 Unknown column 'main_login' in 'where clause'
+Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'main_login' in 'where clause'
+Exception: 
+Exception: Не удаётся экспортировать товары!
+Exception: 
+Exception: Не удаётся экспортировать товары!
+Exception: 
+Exception: Не удаётся экспортировать товары!
+Exception: 
+Exception: Не удаётся экспортировать товары!
+Exception: 
+Exception: Не удаётся экспортировать товары!
+Exception: 
+Exception: Не удаётся экспортировать товары!
+Exception: 
+Exception: Не удаётся экспортировать товары!
+Exception: 
+Exception: Не удаётся экспортировать товары!
+Exception: 
+Exception: Не удаётся экспортировать товары!
+Exception: SQLSTATE[HY000] [1045] Access denied for user 'edgestile_a_9787'@'localhost' (using password: YES)
+Exception: SQLSTATE[HY000] [1045] Access denied for user 'edgestile_a_9787'@'localhost' (using password: YES)
+Exception: SQLSTATE[HY000] [1045] Access denied for user 'edgestile_a_9787'@'localhost' (using password: YES)
+Exception: SQLSTATE[HY000] [1045] Access denied for user 'edgestile_a_9787'@'localhost' (using password: YES)
+Exception: SQLSTATE[HY000] [1045] Access denied for user 'edgestile_a_9787'@'localhost' (using password: YES)
+Exception: SQLSTATE[HY000] [1045] Access denied for user 'edgestile_a_9787'@'localhost' (using password: YES)
