@@ -403,6 +403,7 @@ class Product extends Base
         $result["discounts"] = $this->getDiscounts();
         $result["crossGroups"] = $this->getCrossGroups();
         $result["modifications"] = $this->getModifications();
+        $result["customFields"] = $this->getCustomFields();
         return $result;
     }
 
@@ -534,6 +535,41 @@ class Product extends Base
         $idGroup = $this->getIdSpecificationGroup($specification->nameGroup);
         $specification->idFeature = $this->getIdFeature($idGroup, $specification->name);
         return $specification;
+    }
+
+    private function getCustomFields()
+    {
+        $idPrice = $this->input["id"];
+        $u = new DB('shop_userfields', 'su');
+        $u->select("cu.id, cu.id_price, cu.value, su.id id_userfield, 
+                    su.name, su.type, su.values, sug.id id_group, sug.name name_group");
+        $u->leftJoin('shop_price_userfields cu', "cu.id_userfield = su.id AND cu.id_price = {$idPrice}");
+        $u->leftJoin('shop_userfield_groups sug', 'su.id_group = sug.id');
+        $u->where('su.data = "product"');
+        $u->groupBy('su.id');
+        $u->orderBy('sug.sort');
+        $u->addOrderBy('su.sort');
+        $result = $u->getList();
+
+        $groups = [];
+        foreach ($result as $item) {
+            $isNew = true;
+            $newGroup = [];
+            $newGroup["id"] = $item["idGroup"];
+            $newGroup["name"] = empty($item["nameGroup"]) ? "Без категории": $item["nameGroup"];
+            foreach ($groups as $group)
+                if ($group["id"] == $item["idGroup"]) {
+                    $isNew = false;
+                    $newGroup = $group;
+                    break;
+                }
+            if ($item['type'] == "date")
+                $item['value'] = date('Y-m-d', strtotime($item['value']));
+            $newGroup["items"][] = $item;
+            if ($isNew)
+                $groups[] = $newGroup;
+        }
+        return $groups;
     }
 
     private function saveSpecifications()
@@ -920,6 +956,32 @@ class Product extends Base
         }
     }
 
+    private function saveCustomFields()
+    {
+        if (!isset($this->input["customFields"]))
+            return true;
+
+        try {
+            $idProduct = $this->input["id"];
+            $groups = $this->input["customFields"];
+            $customFields = [];
+            foreach ($groups as $group)
+                foreach ($group["items"] as $item)
+                    $customFields[] = $item;
+            foreach ($customFields as $field) {
+                $field["idPrice"] = $idProduct;
+                $u = new DB('shop_price_userfields', 'cu');
+                $u->setValuesFields($field);
+                $u->save();
+            }
+            return true;
+        } catch (Exception $e) {
+            $this->error = "Не удаётся сохранить доп. информацию о товаре!";
+            throw new Exception($this->error);
+        }
+    }
+
+
     protected function saveAddInfo()
     {
         if (!$this->input["ids"])
@@ -927,7 +989,8 @@ class Product extends Base
 
         return $this->saveImages() && $this->saveSpecifications() && $this->saveSimilarProducts() &&
         $this->saveAccompanyingProducts() && $this->saveComments() && $this->saveReviews() &&
-        $this->saveCrossGroups() && $this->saveDiscounts() && $this->saveModifications() && $this->saveIdGroup();
+        $this->saveCrossGroups() && $this->saveDiscounts() && $this->saveModifications() && $this->saveIdGroup() &&
+        $this->saveCustomFields();
     }
 
     private function getGroup($groups, $idGroup)
