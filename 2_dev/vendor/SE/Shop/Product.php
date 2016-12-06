@@ -18,9 +18,10 @@ class Product extends Base
     protected function getSettingsFetch()
     {
         if (CORE_VERSION == "5.3") {
-            $select = 'sp.id, sp.code, sp.article, sp.name, sp.price, sp.img, sp.img_alt, sp.description, sp.curr, sp.presence,
+            $select = 'sp.id, sp.code, sp.article, sp.name, sp.price, sp.img, sp.img_alt, sp.curr, sp.presence,
                 sp.presence_count presence_count, sp.flag_hit, sp.enabled, sp.flag_new, sp.note, sp.text, 
                 sp.price_purchase price_purchase, sp.measure, sp.step_count, sp.max_discount, sp.discount,
+                sp.title, sp.keywords, sp.description,
                 spg.id_group id_group, sg.name name_group, sg.id_modification_group_def id_modification_group_def, 
                 sb.name name_brand';
             $joins[] = array(
@@ -403,7 +404,7 @@ class Product extends Base
         $result["discounts"] = $this->getDiscounts();
         $result["crossGroups"] = $this->getCrossGroups();
         $result["modifications"] = $this->getModifications();
-        $result["customFields"] = $this->getCustomFields();
+        //$result["customFields"] = $this->getCustomFields();
         return $result;
     }
 
