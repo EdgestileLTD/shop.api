@@ -1,8 +1,5 @@
 <?php
 
-//доверенные сервера
-$allowableServers = array("5.101.153.108", "5.101.153.40");
-
 define("CRYPT_KEY", "7YyDfvsH5mfdu8zkFppYczgMmpXWgBf08kmeT3xluEt4BTW1oIK6zCyvJhNTPYUi");
 
 function cryptDecodeStr($encrypted)
@@ -27,7 +24,7 @@ if (!function_exists('getallheaders')) {
         }
         return $headers;
     }
-} 
+}
 
 $headers = getallheaders();
 
@@ -233,7 +230,7 @@ function setField($isNew, &$table, $jsonField, $fieldName, $fieldType = 'string'
 }
 
 
-if ($apiObject != "Auth" && empty($_SESSION['isAuth']) && !in_array($_SERVER["REMOTE_ADDR"], $allowableServers)) {
+if ($apiObject != "Auth" && empty($_SESSION['isAuth'])) {
     $status['status'] = 'error';
     $status['errortext'] = 'Необходима авторизация!';
     outputData($status);

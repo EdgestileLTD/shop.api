@@ -2,5 +2,5 @@
 
 define('API_VERSION', 2);
 define('API_BUILD', 1);
-define('DB_VERSION', 86);
+define('DB_VERSION', 88);
 define('API_STATUS', 'production');

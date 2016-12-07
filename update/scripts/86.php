@@ -1,9 +1,8 @@
 <?php
-<<<<<<< Updated upstream
 
 se_db_query("ALTER TABLE shop_price
   ADD COLUMN min_count DOUBLE(10, 3) NOT NULL AFTER step_count;");
-=======
+
 se_db_query("ALTER TABLE `shop_userfields` CHANGE `data` `data` ENUM('contact','order','company','productgroup','product') CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT 'contact';");
 
 se_db_query("CREATE TABLE `shop_group_userfields` (
@@ -31,4 +30,4 @@ KEY `id_price` (`id_price`),
 KEY `id_userfield` (`id_userfield`),
 CONSTRAINT `shop_group_userfields_ibfk_1` FOREIGN KEY (`id_price`) REFERENCES `shop_price` (`id`) ON DELETE CASCADE ON UPDATE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
->>>>>>> Stashed changes
+

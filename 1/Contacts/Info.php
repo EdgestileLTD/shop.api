@@ -137,6 +137,7 @@ foreach ($result as $item) {
     $contact['companyOfficialAddress'] = $item['uradres'];
     $contact['request'] = $item['request'];
     $contact['question'] = $item['question'];
+    $contact['priceType'] = (int) $item['price_type'];
     $contact['groups'] = getGroups($contact['id']);
     $contact['companyRequisites'] = getCompanyRequisites($contact['id']);
 

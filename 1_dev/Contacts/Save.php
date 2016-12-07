@@ -217,6 +217,7 @@ if ($isNew || !empty($ids)) {
     $isUpdated |= setField($isNew, $u, $json->address, 'addr');
     $isUpdated |= setField($isNew, $u, $json->birthDate, 'birth_date');
     $isUpdated |= setField($isNew, $u, $json->discount, 'discount');
+    $isUpdated |= setField($isNew, $u, $json->priceType, 'price_type');
     $isUpdated |= setField($isNew, $u, $json->note, 'note');
     $isUpdated |= setField($isNew, $u, $json->docSer, 'doc_ser');
     $isUpdated |= setField($isNew, $u, $json->docNum, 'doc_num');
@@ -235,7 +236,8 @@ if ($isNew || !empty($ids)) {
         $u->save();
     }
 
-    saveCompanyRequisites($ids[0], $json);
+    if (count($ids) < 2)
+        saveCompanyRequisites($ids[0], $json);
     if ($ids && isset($json->personalAccount))
         savePersonalAccounts($ids[0], $json->personalAccount);
     if (!empty($json->groups)) {
@@ -252,8 +254,8 @@ if ($isNew || !empty($ids)) {
             $u->where('group_id=3 AND user_id=?', $ids[0])->deletelist();
         }
     }
-
-    setUserGroup($ids[0]);
+    if (count($ids) < 2)
+        setUserGroup($ids[0]);
 }
 
 $data['id'] = $ids[0];

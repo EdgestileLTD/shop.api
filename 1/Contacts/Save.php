@@ -217,6 +217,7 @@ if ($isNew || !empty($ids)) {
     $isUpdated |= setField($isNew, $u, $json->address, 'addr');
     $isUpdated |= setField($isNew, $u, $json->birthDate, 'birth_date');
     $isUpdated |= setField($isNew, $u, $json->discount, 'discount');
+    $isUpdated |= setField($isNew, $u, $json->priceType, 'price_type');
     $isUpdated |= setField($isNew, $u, $json->note, 'note');
     $isUpdated |= setField($isNew, $u, $json->docSer, 'doc_ser');
     $isUpdated |= setField($isNew, $u, $json->docNum, 'doc_num');

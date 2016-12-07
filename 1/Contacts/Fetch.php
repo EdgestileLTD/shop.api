@@ -97,6 +97,7 @@ foreach ($result as $item) {
     $contact['note'] = $item['note'];
     $contact['country'] = $item['country'];
     $contact['imageFile'] = $item['avatar'];
+    $contact['priceType'] = (int) $item['price_type'];
     $contact['emailValid'] = (isset($item['email_valid'])) ? $item['email_valid'] : 'C';
     $idsGroups = explode(';', $item['idsGroups']);
     foreach ($idsGroups as $idGroup)
