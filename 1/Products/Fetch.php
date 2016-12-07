@@ -53,7 +53,7 @@ $u = new seTable('shop_price', 'sp');
 $u->select('sp.*, sg.name as namegroup, sdl.discount_id is_discount,
             COUNT(DISTINCT(smf.id_modification)) as countModifications, sb.name nameBrand, sgp.id AS isCrossGroup');
 if (CORE_VERSION == "5.3") {
-    $u->leftjoin("shop_price_group spg", "spg.id_price = sp.id");
+    $u->leftjoin("shop_price_group spg", "spg.id_price = sp.id AND spg.is_main = 1");
     $u->leftjoin('shop_group sg', 'sg.id = spg.id_group');
 } else {
     $u->leftjoin('shop_group sg', 'sg.id=sp.id_group');
@@ -72,7 +72,7 @@ if ($json->filter && strpos($json->filter, '[idModificationGroup]')) {
 $searchStr = $json->searchText;
 $searchArr = explode(' ', $searchStr);
 
-if (!empty($json->idGroup))
+if (!empty($json->idGroup) && (CORE_VERSION != "5.3"))
     $filterGroups = 'sg.id IN (' . implode(",", getIdsChildGroups($json->idGroup));
 if (!empty($json->filter))
     $filter = convertFields($json->filter);

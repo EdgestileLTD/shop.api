@@ -403,7 +403,7 @@ $u = new seTable('shop_price', 'sp');
 $u->select('sp.*, sg.id idGroup, sb.name AS nameBrand, sg.name AS nameGroup, sg.id_modification_group_def');
 $u->leftjoin('shop_brand sb', 'sb.id = sp.id_brand');
 if (CORE_VERSION == "5.3") {
-    $u->leftjoin("shop_price_group spg", "spg.id_price = sp.id");
+    $u->leftjoin("shop_price_group spg", "spg.id_price = sp.id AND spg.is_main = 1");
     $u->leftjoin('shop_group sg', 'sg.id = spg.id_group');
 } else {
     $u->leftjoin('shop_group sg', 'sp.id_group = sg.id');

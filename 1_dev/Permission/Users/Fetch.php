@@ -18,7 +18,7 @@ $u->orderby('su.id');
 $u->groupby('su.id');
 
 if (!empty($json->filter))
-    $u->where(convertFields($json->filter));
+    $u->andWhere(convertFields($json->filter));
 
 $count = $u->getListCount();
 $result = $u->getList();
