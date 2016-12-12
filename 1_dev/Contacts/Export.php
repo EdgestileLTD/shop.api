@@ -4,6 +4,27 @@ header('Content-Type: application/octet-stream');
 header('Content-Disposition: attachment; filename="contacts.zip"');
 header('Content-Transfer-Encoding: binary');
 
+// преоброзование переменных запроса в перемнные БД
+function convertFields($str)
+{
+    $str = str_replace('id ', 'p.id ', $str);
+    $str = str_replace('title', 'last_name', $str);
+    $str = str_replace('firstName', 'first_name', $str);
+    $str = str_replace('lastName', 'last_name', $str);
+    $str = str_replace('secondName', 'sec_name', $str);
+    $str = str_replace('regDate', 'reg_date', $str);
+    $str = str_replace('phone', 'phone', $str);
+    $str = str_replace('email', 'email', $str);
+    $str = str_replace('isRead', 'is_read', $str);
+    $str = str_replace('idGroup', 'sug.group_id', $str);
+    $str = str_replace('emailValid', 'email_valid', $str);
+    $str = str_replace('display', 'last_name', $str);
+    $str = str_replace('login', 'su.username', $str);
+    $str = str_replace('company', 'c.name', $str);
+    return $str;
+}
+
+
 $format = isset($json->format) ? $json->format : "csv";
 if ($format == "xml") {
     $dom = new DomDocument('1.0', 'utf-8');
@@ -71,13 +92,28 @@ function createExportFileFromQuery($query, $objectsName, $objectName)
 
 // ********************* контакты **********************************************************************************
 $u = new seTable('person', 'p');
-$u->select('p.reg_date RegDateTime, su.username Login, su.is_active IsActive,
-            p.last_name Surname, p.first_name Name, p.sec_name Patronymic, p.sex Gender,
-            p.birth_date BirthDate, p.email Email, p.phone Phone, p.note Note');
+$u->select('p.reg_date RegDateTime, su.username Login, 
+            p.last_name Surname, p.first_name Name, p.sec_name Patronymic, 
+            p.email Email, p.phone Phone, 
+            CASE price_type
+                WHEN 0 THEN "Розничая"
+                WHEN 1 THEN "Мелкооптовая"         
+                ELSE "Оптовая"
+            END PriceType, 
+            sg.name GroupName,
+            su.is_active IsActive,
+            p.note Note');
 $u->innerjoin('se_user su', 'p.id=su.id');
 $u->leftjoin('se_user_group sug', 'p.id=sug.user_id');
+$u->leftjoin('se_group sg', 'sug.group_id = sg.id');
 $u->groupby('p.id');
 $u->orderby('p.id');
+
+if (!empty($json->filter))
+    $filter = convertFields($json->filter);
+if (!empty($filter))
+    $u->where($filter);
+
 createExportFileFromQuery($u->getSql(), "contacts", "contact");
 
 // ********************* архивирование *****************************************************************************
