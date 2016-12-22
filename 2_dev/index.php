@@ -57,7 +57,7 @@ if (!empty($origin)) {
         if ($url['host'] == 'localhost' && $url['port'] == 1337)
             header("Access-Control-Allow-Origin: http://localhost:1337");
         header("Access-Control-Allow-Credentials: true");
-        header("Access-Control-Allow-Headers: Project, Seсookie");
+        header("Access-Control-Allow-Headers: Project, Secookie");
         header("Access-Control-Allow-Methods: $allowedMethods");
     }
     if ($apiMethod == "OPTIONS")
