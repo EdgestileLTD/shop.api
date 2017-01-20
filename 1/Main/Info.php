@@ -31,6 +31,19 @@ function getIsShowSESections($hostname)
     if (file_exists($pathPages)) {
         $content = file_get_contents($pathPages);
         return (bool) strpos($content, MODULE_SE_SECTION);
+    } else {
+        $dat = null;
+        if (file_exists($fileDat = PATH_ROOT . $hostname . '/public_html/hostname.dat'))
+            $dat = trim(file_get_contents($fileDat));
+        $data = explode("\t", $dat);
+        $dat  = count($data) == 2 ? $data[1] : $data[0];
+        if ($dat) {
+            $pathPages = PATH_ROOT . $hostname . "/public_html/projects/{$dat}/pages.xml";
+            if (file_exists($pathPages)) {
+                $content = file_get_contents($pathPages);
+                return (bool)strpos($content, MODULE_SE_SECTION);
+            }
+        }
     }
     return false;
 }
