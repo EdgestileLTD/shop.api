@@ -33,7 +33,7 @@ function saveProducts($idsOrders, $products) {
         if (!$p->id) {
             foreach ($idsOrders as $idOrder)
                 $data[] = array('id_order' => $idOrder, 'id_price' => $p->idPrice, 'article' => $p->article,
-                    'nameitem' => $p->name, 'price' => $p->price,
+                    'nameitem' => $p->name, 'price' => $p->price, 'price_purchase' => $p->pricePurchase,
                     'discount' => $p->discount, 'count' => $p->count, 'modifications' => $p->idsModifications,
                     'license' => $p->license, 'commentary' => $p->note, 'action' => $p->action);
         } else {
@@ -66,6 +66,7 @@ function saveProducts($idsOrders, $products) {
             $isUpdated |= setField(false, $u, $p->article, 'article');
             $isUpdated |= setField(false, $u, $p->name, 'nameitem');
             $isUpdated |= setField(false, $u, $p->price, 'price');
+            $isUpdated |= setField(false, $u, $p->pricePurchase, 'price_purchase');
             $isUpdated |= setField(false, $u, $p->discount, 'discount');
             $isUpdated |= setField(false, $u, $p->count, 'count');
             $isUpdated |= setField(false, $u, $p->license, 'license');
@@ -251,12 +252,12 @@ if ($isNew || !empty($ids)) {
                 $codeMail = 'payuser';
         }
         if ($codeMail) {
-            $urlSendEmail = 'http://' . $json->hostname . '/upload/sendmailorder.php';
             $params = array(
                 'lang' => 'rus',
                 'idorder' => $ids[0],
                 'codemail' => $codeMail
             );
+            $urlSendEmail = 'http://' . $json->hostname . '/upload/sendmailorder.php?' . http_build_query($params);
             $result = file_get_contents($urlSendEmail, false, stream_context_create(array(
                 'http' => array(
                     'method' => 'POST',

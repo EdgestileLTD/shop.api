@@ -15,13 +15,13 @@ RewriteRule ^(.*)$  index.php?%{QUERY_STRING}
 
 php_value session.gc_maxlifetime 86400
 
-#php_flag display_startup_errors on
-#php_flag display_errors on
-#php_flag html_errors on
-#php_value docref_root 0
-#php_value docref_ext 0
+php_flag display_startup_errors on
+php_flag display_errors on
+php_flag html_errors on
+php_value docref_root 0
+php_value docref_ext 0
 
-#php_flag  log_errors on
-#php_value error_log  /api/1/errors.log
+php_flag  log_errors on
+php_value error_log  api/errors.log
 
 AddType application/x-httpd-php .api
