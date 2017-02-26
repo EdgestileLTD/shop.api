@@ -18,21 +18,25 @@ class Product extends Base
     protected function getSettingsFetch()
     {
         if (CORE_VERSION == "5.3") {
-            $select = 'sp.id, sp.code, sp.article, sp.name, sp.price, sp.img, sp.img_alt, sp.curr, sp.presence,
+            $select = 'sp.id, sp.code, sp.article, sp.name, sp.price, sp.price_opt, sp.price_opt_corp, 
+                sp.img_alt, sp.curr, sp.presence, sp.bonus,
                 sp.presence_count presence_count, sp.flag_hit, sp.enabled, sp.flag_new, sp.note, sp.text, 
                 sp.price_purchase price_purchase, sp.measure, sp.step_count, sp.max_discount, sp.discount,
-                sp.title, sp.keywords, sp.description,
+                sp.title, sp.keywords, sp.description, sp.weight, sp.volume, spg.is_main,
                 spg.id_group id_group, sg.name name_group, sg.id_modification_group_def id_modification_group_def, 
+                (SELECT picture FROM shop_img WHERE id_price=sp.id LIMIT 1) img,
                 sb.name name_brand';
+//                (SELECT picture FROM shop_img WHERE id_price=sp.id LIMIT 1) img,
+
             $joins[] = array(
                 "type" => "left",
                 "table" => 'shop_price_group spg',
-                "condition" => 'spg.id_price = sp.id AND spg.is_main=1'
+                "condition" => 'spg.id_price = sp.id'
             );
             $joins[] = array(
                 "type" => "left",
                 "table" => 'shop_group sg',
-                "condition" => 'sg.id = spg.id_group'
+                "condition" => 'sg.id = sp.id_group'
             );
         } else {
             $select = 'sp.*, sg.name name_group, sg.id_modification_group_def id_modification_group_def, 
@@ -56,6 +60,22 @@ class Product extends Base
         $result["select"] = $select;
         $result["joins"] = $joins;
         return $result;
+    }
+
+    public function fetch()
+    {
+        parent::fetch();
+        $list = $this->result['items'];
+        $this->result['items'] = array();
+        foreach ($list as $item) {
+            if (strpos($item['img'], "://") === false) {
+                if ($item['img'] && file_exists(DOCUMENT_ROOT . '/images/rus/shopprice/' . $item['img']))
+                    $item['imageUrlPreview'] = "http://{$this->hostname}/lib/image.php?size=64&img=images/rus/shopprice/" . $item['img'];
+            } else {
+                $item['imageUrlPreview'] = $item['img'];
+            }
+            $this->result['items'][] = $item;
+        }
     }
 
     protected function getSettingsInfo()
@@ -211,13 +231,15 @@ class Product extends Base
     public function getComments($idProduct = null)
     {
         $id = $idProduct ? $idProduct : $this->input["id"];
-        return (new Comment())->fetchByIdProduct($id);
+        $comment = new Comment();
+        return $comment->fetchByIdProduct($id);
     }
 
     public function getReviews($idProduct = null)
     {
         $id = $idProduct ? $idProduct : $this->input["id"];
-        return (new Review())->fetchByIdProduct($id);
+        $review = new Review();
+        return $review->fetchByIdProduct($id);
     }
 
     public function getCrossGroups($idProduct = null)
@@ -330,7 +352,7 @@ class Product extends Base
                     $modification['article'] = $product["article"];
                 if (!$modification['measurement'])
                     $modification['measurement'] = $product['measurement'];
-                $modification['price'] = (real)$item['value'];
+                $modification['priceRetail'] = (real)$item['value'];
                 $modification['priceSmallOpt'] = (real)$item['valueOpt'];
                 $modification['priceOpt'] = (real)$item['valueOptCorp'];
                 $modification['description'] = $item['description'];
@@ -404,7 +426,8 @@ class Product extends Base
         $result["discounts"] = $this->getDiscounts();
         $result["crossGroups"] = $this->getCrossGroups();
         $result["modifications"] = $this->getModifications();
-        //$result["customFields"] = $this->getCustomFields();
+        $result["customFields"] = $this->getCustomFields();
+        if (empty($result["customFields"])) $result["customFields"] = false;
         return $result;
     }
 
@@ -422,6 +445,13 @@ class Product extends Base
             $i++;
         }
         return uniqid();
+    }
+
+    public function save()
+    {
+        if (isset($this->input["code"]) && empty($this->input["code"]))
+            $this->input["code"] = strtolower(se_translite_url($this->input["code"]));
+        parent::save();
     }
 
     protected function correctValuesBeforeSave()
@@ -541,36 +571,34 @@ class Product extends Base
     private function getCustomFields()
     {
         $idPrice = $this->input["id"];
-        $u = new DB('shop_userfields', 'su');
-        $u->select("cu.id, cu.id_price, cu.value, su.id id_userfield, 
+        try {
+            $u = new DB('shop_userfields', 'su');
+            $u->select("cu.id, cu.id_price, cu.value, su.id id_userfield, 
                     su.name, su.type, su.values, sug.id id_group, sug.name name_group");
-        $u->leftJoin('shop_price_userfields cu', "cu.id_userfield = su.id AND cu.id_price = {$idPrice}");
-        $u->leftJoin('shop_userfield_groups sug', 'su.id_group = sug.id');
-        $u->where('su.data = "product"');
-        $u->groupBy('su.id');
-        $u->orderBy('sug.sort');
-        $u->addOrderBy('su.sort');
-        $result = $u->getList();
+            $u->leftJoin('shop_price_userfields cu', "cu.id_userfield = su.id AND cu.id_price = {$idPrice}");
+            $u->leftJoin('shop_userfield_groups sug', 'su.id_group = sug.id');
+            $u->where('su.data = "product"');
+            $u->groupBy('su.id');
+            $u->orderBy('sug.sort');
+            $u->addOrderBy('su.sort');
+            $result = $u->getList();
 
-        $groups = [];
-        foreach ($result as $item) {
-            $isNew = true;
-            $newGroup = [];
-            $newGroup["id"] = $item["idGroup"];
-            $newGroup["name"] = empty($item["nameGroup"]) ? "Без категории": $item["nameGroup"];
-            foreach ($groups as $group)
-                if ($group["id"] == $item["idGroup"]) {
-                    $isNew = false;
-                    $newGroup = $group;
-                    break;
-                }
-            if ($item['type'] == "date")
-                $item['value'] = date('Y-m-d', strtotime($item['value']));
-            $newGroup["items"][] = $item;
-            if ($isNew)
-                $groups[] = $newGroup;
+            $groups = array();
+            foreach ($result as $item) {
+                $groups[intval($item["idGroup"])]["id"] = $item["idGroup"];
+                $groups[intval($item["idGroup"])]["name"] = empty($item["nameGroup"]) ? "Без категории" : $item["nameGroup"];
+                if ($item['type'] == "date")
+                    $item['value'] = date('Y-m-d', strtotime($item['value']));
+                $groups[intval($item["idGroup"])]["items"][] = $item;
+            }
+            $grlist = array();
+            foreach ($groups as $id => $gr) {
+                $grlist[] = $gr;
+            }
+            return $grlist;
+        } catch (Exception $e) {
+            return false;
         }
-        return $groups;
     }
 
     private function saveSpecifications()
@@ -593,13 +621,13 @@ class Product extends Base
             foreach ($specifications as $specification) {
                 foreach ($idsProducts as $idProduct) {
                     if ($isAddSpecifications) {
-                        if (is_string($specification["valueString"]))
+                        if (is_string($specification["valueString"]) && $specification["type"] == "string")
                             $m->where("id_price = {$idProduct} AND id_feature = {$specification["idFeature"]} AND 
-							           value_string = '{$specification["valueString"]}'");
-                        if (is_bool($specification["valueBool"]))
+							           value_string = '{$specification["value"]}'");
+                        if (is_bool($specification["valueBool"]) && $specification["type"] == "bool")
                             $m->where("id_price = {$idProduct} AND id_feature = {$specification["idFeature"]} AND 
-							           value_bool = '{$specification["valueBool"]}'");
-                        if (is_numeric($specification["valueNumber"]))
+							           value_bool = '{$specification["value"]}'");
+                        if (is_numeric($specification["valueNumber"]) && $specification["type"] == "number")
                             $m->where("id_price = {$idProduct} AND id_feature = {$specification["idFeature"]} AND 
 							           value_number = '{$specification["valueNumber"]}'");
                         if (is_numeric($specification["idValue"]))
@@ -609,13 +637,16 @@ class Product extends Base
                         if ($result["id"])
                             continue;
                     }
+                    /*
                     if ($specification["type"] == "number")
                         $specification["valueNumber"] = $specification["value"];
                     elseif ($specification["type"] == "string")
                         $specification["valueString"] = $specification["value"];
                     elseif ($specification["type"] == "bool")
                         $specification["valueBool"] = $specification["value"];
-                    elseif (empty($specification["idValue"]))
+                    else
+                         */
+                    if (($specification["type"] == "colorlist" || $specification["type"] == "list") && empty($specification["idValue"]))
                         continue;
                     $data[] = array('id_price' => $idProduct, 'id_feature' => $specification["idFeature"],
                         'id_value' => $specification["idValue"],
@@ -623,6 +654,7 @@ class Product extends Base
                         'value_bool' => $specification["valueBool"], 'value_string' => $specification["valueString"]);
                 }
             }
+            writeLog($data);
             if (!empty($data))
                 DB::insertList('shop_modifications_feature', $data);
             return true;
@@ -870,7 +902,7 @@ class Product extends Base
                         foreach ($idsProducts as $idProduct) {
                             $i++;
                             $dataM[] = array('id' => $i, 'code' => $item["article"],
-                                'id_mod_group' => $mod["id"], 'id_price' => $idProduct, 'value' => $item["price"],
+                                'id_mod_group' => $mod["id"], 'id_price' => $idProduct, 'value' => $item["priceRetail"],
                                 'value_opt' => $item["priceSmallOpt"], 'value_opt_corp' => $item["priceOpt"], 'count' => $count,
                                 'sort' => (int)$item["sortIndex"], 'description' => $item["description"]);
                             foreach ($item["values"] as $v)
@@ -902,7 +934,7 @@ class Product extends Base
                         if (!empty($item["id"])) {
                             $u = new DB('shop_modifications', 'sm');
                             $item["code"] = $item["article"];
-                            $item["value"] = $item["price"];
+                            $item["value"] = $item["priceRetail"];
                             $item["valueOpt"] = $item["priceOpt"];
                             $item["valueOptCorp"] = $item["priceSmallOpt"];
                             $item["sort"] = $item["sortIndex"];
@@ -959,7 +991,7 @@ class Product extends Base
 
     private function saveCustomFields()
     {
-        if (!isset($this->input["customFields"]))
+        if (!isset($this->input["customFields"]) && !$this->input["customFields"])
             return true;
 
         try {

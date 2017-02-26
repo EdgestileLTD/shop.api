@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<pages>
+	<page name="home">
+		<title>Главная</title>
+		<mainlevel>1</mainlevel>
+		<skin>default</skin>
+		<groupsname></groupsname>
+		<groupslevel>0</groupslevel>
+		<indexes>1</indexes>
+		<priority>5</priority>
+		<level>1</level>
+		<modules name="slider_big" id="1" />
+		<modules name="apromo_banner" id="2" />
+		<modules name="ashop_special_respons" id="7" />
+		<modules name="atextblock3" id="6" />
+		<modules name="agroups_informer" id="4" />
+		<modules name="ashop_brands" id="5" />
+		<modules name="anews_informer" id="1001" />
+		<modules name="ashop_tags" id="1002" />
+	</page>
+	<page name="about">
+		<title>О компании</title>
+		<mainlevel>0</mainlevel>
+		<skin>default</skin>
+		<groupsname></groupsname>
+		<groupslevel>0</groupslevel>
+		<indexes>1</indexes>
+		<priority>5</priority>
+		<level>1</level>
+	</page>
+	<page name="news">
+		<title>Новости</title>
+		<mainlevel>0</mainlevel>
+		<skin>default</skin>
+		<groupsname></groupsname>
+		<groupslevel>0</groupslevel>
+		<indexes>1</indexes>
+		<priority>5</priority>
+		<level>2</level>
+	</page>
+	<page name="contact">
+		<title>Контакты</title>
+		<mainlevel>0</mainlevel>
+		<skin>default</skin>
+		<groupsname></groupsname>
+		<groupslevel>0</groupslevel>
+		<indexes>1</indexes>
+		<priority>5</priority>
+		<level>2</level>
+		<modules name="acontacts" id="1" />
+		<modules name="spacer_hor" id="2" />
+	</page>
+	<page name="maps">
+		<title>Карта сайта</title>
+		<mainlevel>0</mainlevel>
+		<skin>default</skin>
+		<groupsname></groupsname>
+		<groupslevel>0</groupslevel>
+		<indexes>1</indexes>
+		<priority>5</priority>
+		<level>2</level>
+	</page>
+	<page name="pomoshch-pokupatelyu">
+		<title>Помощь покупателю</title>
+		<mainlevel>0</mainlevel>
+		<skin>default</skin>
+		<groupsname></groupsname>
+		<groupslevel>0</groupslevel>
+		<indexes>1</indexes>
+		<priority>5</priority>
+		<level>1</level>
+	</page>
+	<page name="dostavka">
+		<title>Доставка</title>
+		<mainlevel>0</mainlevel>
+		<skin>default</skin>
+		<groupsname></groupsname>
+		<groupslevel>0</groupslevel>
+		<indexes>1</indexes>
+		<priority>5</priority>
+		<level>2</level>
+	</page>
+	<page name="oplata">
+		<title>Оплата</title>
+		<mainlevel>0</mainlevel>
+		<skin>default</skin>
+		<groupsname></groupsname>
+		<groupslevel>0</groupslevel>
+		<indexes>1</indexes>
+		<priority>5</priority>
+		<level>2</level>
+	</page>
+	<page name="kak-sdelat-zakaz">
+		<title>Как сделать заказ</title>
+		<mainlevel>0</mainlevel>
+		<skin>default</skin>
+		<groupsname></groupsname>
+		<groupslevel>0</groupslevel>
+		<indexes>1</indexes>
+		<priority>5</priority>
+		<level>2</level>
+	</page>
+	<page name="kak-zaregistrirovatsya">
+		<title>Как зарегистрироваться</title>
+		<mainlevel>0</mainlevel>
+		<skin>default</skin>
+		<groupsname></groupsname>
+		<groupslevel>0</groupslevel>
+		<indexes>1</indexes>
+		<priority>5</priority>
+		<level>2</level>
+	</page>
+	<page name="informaciya">
+		<title>Информация</title>
+		<mainlevel>0</mainlevel>
+		<skin>default</skin>
+		<groupsname></groupsname>
+		<groupslevel>0</groupslevel>
+		<indexes>1</indexes>
+		<priority>5</priority>
+		<level>1</level>
+	</page>
+	<page name="obmen-i-vozvrat">
+		<title>Обмен и возврат</title>
+		<mainlevel>0</mainlevel>
+		<skin>default</skin>
+		<groupsname></groupsname>
+		<groupslevel>0</groupslevel>
+		<indexes>1</indexes>
+		<priority>5</priority>
+		<level>2</level>
+	</page>
+	<page name="nashi-garantii">
+		<title>Наши гарантии</title>
+		<mainlevel>0</mainlevel>
+		<skin>default</skin>
+		<groupsname></groupsname>
+		<groupslevel>0</groupslevel>
+		<indexes>1</indexes>
+		<priority>5</priority>
+		<level>2</level>
+	</page>
+	<page name="publichnaya-oferta">
+		<title>Публичная оферта</title>
+		<mainlevel>0</mainlevel>
+		<skin>default</skin>
+		<groupsname></groupsname>
+		<groupslevel>0</groupslevel>
+		<indexes>1</indexes>
+		<priority>5</priority>
+		<level>2</level>
+	</page>
+	<page name="magazin">
+		<title>Магазин</title>
+		<mainlevel>0</mainlevel>
+		<skin>default</skin>
+		<groupsname></groupsname>
+		<groupslevel>0</groupslevel>
+		<indexes>1</indexes>
+		<priority>5</priority>
+		<level>1</level>
+	</page>
+	<page name="kabinet">
+		<title>Кабинет</title>
+		<mainlevel>0</mainlevel>
+		<skin>default</skin>
+		<groupsname></groupsname>
+		<groupslevel>0</groupslevel>
+		<indexes>1</indexes>
+		<priority>5</priority>
+		<level>2</level>
+		<modules name="abreadcrumbs" id="2" />
+		<modules name="apersonal" id="3" />
+		<modules name="ashop_order_list" id="5" />
+		<modules name="spacer_hor" id="4" />
+	</page>
+	<page name="shopcart">
+		<title>Моя корзина</title>
+		<mainlevel>0</mainlevel>
+		<skin>default</skin>
+		<groupsname></groupsname>
+		<groupslevel>0</groupslevel>
+		<indexes>1</indexes>
+		<priority>5</priority>
+		<level>2</level>
+		<modules name="abreadcrumbs" id="2" />
+		<modules name="ashop_cart_compl" id="1" />
+		<modules name="spacer_hor" id="3" />
+	</page>
+	<page name="registration">
+		<title>Регистрация</title>
+		<mainlevel>0</mainlevel>
+		<skin>default</skin>
+		<groupsname></groupsname>
+		<groupslevel>0</groupslevel>
+		<indexes>0</indexes>
+		<priority>5</priority>
+		<level>2</level>
+	</page>
+	<page name="catalogue">
+		<title>Каталог</title>
+		<mainlevel>0</mainlevel>
+		<skin>default</skin>
+		<groupsname></groupsname>
+		<groupslevel>0</groupslevel>
+		<indexes>1</indexes>
+		<priority>5</priority>
+		<level>1</level>
+		<modules name="abreadcrumbs" id="1" />
+		<modules name="ashop_vitrine_compl" id="2" />
+		<modules name="spacer_hor" id="3" />
+	</page>
+</pages>

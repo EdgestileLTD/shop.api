@@ -1,7 +1,7 @@
 <?php
 
 $allowedMethods = array('FETCH', 'POST', 'DELETE', 'SAVE', 'INFO', 'GET', 'ADDPRICE', 'TRANSLIT', 'UPLOAD',
-    'CHECKNAMES', 'SORT', 'EXPORT', 'IMPORT', 'LOGOUT');
+    'CHECKNAMES', 'SORT', 'EXPORT', 'IMPORT', 'LOGOUT', 'ITEMS');
 $allowedMethods = implode(",", $allowedMethods);
 
 $headers = getallheaders();
@@ -100,6 +100,10 @@ else {
 }
 $coreVersion = "5.1";
 $verFile = DOCUMENT_ROOT . "/lib/version";
+
+//writeLog($_SESSION['countSites']);
+//define("SE_FOLDER", $_SESSION['seFolder']);
+
 if (file_exists($verFile)) {
     $coreVersion = trim(file_get_contents($verFile));
     $coreVersion = explode(':', $coreVersion);

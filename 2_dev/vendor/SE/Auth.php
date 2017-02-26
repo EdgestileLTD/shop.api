@@ -92,6 +92,8 @@ class Auth extends Base
                 }
             }
 
+            $authData['seFolder'] = 'www';
+
             if (!empty($this->error))
                 return $this;
 
@@ -114,8 +116,12 @@ class Auth extends Base
                         if ($this->getMySQLVersion() < 56)
                             $this->correctFileUpdateForMySQL56($fileUpdate);
                         $query = file_get_contents($fileUpdate);
-                        DB::query($query);
-                        DB::query("UPDATE se_settings SET db_version=$i");
+                        try {
+                            DB::query($query);
+                            DB::query("UPDATE se_settings SET db_version=$i");
+                        } catch (\PDOException $e) {
+                            writeLog("Exception ERROR UPDATE {$i}.sql: ".$query);
+                        }
                     }
                 }
                 DB::setErrorMode(\PDO::ERRMODE_EXCEPTION);
@@ -125,10 +131,12 @@ class Auth extends Base
             $authData["hash"] = $this->input["hash"];
             $data['config'] = $authData;
             $data['permissions'] = $this->getPermission($data['idUser']);
+            $data['countSites'] = $authData['countSites'];
 
             $_SESSION["login"] = $this->input["login"];
             $_SESSION["hash"] = $this->input["hash"];
             $_SESSION['idUser'] = $data['idUser'];
+            $_SESSION['countSites'] = $authData['countSites'];
             $_SESSION['isAuth'] = true;
             $_SESSION['hostname'] = HOSTNAME;
 

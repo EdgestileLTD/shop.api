@@ -2,7 +2,7 @@ ALTER TABLE shop_userfields
   CHANGE COLUMN data data ENUM('contact','order','company') NOT NULL DEFAULT 'contact';
 
 ALTER TABLE shop_userfield_groups
-  CHANGE COLUMN updated_at updated_at TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP;
+  CHANGE COLUMN updated_at updated_at TIMESTAMP NOT NULL;
 
 ALTER TABLE shop_userfield_groups
 ADD COLUMN data ENUM('contact','order','company') DEFAULT NULL AFTER enabled;
@@ -16,7 +16,7 @@ CREATE TABLE person_userfields (
   id_person INT(10) UNSIGNED NOT NULL,
   id_userfield INT UNSIGNED NOT NULL,
   value TEXT DEFAULT NULL,
-  updated_at TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL,
   created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   CONSTRAINT FK_person_userfields_se_user_id FOREIGN KEY (id_person)
@@ -31,7 +31,7 @@ CREATE TABLE company_userfields (
   id_company INT(10) UNSIGNED NOT NULL,
   id_userfield INT UNSIGNED NOT NULL,
   value TEXT DEFAULT NULL,
-  updated_at TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL,
   created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   CONSTRAINT FK_company_userfields_company_id FOREIGN KEY (id_company)

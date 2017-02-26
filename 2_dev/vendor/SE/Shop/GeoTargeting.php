@@ -43,6 +43,14 @@ class GeoTargeting extends Base
         return $items;
     }
 
+    private function getVariables()
+    {
+        $sv = new DB('shop_variables', 'sv');
+        $sv->select('sgv.id, sv.id AS id_variable, sv.name, sgv.value');
+        $sv->leftJoin('shop_geo_variables sgv', 'sv.id=sgv.id_variable AND sgv.id_contact='.intval($this->input['id']));
+        return $sv->getList();
+    }
+
     protected function getAddInfo()
     {
         $result = [];
@@ -51,13 +59,33 @@ class GeoTargeting extends Base
             if (count($cities))
                 $result["city"] = $cities[$this->result["idCity"]];
         }
+        $result["variables"] = $this->getVariables();
         return $result;
     }
 
     protected function saveAddInfo()
     {
-        return $this->saveContactGeo();
+        return $this->saveContactGeo() && $this->saveVariables();
     }
+
+    private function saveVariables()
+    {
+        $data = $this->input;
+        unset($data["ids"]);
+        try {
+            foreach($data['variables'] as $variable) {
+                $variable["idContact"] = $data["id"];
+                $t = new DB('shop_geo_variables');
+                $t->setValuesFields($variable);
+                $t->save();
+            }
+            return true;
+        } catch (Exception $e) {
+            $this->error = "Не удаётся сохранить переменные геотаргетинга!";
+        }
+        return false;
+    }
+
 
     private function saveContactGeo()
     {
@@ -94,5 +122,12 @@ class GeoTargeting extends Base
             return $result;
         }
         return [];
+    }
+
+    public function save()
+    {
+        $t = new DB('shop_contacts');
+        $t->add_field('url', 'varchar(255)');
+        parent::save();
     }
 }

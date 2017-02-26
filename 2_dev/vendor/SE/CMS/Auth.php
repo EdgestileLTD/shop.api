@@ -52,6 +52,7 @@ class Auth extends Base
                 $data['userDisplay'] = 'Администратор';
                 $data['isAdmin'] = true;
                 $data['hostname'] = $this->hostname;
+                $data['seFolder'] = 'www';
                 $authData["login"] = $this->input["login"];
                 $authData["hash"] = $this->input["hash"];
                 $data['config'] = $authData;
@@ -62,6 +63,7 @@ class Auth extends Base
                 $_SESSION['isAuth'] = true;
                 $_SESSION['hostname'] = HOSTNAME;
                 $_SESSION['idLang'] = 1;
+                $_SESSION['seFolder'] = $data['seFolder'];
                 $_SESSION['idCurrency'] = $this->getIdCurrency();
                 $_SESSION["idTypePrice"] = $this->getIdTypePrice();
                 $_SESSION["idWarehouse"] = 1;

@@ -44,6 +44,22 @@ class ProductType extends Base
         }
     }
 
+    public function items() {
+        try {
+            $id = $this->input["id"];
+
+            $u = new DB('shop_product_type_feature', 'sptf');
+            $u->select("sptf.id, sptf.id_feature, sf.name, sf.type, sf.sort, sf.measure");
+            $u->innerJoin('shop_feature sf', 'sf.id = sptf.id_feature');
+            $u->groupBy("sf.id");
+            $u->where('sptf.id_type = ?', $id);
+            $this->result["features"] = $u->getList();
+            return $this->result;
+        } catch (Exception $e) {
+            $this->error = "Не удаётся получить список параметров типа!";
+        }
+    }
+
     protected function getAddInfo()
     {
         $result["features"] = $this->getFeatures();

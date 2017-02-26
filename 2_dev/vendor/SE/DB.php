@@ -161,6 +161,64 @@ class DB
         } else throw new Exception("The connection is not initialized!");
     }
 
+    public function add_index($field_name, $index = 1){
+        if (!DB::is_index($field_name)){
+            $index = ($index == 1) ? 'INDEX' : 'UNIQUE';
+            DB::query("ALTER TABLE `{$this->tableName}` ADD {$index}(`{$field_name}`);");
+        }
+    }
+
+    public function is_field($field)
+    {
+        $sql = "SHOW COLUMNS FROM `{$this->tableName}` WHERE Field='$field'";
+        $flist = DB::query($sql)->fetchAll();
+        return (count($flist) > 0);
+    }
+
+    public function is_index($field_name, $name_index = ''){
+        $key_index = ($name_index) ? " AND `Key_name`='{$name_index}'" : '';
+        $sql = "SHOW INDEX FROM `{$this->tableName}` WHERE `Column_name` = '{$field_name}'".$key_index;
+        $flist = DB::query($sql)->fetchAll();
+        return (count($flist) > 0);
+
+    }
+
+    public function add_field($field, $type = 'varchar(20)', $default = null, $index=0)
+    {
+        if (!$this->is_field($field)) {
+            $type = str_replace(array('integer', 'string', 'integer(2)', 'integer(4)', 'bool', 'boolean'),
+                array('int', 'varchar', 'int', 'bigint', 'tinyint(1)', 'tinyint(1)'), $type);
+            if (preg_match("/float(\([\d\,]+\))?/u", $type, $m)) {
+                $m[1] = preg_replace("/[\(\)]/", '', $m[1]);
+                if (!empty($m[1])) {
+                    list($dec,) = explode(',', $m[1]);
+                    if (floatval($dec) < 8) $newType = 'float(' . $m[1] . ')';
+                    else $newType = 'double(' . $m[1] . ')';
+                } else $newType = 'double(10,2)';
+                $type = str_replace($m[0], $newType, $type);
+            }
+            $after = '';
+            $fields = $this->getFields();
+            foreach ($fields as $fld) {
+                $after = $fld['Field'];
+            }
+            if ($after) {
+                $after = " AFTER `{$after}`";
+            }
+            if ($default !== null) {
+                $default = ' default ' . $default . ' ';
+            } else {
+                $default = ' default NULL ';
+            }
+        //writeLog("ALTER TABLE `{$this->tableName}` ADD `{$field}` {$type}{$default}{$after};");
+            DB::exec("ALTER TABLE `{$this->tableName}` ADD `{$field}` {$type}{$default}{$after}");
+        }
+        if ($index){
+            $this->add_index($field, $index);
+        }
+    }
+
+
     public static function strToCamelCase($str)
     {
         $separator = '_';

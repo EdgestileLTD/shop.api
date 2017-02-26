@@ -4,7 +4,7 @@ CREATE TABLE email_providers (
   url varchar(255) DEFAULT NULL,
   settings varchar(255) NOT NULL COMMENT 'настройки email сервиса (JSON формат)',
   is_active tinyint(1) DEFAULT 0,
-  updated_at timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
+  updated_at timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id)
 )

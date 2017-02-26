@@ -1,0 +1,13 @@
+Exception: Query: INSERT INTO shop_geo_variables SET `id_variable` = :id_variable, `value` = :value, `id_contact` = :id_contact
+Error: SQLSTATE[23000]: Integrity constraint violation: 1048 Column 'value' cannot be null
+Exception: 
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_6933.shop_geo_variables' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_6933.shop_geo_variables' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_6933.shop_geo_variables' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_6933.shop_geo_variables' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_6933.shop_geo_variables' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_6933.shop_geo_variables' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_6933.shop_geo_variables' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_6933.shop_geo_variables' doesn't exist
+Exception: Query: INSERT INTO shop_reviews SET `date` = :date, `mark` = :mark, `use_time` = :use_time
+Error: SQLSTATE[23000]: Integrity constraint violation: 1452 Cannot add or update a child row: a foreign key constraint fails (`edgestile_6933`.`shop_reviews`, CONSTRAINT `FK_shop_reviews_shop_price_id` FOREIGN KEY (`id_price`) REFERENCES `shop_price` (`id`) ON DELETE CASCADE ON UPDATE CASCADE)

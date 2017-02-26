@@ -47,15 +47,19 @@ class ContactCategory extends Base
     public function save()
     {
         $result = parent::save();
-        if ($this->isNew) {
+        if ($this->input["addBook"]) {
             $emailService = new EmailProvider();
             if ($idBook = $emailService->createAddressBook($this->input["name"])) {
                 $data["id"] = $this->input["id"];
-                $data["emailSettings"] = json_encode(["idBook" => $idBook]);
+                $data["emailSettings"] = json_encode(array("idBook" => $idBook));
                 $u = new DB("se_group");
+                //writeLog($data);
+
                 $u->setValuesFields($data);
                 $u->save();
+                $this->info();
             }
+            $this->addContactsInAddressBook($this->input["id"]);
         }
         return $result;
     }
@@ -72,6 +76,34 @@ class ContactCategory extends Base
                 $emailService = new EmailProvider();
                 $emailService->removeAddressBook($data["idBook"]);
             }
+        }
+    }
+
+    private function addContactsInAddressBook($id_group)
+    {
+        $u1 = new DB('se_group', 'sg');
+        $u1->select('sg.email_settings');
+        $settings = $u1->find($id_group);
+
+        $emailSettings = ($settings['emailSettings']) ? json_decode($settings['emailSettings'], true) : array();
+        if (!empty($emailSettings) && $emailSettings['idBook']) {
+            $u = new DB('se_user_group', 'sug');
+            $u->select('p.email');
+            $u->innerjoin('person p', 'sug.user_id=p.id');
+            $u->innerjoin('se_user su', 'sug.user_id=su.id');
+            $u->groupBy('p.email');
+            $u->where('sug.group_id=?', $id_group);
+            $u->andwhere("su.is_active = 'Y'");
+            $u->andwhere("p.email <> ''");
+
+            $list = $u->getList();
+            $emails = array();
+            foreach($list as $email) {
+                if (se_CheckMail($email['email']))
+                    $emails[] = $email['email'];
+            }
+            $emailService = new EmailProvider();
+            $emailService->addEmails(array($emailSettings['idBook']), $emails);
         }
     }
 }

@@ -137,6 +137,27 @@ class Delivery extends Base
         return $u->sort + 1;
     }
 
+    public function save()
+    {
+        writeLog($this->input["cityFromDelivery"]);
+       if ($this->input["cityFromDelivery"]) {
+            $citys = json_decode(file_get_contents(dirname(__FILE__) . '/delivery/sdek/rus.json'), true);
+            $fl = false;
+            foreach ($citys as $city => $id) {
+                if (mb_stripos($city, $this->input["cityFromDelivery"])===0) {
+                    $fl = true;
+                        //writeLog($city);
+                    //$this->input["cityFromDelivery"] = $city;
+                    $this->input["idCityFrom"] = $city;
+                    break;
+                }
+            }
+            if (!$fl) $this->input["idCityFrom"] = '';
+        }
+        parent::save();
+
+    }
+
     private function savePaySystem()
     {
         try {

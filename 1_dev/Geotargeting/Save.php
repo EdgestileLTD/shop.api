@@ -19,6 +19,22 @@ function saveIdCity($idContact, $idCity)
     $u->save();
 }
 
+function saveVariables($idContact, $variables)
+{
+    foreach ($variables as $variable) {
+        $t = new seTable('shop_geo_variables');
+        if ($variable->id) {
+            $t->where("id = ?", $variable->id);
+            $t->fetchOne();
+        } else {
+            $t->id_contact = $idContact;
+            $t->id_variable = $variable->idVariable;
+        }
+        $t->value = $variable->value;
+        $t->save();
+    }
+}
+
 $ids = array();
 if (empty($json->ids) && !empty($json->id))
     $ids[] = $json->id;
@@ -28,6 +44,7 @@ if (!$isNew)
     $idsStr = implode(",", $ids);
 
 $u = new seTable('shop_contacts', 'sс');
+
 
 if ($isNew || !empty($ids)) {
     $isUpdated = false;
@@ -41,6 +58,7 @@ if ($isNew || !empty($ids)) {
     $isUpdated |= setField($isNew, $u, $json->isActive, 'is_visible');
     $isUpdated |= setField($isNew, $u, $json->sortIndex, 'sort');
     $isUpdated |= setField($isNew, $u, $json->image, 'image');
+    $isUpdated |= setField($isNew, $u, $json->url, 'url');
 
     if ($isUpdated) {
         if (!empty($idsStr)) {
@@ -55,6 +73,7 @@ if ($isNew || !empty($ids)) {
 
     if (isset($json->idCity))
         saveIdCity($ids[0], $json->idCity);
+    saveVariables($ids[0], $json->variables);
 };
 
 $data['id'] = $ids[0];

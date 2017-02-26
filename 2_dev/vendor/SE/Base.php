@@ -15,12 +15,13 @@ class Base
     protected $dirImages;
     protected $projectFolder;
     protected $contentFolder;
-    protected $seFolder = '/www';
+    protected $seFolder = 'www';
     protected $imageSize = 256;
     protected $imagePreviewSize = 64;
 
     function __construct($input = null)
     {
+        //$this->seFolder = SE_FOLDER;
         $this->input = empty($input) || is_array($input) ? $input : json_decode($input, true);
         $this->hostname = HOSTNAME;
         $this->projectFolder = DOCUMENT_ROOT . "/projects" . $this->seFolder;

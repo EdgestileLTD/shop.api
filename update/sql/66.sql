@@ -8,7 +8,7 @@ CREATE TABLE company (
   email varchar(255) DEFAULT NULL,
   address varchar(255) DEFAULT NULL,
   note varchar(255) DEFAULT NULL,
-  updated_at timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
+  updated_at timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id)
 )
@@ -27,7 +27,7 @@ CREATE TABLE company_person (
   id int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   id_company int(10) UNSIGNED DEFAULT NULL,
   id_person int(10) UNSIGNED DEFAULT NULL,
-  updated_at timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
+  updated_at timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id)
 )

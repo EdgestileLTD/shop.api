@@ -236,6 +236,73 @@ class Base extends CustomBase
         return $result;
     }
 
+    protected function getSearchQuery($searchFields = array())
+    {
+        $searchItem = trim($this->search);
+        if (empty($searchItem))
+            return array();
+        $where = array();
+        $searchWords = explode(' ', $searchItem);
+        foreach($searchWords as $searchItem) {
+            $result = array();
+            if (!trim($searchItem)) continue;
+            if (is_string($searchItem))
+                $searchItem = trim(DB::quote($searchItem), "'");
+
+            $finds = $this->getSettingsFind();
+            $time = 0;
+            if (strpos($searchItem, "-") !== false) {
+                $time = strtotime($searchItem);
+            }
+
+            foreach ($searchFields as $field) {
+                if (strpos($field["Field"], ".") === false)
+                    $field["Field"] = $this->tableAlias . "." . $field["Field"];
+                if (!empty($finds) && !in_array($field["Field"], $finds)) continue;
+
+                // текст
+                if ((strpos($field["Type"], "char") !== false) || (strpos($field["Type"], "text") !== false)) {
+                    $result[] = "{$field["Field"]} LIKE '%{$searchItem}%'";
+                    continue;
+                }
+                // дата
+                if ($field["Type"] == "date") {
+                    if ($time) {
+                        $searchItem = date("Y-m-d", $time);
+                        $result[] = "{$field["Field"]} = '$searchItem'";
+                    }
+                    continue;
+                }
+                // время
+                if ($field["Type"] == "time") {
+                    if ($time) {
+                        $searchItem = date("H:i:s", $time);
+                        $result[] = "{$field["Field"]} = '$searchItem'";
+                    }
+                    continue;
+                }
+                // дата и время
+                if ($field["Type"] == "datetime") {
+                    if ($time) {
+                        $searchItem = date("Y-m-d H:i:s", $time);
+                        $result[] = "{$field["Field"]} = '$searchItem'";
+                    }
+                    continue;
+                }
+                // число
+                if (strpos($field["Type"], "int") !== false) {
+                    if (intval($searchItem)) {
+                        $result[] = "{$field["Field"]} = " . intval($searchItem);
+                        continue;
+                    }
+                }
+            }
+            if (!empty($result))
+                $where[] = '(' . implode(" OR ", $result) . ')';
+        }
+        return implode(" AND ", $where);
+    }
+/*
     protected function getSearchQuery($searchFields = [])
     {
         $result = [];
@@ -296,6 +363,7 @@ class Base extends CustomBase
         }
         return implode(" OR ", $result);
     }
+*/
 
     protected function getFilterQuery()
     {

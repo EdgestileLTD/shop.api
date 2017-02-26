@@ -292,8 +292,53 @@ class Category extends Base
         $result["childs"] = $this->getChilds();
         $modf = new Modification();
         $result["modificationsGroups"] = $modf->fetch();
+        $result["customFields"] = $this->getCustomFields();
+        if (empty($result["customFields"])) $result["customFields"] = false;
         return $result;
     }
+
+    private function getCustomFields()
+    {
+        try {
+            $idGroup = intval($this->input["id"]);
+            $u = new DB('shop_userfields', 'su');
+            $u->select("cu.id, cu.id_shopgroup, cu.value, su.id id_userfield, 
+                    su.name, su.type, su.values, sug.id id_group, sug.name name_group");
+            $u->leftJoin('shop_group_userfields cu', "cu.id_userfield = su.id AND cu.id_shopgroup = {$idGroup}");
+            $u->leftJoin('shop_userfield_groups sug', 'su.id_group = sug.id');
+            $u->where('su.data = "productgroup"');
+            $u->groupBy('su.id');
+            $u->orderBy('sug.sort');
+            $u->addOrderBy('su.sort');
+            $result = $u->getList();
+
+            $groups = array();
+            foreach ($result as $item) {
+                $groups[intval($item["idGroup"])]["id"] = $item["idGroup"];
+                $groups[intval($item["idGroup"])]["name"] = empty($item["nameGroup"]) ? "Без категории" : $item["nameGroup"];
+                if ($item['type'] == "date")
+                    $item['value'] = date('Y-m-d', strtotime($item['value']));
+                $groups[intval($item["idGroup"])]["items"][] = $item;
+            }
+            $grlist = array();
+            foreach ($groups as $id => $gr) {
+                $grlist[] = $gr;
+            }
+            return $grlist;
+        } catch (Exception $e) {
+            return false;
+        }
+
+    }
+
+    public function save()
+    {
+        if (isset($this->input["codeGr"])) {
+            $this->input["codeGr"] = strtolower(se_translite_url($this->input["codeGr"]));
+        }
+        parent::save();
+    }
+
 
     private function saveDiscounts()
     {
@@ -428,6 +473,36 @@ class Category extends Base
         }
     }
 
+    private function saveCustomFields()
+    {
+        if (!isset($this->input["customFields"]) && !$this->input["customFields"])
+            return true;
+
+        try {
+            $idCategory = $this->input["id"];
+            $groups = $this->input["customFields"];
+            $customFields = [];
+            foreach ($groups as $group)
+                foreach ($group["items"] as $item)
+                    $customFields[] = $item;
+            foreach ($customFields as $field) {
+                $u = new DB('shop_group_userfields', 'cu');
+                if (!$field["value"] && $field['id']) {
+                    $u->where('id=?', $field['id'])->deleteList();
+                } else {
+                    $field["idShopgroup"] = $idCategory;
+                    $u->setValuesFields($field);
+                    $u->save();
+                }
+            }
+            return true;
+        } catch (Exception $e) {
+            $this->error = "Не удаётся сохранить доп. информацию о товаре!";
+            throw new Exception($this->error);
+        }
+    }
+
+
     static public function getUrl($code, $id = null)
     {
         $code_n = $code;
@@ -498,8 +573,10 @@ class Category extends Base
     protected function correctValuesBeforeSave()
     {
         if (!$this->input["id"] && !$this->input["ids"] || isset($this->input["codeGr"])) {
-            if (empty($this->input["codeGr"]))
+            if (empty($this->input["codeGr"])) {
                 $this->input["codeGr"] = strtolower(se_translite_url($this->input["name"]));
+                if (empty($this->input["codeGr"])) $this->input["codeGr"] = 'category' . time();
+            }
             $this->input["codeGr"] = $this->getUrl($this->input["codeGr"], $this->input["id"]);
         }
         if (isset($this->input["idModificationGroupDef"]) && empty($this->input["idModificationGroupDef"]))
@@ -521,9 +598,10 @@ class Category extends Base
         if (CORE_VERSION == "5.3") {
             //$tgroup = new Category($this->input);
             //$group = $tgroup->info();
-             writeLog($this->input["id"].' '.$this->input["upid"].' save1');
-             self::saveIdParent($this->input["id"], $this->input["upid"]);
+            writeLog($this->input["id"] . ' ' . $this->input["upid"] . ' save1');
+            self::saveIdParent($this->input["id"], $this->input["upid"]);
         }
+        $this->saveCustomFields();
         return true;
     }
 }

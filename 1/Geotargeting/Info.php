@@ -18,6 +18,14 @@ function getCityById($id)
     return null;
 }
 
+function getVariables($id)
+{
+    $sv = new seTable('shop_variables', 'sv');
+    $sv->select('sgv.id, sv.id AS id_variable, sv.name, sgv.value');
+    $sv->leftJoin('shop_geo_variables sgv', 'sv.id = sgv.id_variable AND sgv.id_contact = ' . $id);
+    return $sv->getList();
+}
+
 $u = new seTable('shop_contacts', 'sc');
 $u->select('sc.*, scg.id_contact idContact, scg.id_city idCity');
 $u->leftJoin('shop_contacts_geo scg', 'scg.id_contact = sc.id');
@@ -32,6 +40,7 @@ foreach($result as $item) {
     $contact["sortIndex"] = (int) $item["sort"];
     $contact["additionalPhones"] = $item["additional_phones"];
     $contact["city"] = getCityById($item["idCity"]);
+    $contact["variables"] = getVariables($ids[0]);
     $items[] = $contact;
 }
 
