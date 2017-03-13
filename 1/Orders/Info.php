@@ -249,7 +249,7 @@ if (!se_db_error()) {
     $status['data'] = array('count' => count($items), 'items' => $items);
 } else {
     $status['status'] = 'error';
-    $status['errortext'] = 'Не удаётся получить информацию о заказе!';
+    $status['error'] = 'Не удаётся получить информацию о заказе!';
 }
 
 outputData($status);

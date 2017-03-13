@@ -63,7 +63,7 @@ else {
 
 if (!empty($error)) {
     $status['status'] = 'error';
-    $status['errortext'] = $error;
+    $status['error'] = $error;
     outputData($status);
     exit;
 }
@@ -132,6 +132,6 @@ if (empty($error)) {
     $status['data'] = $data;
 } else {
     $status['status'] = 'error';
-    $status['errortext'] = $error;
+    $status['error'] = $error;
 }
 outputData($status);

@@ -10,7 +10,7 @@
         $status['status'] = 'ok';
     } else {
         $status['status'] = 'error';
-        $status['errortext'] = 'Не удаётся исключить контакты из пользователей!';
+        $status['error'] = 'Не удаётся исключить контакты из пользователей!';
     }
 
     outputData($status);

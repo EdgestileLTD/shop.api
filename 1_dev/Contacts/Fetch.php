@@ -114,6 +114,6 @@ if (!se_db_error()) {
     $status['data'] = $data;
 } else {
     $status['status'] = 'error';
-    $status['errortext'] = 'Не удаётся получить контакт!';
+    $status['error'] = 'Не удаётся получить контакт!';
 }
 outputData($status);

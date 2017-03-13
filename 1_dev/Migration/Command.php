@@ -102,7 +102,7 @@ if ($json->command == "copyImages") {
         $status['data'] = array();
     } else {
         $status['status'] = 'error';
-        $status['errortext'] = $error;
+        $status['error'] = $error;
     }
     outputData($status);
 }

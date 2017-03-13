@@ -42,6 +42,6 @@ if (!se_db_error()) {
     $status['data'] = $data;
 } else {
     $status['status'] = 'error';
-    $status['errortext'] = 'Не удаётся получить информацию об отзыве!';
+    $status['error'] = 'Не удаётся получить информацию об отзыве!';
 }
 outputData($status);

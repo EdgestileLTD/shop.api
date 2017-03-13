@@ -119,6 +119,6 @@ if (!se_db_error()) {
     $status['data'] = array('count'=>$count, 'totalAmount'=>$amount, 'items'=>$items);
 } else {
     $status['status'] = 'error';
-    $status['errortext'] = se_db_error();
+    $status['error'] = se_db_error();
 }
 outputData($status);

@@ -11,7 +11,7 @@ if (!se_db_error()) {
     $status['status'] = 'ok';
 } else {
     $status['status'] = 'error';
-    $status['errortext'] = 'Не удаётся удалить элемент раздела!';
+    $status['error'] = 'Не удаётся удалить элемент раздела!';
 }
 
 outputData($status);

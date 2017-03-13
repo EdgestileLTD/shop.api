@@ -57,7 +57,7 @@ if (!se_db_error()) {
     $status['data'] = $data;
 } else {
     $status['status'] = 'error';
-    $status['errortext'] = 'Не удаётся прочитать разделы!';
+    $status['error'] = 'Не удаётся прочитать разделы!';
 }
 
 outputData($status);

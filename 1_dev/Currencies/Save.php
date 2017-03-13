@@ -15,7 +15,7 @@
         $u->fetchOne();
         if ($u->id) {
             $status['status'] = 'error';
-            $status['errortext'] = 'Такая валюта уже существует!';
+            $status['error'] = 'Такая валюта уже существует!';
             outputData($status);
             exit;
         }
@@ -51,7 +51,7 @@
         $status['data'] = $data;
     } else {
         $status['status'] = 'error';
-        $status['errortext'] = se_db_error();
+        $status['error'] = se_db_error();
     }
 
     outputData($status);

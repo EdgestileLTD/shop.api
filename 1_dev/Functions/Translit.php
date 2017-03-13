@@ -16,6 +16,6 @@
         $status['data'] = $data;
     } else {
         $status['status'] = 'error';
-        $status['errortext'] = mysql_error();
+        $status['error'] = mysql_error();
     }
     outputData($status);

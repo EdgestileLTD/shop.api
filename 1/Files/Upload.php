@@ -41,8 +41,8 @@ if ($ups == $countFiles) {
     $status['data'] = array("items" => $items);
 } else {
     $status['status'] = 'error';
-    if (empty($status['errortext']))
-        $status['errortext'] = "Не удается загрузить файлы!";
+    if (empty($status['error']))
+        $status['error'] = "Не удается загрузить файлы!";
 }
 
 outputData($status);

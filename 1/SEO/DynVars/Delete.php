@@ -10,7 +10,7 @@ if (!se_db_error()) {
     $status['status'] = 'ok';
 } else {
     $status['status'] = 'error';
-    $status['errortext'] = 'Не удаётся удалить SEO переменные!';
+    $status['error'] = 'Не удаётся удалить SEO переменные!';
 }
 
 outputData($status);

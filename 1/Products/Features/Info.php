@@ -43,7 +43,7 @@ $data['items'] = $items;
 
 if (se_db_error()) {
     $status['status'] = 'error';
-    $status['errortext'] = 'Не удаётся получить информацию о параметре!';
+    $status['error'] = 'Не удаётся получить информацию о параметре!';
 } else {
     $status['status'] = 'ok';
     $status['data'] = $data;

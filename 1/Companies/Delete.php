@@ -11,7 +11,7 @@ if (!se_db_error()) {
     $status['status'] = 'ok';
 } else {
     $status['status'] = 'error';
-    $status['errortext'] = 'Не удается произвести удаление!';
+    $status['error'] = 'Не удается произвести удаление!';
 }
 
 outputData($status);

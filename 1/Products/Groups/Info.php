@@ -207,7 +207,7 @@ $data['items'] = $items;
 
 if (se_db_error()) {
     $status['status'] = 'error';
-    $status['errortext'] = 'Не удаётся прочитать информацию о категории товаров!';
+    $status['error'] = 'Не удаётся прочитать информацию о категории товаров!';
 } else {
     $status['status'] = 'ok';
     $status['data'] = $data;

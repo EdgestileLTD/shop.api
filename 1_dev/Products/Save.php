@@ -85,7 +85,7 @@ function checkArticle($id, $article)
         foreach ($result as $item) {
             if ($item['id'] != $id) {
                 $status['status'] = 'error';
-                $status['errortext'] = 'Товар с артикулом: ' . $article . ' уже существует!';
+                $status['error'] = 'Товар с артикулом: ' . $article . ' уже существует!';
                 outputData($status);
                 exit;
             }
@@ -766,7 +766,7 @@ if (!se_db_error()) {
     file_get_contents('http://' . $json->hostname . "/lib/shoppreorder_checkCount.php?id={$data["id"]}");
 } else {
     $status['status'] = 'error';
-    $status['errortext'] = 'Не удаётся сохранить данные о товаре!';
+    $status['error'] = 'Не удаётся сохранить данные о товаре!';
 }
 
 outputData($status);

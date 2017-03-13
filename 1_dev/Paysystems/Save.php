@@ -120,7 +120,7 @@
         $status['data'] = $data;
     } else {
         $status['status'] = 'error';
-        $status['errortext'] = 'Не удаётся сохранить настройки платежной системы!';
+        $status['error'] = 'Не удаётся сохранить настройки платежной системы!';
     }
 
     outputData($status);

@@ -94,7 +94,7 @@ $data['items'] = $items;
 
 if (se_db_error()) {
     $status['status'] = 'error';
-    $status['errortext'] = 'Не удаётся получить информация о платежной системе!';
+    $status['error'] = 'Не удаётся получить информация о платежной системе!';
 } else {
     $status['status'] = 'ok';
     $status['data'] = $data;

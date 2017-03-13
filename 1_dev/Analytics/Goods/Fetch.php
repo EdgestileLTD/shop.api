@@ -36,7 +36,7 @@
         $status['data'] = array('count'=>count($items), 'items'=>$items);
     } else {
         $status['status'] = 'error';
-        $status['errortext'] = se_db_error();
+        $status['error'] = se_db_error();
     }
 
     outputData($status);

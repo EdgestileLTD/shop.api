@@ -16,7 +16,7 @@ if (!se_db_error())
     $status['status'] = 'ok';
 else {
     $status['status'] = 'error';
-    $status['errortext'] = 'Не удаётся произвести сортировку!';
+    $status['error'] = 'Не удаётся произвести сортировку!';
 }
 
 outputData($status);

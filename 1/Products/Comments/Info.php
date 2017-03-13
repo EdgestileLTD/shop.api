@@ -34,6 +34,6 @@ if (!se_db_error()) {
     $status['data'] = $data;
 } else {
     $status['status'] = 'error';
-    $status['errortext'] = se_db_error();// 'Не удаётся прочитать информацию о комментарие!';
+    $status['error'] = se_db_error();// 'Не удаётся прочитать информацию о комментарие!';
 }
 outputData($status);

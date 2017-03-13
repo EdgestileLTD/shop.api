@@ -38,7 +38,7 @@
         $status['data'] = $data;
     } else {
         $status['status'] = 'error';
-        $status['errortext'] = $errorMessage;
+        $status['error'] = $errorMessage;
     }
 
     outputData($status);

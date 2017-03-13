@@ -43,7 +43,7 @@ if (!se_db_error()) {
     $status['data'] = $data;
 } else {
     $status['status'] = 'error';
-    $status['errortext'] = 'Не удаётся прочитать список объектов прав!';
+    $status['error'] = 'Не удаётся прочитать список объектов прав!';
 }
 
 outputData($status);

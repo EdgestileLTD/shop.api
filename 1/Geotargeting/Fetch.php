@@ -54,8 +54,9 @@ $items = array();
 $idsCities = array();
 foreach ($objects as $item) {
     $contact = $item;
-    $contact["isActive"] = (bool)$item["is_visible"];
-    $contact["sortIndex"] = (int)$item["sort"];
+    $contact["domain"] = $item["url"];
+    $contact["isActive"] = (bool) $item["is_visible"];
+    $contact["sortIndex"] = (int) $item["sort"];
     $contact["additionalPhones"] = $item["additional_phones"];
     $contact["city"] = null;
     $idsCities[] = $item["idCity"];
@@ -77,6 +78,6 @@ if (!se_db_error()) {
     $status['data'] = $data;
 } else {
     $status['status'] = 'error';
-    $status['errortext'] = 'Не удаётся получить список контактов геотаргетинга!';
+    $status['error'] = 'Не удаётся получить список контактов геотаргетинга!';
 }
 outputData($status);

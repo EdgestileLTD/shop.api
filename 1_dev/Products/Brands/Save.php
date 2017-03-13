@@ -56,7 +56,7 @@ if (!se_db_error()) {
     $status['data'] = $data;
 } else {
     $status['status'] = 'error';
-    $status['errortext'] = 'Не удаётся сохранить информация о бренде!';
+    $status['error'] = 'Не удаётся сохранить информация о бренде!';
 }
 
 outputData($status);

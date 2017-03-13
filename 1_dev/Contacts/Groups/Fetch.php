@@ -21,7 +21,7 @@ if (!se_db_error()) {
     $status['structure']['columns'] = $columns;
 } else {
     $status['status'] = 'error';
-    $status['errortext'] = 'Не удаётся получить список групп контактов!';
+    $status['error'] = 'Не удаётся получить список групп контактов!';
 }
 outputData($status);
 

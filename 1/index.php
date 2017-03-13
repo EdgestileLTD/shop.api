@@ -232,7 +232,7 @@ function setField($isNew, &$table, $jsonField, $fieldName, $fieldType = 'string'
 
 if ($apiObject != "Auth" && empty($_SESSION['isAuth'])) {
     $status['status'] = 'error';
-    $status['errortext'] = 'Необходима авторизация!';
+    $status['error'] = 'Необходима авторизация!';
     outputData($status);
     exit;
 }

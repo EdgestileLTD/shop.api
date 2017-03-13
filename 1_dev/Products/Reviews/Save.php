@@ -11,7 +11,7 @@ function checkReviewParams($ids, $idProduct, $idUser) {
 
     if ($items) {
         $status['status'] = 'error';
-        $status['errortext'] = "Отзыв выбранного покупателя для данного товара уже существует!";
+        $status['error'] = "Отзыв выбранного покупателя для данного товара уже существует!";
         outputData($status);
         exit;
     }
@@ -61,7 +61,7 @@ if (!se_db_error()) {
     $status['data'] = $data;
 } else {
     $status['status'] = 'error';
-    $status['errortext'] = se_db_error();
+    $status['error'] = se_db_error();
 }
 
 outputData($status);

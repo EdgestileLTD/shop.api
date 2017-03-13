@@ -125,7 +125,7 @@ $data['items'] = $items;
 
 if (se_db_error()) {
     $status['status'] = 'error';
-    $status['errortext'] = se_db_error();
+    $status['error'] = se_db_error();
 } else {
     $status['status'] = 'ok';
     $status['data'] = $data;

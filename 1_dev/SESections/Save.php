@@ -41,7 +41,7 @@ if (!se_db_error()) {
     $status['data'] = $data;
 } else {
     $status['status'] = 'error';
-    $status['errortext'] = 'Не удаётся сохранить информацию о разделе';
+    $status['error'] = 'Не удаётся сохранить информацию о разделе';
 }
 
 outputData($status);

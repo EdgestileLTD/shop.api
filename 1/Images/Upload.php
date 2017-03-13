@@ -5,7 +5,7 @@ $section = ($json->section) ? $json->section : $_GET['section'];
 $status = array();
 if (!$section) {
     $status['status'] = 'error';
-    $status['errortext'] = "parameter 'section' isn't  set";
+    $status['error'] = "parameter 'section' isn't  set";
     echo json_encode($status);
 }
 
@@ -39,7 +39,7 @@ for ($i = 0; $i < $countFiles; $i++) {
     $uploadFile = $uploadDir . '/' . $file;
     $fileTemp = $_FILES["file$i"]['tmp_name'];
     if (!getimagesize($fileTemp)) {
-        $status['errortext'] = "Ошибка! Найден файл не являющийся изображением!";
+        $status['error'] = "Ошибка! Найден файл не являющийся изображением!";
         break;
     }
     if (!filesize($fileTemp) || move_uploaded_file($fileTemp, $uploadFile)) {
@@ -93,8 +93,8 @@ if ($ups == $countFiles) {
     $status['data'] = array("items" => $items);
 } else {
     $status['status'] = 'error';
-    if (empty($status['errortext']))
-        $status['errortext'] = "Не удается загрузить файлы!";
+    if (empty($status['error']))
+        $status['error'] = "Не удается загрузить файлы!";
 }
 
 outputData($status);

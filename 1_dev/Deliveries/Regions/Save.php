@@ -42,7 +42,7 @@
     $status = array();
     if (empty($json->idDelivery)){
         $status['status'] = 'error';
-        $status['errortext'] = 'Not id delivery';
+        $status['error'] = 'Not id delivery';
     } else {
         if ($isNew || !empty($ids)) {
             $u = new seTable('shop_deliverytype');
@@ -75,7 +75,7 @@
             $status['data'] = $data;
         } else {
             $status['status'] = 'error';
-            $status['errortext'] = se_db_error();
+            $status['error'] = se_db_error();
     }
 }
     outputData($status);

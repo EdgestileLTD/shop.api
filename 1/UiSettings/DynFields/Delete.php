@@ -11,7 +11,7 @@ if (!se_db_error()) {
     $status['status'] = 'ok';
 } else {
     $status['status'] = 'error';
-    $status['errortext'] = 'Не удаётся удалить поле! Возможно данное поле используется в заказах!';
+    $status['error'] = 'Не удаётся удалить поле! Возможно данное поле используется в заказах!';
 }
 
 outputData($status);

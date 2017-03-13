@@ -56,7 +56,7 @@ if (!se_db_error()) {
     $status['status'] = 'ok';
 } else {
     $status['status'] = 'error';
-    $status['errortext'] = 'Не удаётся удалить группу товаров!';
+    $status['error'] = 'Не удаётся удалить группу товаров!';
 }
 
 outputData($status);

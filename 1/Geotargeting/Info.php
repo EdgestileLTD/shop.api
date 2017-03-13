@@ -21,7 +21,7 @@ function getCityById($id)
 function getVariables($id)
 {
     $sv = new seTable('shop_variables', 'sv');
-    $sv->select('sgv.id, sv.id AS id_variable, sv.name, sgv.value');
+    $sv->select('sgv.id, sv.id AS idVariable, sv.name, sgv.value');
     $sv->leftJoin('shop_geo_variables sgv', 'sv.id = sgv.id_variable AND sgv.id_contact = ' . $id);
     return $sv->getList();
 }
@@ -36,6 +36,7 @@ $result = $u->getList();
 $items = array();
 foreach($result as $item) {
     $contact = $item;
+    $contact["domain"] = $item["url"];
     $contact["isActive"] = (bool) $item["is_visible"];
     $contact["sortIndex"] = (int) $item["sort"];
     $contact["additionalPhones"] = $item["additional_phones"];
@@ -49,7 +50,7 @@ $data['items'] = $items;
 
 if (se_db_error()) {
     $status['status'] = 'error';
-    $status['errortext'] = 'Не удаётся получить информацию о контакте для геотаргетинга!';
+    $status['error'] = 'Не удаётся получить информацию о контакте для геотаргетинга!';
 } else {
     $status['status'] = 'ok';
     $status['data'] = $data;

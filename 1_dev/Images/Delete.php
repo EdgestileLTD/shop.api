@@ -6,7 +6,7 @@ $files = $json->files;
 $status = array();
 if (!$section) {
     $status['status'] = 'error';
-    $status['errortext'] = "parameter 'section' isn't  set";
+    $status['error'] = "parameter 'section' isn't  set";
     echo json_encode($status);
 }
 
@@ -93,7 +93,7 @@ if (!empty($section)) {
     file_get_contents("http://" . $json->hostname . "/lib/image.php?deletecache");
 } else {
     $status['status'] = 'error';
-    $status['errortext'] = "Не удаётся удалить файлы изображений!";
+    $status['error'] = "Не удаётся удалить файлы изображений!";
 }
 
 outputData($status);

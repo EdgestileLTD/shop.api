@@ -67,7 +67,7 @@ if (!se_db_error()) {
     $status['data'] = $data;
 } else {
     $status['status'] = 'error';
-    $status['errortext'] = 'Не удаётся сохранить параметр товара!';
+    $status['error'] = 'Не удаётся сохранить параметр товара!';
 }
 
 outputData($status);

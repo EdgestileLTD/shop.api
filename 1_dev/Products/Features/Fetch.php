@@ -92,6 +92,6 @@ if (!se_db_error()) {
     $status['data'] = $data;
 } else {
     $status['status'] = 'error';
-    $status['errortext'] = 'Не удаётся получить список парамеров!';
+    $status['error'] = 'Не удаётся получить список парамеров!';
 }
 outputData($status);

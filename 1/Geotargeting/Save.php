@@ -58,7 +58,7 @@ if ($isNew || !empty($ids)) {
     $isUpdated |= setField($isNew, $u, $json->isActive, 'is_visible');
     $isUpdated |= setField($isNew, $u, $json->sortIndex, 'sort');
     $isUpdated |= setField($isNew, $u, $json->image, 'image');
-    $isUpdated |= setField($isNew, $u, $json->url, 'url');
+    $isUpdated |= setField($isNew, $u, $json->domain, 'url');
 
     if ($isUpdated) {
         if (!empty($idsStr)) {
@@ -83,7 +83,7 @@ if (!se_db_error()) {
     $status['data'] = $data;
 } else {
     $status['status'] = 'error';
-    $status['errortext'] = 'Не удаётся сохранить информацию о контакте!';
+    $status['error'] = 'Не удаётся сохранить информацию о контакте!';
 }
 
 outputData($status);

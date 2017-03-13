@@ -33,7 +33,7 @@ if (!se_db_error()) {
     $status['data'] = $data;
 } else {
     $status['status'] = 'error';
-    $status['errortext'] = 'Не удаётся сохранить SEO переменную!';
+    $status['error'] = 'Не удаётся сохранить SEO переменную!';
 }
 
 outputData($status);

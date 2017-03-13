@@ -26,7 +26,7 @@ function saveLogin($id, $login, $password)
     $u->fetchOne();
     if ($u->isFind()) {
         $status['status'] = 'error';
-        $status['errortext'] = 'Такой логин уже существует!';
+        $status['error'] = 'Такой логин уже существует!';
         outputData($status);
         exit;
     }
@@ -94,7 +94,7 @@ function saveGroups($newIdsGroups, $idsCompanies)
 
 if ($json->inn && existINN($json->inn, $ids[0])) {
     $status['status'] = 'error';
-    $status['errortext'] = 'Компания с указанным ИНН уже существует!';
+    $status['error'] = 'Компания с указанным ИНН уже существует!';
     outputData($status);
     exit;
 }
@@ -133,7 +133,7 @@ if (!se_db_error()) {
     $status['data'] = $data;
 } else {
     $status['status'] = 'error';
-    $status['errortext'] = 'Не удаётся сохранить компанию!';
+    $status['error'] = 'Не удаётся сохранить компанию!';
 }
 
 outputData($status);

@@ -38,7 +38,7 @@ if (!se_db_error()) {
     $status['data'] = $data;
 } else {
     $status['status'] = 'error';
-    $status['errortext'] = 'Не удаётся получить список платежных систем!';
+    $status['error'] = 'Не удаётся получить список платежных систем!';
 }
 
 outputData($status);

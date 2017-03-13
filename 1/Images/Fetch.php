@@ -3,7 +3,7 @@
 $status = array();
 if (!$json->section) {
     $status['status'] = 'error';
-    $status['errortext'] = "Не указан параметр: section";
+    $status['error'] = "Не указан параметр: section";
     echo json_encode($status);
 }
 
