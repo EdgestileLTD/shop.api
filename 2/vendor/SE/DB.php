@@ -161,6 +161,127 @@ class DB
         } else throw new Exception("The connection is not initialized!");
     }
 
+    /**
+     * @param string $fieldName
+     * @param int $index
+     * @deprecated
+     */
+    public function add_index($fieldName, $index = 1)
+    {
+        $this->addIndex($fieldName, $index);
+    }
+
+    /**
+     * @param string $fieldName
+     * @param int $index
+     */
+    public function addIndex($fieldName, $index = 1)
+    {
+        if (!DB::isIndex($fieldName)) {
+            $index = ($index == 1) ? 'INDEX' : 'UNIQUE';
+            DB::query("ALTER TABLE `{$this->tableName}` ADD {$index}(`{$fieldName}`);");
+        }
+    }
+
+    /**
+     * @param string $field
+     * @return bool
+     * @deprecated
+     */
+    public function is_field($field)
+    {
+        return $this->isField($field);
+    }
+
+    /**
+     * @param string $field
+     * @return bool
+     */
+    public function isField($field)
+    {
+        $sql = "SHOW COLUMNS FROM `{$this->tableName}` WHERE Field='$field'";
+        $fieldsList = DB::query($sql)->fetchAll();
+        return (count($fieldsList) > 0);
+    }
+
+    /**
+     * @param string $fieldName
+     * @param string $nameIndex
+     * @return bool
+     * @deprecated
+     */
+    public function is_index($fieldName, $nameIndex = '')
+    {
+        return $this->isIndex($fieldName, $nameIndex);
+    }
+
+    /**
+     * @param string $fieldName
+     * @param string $nameIndex
+     * @return bool
+     */
+    public function isIndex($fieldName, $nameIndex = '')
+    {
+        $keyIndex = ($nameIndex) ? " AND `Key_name`='{$nameIndex}'" : '';
+        $sql = "SHOW INDEX FROM `{$this->tableName}` WHERE `Column_name` = '{$fieldName}'" . $keyIndex;
+        $fieldsList = DB::query($sql)->fetchAll();
+        return (count($fieldsList) > 0);
+    }
+
+    /**
+     * @param string $field
+     * @param string $type
+     * @param string $default
+     * @param int $index
+     * @deprecated
+     */
+    public function add_field($field, $type = 'varchar(20)', $default = null, $index = 0)
+    {
+        $this->addField($field, $type, $default, $index);
+    }
+
+    /**
+     * @param string $field
+     * @param string $type
+     * @param string $default
+     * @param int $index
+     */
+    public function addField($field, $type = 'varchar(20)', $default = null, $index = 0)
+    {
+        if (!$this->isField($field)) {
+            $type = str_replace(array('integer', 'string', 'integer(2)', 'integer(4)', 'bool', 'boolean'),
+                array('int', 'varchar', 'int', 'bigint', 'tinyint(1)', 'tinyint(1)'), $type);
+            if (preg_match('/float(\([\d\,]+\))?/u', $type, $m)) {
+                $m[1] = preg_replace('/[\(\)]/', '', $m[1]);
+                if (!empty($m[1])) {
+                    list($dec,) = explode(',', $m[1]);
+                    if (floatval($dec) < 8) $newType = 'float(' . $m[1] . ')';
+                    else $newType = 'double(' . $m[1] . ')';
+                } else $newType = 'double(10,2)';
+                $type = str_replace($m[0], $newType, $type);
+            }
+            $after = '';
+            $fields = $this->getFields();
+            foreach ($fields as $fld) {
+                $after = $fld['Field'];
+            }
+            if ($after) {
+                $after = " AFTER `{$after}`";
+            }
+            if ($default !== null) {
+                $default = ' default ' . $default . ' ';
+            } else {
+                $default = ' default NULL ';
+            }
+            //writeLog("ALTER TABLE `{$this->tableName}` ADD `{$field}` {$type}{$default}{$after};");
+            DB::exec("ALTER TABLE `{$this->tableName}` ADD `{$field}` {$type}{$default}{$after}");
+        }
+        if ($index) {
+            $this->addIndex($field, $index);
+        }
+    }
+
+
     public static function strToCamelCase($str)
     {
         $separator = '_';
@@ -282,11 +403,16 @@ class DB
         if ($this->fields)
             return $this->fields;
 
-        $stmt = self::$dbh->query("SHOW COLUMNS FROM `{$this->tableName}`");
-        $stmt->setFetchMode(PDO::FETCH_ASSOC);
-        while ($row = $stmt->fetch())
-            if (!in_array($row['Field'], array("updated_at", "created_at")))
-                $this->fields[$row['Field']] = $row;
+        try {
+            $stmt = self::$dbh->query("SHOW COLUMNS FROM `{$this->tableName}`");
+            $stmt->setFetchMode(PDO::FETCH_ASSOC);
+            while ($row = $stmt->fetch())
+                if (!in_array($row['Field'], array("updated_at", "created_at")))
+                    $this->fields[$row['Field']] = $row;
+        } catch (Exception $e) {
+            throw new Exception("Отсутствует таблица {$this->tableName}");
+        }
+
         return $this->fields;
     }
 
@@ -375,7 +501,6 @@ class DB
             }
             return $items;
         } catch (\PDOException $e) {
-            writeLog($e->getMessage());
             throw new Exception($e->getMessage());
         }
     }
