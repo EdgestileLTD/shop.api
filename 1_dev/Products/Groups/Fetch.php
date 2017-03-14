@@ -32,14 +32,11 @@ function calcCountGoods(&$items, $idParent = null)
 
 $u = new seTable('shop_group', 'sg');
 if (CORE_VERSION == "5.3") {
-    $u->select("sg.id,  GROUP_CONCAT(CONCAT_WS(':', sgtp.level, sgt.id_parent) SEPARATOR ';') ids_parents,
-                sg.code_gr, sg.position, sg.name, sg.picture, sg.picture_alt, sg.id_modification_group_def,
-                sg.description");
+    $u->select("sg.*,  GROUP_CONCAT(CONCAT_WS(':', sgtp.level, sgt.id_parent) SEPARATOR ';') ids_parents");
     $u->leftjoin("shop_group_tree sgt", "sgt.id_child = sg.id AND sg.id <> sgt.id_parent");
     $u->leftjoin("shop_group_tree sgtp", "sgtp.id_child = sgt.id_parent");
 } else {
-    $u->select("sg.id, sg.upid, sg.code_gr, sg.position, sg.name, sg.picture, sg.picture_alt, sg.id_modification_group_def,
-            sg.description, (SELECT COUNT(*) FROM `shop_group` WHERE upid=sg.id) AS gcount,
+    $u->select("sg.*, (SELECT COUNT(*) FROM `shop_group` WHERE upid=sg.id) gcount,
             (SELECT COUNT(*) FROM `shop_price` WHERE sg.id=id_group) countGoods");
 }
 $u->groupby('sg.id');
@@ -101,12 +98,20 @@ foreach ($objects as $item) {
         if ($item['upid'] != $item['id'] && $item['upid'] != '0')
             $group['idParent'] = $item['upid'];
     }
+
+
     $group['code'] = $item['code_gr'];
     $group['name'] = $item['name'];
     $group['sortIndex'] = (int)$item['position'];
     $group['imageFile'] = $item['picture'];
     $group['imageAlt'] = $item['picture_alt'];
+    $group['description'] = $item['commentary'];
     $group['note'] = $item['description'];
+    $group['fullDescription'] = $item['footertext'];
+    $group['seoHeader'] = $item['title'];
+    $group['seoKeywords'] = $item['keywords'];
+    $group['seoDescription'] = $item['description'];
+
     $group['grCount'] = $item['gcount'];
     $group['countGoods'] = $item['countGoods'];
     $group['idModificationGroupDef'] = $item['id_modification_group_def'];

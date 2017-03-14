@@ -8,7 +8,7 @@ if (IS_EXT) {
     require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel/Writer/Excel2007.php';
 }
 
-function getDelimiter($file)
+function getSeparator($file)
 {
     $handle = fopen($file, "r");
     $buffer = null;
@@ -27,6 +27,21 @@ function getDelimiter($file)
     if ($max == $countSemicolon)
         return ";";
     return ",";
+}
+
+function getCode($code)
+{
+    $code_n = $code;
+    $u = new seTable('shop_group', 'sg');
+    $i = 1;
+    while ($i < 1000) {
+        $u->findlist("sg.code_gr='$code_n'")->fetchOne();
+        if ($u->id)
+            $code_n = $code . "-$i";
+        else return $code_n;
+        $i++;
+    }
+    return uniqid();
 }
 
 function saveIdParent($id, $idParent)
@@ -54,7 +69,7 @@ $ext = isset($_GET['ext']) ? $_GET['ext'] : "xlsx";
 $keyField = isset($_GET['key']) ? $_GET['key'] : "id";
 $encoding = isset($_GET['encoding']) ? $_GET['encoding'] : "UTF-8";
 $skip = isset($_GET['skip']) ? $_GET['skip'] : 1;
-$delimiter = isset($_GET['delimiter']) ? $_GET['delimiter'] : ";";
+$delimiter = isset($_GET['delimiter']) ? $_GET['delimiter'] : "Автоопределение";
 $enclosure = isset($_GET['enclosure']) ? $_GET['enclosure'] : '"';
 
 $root = API_ROOT;
@@ -102,19 +117,19 @@ if ($step == 0) {
 
 
     if ($delimiter == "Автоопределение") {
-        $delimiter = getDelimiter($fileCSV);
+        $separator = getSeparator($fileCSV);
     } elseif ($delimiter == "Точка с запятой") {
-        $delimiter = ";";
+        $separator = ";";
     } elseif ($delimiter == "Запятая") {
-        $delimiter = ",";
-    } else $delimiter = "\t";
+        $separator = ",";
+    } else $separator = "\t";
 
     $count = 0;
     $maxHeaderRows = 25;
     $samples = [];
     if (($handle = fopen($fileCSV, "r")) !== false) {
         $i = 0;
-        while (($row = fgetcsv($handle, 16000, $delimiter)) !== false &&
+        while (($row = fgetcsv($handle, 16000, $separator)) !== false &&
             $i++ < ($maxHeaderRows + $skip)) {
             if ($i < $skip + 1)
                 continue;
@@ -136,6 +151,7 @@ if ($step == 0) {
         $cols[] = ["id" => $i, "title" => "Столбец № {$i}", "sample" => $samples[$i]];
 
     $_SESSION["import"]["group"]["delimiter"] = $delimiter;
+    $_SESSION["import"]["group"]["separator"] = $separator;
     $_SESSION["import"]["group"]["encoding"] = $encoding;
     $_SESSION["import"]["group"]["key"] = $keyField;
     $_SESSION["import"]["group"]["enclosure"] = $enclosure;
@@ -149,7 +165,7 @@ if ($step == 0) {
 
 if ($step == 1) {
 
-    $delimiter = $_SESSION["import"]["group"]["delimiter"];
+    $separator = $_SESSION["import"]["group"]["separator"];
     $encoding = $_SESSION["import"]["group"]["encoding"];
     $keyUser = $_SESSION["import"]["group"]["key"];
     $enclosure = $_SESSION["import"]["group"]["enclosure"];
@@ -159,16 +175,18 @@ if ($step == 1) {
     $fieldsTable = ["id", "code_gr", "upid", "code_parent", "name", "commentary",
         "footertext", "picture", "title", "keywords", "description"];
 
-    $cols = $json->listValues;
+    $_SESSION["import"]["group"]["cols"] = $cols = $json->listValues;
     $fileCSV = "{$dir}/groups.csv";
     $countInsert = 0;
     $countUpdate = 0;
     $groups = [];
 
+
     if (($handle = fopen($fileCSV, "r")) !== false) {
         $i = 0;
 
-        while (($row = fgetcsv($handle, 16000, $delimiter)) !== false) {
+        se_db_query("SET AUTOCOMMIT=0; START TRANSACTION");
+        while (($row = fgetcsv($handle, 16000, $separator)) !== false) {
             if ($i++ < $skip)
                 continue;
 
@@ -188,13 +206,16 @@ if ($step == 1) {
                 $group[$fieldsTable[$fieldsKeys[$col]]] = $value;
             }
 
-            if (empty($group[$keyField]))
+            if (empty($group[$keyField]) && empty($group["name"]))
                 continue;
 
-            $t = new seTable("shop_group");
-            $t->select("id");
-            $t->where("{$keyField} = '?'", $group[$keyField]);
-            $result = $t->fetchOne();
+            $result = null;
+            if (!empty($group[$keyField])) {
+                $t = new seTable("shop_group");
+                $t->select("id");
+                $t->where("{$keyField} = '?'", $group[$keyField]);
+                $result = $t->fetchOne();
+            }
             if (!empty($result)) {
                 $group["id"] = $result["id"];
                 $isUpdate = false;
@@ -209,11 +230,22 @@ if ($step == 1) {
             else {
                 $t = new seTable("shop_group", "sg");
                 $isInsert = false;
+
                 foreach ($group as $field => $value)
                     if (!in_array($field, ["code_parent", "upid"]))
                         $isInsert |= setField(true, $t, $value, $field);
-                if ($isInsert)
+                if ($isInsert) {
+                    if (empty($group["code_gr"])) {
+                        if (empty($group["name"]))
+                            $group["code_gr"] = uniqid();
+                        else {
+                            $group["code_gr"] = strtolower(se_translite_url($group["name"]));
+                            $group["code_gr"] = getCode($group["code_gr"]);
+                        }
+                        $isInsert |= setField(true, $t, $group["code_gr"], "code_gr");
+                    }
                     $group["id"] = $t->save();
+                }
                 if (!se_db_error())
                     $countInsert++;
             }
@@ -232,6 +264,7 @@ if ($step == 1) {
     }
     fclose($handle);
 
+    se_db_query("COMMIT");
 
     foreach ($groups as $group) {
         if (empty($group["upid"]) && empty($group["code_parent"]))
@@ -253,14 +286,14 @@ if ($step == 1) {
             $t = new seTable("shop_group");
             $t->select("id");
             $t->where("code_gr = '?'", $group["code_parent"]);
-            writeLog($t->getSQL());
+
             $result = $t->fetchOne();
             if (empty($result))
                 break;
 
             $idParent = $result["id"];
         }
-        writeLog(2);
+
         $t = new seTable("shop_group");
         if ($idGroup != $idParent)
             $isUpdated |= setField(false, $t, $idParent, 'upid');
