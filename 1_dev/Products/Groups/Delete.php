@@ -33,6 +33,8 @@ if ($json->ids) {
         foreach ($result as $item)
             $ids[] = $item['id'];
         $ids = implode(",", $ids);
+        if (empty($ids))
+            $ids = implode(",", $json->ids);
         $u = new seTable('shop_group_tree', 'sgt');
         $u->where('id_parent in (?)', $ids)->deletelist();
         $u = new seTable('shop_group', 'sg');

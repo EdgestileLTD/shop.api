@@ -23,30 +23,22 @@ function deleteGroups($ids)
 if ($json->ids) {
     $ids = implode(",", $json->ids);
     if (CORE_VERSION == "5.3") {
-        se_db_query("SET AUTOCOMMIT=0; START TRANSACTION");
         $u = new seTable('shop_price_group', 'spg');
         $u->where('id_group in (?)', $ids)->deletelist();
         $u = new seTable('shop_group_tree', 'sgt');
         $u->select('sgt.id_child id');
         $u->where("sgt.id_parent IN ({$ids})");
         $result = $u->getList();
-        $idsChilds = array();
+        $ids = array();
         foreach ($result as $item)
-            $idsChilds[] = $item['id'];
-        $idsChilds = implode(",", $ids);
-        if ($idsChilds) {
-            $u = new seTable('shop_group_tree', 'sgt');
-            $u->where('id_parent in (?)', $idsChilds)->deletelist();
-            $u = new seTable('shop_group', 'sg');
-            $u->where('id in (?)', $idsChilds)->deletelist();
-        }
+            $ids[] = $item['id'];
+        $ids = implode(",", $ids);
+        if (empty($ids))
+            $ids = implode(",", $json->ids);
         $u = new seTable('shop_group_tree', 'sgt');
         $u->where('id_parent in (?)', $ids)->deletelist();
         $u = new seTable('shop_group', 'sg');
         $u->where('id in (?)', $ids)->deletelist();
-        if (!se_db_error())
-            se_db_query("COMMIT");
-        else se_db_query("ROLLBACK");
     } else
         deleteGroups($json->ids);
 }

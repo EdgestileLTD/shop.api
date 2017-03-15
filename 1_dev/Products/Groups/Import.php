@@ -44,6 +44,23 @@ function getCode($code)
     return uniqid();
 }
 
+function getLevel($id)
+{
+    global $DBH;
+
+    $level = 0;
+    $sqlLevel = 'SELECT `level` FROM shop_group_tree WHERE id_parent = :id_parent AND id_child = :id_parent LIMIT 1';
+    $sth = $DBH->prepare($sqlLevel);
+    $params = array("id_parent" => $id);
+    $answer = $sth->execute($params);
+    if ($answer !== false) {
+        $items = $sth->fetchAll(PDO::FETCH_ASSOC);
+        if (count($items))
+            $level = $items[0]['level'];
+    }
+    return $level;
+}
+
 function saveIdParent($id, $idParent)
 {
     global $DBH;
@@ -223,8 +240,10 @@ if ($step == 1) {
                 foreach ($group as $field => $value)
                     if (!in_array($field, ["code_parent", "upid"]))
                         $isUpdate |= setField(false, $t, $value, $field);
-                if ($isUpdate)
+                if ($isUpdate) {
+                    $t->where("id = ?", $group["id"]);
                     $t->save();
+                }
                 if (!se_db_error())
                     $countUpdate++;
             }
@@ -246,9 +265,9 @@ if ($step == 1) {
                         $isInsert |= setField(true, $t, $group["code_gr"], "code_gr");
                     }
                     $group["id"] = $t->save();
+                    if ($group["id"])
+                        $countInsert++;
                 }
-                if (!se_db_error())
-                    $countInsert++;
             }
 
             if (se_db_error()) {
@@ -268,11 +287,13 @@ if ($step == 1) {
     se_db_query("COMMIT");
 
     foreach ($groups as $group) {
-        if (empty($group["upid"]) && empty($group["code_parent"]))
-            continue;
-
         $idParent = null;
         $idGroup = $group["id"];
+        if (empty($group["upid"]) && empty($group["code_parent"])) {
+            saveIdParent($idGroup, $idParent);
+            continue;
+        }
+
         if (!empty($group["upid"])) {
             $t = new seTable("shop_group");
             $t->select("id");
@@ -309,6 +330,7 @@ if ($step == 1) {
 
     $status['status'] = 'ok';
     $status['data'] = ["countInsert" => (int) $countInsert, "countUpdate" => (int) $countUpdate];
+
     outputData($status);
 
 }

@@ -406,6 +406,7 @@ if ($step == 1) {
                     $product[$fieldsKeys[$col]] = $value;
             }
 
+
             if (empty($product[$keyField]) && empty($product["name"]))
                 continue;
 
@@ -462,8 +463,10 @@ if ($step == 1) {
                 foreach ($product as $field => $value)
                     if (in_array($field, $colsProducts))
                         $isUpdate |= setField(false, $t, $value, $field);
-                if ($isUpdate)
+                if ($isUpdate) {
+                    $t->where("id = ?", $product["id"]);
                     $t->save();
+                }
                 if (!se_db_error())
                     $countUpdate++;
                 $isNew = false;
@@ -477,6 +480,7 @@ if ($step == 1) {
                             $value = getCode($value, "shop_price", "code");
                         $isInsert |= setField(true, $t, $value, $field);
                     }
+                $isInsert = $isInsert && !empty($product["name"]);
                 if ($isInsert) {
                     if (empty($product["code"])) {
                         if (empty($product["name"]))
@@ -488,7 +492,7 @@ if ($step == 1) {
                     $product["id"] = $t->save();
                     $isNew = true;
                 }
-                if (!se_db_error())
+                if ($isInsert && !se_db_error())
                     $countInsert++;
             }
 
