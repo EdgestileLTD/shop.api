@@ -217,6 +217,7 @@ if ($step == 1) {
                 $result = $t->fetchOne();
             }
             if (!empty($result)) {
+                $t = new seTable("shop_group");
                 $group["id"] = $result["id"];
                 $isUpdate = false;
                 foreach ($group as $field => $value)

@@ -5,7 +5,7 @@ if (!empty($profile)) {
     $isNew = true;
     $u = new seTable('import_profile');
     $u->select("id");
-    $u->where("name = '?'", $profile);
+    $u->where("name = '?' AND target = '{$json->target}'", $profile);
     $result = $u->fetchOne();
     if (!empty($result)) {
         $json->id = $result["id"];
