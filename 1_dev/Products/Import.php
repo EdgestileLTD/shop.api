@@ -222,6 +222,8 @@ $fields = ["id" => "Ид.", "article" => "Артикул", "code" => "Код (UR
     "img_3" => "Фото 3", "img_4" => "Фото 4", "img_5" => "Фото 5", "img_6" => "Фото 6",
     "img_7" => "Фото 7", "img_8" => "Фото 8", "img_9" => "Фото 9", "img_10" => "Фото 10"];
 
+$addFields = ["file_1" => "Документ 1", "file_2" => "Документ 2", "file_3" => "Документ 3"];
+
 $keyFields = ["Идентификатор" => "id", "Артикул" => "article", "Код (URL)" => "code", "Наименование" => "name"];
 
 if ($step == 0) {
@@ -323,6 +325,9 @@ if ($step == 0) {
     foreach ($features as $feature)
         $fields[] = $feature["name"];
 
+    foreach ($addFields as $key => $addField)
+        $fields[] = $addField;
+
     $status['status'] = 'ok';
     $status['data'] = ["cols" => $cols, "fields" => $fields];
 
@@ -346,7 +351,7 @@ if ($step == 1) {
     $products = [];
 
     $colsProducts = [];
-    $fieldsKeys = array_flip($fields);
+    $fieldsKeys = array_flip(array_merge($fields, $addFields));
     $result = se_db_query("SHOW COLUMNS FROM shop_price");
     while ($row = se_db_fetch_row($result))
         $colsProducts[] = $row[0];
@@ -391,6 +396,7 @@ if ($step == 1) {
                 continue;
 
             $product = [];
+
             foreach ($row as $index => $value) {
 
                 if ($index >= count($cols))
@@ -409,6 +415,8 @@ if ($step == 1) {
 
             if (empty($product[$keyField]) && empty($product["name"]))
                 continue;
+
+            writeLog("ok");
 
             // поиск Id группы
             $isExistFieldGroup = false;
@@ -550,22 +558,54 @@ if ($step == 1) {
 
             checkError($handle);
 
+            // файлы товаров
+            if (!empty($product["file_1"])) {
+                for ($i = 1; $i < 4; $i++) {
+                    if (empty($product["file_{$i}"]))
+                        continue;
+
+                    $fileDoc = $product["file_{$i}"];
+
+                    $t = new seTable("shop_files", "sf");
+                    $t->select("sf.id");
+                    $t->where("id_price = ? AND file = '{$fileDoc}'", $product["id"]);
+                    $result = $t->fetchOne();
+                    if (!empty($result))
+                        continue;
+
+                    $ext = end(explode(".", $fileDoc));
+                    preg_match('|\((.+)\)|', $fileDoc, $matches);
+                    $fileDoc = trim(str_replace($matches[0], "", $fileDoc));
+                    $nameDoc = trim($matches[1]);
+
+                    $t = new seTable("shop_files", "sf");
+                    $t->id_price = $product["id"];
+                    $t->file = $fileDoc;
+                    $t->name = $nameDoc ? $nameDoc : str_replace(".{$ext}", "", $fileDoc);
+                    $t->save();
+                }
+            }
+
+
             // параметры
             foreach ($features as $name => $feature) {
                 if (empty($product[$name]))
                     continue;
 
                 $idMod = null;
+                $isNewValue = true;
                 $t = new seTable("shop_modifications_feature", "smf");
                 $t->select("smf.id");
                 $t->where("smf.id_price = ? AND smf.id_feature = {$feature['id']}", $product["id"]);
                 $result = $t->fetchOne();
-                if ($result)
+                if ($result) {
                     $idMod = $result["id"];
+                    $isNewValue = false;
+                }
 
-                $t = new seTable("shop_modifications_feature", "smf");
-                $t->id_price = $product["id"];
-                $t->id_feature = $feature["id"];
+                $t = new seTable("shop_modifications_feature");
+                setField($isNewValue, $t, $product["id"], "id_price");
+                setField($isNewValue, $t, $feature["id"], "id_feature");
 
                 if (($feature["type"] == "list") || ($feature["type"] == "colorlist")) {
                     $idValue = null;
@@ -582,23 +622,23 @@ if ($step == 1) {
                         $idValue = $u->save();
                         checkError($handle);
                     }
-                    $t->id_value = $idValue;
+                    setField($isNewValue, $t, $idValue, "id_value");
 
                 } else {
                     switch ($feature["type"]) {
                         case 'number' :
-                            $t->value_number = (float) $product[$name];
+                            setField($isNewValue, $t, $product[$name], "value_number");
                             break;
                         case 'bool' :
-                            $t->value_bool = (bool) $product[$name];
+                            setField($isNewValue, $t, (bool) $product[$name], "value_bool");
                             break;
                         case 'string' :
-                            $t->value_string = $product[$name];
+                            setField($isNewValue, $t, $product[$name], "value_string");
                             break;
                     }
                 }
                 if ($idMod)
-                    $t->where("smf.id = ?", $idMod);
+                    $t->where("id = ?", $idMod);
                 $t->save();
             }
 
