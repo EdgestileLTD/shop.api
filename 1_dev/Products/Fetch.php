@@ -18,7 +18,9 @@ function convertFields($str)
     $str = str_replace('idGroup ', 'sg.id ', $str);
     $str = str_replace('[id]', 'sp.id ', $str);
     $str = str_replace('[idGroup]', 'sg.id ', $str);
-    $str = str_replace('[idCrossGroup]', 'sgp.group_id ', $str);
+    if (CORE_VERSION == "5.3")
+        $str = str_replace('[idCrossGroup]', 'spg_.id_group ', $str);
+    else $str = str_replace('[idCrossGroup]', 'spg.group_id ', $str);
     $str = str_replace('[idLinkGroup]', 'scg.id ', $str);
     $str = str_replace('[nameGroup]', 'namegroup ', $str);
     $str = str_replace('[count]', 'presence_count', $str);
@@ -48,22 +50,25 @@ else
     se_db_query("UPDATE shop_group sg SET sg.scount =
                  (SELECT COUNT(*) FROM shop_price sp WHERE sp.id_group = sg.id AND sp.enabled = 'Y')");
 
+$crossGroup = 'spg.id isCrossGroup';
+if (CORE_VERSION == "5.3")
+    $crossGroup = '0 isCrossGroup';
 
 $u = new seTable('shop_price', 'sp');
-$u->select('sp.*, sg.name as namegroup, sdl.discount_id is_discount,
-            COUNT(DISTINCT(smf.id_modification)) as countModifications, sb.name nameBrand, sgp.id AS isCrossGroup');
+$u->select("sp.*, sg.name namegroup, sdl.discount_id is_discount, 
+            COUNT(DISTINCT(smf.id_modification)) as countModifications, sb.name nameBrand, {$crossGroup}");
 if (CORE_VERSION == "5.3") {
-    $u->leftjoin("shop_price_group spg", "spg.id_price = sp.id");
+    $u->leftjoin("shop_price_group spg", "spg.id_price = sp.id AND spg.is_main");
     $u->leftjoin('shop_group sg', 'sg.id = spg.id_group');
+    $u->leftjoin("shop_price_group spg_", "spg_.id_price = sp.id AND spg_.is_main <> 1");
 } else {
     $u->leftjoin('shop_group sg', 'sg.id=sp.id_group');
+    $u->leftjoin('shop_group_price spg', 'sp.id = spg.price_id');
 }
-$u->leftjoin('shop_crossgroup scg', 'scg.group_id=sp.id_group');
 $u->leftjoin('shop_discount_links sdl', 'sdl.id_price=sp.id');
 $u->leftjoin('(SELECT smf.id_price, smf.id_modification FROM shop_modifications_feature smf
                            WHERE NOT smf.id_value IS NULL AND NOT smf.id_modification IS NULL GROUP BY smf.id_modification) smf', 'sp.id=smf.id_price');
 $u->leftjoin('shop_brand sb', 'sb.id = sp.id_brand');
-$u->leftjoin('shop_group_price sgp', 'sp.id = sgp.price_id');
 if ($json->filter && strpos($json->filter, '[idModificationGroup]')) {
     $u->leftjoin('shop_modifications sm', 'sm.id_price = sp.id');
     $u->leftjoin('shop_modifications_group smg', 'smg.id = sm.id_mod_group');
@@ -72,7 +77,7 @@ if ($json->filter && strpos($json->filter, '[idModificationGroup]')) {
 $searchStr = $json->searchText;
 $searchArr = explode(' ', $searchStr);
 
-if (!empty($json->idGroup))
+if (!empty($json->idGroup) && (CORE_VERSION != "5.3"))
     $filterGroups = 'sg.id IN (' . implode(",", getIdsChildGroups($json->idGroup));
 if (!empty($json->filter))
     $filter = convertFields($json->filter);
