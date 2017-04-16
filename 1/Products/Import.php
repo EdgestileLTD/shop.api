@@ -42,23 +42,19 @@ function checkError($handle = null)
     }
 }
 
-function getBrandByName($name)
+function getIdBrandByName($name)
 {
-    $brand = new stdClass();
-
     $u = new seTable('shop_brand');
     $u->select("id");
     $u->where('name = "?"', $name);
     $result = $u->fetchOne();
-    if (!empty($result["id"])) {
-        $brand->id = $result["id"];
-        return $brand;
-    }
+    if (!empty($result["id"]))
+        return $result["id"];
 
+    $u = new seTable('shop_brand');
     $u->name = $name;
     $u->code = strtolower(se_translite_url($name));
-    $brand->id = $u->save();
-    return $brand;
+    return $u->save();
 }
 
 function getCode($code, $table, $fieldCode, $codes = null)
@@ -416,8 +412,6 @@ if ($step == 1) {
             if (empty($product[$keyField]) && empty($product["name"]))
                 continue;
 
-            writeLog("ok");
-
             // поиск Id группы
             $isExistFieldGroup = false;
             foreach ($fieldsGroups as $field)
@@ -464,10 +458,14 @@ if ($step == 1) {
                 $result = $t->fetchOne();
             }
 
+            if (!empty($product["brand"]))
+                $product["id_brand"] = getIdBrandByName($product["brand"]);
+
             if (!empty($result)) {
                 $t = new seTable("shop_price");
                 $product["id"] = $result["id"];
                 $isUpdate = false;
+
                 foreach ($product as $field => $value)
                     if (in_array($field, $colsProducts))
                         $isUpdate |= setField(false, $t, $value, $field);

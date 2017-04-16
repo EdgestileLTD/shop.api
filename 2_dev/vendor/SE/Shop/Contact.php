@@ -382,6 +382,10 @@ class Contact extends Base
                 $this->input = $contact;
             DB::beginTransaction();
 
+            $u = new DB('person', 'p');
+            $u->addField('price_type', 'integer(10)',  0, 1);
+
+
             $ids = [];
             if (empty($this->input["ids"]) && !empty($this->input["id"]))
                 $ids[] = $this->input["id"];
@@ -510,6 +514,8 @@ class Contact extends Base
 
         $contact = new Contact();
         $contact = $contact->info($idContact);
+
+        writeLog($contact);
         $fileName = "export_person_{$idContact}.xlsx";
         $filePath = DOCUMENT_ROOT . "/files";
         if (!file_exists($filePath) || !is_dir($filePath))
@@ -528,7 +534,7 @@ class Contact extends Base
         $sheet->getColumnDimension('A')->setWidth(20);
         $sheet->getColumnDimension('B')->setWidth(50);
         $sheet->setCellValue("A2", 'Ф.И.О.');
-        $sheet->setCellValue("B2", $contact["fullName"]);
+        $sheet->setCellValue("B2", $contact["displayName"]);
         $sheet->setCellValue("A3", 'Телефон:');
         $sheet->setCellValue("B3", $contact["phone"]);
         $i = 4;

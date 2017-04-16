@@ -33,7 +33,7 @@ class Category extends Base
 
     public function getPatches($items)
     {
-        $result = [];
+        $result = array();
         $search = strtolower($this->input["searchText"]);
         foreach ($items as $item) {
             if (empty($search) || mb_strpos(strtolower($item["name"]), $search) !== false) {
@@ -47,7 +47,7 @@ class Category extends Base
 
     private function getTreeView($items, $idParent = null)
     {
-        $result = [];
+        $result = array();
         foreach ($items as $item) {
             if ($item["upid"] == $idParent) {
                 $item["childs"] = $this->getTreeView($items, $item["id"]);
@@ -59,7 +59,7 @@ class Category extends Base
 
     private function setIdMainParent($items)
     {
-        $result = [];
+        $result = array();
         foreach ($items as $item) {
             if ($item['idsParents']) {
                 $idsLevels = explode(";", $item['idsParents']);
@@ -109,13 +109,15 @@ class Category extends Base
     public function info()
     {
         $result = parent::info();
-        if (CORE_VERSION == "5.3")
-            $this->result = $this->setIdMainParent(array($result))[0];
+        if (CORE_VERSION == "5.3") {
+            $arr = $this->setIdMainParent(array($result));
+            $this->result = $arr[0];
+        }
         $this->result["nameParent"] = $this->getNameParent();
         return $this->result;
     }
 
-    protected function correctValuesBeforeFetch($items = [])
+    protected function correctValuesBeforeFetch($items = array())
     {
         if (CORE_VERSION == "5.3")
             $items = $this->setIdMainParent($items);
@@ -127,7 +129,7 @@ class Category extends Base
 
     public function getDiscounts($idCategory = null)
     {
-        $result = [];
+        $result = array();
         $id = $idCategory ? $idCategory : $this->input["id"];
         if (!$id)
             return $result;
@@ -142,7 +144,7 @@ class Category extends Base
 
     public function getImages($idCategory = null)
     {
-        $result = [];
+        $result = array();
         $id = $idCategory ? $idCategory : $this->input["id"];
         if (!$id)
             return $result;
@@ -178,7 +180,7 @@ class Category extends Base
 
     public function getDeliveries($idCategory = null)
     {
-        $result = [];
+        $result = array();
         $id = $idCategory ? $idCategory : $this->input["id"];
         if (!$id)
             return $result;
@@ -188,7 +190,7 @@ class Category extends Base
 
     public function getLinksGroups($idCategory = null)
     {
-        $result = [];
+        $result = array();
         $id = $idCategory ? $idCategory : $this->input["id"];
         if (!$id)
             return $result;
@@ -225,7 +227,7 @@ class Category extends Base
 
     public function getFilterParams($idCategory = null)
     {
-        $result = [];
+        $result = array();
         $id = $idCategory ? $idCategory : $this->input["id"];
         if (!$id)
             return $result;
@@ -238,7 +240,7 @@ class Category extends Base
         $items = $u->getList();
 
         foreach ($items as $item) {
-            $filter = null;
+            $filter = null; 
             $filter['id'] = $item['idFeature'];
             $filter['name'] = $item['name'];
             if (empty($filter['name']))
@@ -288,9 +290,55 @@ class Category extends Base
         $result['linksGroups'] = $this->getLinksGroups();
         $result['parametersFilters'] = $this->getFilterParams();
         $result["childs"] = $this->getChilds();
-        $result["modificationsGroups"] = (new Modification())->fetch();
+        $modf = new Modification();
+        $result["modificationsGroups"] = $modf->fetch();
+        $result["customFields"] = $this->getCustomFields();
+        if (empty($result["customFields"])) $result["customFields"] = false;
         return $result;
     }
+
+    private function getCustomFields()
+    {
+        try {
+            $idGroup = intval($this->input["id"]);
+            $u = new DB('shop_userfields', 'su');
+            $u->select("cu.id, cu.id_shopgroup, cu.value, su.id id_userfield, 
+                    su.name, su.type, su.values, sug.id id_group, sug.name name_group");
+            $u->leftJoin('shop_group_userfields cu', "cu.id_userfield = su.id AND cu.id_shopgroup = {$idGroup}");
+            $u->leftJoin('shop_userfield_groups sug', 'su.id_group = sug.id');
+            $u->where('su.data = "productgroup"');
+            $u->groupBy('su.id');
+            $u->orderBy('sug.sort');
+            $u->addOrderBy('su.sort');
+            $result = $u->getList();
+
+            $groups = array();
+            foreach ($result as $item) {
+                $groups[intval($item["idGroup"])]["id"] = $item["idGroup"];
+                $groups[intval($item["idGroup"])]["name"] = empty($item["nameGroup"]) ? "Без категории" : $item["nameGroup"];
+                if ($item['type'] == "date")
+                    $item['value'] = date('Y-m-d', strtotime($item['value']));
+                $groups[intval($item["idGroup"])]["items"][] = $item;
+            }
+            $grlist = array();
+            foreach ($groups as $id => $gr) {
+                $grlist[] = $gr;
+            }
+            return $grlist;
+        } catch (Exception $e) {
+            return false;
+        }
+
+    }
+
+    public function save()
+    {
+        if (isset($this->input["codeGr"])) {
+            $this->input["codeGr"] = strtolower(se_translite_url($this->input["codeGr"]));
+        }
+        parent::save();
+    }
+
 
     private function saveDiscounts()
     {
@@ -327,13 +375,15 @@ class Category extends Base
             $idsStr = implode(",", $idsGroups);
             if (!empty($idsStore)) {
                 $u = new DB('shop_group_img', 'si');
-                $u->where("id_group IN ($idsStr) AND NOT (id IN (?))", $idsStore)->deleteList();
+                $u->where("id_group IN ($idsStr) AND NOT (id IN (?))", $idsStore);
+                $u->deleteList();
             } else {
                 $u = new DB('shop_group_img', 'si');
-                $u->where('id_group IN (?)', $idsStr)->deleteList();
+                $u->where('id_group IN (?)', $idsStr);
+                $u->deleteList();
             }
 
-            $data = [];
+            $data = array();
             foreach ($images as $image)
                 if (empty($image["id"]) || ($image["id"] <= 0)) {
                     foreach ($idsGroups as $idProduct) {
@@ -356,7 +406,7 @@ class Category extends Base
         try {
             $idsGroups = $this->input["ids"];
             $links = $this->input["linksGroups"];
-            $idsExists = [];
+            $idsExists = array();
             foreach ($links as $group)
                 if ($group["id"])
                     $idsExists[] = $group["id"];
@@ -366,10 +416,14 @@ class Category extends Base
             $idsStr = implode(",", $idsGroups);
 
             $u = new DB('shop_crossgroup', 'scg');
-            if ($idsExistsStr)
-                $u->where("(NOT group_id IN ({$idsExistsStr})) AND id IN (?)", $idsStr)->deleteList();
-            else $u->where('id IN (?)', $idsStr)->deleteList();
-            $idsExists = [];
+            if ($idsExistsStr) {
+                $u->where("(NOT group_id IN ({$idsExistsStr})) AND id IN (?)", $idsStr);
+                $u->deleteList();
+            } else {
+                $u->where('id IN (?)', $idsStr);
+                $u->deleteList();
+            }
+            $idsExists = array();
             if ($idsExistsStr) {
                 $u->select("id, group_id");
                 $u->where("(group_id IN ({$idsExistsStr})) AND id IN (?)", $idsStr);
@@ -379,7 +433,7 @@ class Category extends Base
                     $idsExists[] = $item["groupId"];
                 }
             };
-            $data = [];
+            $data = array();
             foreach ($links as $group)
                 if (empty($idsExists) || !in_array($group["id"], $idsExists))
                     foreach ($idsGroups as $idGroup)
@@ -400,7 +454,8 @@ class Category extends Base
 
             $idsStr = implode(",", $idsGroups);
             $u = new DB('shop_group_filter', 'sgf');
-            $u->where('id_group IN (?)', $idsStr)->deleteList();
+            $u->where('id_group IN (?)', $idsStr);
+            $u->deleteList();
 
             foreach ($filters as $filter) {
                 foreach ($idsGroups as $idGroup)
@@ -418,6 +473,36 @@ class Category extends Base
         }
     }
 
+    private function saveCustomFields()
+    {
+        if (!isset($this->input["customFields"]) && !$this->input["customFields"])
+            return true;
+
+        try {
+            $idCategory = $this->input["id"];
+            $groups = $this->input["customFields"];
+            $customFields = [];
+            foreach ($groups as $group)
+                foreach ($group["items"] as $item)
+                    $customFields[] = $item;
+            foreach ($customFields as $field) {
+                $u = new DB('shop_group_userfields', 'cu');
+                if (!$field["value"] && $field['id']) {
+                    $u->where('id=?', $field['id'])->deleteList();
+                } else {
+                    $field["idShopgroup"] = $idCategory;
+                    $u->setValuesFields($field);
+                    $u->save();
+                }
+            }
+            return true;
+        } catch (Exception $e) {
+            $this->error = "Не удаётся сохранить доп. информацию о товаре!";
+            throw new Exception($this->error);
+        }
+    }
+
+
     static public function getUrl($code, $id = null)
     {
         $code_n = $code;
@@ -425,7 +510,8 @@ class Category extends Base
         $u = new DB('shop_group', 'sg');
         $i = 1;
         while ($i < 1000) {
-            $data = $u->findList("sg.code_gr = '$code_n' AND id <> {$id}")->fetchOne();
+            $u->findList("sg.code_gr = '$code_n' AND id <> {$id}");
+            $data = $u->fetchOne();
             if ($data["id"])
                 $code_n = $code . "-$i";
             else return $code_n;
@@ -452,20 +538,33 @@ class Category extends Base
     static public function saveIdParent($id, $idParent)
     {
         try {
-            $level = 0;
-            DB::query("DELETE FROM shop_group_tree WHERE id_child = {$id}");
+            $idParent = intval($idParent);
+            $u = new DB('shop_group_tree');
+            $u->select('id');
+            $u->where('id_child = ?', $id);
+            if ($idParent) {
+                $u->andWhere('id_parent = ?', $idParent);
+            } else {
+                $u->andWhere('level = 0');
+            }
+            $answer = $u->fetchOne();
+            writeLog($answer);
+            if (empty($answer)) {
+                $level = 0;
+                DB::query("DELETE FROM shop_group_tree WHERE id_child = {$id}");
 
-            $sqlGroupTree = "INSERT INTO shop_group_tree (id_parent, id_child, `level`)
+                $sqlGroupTree = "INSERT INTO shop_group_tree (id_parent, id_child, `level`)
                                 SELECT id_parent, :id, :level FROM shop_group_tree
                                 WHERE id_child = :id_parent
                                 UNION ALL
                                 SELECT :id, :id, :level";
-            $sthGroupTree = DB::prepare($sqlGroupTree);
-            if (!empty($idParent)) {
-                $level = self::getLevel($idParent);
-                $level++;
+                $sthGroupTree = DB::prepare($sqlGroupTree);
+                if (!empty($idParent)) {
+                    $level = self::getLevel($idParent);
+                    $level++;
+                }
+                $sthGroupTree->execute(array('id_parent' => $idParent, 'id' => $id, 'level' => $level));
             }
-            $sthGroupTree->execute(array('id_parent' => $idParent, 'id' => $id, 'level' => $level));
         } catch (Exception $e) {
             throw new Exception("Не удаётся сохранить родителя группы!");
         }
@@ -473,9 +572,12 @@ class Category extends Base
 
     protected function correctValuesBeforeSave()
     {
+        writeLog($this->input);
         if (!$this->input["id"] && !$this->input["ids"] || isset($this->input["codeGr"])) {
-            if (empty($this->input["codeGr"]))
+            if (empty($this->input["codeGr"])) {
                 $this->input["codeGr"] = strtolower(se_translite_url($this->input["name"]));
+                if (empty($this->input["codeGr"])) $this->input["codeGr"] = 'category' . time();
+            }
             $this->input["codeGr"] = $this->getUrl($this->input["codeGr"], $this->input["id"]);
         }
         if (isset($this->input["idModificationGroupDef"]) && empty($this->input["idModificationGroupDef"]))
@@ -494,11 +596,13 @@ class Category extends Base
         $this->saveImages();
         $this->saveLinksGroups();
         $this->saveParametersFilters();
-        if (CORE_VERSION == "5.3" && (isset($this->input["upid"]) || $this->isNew)) {
-            $group = (new Category($this->input))->info();
-            if ($group["upid"] != $this->input["upid"] || $this->isNew)
-                self::saveIdParent($this->input["id"], $this->input["upid"]);
+        if (CORE_VERSION == "5.3") {
+            //$tgroup = new Category($this->input);
+            //$group = $tgroup->info();
+            writeLog($this->input["id"] . ' ' . $this->input["upid"] . ' save1');
+            self::saveIdParent($this->input["id"], $this->input["upid"]);
         }
+        $this->saveCustomFields();
         return true;
     }
 }

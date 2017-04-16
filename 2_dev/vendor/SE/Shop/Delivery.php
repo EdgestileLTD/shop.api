@@ -154,6 +154,9 @@ class Delivery extends Base
             }
             if (!$fl) $this->input["idCityFrom"] = '';
         }
+        $u = new DB($this->tableName);
+        $u->addField('sms', 'varchar(15)');
+        $u->addField('email', 'varchar(40)');
         parent::save();
 
     }

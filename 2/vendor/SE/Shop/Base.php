@@ -12,6 +12,7 @@ class Base extends CustomBase
     protected $limit = 100;
     protected $offset = 0;
     protected $sortBy = "id";
+    protected $groupBy = "id";
     protected $sortOrder = "desc";
     protected $availableFields;
     protected $filterFields;
@@ -20,7 +21,7 @@ class Base extends CustomBase
     protected $tableName;
     protected $tableAlias;
     protected $allowedSearch = true;
-    protected $availableSigns = array("=", "<=", "<", ">", ">=", "IN", "<>");
+    protected $availableSigns = array("=", "<=", "<", ">", ">=", "IN");
     protected $isNew;
     private $patterns = [];
 
@@ -88,9 +89,11 @@ class Base extends CustomBase
             }
             if (!empty($this->search) || !empty($this->filters))
                 $u->where($this->getWhereQuery($searchFields));
-            $u->groupBy();
+            if ($this->groupBy)
+                $u->groupBy($this->groupBy);
             $u->orderBy($this->sortBy, $this->sortOrder == 'desc');
-            //writeLog($u->getSql());
+            //writeLog($this);
+            //writeLog($this->input);
 
             $this->result["items"] = $this->correctValuesBeforeFetch($u->getList($this->limit, $this->offset));
             $this->result["count"] = $u->getListCount();
@@ -365,6 +368,7 @@ class Base extends CustomBase
         return implode(" OR ", $result);
     }
 */
+
     protected function getFilterQuery()
     {
         $where = [];
@@ -396,8 +400,6 @@ class Base extends CustomBase
                 continue;
             $where[] = "{$field} {$sign} {$value}";
         }
-        //writeLog(implode(" AND ", $where));
-
         return implode(" AND ", $where);
     }
 

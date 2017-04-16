@@ -330,6 +330,10 @@ class Category extends Base
         }
 
     }
+    public function fetch(){
+        $this->limit = $this->input["limit"] ? $this->input["limit"] : 15;
+        parent::fetch();
+    }
 
     public function save()
     {
@@ -598,7 +602,6 @@ class Category extends Base
         if (CORE_VERSION == "5.3") {
             //$tgroup = new Category($this->input);
             //$group = $tgroup->info();
-            writeLog($this->input["id"] . ' ' . $this->input["upid"] . ' save1');
             self::saveIdParent($this->input["id"], $this->input["upid"]);
         }
         $this->saveCustomFields();

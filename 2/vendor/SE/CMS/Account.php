@@ -1,6 +1,6 @@
 <?php
 
-namespace SE\Shop;
+namespace SE\CMS;
 
 use SE\DB;
 use SE\Exception;

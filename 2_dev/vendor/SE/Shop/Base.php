@@ -12,6 +12,7 @@ class Base extends CustomBase
     protected $limit = 100;
     protected $offset = 0;
     protected $sortBy = "id";
+    protected $groupBy = "id";
     protected $sortOrder = "desc";
     protected $availableFields;
     protected $filterFields;
@@ -88,8 +89,11 @@ class Base extends CustomBase
             }
             if (!empty($this->search) || !empty($this->filters))
                 $u->where($this->getWhereQuery($searchFields));
-            $u->groupBy();
+            if ($this->groupBy)
+                $u->groupBy($this->groupBy);
             $u->orderBy($this->sortBy, $this->sortOrder == 'desc');
+            //writeLog($this);
+            //writeLog($this->input);
 
             $this->result["items"] = $this->correctValuesBeforeFetch($u->getList($this->limit, $this->offset));
             $this->result["count"] = $u->getListCount();
@@ -478,6 +482,17 @@ class Base extends CustomBase
         }
 
         return $items;
+    }
+
+    public function postRequest($shorturl, $data)
+    {
+        $url = "http://" . HOSTNAME . "/" . $shorturl;
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        return curl_exec($ch);
     }
 
 }

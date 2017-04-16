@@ -320,7 +320,7 @@ function saveModifications($idsProducts, $modifications)
                     $i++;
                     $dataM[] = array('id' => $i, '`code`' => $item->article, 'id_mod_group' => $mod->id, 'id_price' => $idProduct, 'value' => $item->price,
                         'value_opt' => $item->priceSmallOpt, 'value_opt_corp' => $item->priceOpt,
-                        'value_purchase' => (real) $item->pricePurchase, 'count' => $count,
+                        'value_purchase' => (real)$item->pricePurchase, 'count' => $count,
                         'sort' => $item->sortIndex, 'description' => $item->description);
                     foreach ($item->values as $v)
                         $dataF[] = array('id_price' => $idProduct, 'id_modification' => $i,
@@ -670,7 +670,7 @@ if ($isNew || !empty($ids)) {
     $isUpdated |= setField($isNew, $u, $json->idMmanufacturer, 'id_manufacturer');
     $isUpdated |= setField($isNew, $u, $json->dateManufactured, 'date_manufactured');
     if (!empty($json->brandName) && !isset($json->brand))
-        $json->brand = getBrandByName($json->brandName);
+        $json->brand = getIdBrandByName($json->brandName);
 
     if (isset($json->brand)) {
         if ($json->brand->id)
@@ -696,7 +696,8 @@ if ($isNew || !empty($ids)) {
         }
     }
     $isUpdated |= setField($isNew, $u, $json->maxDiscount, 'max_discount');
-    $isUpdated |= setField($isNew, $u, $json->fullDescription, 'text');
+    if ($json->method != "addDescription")
+        $isUpdated |= setField($isNew, $u, $json->fullDescription, 'text');
     $isUpdated |= setField($isNew, $u, $json->seoHeader, 'title');
     $isUpdated |= setField($isNew, $u, $json->seoKeywords, 'keywords');
     $isUpdated |= setField($isNew, $u, $json->seoDescription, 'description');
@@ -756,6 +757,51 @@ if ($isNew || !empty($ids)) {
 
     if ($ids && isset($json->idGroup) && (CORE_VERSION == "5.3"))
         saveIdGroup($ids, $json->idGroup);
+
+    if ($json->method == "addDescription" && !empty($json->fullDescription)) {
+
+        $textAddList = [];
+        preg_match_all('#<tab title="(.+)">(.+)</tab>#U', $json->fullDescription, $matches);
+        if (!empty($matches[1])) {
+            $i = 0;
+            foreach ($matches[1] as $t)
+                $textAddList[$t] = $matches[2][$i++];
+        } else $textAddList["Описание товара"] = $json->fullDescription;
+
+        $t = new seTable("shop_price", "sp");
+        $t->select("sp.id, sp.text");
+        $t->where("sp.id IN (?)", $idsStr);
+        $items = $t->getList();
+        foreach ($items as $item) {
+            $text = $item["text"];
+            $textList = [];
+            preg_match_all('#<tab title="(.+)">(.+)</tab>#U', $text, $matches);
+            if (empty($matches[1]))
+                $textList["Описание товара"] = $text;
+            else {
+                $i = 0;
+                foreach ($matches[1] as $t)
+                    $textList[$t] = $matches[2][$i++];
+            }
+            $newText = null;
+            foreach ($textList as $key => $text) {
+                if (!empty($textAddList[$key]))
+                    $text .= "\n<br>" . $textAddList[$key];
+                $text = '<tab title="' . $key . '">' . $text . '</tab>';
+                $newText .= $text;
+            }
+            foreach ($textAddList as $key => $text)
+                if (!key_exists($key, $textList))
+                    $newText .= '<tab title="' . $key . '">' . $text . '</tab>';
+
+            if ($newText) {
+                $t = new seTable("shop_price", "sp");
+                setField(false, $t, $newText, 'text');
+                $t->where("id = ?", $item["id"]);
+                $t->save();
+            }
+        }
+    }
 }
 
 $data['id'] = $ids[0];

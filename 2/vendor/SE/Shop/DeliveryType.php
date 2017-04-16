@@ -12,6 +12,7 @@ class DeliveryType extends Base
         $type['id'] = "simple";
         $type['code'] = "simple";
         $type['name'] = "Простая доставка";
+        $type['isIn'] = true;
         $types[] = $type;
 
         $type = null;
@@ -21,6 +22,7 @@ class DeliveryType extends Base
         $type['isTreeMode'] = true;         // позволять создовать дочерние доставки
         $type['isNeedRegion'] = true;       // позволять создовать список регионов доставок
         $type['isNeedConditions'] = true;   // позволять создовать список условий доставок
+        $type['isIn'] = true;
         $types[] = $type;
 
         $type = null;
@@ -30,6 +32,7 @@ class DeliveryType extends Base
         $type['isTreeMode'] = true;         // позволять создовать дочерние доставки
         $type['isNeedRegion'] = true;       // позволять создовать список регионов доставок
         $type['isNeedConditions'] = true;   // позволять создовать список условий доставок
+        $type['isIn'] = true;
         $types[] = $type;
 
 
@@ -37,18 +40,21 @@ class DeliveryType extends Base
         $type['id'] = "ems";
         $type['code'] = "ems";
         $type['name'] = "EMS (калькулятор)";
+        $type['isIn'] = false;
         $types[] = $type;
 
         $type = null;
         $type['id'] = "post";
         $type['code'] = "post";
         $type['name'] = "Почта России";
+        $type['isIn'] = false;
         $types[] = $type;
 
         $type = null;
         $type['id'] = "sdek";
         $type['code'] = "sdek";
         $type['name'] = "СДЭК";
+        $type['isIn'] = false;
         $types[] = $type;
 
         $this->result['count'] = sizeof($types);

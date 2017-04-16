@@ -284,7 +284,7 @@ function getSpecifications($id, &$product)
         $specification['idValue'] = $item['id_value'];
         $specification['valueList'] = $item['value'];
         $specification['valueNumber'] = (float)$item['value_number'];
-        $specification['valueBool'] = (bool)$item['value_bool'];
+        $specification['valueBool'] = (int)$item['value_bool'];
         $specification['valueString'] = $item['value_string'];
         switch ($specification['valueType']) {
             case "S":

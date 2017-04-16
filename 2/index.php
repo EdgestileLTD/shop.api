@@ -1,7 +1,7 @@
 <?php
 
 $allowedMethods = array('FETCH', 'POST', 'DELETE', 'SAVE', 'INFO', 'GET', 'ADDPRICE', 'TRANSLIT', 'UPLOAD',
-    'CHECKNAMES', 'SORT', 'EXPORT', 'IMPORT', 'LOGOUT');
+    'CHECKNAMES', 'SORT', 'EXPORT', 'IMPORT', 'ITEMS', 'LOGOUT');
 $allowedMethods = implode(",", $allowedMethods);
 
 $headers = getallheaders();
@@ -54,6 +54,8 @@ if (!empty($origin)) {
     if ($url) {
         if ($url['host'] == 'shop.siteedit24.com')
             header("Access-Control-Allow-Origin: http://shop.siteedit24.com");
+        if ($url['host'] == 'cms.siteedit24.com')
+            header("Access-Control-Allow-Origin: http://cms.siteedit24.com");
         if ($url['host'] == 'localhost' && $url['port'] == 1337)
             header("Access-Control-Allow-Origin: http://localhost:1337");
         header("Access-Control-Allow-Credentials: true");

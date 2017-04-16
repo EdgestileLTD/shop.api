@@ -4,6 +4,7 @@ namespace SE\Shop;
 
 use SE\DB;
 use SE\Exception;
+use SE\Import;
 
 class Product extends Base
 {
@@ -76,6 +77,53 @@ class Product extends Base
             }
             $this->result['items'][] = $item;
         }
+    }
+    public function info()
+    {
+        if(isset($this->input['set']) and is_array($this->input['id']) and count($this->input['id']) > 1){
+            $id_array = $this->input['id'];
+            foreach ($id_array as $id){
+                if(!is_numeric($id)){
+                    return false;
+                }
+            }
+
+            return $this->result = $this->getDiffFeatures($id_array,true);
+        }
+        parent::info(array_shift($this->input['id']));
+    }
+
+    private function getDiffFeatures($id_array, $retard = FALSE){
+        if(count($id_array) < 2){
+            return array();
+        }
+        $id = array_shift($id_array);
+        $ids = implode(',',$id_array);
+        $sql = 'SELECT `id` FROM `shop_modifications_feature` WHERE `id_price` = %d AND `id_value` IN (SELECT `id_value` FROM `shop_modifications_feature` WHERE `id_price` IN (%s))';
+        $sql = sprintf($sql,$id,$ids);
+        $result = DB::query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+        writeLog('RESULT');
+        writeLog($result);
+        writeLog('SQL');
+        writeLog($sql);
+        $return = array();
+        foreach ($this->getSpecifications($id) as $items){
+            foreach($result as $item){
+                if($retard){
+                    if($item['id'] == $items['id']){
+                        $return[] = $items;
+                    }
+                } else {
+                    if($item['id'] == $items['id']){
+                        $return[] = array(
+                            'id_feature' => $items['idFeature'],
+                            'id_value' => $items['idValue']
+                        );
+                    }
+                }
+            }
+        }
+        return $return;
     }
 
     protected function getSettingsInfo()
@@ -449,6 +497,11 @@ class Product extends Base
 
     public function save()
     {
+        if(isset($this->input['isAddSpecifications'],$this->input['ids']) && !empty($this->input['specifications'])){
+            $this->saveSpecifications();
+            return isset($this->error);
+        }
+        DB::exec("ALTER TABLE `shop_price` CHANGE `code` `code` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL;");
         if (isset($this->input["code"]) && empty($this->input["code"]))
             $this->input["code"] = strtolower(se_translite_url($this->input["code"]));
         parent::save();
@@ -604,16 +657,27 @@ class Product extends Base
     private function saveSpecifications()
     {
         if (!isset($this->input["specifications"]))
-            return true;
+            return FALSE;
 
         try {
+
             $idsProducts = $this->input["ids"];
             $isAddSpecifications = $this->input["isAddSpecifications"];
             $specifications = $this->input["specifications"];
             $idsStr = implode(",", $idsProducts);
+
             if (!$isAddSpecifications) {
-                $u = new DB('shop_modifications_feature', 'smf');
-                $u->where('id_modification IS NULL AND id_price IN (?)', $idsStr)->deleteList();
+                if(count($idsProducts) > 1){
+                    $delIdsArray = $this->getDiffFeatures($idsProducts);
+
+                    $u = new DB('shop_modifications_feature', 'smf');
+                    foreach($delIdsArray as $die){
+                        $u->where("id_modification IS NULL AND id_price IN (?) AND id_feature = {$die['id_feature']} AND id_value = {$die['id_value']}", $idsStr)->deleteList();
+                    }
+                } else {
+                    $u = new DB('shop_modifications_feature', 'smf');
+                    $u->where("id_modification IS NULL AND id_price IN (?)", $idsStr)->deleteList();
+                }
             }
 
             $m = new DB('shop_modifications_feature', 'smf');
@@ -624,15 +688,19 @@ class Product extends Base
                         if (is_string($specification["valueString"]) && $specification["type"] == "string")
                             $m->where("id_price = {$idProduct} AND id_feature = {$specification["idFeature"]} AND 
 							           value_string = '{$specification["value"]}'");
+
                         if (is_bool($specification["valueBool"]) && $specification["type"] == "bool")
                             $m->where("id_price = {$idProduct} AND id_feature = {$specification["idFeature"]} AND 
 							           value_bool = '{$specification["value"]}'");
+
                         if (is_numeric($specification["valueNumber"]) && $specification["type"] == "number")
                             $m->where("id_price = {$idProduct} AND id_feature = {$specification["idFeature"]} AND 
 							           value_number = '{$specification["valueNumber"]}'");
+
                         if (is_numeric($specification["idValue"]))
                             $m->where("id_price = {$idProduct} AND id_feature = {$specification["idFeature"]} AND 
 									   id_value = {$specification["idValue"]}");
+
                         $result = $m->fetchOne();
                         if ($result["id"])
                             continue;
@@ -654,9 +722,8 @@ class Product extends Base
                         'value_bool' => $specification["valueBool"], 'value_string' => $specification["valueString"]);
                 }
             }
-            writeLog($data);
             if (!empty($data))
-                DB::insertList('shop_modifications_feature', $data);
+                DB::insertList('shop_modifications_feature', $data,true);
             return true;
         } catch (Exception $e) {
             $this->error = "Не удаётся сохранить спецификации товара!";
@@ -802,9 +869,15 @@ class Product extends Base
             if (CORE_VERSION == "5.3") {
                 $u = new DB('shop_price_group', 'spg');
                 $u->where('NOT is_main AND id_price in (?)', $idsStr)->deleteList();
-                foreach ($groups as $group)
-                    foreach ($idsProducts as $idProduct)
-                        $data[] = array('id_price' => $idProduct, 'id_group' => $group["id"], 'is_main' => 0);
+                $chgr = array();
+                foreach ($groups as $group) {
+                    foreach ($idsProducts as $idProduct) {
+                        if (empty($chgr[$idProduct][$group["id"]])) {
+                            $data[] = array('id_price' => $idProduct, 'id_group' => $group["id"], 'is_main' => 0);
+                            $chgr[$idProduct][$group["id"]] = true;
+                        }
+                    }
+                }
                 if (!empty($data)) {
                     DB::insertList('shop_price_group', $data);
                 }
@@ -842,6 +915,8 @@ class Product extends Base
 
         try {
             $idsProducts = $this->input["ids"];
+            $ifAdd = !empty($this->input["add"]);
+
             $modifications = $this->input["modifications"];
 
             if ($this->isNew)
@@ -865,10 +940,12 @@ class Product extends Base
                 $u->where('picture IN (?)', $imagesStr);
                 $u->andWhere('id_price IN (?)', $idsStr);
                 $objects = $u->getList();
+
                 foreach ($objects as $item)
                     $namesToIds[$item['picture']] = $item['id'];
             }
 
+            // Собираем существующие модификации
             if (!$isMultiMode) {
                 $idsUpdateM = null;
                 foreach ($modifications as $mod) {
@@ -881,18 +958,26 @@ class Product extends Base
                     }
                 }
             }
-
-            $u = new DB('shop_modifications', 'sm');
-            if (!empty($idsUpdateM))
-                $u->where("NOT id IN ($idsUpdateM) AND id_price in (?)", $idsStr)->deleteList();
-            else $u->where("id_price IN (?)", $idsStr)->deleteList();
-
+            // Удаление лишних модификаций когда идет замена
+            if (!$ifAdd) {
+                $u = new DB('shop_modifications', 'sm');
+                if (!empty($idsUpdateM))
+                    $u->where("NOT id IN ($idsUpdateM) AND id_price in (?)", $idsStr)->deleteList();
+                else $u->where("id_price IN (?)", $idsStr)->deleteList();
+            } else {
+                $u = new DB('shop_modifications', 'sm');
+                $u->select('sm.id, sm.id_price, smf.id_feature, smf.id_value');
+                $u->innerJoin('shop_modifications_feature smf', 'smf.id_modification = sm.id');
+                $u->where('sm.id_price IN (?)', $idsStr);
+                $tems = $u->getList();
+            }
             // новые модификации
             $dataM = [];
             $dataF = [];
             $dataI = [];
             $result = DB::query("SELECT MAX(id) FROM shop_modifications")->fetch();
             $i = $result[0] + 1;
+
             foreach ($modifications as $mod) {
                 foreach ($mod["items"] as $item) {
                     if (empty($item["id"]) || $isMultiMode) {
@@ -900,33 +985,86 @@ class Product extends Base
                         if ($item["count"] >= 0)
                             $count = $item["count"];
                         foreach ($idsProducts as $idProduct) {
-                            $i++;
-                            $dataM[] = array('id' => $i, 'code' => $item["article"],
-                                'id_mod_group' => $mod["id"], 'id_price' => $idProduct, 'value' => $item["priceRetail"],
-                                'value_opt' => $item["priceSmallOpt"], 'value_opt_corp' => $item["priceOpt"], 'count' => $count,
-                                'sort' => (int)$item["sortIndex"], 'description' => $item["description"]);
+                            $notAdd = false;
+                            $newDataM = $newDataF = $newDataI = null;
+
+                            $newDataM = array(
+                                'id' => $i,
+                                'code' => $item["article"],
+                                'id_mod_group' => $mod["id"],
+                                'id_price' => $idProduct,
+                                'value' => $item["priceRetail"],
+                                'value_opt' => $item["priceSmallOpt"],
+                                'value_opt_corp' => $item["priceOpt"],
+                                'count' => $count,
+                                'sort' => (int)$item["sortIndex"],
+                                'description' => $item["description"]);
+
                             foreach ($item["values"] as $v)
-                                $dataF[] = array('id_price' => $idProduct, 'id_modification' => $i,
-                                    'id_feature' => $v["idFeature"], 'id_value' => $v["id"]);
+                                $newDataF = array(
+                                    'id' => $i,
+                                    'id_price' => $idProduct,
+                                    'id_modification' => $i,
+                                    'id_feature' => $v["idFeature"],
+                                    'id_value' => $v["id"]);
                             foreach ($item["images"] as $img) {
                                 if ($img["id"] <= 0)
                                     $img["id"] = $namesToIds[$img["imageFile"]];
-                                $dataI[] = array('id_modification' => $i, 'id_img' => $img["id"],
+                                $newDataI = array(
+                                    'id_modification' => $i,
+                                    'id_img' => $img["id"],
                                     'sort' => $img["sortIndex"]);
+                            }
+
+                            if(isset($tems) || $ifAdd){
+                                foreach ($tems as $it){
+                                    if($it['idPrice'] == $newDataM['id_price'] and $it['idValue'] == $newDataF['id_value']){
+                                        $notAdd = true;
+                                    }
+                                }
+                            }
+                            if(!$notAdd){
+                                if(!empty($newDataM))
+                                    $dataM[] = $newDataM;
+                                if(!empty($newDataF))
+                                    $dataF[] = $newDataF;
+                                if(!empty($newDataI))
+                                    $dataI[] = $newDataI;
+                                $i++;
                             }
                         }
                     }
                 }
             }
-            if (!empty($dataM)) {
-                DB::insertList('shop_modifications', $dataM);
-                if (!empty($dataF))
-                    DB::insertList('shop_modifications_feature', $dataF);
-                if (!empty($dataI))
-                    DB::insertList('shop_modifications_img', $dataI);
-                $dataI = null;
-            }
+            /*
+            $u = new DB($this->tableName);
+            $u->setValuesFields($this->input);
+            */
+            /*
+                writeLog('dataM');
+                writeLog(json_encode($dataM,JSON_PRETTY_PRINT));
+                writeLog('dataF');
+                writeLog(json_encode($dataF,JSON_PRETTY_PRINT));
+                writeLog('dataI');
+                writeLog(json_encode($dataI,JSON_PRETTY_PRINT));
+            */
 
+            try {
+                if (!empty($dataM)) {
+                    DB::insertList('shop_modifications', $dataM,true);
+                    if (!empty($dataF)){
+                        DB::insertList('shop_modifications_feature', $dataF,true);
+                    }
+                    if (!empty($dataI)) {
+                        DB::insertList('shop_modifications_img', $dataI,true);
+                    }
+                    $dataI = null;
+                }
+
+            } catch (Exception $e){
+                writeLog(DB::$lastQuery);
+                throw new Exception();
+            }
             // обновление модификаций
             if (!$isMultiMode) {
                 foreach ($modifications as $mod) {
@@ -974,13 +1112,22 @@ class Product extends Base
             $idsStr = implode(",", $idsProducts);
             $u = new DB('shop_price_group');
             $u->where('is_main AND id_price IN (?)', $idsStr)->deleteList();
+            $chgr = array();
             foreach ($idsProducts as $idProduct) {
-                $group["idPrice"] = $idProduct;
-                $group["idGroup"] = $idGroup;
-                $group["isMain"] = true;
-                $u = new DB('shop_price_group');
-                $u->setValuesFields($group);
-                $u->save();
+
+                if (empty($chgr[$idProduct][$idGroup])) {
+                    $u = new DB('shop_price_group');
+                    $u->where('id_price IN (?) AND id_group=' . $idGroup, $idsStr)->deleteList();
+
+                    $group["idPrice"] = $idProduct;
+                    $group["idGroup"] = $idGroup;
+                    $group["isMain"] = true;
+
+                    $u = new DB('shop_price_group');
+                    $u->setValuesFields($group);
+                    $u->save();
+                    $chgr[$idProduct][$idGroup] = true;
+                }
             }
             return true;
         } catch (Exception $e) {
@@ -1290,9 +1437,13 @@ class Product extends Base
             DB::query("SET foreign_key_checks = 1");
         }
 
-        if ($ext != "csv")
+        $importFile = new Import();
+        $importFile->import($url, $fileName);
+        writeLog('END');
+
+        /*if ($ext != "csv")
             $this->importFromYml($url);
-        else $this->importFromCsv($filePath);
+        else $this->importFromCsv($filePath);*/
     }
 
     private function importFromYml($fileUrl)
@@ -1317,6 +1468,8 @@ class Product extends Base
         $rusCols = $this->rusCols;
         $trCols = array_flip($rusCols);
         $rows = $this->getArrayFromCsv($filePath);
+
+        // START: RUS to ENG keys
         $newsRows = [];
         foreach ($rows as $row) {
             $newRow = [];
@@ -1330,13 +1483,20 @@ class Product extends Base
         }
         $rows = $newsRows;
         unset($newsRows);
+        // END: RUS to ENG keys
 
+        writeLog('ROWS');
+        writeLog($rows);
+
+        // START: Поиск моддификаций
         $isModificationMode = false; // режим с модификациями
         $featuresCols = [];
         $featuresKeys = [];
         $modsGroupsKeys = [];
         if ($rows) {
             $cols = array_keys($rows[0]);
+            writeLog('COLS $rows[0]');
+            writeLog($cols);
             foreach ($cols as $col)
                 if (!in_array($col, $trCols)) {
                     $featuresCols[] = $col;
@@ -1350,6 +1510,11 @@ class Product extends Base
                     }
                 }
         }
+
+        writeLog('$featuresCols');
+        writeLog($featuresCols);
+        writeLog('$featuresKeys');
+        writeLog($featuresKeys);
 
         $lastVal = null;
         $lastRow = null;
@@ -1408,7 +1573,6 @@ class Product extends Base
             if ($isModificationMode)
                 $lastRow['modifications'][] = $mods;
         }
-
         try {
             DB::beginTransaction();
             // добавление товаров

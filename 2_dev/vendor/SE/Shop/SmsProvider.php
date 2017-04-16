@@ -19,12 +19,24 @@ class SmsProvider extends Base
     {
         parent::info();
         $this->result["balance"] = $this->getBalance();
+        $this->result["description"] = $this->getDescription();
         return $this->result;
     }
 
     private function getBalance()
     {
         return $this->requestSmsProviderInfo($this->result["name"], "balance");
+    }
+
+    private function getDescription()
+    {
+        if ($this->result["name"] == 'inCore Dev')
+        {
+            return array("Для начала работы с установленным модулем \"InCore Dev: SMS-уведомления\" необходимо пройти регистрацию(ссылка на https://siteedit4.incore1.ru/ru/reg.html) " .
+            "на сервисе InCore Dev и дождаться активации аккаунта, которая происходит с понедельника по пятницу с 9.00 до 18.00 по московскому времени.",
+            "Стоимость смс с именем отправителя тарифицируется - 1,5 руб. Стоимость смс без имени отправителя - 1 руб. " .
+            "Для использования в смс уникального имени отправителя необходимо согласование с вашим менеджером сервиса InCore Dev.");
+        }
     }
 
     private function requestSmsProviderInfo($provider, $action)

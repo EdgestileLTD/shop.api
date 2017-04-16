@@ -279,7 +279,6 @@ class Order extends Base
 
         $o = new DB('shop_order', 'so');
         $o->add_field('nk', 'tinyint(1)', 0, 1);
-        //$oitem = $o->find($idOrder);
         if ($this->input["status"] == 'N') {
             $o->setValuesFields(array('id'=>$idOrder, 'nk'=>0));
             $o->save();

@@ -1,95 +1,1643 @@
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_146133.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_146133.shop_group_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_146133.shop_group_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_146133.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sop.doc_date' in 'where clause'
+Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sop.doc_date' in 'where clause'
+Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sop.doc_date' in 'where clause'
+Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sop.doc_date' in 'where clause'
+Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sop.doc_date' in 'where clause'
+Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sop.doc_date' in 'where clause'
+Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sop.doc_date' in 'where clause'
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'main_login' in 'where clause'
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'main_login' in 'where clause'
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+
+
+
+
+
+
+
+Exception: 
+Exception: SQLSTATE[23000]: Integrity constraint violation: 1451 Cannot delete or update a parent row: a foreign key constraint fails (`edgestile_144214`.`shop_order_userfields`, CONSTRAINT `FK_shop_order_userfields_shop_userfields_id` FOREIGN KEY (`id_userfield`) REFERENCES `shop_userfields` (`id`))
+Exception: SQLSTATE[23000]: Integrity constraint violation: 1451 Cannot delete or update a parent row: a foreign key constraint fails (`edgestile_144214`.`shop_userfields`, CONSTRAINT `FK_shop_userfields_shop_userfield_groups_id` FOREIGN KEY (`id_group`) REFERENCES `shop_userfield_groups` (`id`))
+Exception: 
+Exception: 
+Exception: Неправильное имя пользователя или пароль!
+Exception: 
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: 
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: 
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: 
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: 
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: 
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: 
+Exception: 
+Exception: 
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: 
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: 
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: 
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: 
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: 
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: 
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_148549.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_146133.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_146133.shop_price_userfields' doesn't exist
+Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_146133.shop_price_userfields' doesn't exist
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: 
+Exception: Неправильное имя пользователя или пароль!
+Exception: Неправильное имя пользователя или пароль!
+Exception: Неправильное имя пользователя или пароль!
 Array
 (
-    [0] => 1
-    [1] => 6
-    [2] => 15
+    [id] => 1
+    [upid] => 
+    [codeGr] => platie
+    [position] => 1
+    [idMain] => 1
+    [name] => Платья
+    [lang] => rus
+    [page] => 
+    [picture] => obshchaya.jpg
+    [pictureAlt] => 
+    [commentary] => 
+    [footertext] => 
+    [title] => Интернет магазин одежды
+    [keywords] => платье, брюки, джинсы, одежда для дома, пояс, юбка, костюм, одежда, интернет-магазин
+    [description] => 
+    [discount] => Y
+    [specialPrice] => Y
+    [typegroup] => s
+    [scount] => 0
+    [active] => Y
+    [visits] => 0
+    [filter] => 0
+    [compare] => 0
+    [idModificationGroupDef] => 
+    [updatedAt] => 2015-05-06 17:06:36
+    [createdAt] => 2015-05-06 13:50:23
+    [discounts] => Array
+        (
+        )
+
+    [images] => Array
+        (
+        )
+
+    [deliveries] => Array
+        (
+        )
+
+    [linksGroups] => Array
+        (
+        )
+
+    [parametersFilters] => Array
+        (
+        )
+
+    [childs] => Array
+        (
+            [0] => Array
+                (
+                    [id] => 2
+                    [upid] => 1
+                    [codeGr] => 1168627768
+                    [position] => 1
+                    [idMain] => 1
+                    [name] => Суши нигири
+                    [lang] => rus
+                    [page] => 
+                    [picture] => nigiri-sushi.jpg
+                    [pictureAlt] => 
+                    [commentary] => 
+                    [footertext] => 
+                    [title] => Суши нигири
+                    [keywords] => 
+                    [description] => 
+                    [discount] => Y
+                    [specialPrice] => Y
+                    [typegroup] => s
+                    [scount] => 0
+                    [active] => Y
+                    [visits] => 0
+                    [filter] => 0
+                    [compare] => 0
+                    [idModificationGroupDef] => 
+                    [updatedAt] => 2016-09-19 18:21:46
+                    [createdAt] => 2015-05-06 17:02:46
+                    [level] => 0
+                )
+
+            [1] => Array
+                (
+                    [id] => 3
+                    [upid] => 1
+                    [codeGr] => 1168628375
+                    [position] => 2
+                    [idMain] => 1
+                    [name] => Суши гункан
+                    [lang] => rus
+                    [page] => 
+                    [picture] => gunkan.jpg
+                    [pictureAlt] => 
+                    [commentary] => 
+                    [footertext] => 
+                    [title] => Суши гункан
+                    [keywords] => 
+                    [description] => 
+                    [discount] => Y
+                    [specialPrice] => Y
+                    [typegroup] => s
+                    [scount] => 0
+                    [active] => Y
+                    [visits] => 0
+                    [filter] => 0
+                    [compare] => 0
+                    [idModificationGroupDef] => 
+                    [updatedAt] => 2016-09-19 18:21:46
+                    [createdAt] => 2015-05-06 17:12:53
+                    [level] => 0
+                )
+
+        )
+
+    [modificationsGroups] => Array
+        (
+        )
+
+    [customFields] => 
+    [nameParent] => 
+    [ids] => Array
+        (
+            [0] => 1
+        )
+
 )
 
 Array
 (
-    [0] => 1
-    [1] => 6
-    [2] => 15
+    [id] => 1
+    [upid] => 
+    [codeGr] => platie
+    [position] => 1
+    [idMain] => 1
+    [name] => Платья
+    [lang] => rus
+    [page] => 
+    [picture] => obshchaya.jpg
+    [pictureAlt] => 
+    [commentary] => 
+    [footertext] => 
+    [title] => Интернет магазин одежды
+    [keywords] => платье, брюки, джинсы, одежда для дома, пояс, юбка, костюм, одежда, интернет-магазин
+    [description] => 
+    [discount] => Y
+    [specialPrice] => Y
+    [typegroup] => s
+    [scount] => 0
+    [active] => Y
+    [visits] => 0
+    [filter] => 0
+    [compare] => 0
+    [idModificationGroupDef] => 
+    [updatedAt] => 2017-04-13 16:32:44
+    [createdAt] => 2015-05-06 13:50:23
+    [discounts] => Array
+        (
+        )
+
+    [images] => Array
+        (
+        )
+
+    [deliveries] => Array
+        (
+        )
+
+    [linksGroups] => Array
+        (
+        )
+
+    [parametersFilters] => Array
+        (
+        )
+
+    [childs] => Array
+        (
+            [0] => Array
+                (
+                    [id] => 2
+                    [upid] => 1
+                    [codeGr] => 1168627768
+                    [position] => 1
+                    [idMain] => 1
+                    [name] => Суши нигири
+                    [lang] => rus
+                    [page] => 
+                    [picture] => nigiri-sushi.jpg
+                    [pictureAlt] => 
+                    [commentary] => 
+                    [footertext] => 
+                    [title] => Суши нигири
+                    [keywords] => 
+                    [description] => 
+                    [discount] => Y
+                    [specialPrice] => Y
+                    [typegroup] => s
+                    [scount] => 0
+                    [active] => Y
+                    [visits] => 0
+                    [filter] => 0
+                    [compare] => 0
+                    [idModificationGroupDef] => 
+                    [updatedAt] => 2016-09-19 18:21:46
+                    [createdAt] => 2015-05-06 17:02:46
+                    [level] => 0
+                )
+
+            [1] => Array
+                (
+                    [id] => 3
+                    [upid] => 1
+                    [codeGr] => 1168628375
+                    [position] => 2
+                    [idMain] => 1
+                    [name] => Суши гункан
+                    [lang] => rus
+                    [page] => 
+                    [picture] => gunkan.jpg
+                    [pictureAlt] => 
+                    [commentary] => 
+                    [footertext] => 
+                    [title] => Суши гункан
+                    [keywords] => 
+                    [description] => 
+                    [discount] => Y
+                    [specialPrice] => Y
+                    [typegroup] => s
+                    [scount] => 0
+                    [active] => Y
+                    [visits] => 0
+                    [filter] => 0
+                    [compare] => 0
+                    [idModificationGroupDef] => 
+                    [updatedAt] => 2016-09-19 18:21:46
+                    [createdAt] => 2015-05-06 17:12:53
+                    [level] => 0
+                )
+
+        )
+
+    [modificationsGroups] => Array
+        (
+        )
+
+    [customFields] => 
+    [nameParent] => 
+    [ids] => Array
+        (
+            [0] => 1
+        )
+
 )
 
+Array
+(
+    [id] => 4
+    [upid] => 
+    [codeGr] => rubashky-bluzki
+    [position] => 2
+    [idMain] => 1
+    [name] => Рубашки, блузки
+    [lang] => rus
+    [page] => 
+    [picture] => obshchaya-rolly.jpg
+    [pictureAlt] => 
+    [commentary] => 
+    [footertext] => 
+    [title] => Роллы
+    [keywords] => 
+    [description] => 
+    [discount] => N
+    [specialPrice] => N
+    [typegroup] => s
+    [scount] => 0
+    [active] => Y
+    [visits] => 0
+    [filter] => 0
+    [compare] => 0
+    [idModificationGroupDef] => 
+    [updatedAt] => 2015-10-07 11:34:10
+    [createdAt] => 2015-10-02 16:12:48
+    [discounts] => Array
+        (
+        )
+
+    [images] => Array
+        (
+        )
+
+    [deliveries] => Array
+        (
+        )
+
+    [linksGroups] => Array
+        (
+        )
+
+    [parametersFilters] => Array
+        (
+        )
+
+    [childs] => Array
+        (
+        )
+
+    [modificationsGroups] => Array
+        (
+        )
+
+    [customFields] => 
+    [nameParent] => 
+    [ids] => Array
+        (
+            [0] => 4
+        )
+
+)
+
+Array
+(
+    [id] => 7
+    [upid] => 
+    [codeGr] => svitera-batniki
+    [position] => 3
+    [idMain] => 1
+    [name] => Свитера, батник
+    [lang] => rus
+    [page] => 
+    [picture] => img_5.jpg
+    [pictureAlt] => 
+    [commentary] => 
+    [footertext] => 
+    [title] => Специи
+    [keywords] => 
+    [description] => 
+    [discount] => Y
+    [specialPrice] => Y
+    [typegroup] => s
+    [scount] => 0
+    [active] => Y
+    [visits] => 0
+    [filter] => 0
+    [compare] => 0
+    [idModificationGroupDef] => 
+    [updatedAt] => 2016-09-19 18:21:46
+    [createdAt] => 2015-10-07 17:35:07
+    [discounts] => Array
+        (
+        )
+
+    [images] => Array
+        (
+        )
+
+    [deliveries] => Array
+        (
+        )
+
+    [linksGroups] => Array
+        (
+            [0] => Array
+                (
+                    [id] => 1
+                    [name] => Платья
+                )
+
+            [1] => Array
+                (
+                    [id] => 4
+                    [name] => Рубашки, блузки
+                )
+
+        )
+
+    [parametersFilters] => Array
+        (
+        )
+
+    [childs] => Array
+        (
+        )
+
+    [modificationsGroups] => Array
+        (
+        )
+
+    [customFields] => 
+    [nameParent] => 
+    [ids] => Array
+        (
+            [0] => 7
+        )
+
+)
+
+Array
+(
+    [name] => Пояса, портупеи
+    [sortIndex] => 3
+)
+
+Array
+(
+    [name] => Брюки, джинсы, лосины
+    [sortIndex] => 4
+)
+
+Array
+(
+    [name] => Юбки, шорты
+    [sortIndex] => 5
+)
+
+Array
+(
+    [name] => Спортивные костюмы
+    [sortIndex] => 6
+)
+
+Array
+(
+    [name] => Костюмы, комбинезоны
+    [sortIndex] => 7
+)
+
+Array
+(
+    [name] => Пиджаки, кардиганы
+    [sortIndex] => 8
+)
+
+Array
+(
+    [name] => Пальто, куртки
+    [sortIndex] => 9
+)
+
+Array
+(
+    [name] => Мужская одежда
+    [sortIndex] => 10
+)
+
+Array
+(
+    [name] => Женская одежда
+    [sortIndex] => 1
+)
+
+Array
+(
+    [name] => Детская мода
+    [sortIndex] => 2
+)
+
+Array
+(
+    [id] => 15
+    [upid] => 
+    [codeGr] => muzhskaya-odezhda
+    [position] => 0
+    [idMain] => 1
+    [name] => Мужская мода
+    [lang] => rus
+    [page] => 
+    [picture] => 
+    [pictureAlt] => 
+    [commentary] => 
+    [footertext] => 
+    [title] => 
+    [keywords] => 
+    [description] => 
+    [discount] => Y
+    [specialPrice] => Y
+    [typegroup] => g
+    [scount] => 
+    [active] => Y
+    [visits] => 0
+    [filter] => 0
+    [compare] => 0
+    [idModificationGroupDef] => 
+    [updatedAt] => 0000-00-00 00:00:00
+    [createdAt] => 0000-00-00 00:00:00
+    [discounts] => Array
+        (
+        )
+
+    [images] => Array
+        (
+        )
+
+    [deliveries] => Array
+        (
+        )
+
+    [linksGroups] => Array
+        (
+        )
+
+    [parametersFilters] => Array
+        (
+        )
+
+    [childs] => Array
+        (
+        )
+
+    [modificationsGroups] => Array
+        (
+        )
+
+    [customFields] => 
+    [nameParent] => 
+    [ids] => Array
+        (
+            [0] => 15
+        )
+
+)
+
+Array
+(
+    [id] => 16
+    [upid] => 
+    [codeGr] => zhenskaya-odezhda
+    [position] => 0
+    [idMain] => 1
+    [name] => Женская мода
+    [lang] => rus
+    [page] => 
+    [picture] => 
+    [pictureAlt] => 
+    [commentary] => 
+    [footertext] => 
+    [title] => 
+    [keywords] => 
+    [description] => 
+    [discount] => Y
+    [specialPrice] => Y
+    [typegroup] => g
+    [scount] => 
+    [active] => Y
+    [visits] => 0
+    [filter] => 0
+    [compare] => 0
+    [idModificationGroupDef] => 
+    [updatedAt] => 0000-00-00 00:00:00
+    [createdAt] => 0000-00-00 00:00:00
+    [discounts] => Array
+        (
+        )
+
+    [images] => Array
+        (
+        )
+
+    [deliveries] => Array
+        (
+        )
+
+    [linksGroups] => Array
+        (
+        )
+
+    [parametersFilters] => Array
+        (
+        )
+
+    [childs] => Array
+        (
+        )
+
+    [modificationsGroups] => Array
+        (
+        )
+
+    [customFields] => 
+    [nameParent] => 
+    [ids] => Array
+        (
+            [0] => 16
+        )
+
+)
+
+Array
+(
+    [id] => 15
+    [upid] => 
+    [codeGr] => muzhskaya-moda
+    [position] => 0
+    [idMain] => 1
+    [name] => Мужская мода
+    [lang] => rus
+    [page] => 
+    [picture] => 
+    [pictureAlt] => 
+    [commentary] => 
+    [footertext] => 
+    [title] => 
+    [keywords] => 
+    [description] => 
+    [discount] => Y
+    [specialPrice] => Y
+    [typegroup] => g
+    [scount] => 
+    [active] => Y
+    [visits] => 0
+    [filter] => 0
+    [compare] => 0
+    [idModificationGroupDef] => 
+    [updatedAt] => 2017-04-13 16:43:33
+    [createdAt] => 0000-00-00 00:00:00
+    [discounts] => Array
+        (
+        )
+
+    [images] => Array
+        (
+        )
+
+    [deliveries] => Array
+        (
+        )
+
+    [linksGroups] => Array
+        (
+        )
+
+    [parametersFilters] => Array
+        (
+        )
+
+    [childs] => Array
+        (
+        )
+
+    [modificationsGroups] => Array
+        (
+        )
+
+    [customFields] => 
+    [nameParent] => 
+    [ids] => Array
+        (
+            [0] => 15
+        )
+
+)
+
+Array
+(
+    [id] => 16
+    [upid] => 
+    [codeGr] => zhenskaya-moda
+    [position] => 0
+    [idMain] => 1
+    [name] => Женская мода
+    [lang] => rus
+    [page] => 
+    [picture] => 
+    [pictureAlt] => 
+    [commentary] => 
+    [footertext] => 
+    [title] => 
+    [keywords] => 
+    [description] => 
+    [discount] => Y
+    [specialPrice] => Y
+    [typegroup] => g
+    [scount] => 
+    [active] => Y
+    [visits] => 0
+    [filter] => 0
+    [compare] => 0
+    [idModificationGroupDef] => 
+    [updatedAt] => 2017-04-13 16:43:42
+    [createdAt] => 0000-00-00 00:00:00
+    [discounts] => Array
+        (
+        )
+
+    [images] => Array
+        (
+        )
+
+    [deliveries] => Array
+        (
+        )
+
+    [linksGroups] => Array
+        (
+        )
+
+    [parametersFilters] => Array
+        (
+        )
+
+    [childs] => Array
+        (
+        )
+
+    [modificationsGroups] => Array
+        (
+        )
+
+    [customFields] => 
+    [nameParent] => 
+    [ids] => Array
+        (
+            [0] => 16
+        )
+
+)
+
+Array
+(
+    [id] => 17
+    [upid] => 
+    [codeGr] => detskaya-moda
+    [position] => 0
+    [idMain] => 1
+    [name] => Детская мода
+    [lang] => rus
+    [page] => 
+    [picture] => 
+    [pictureAlt] => 
+    [commentary] => 
+    [footertext] => 
+    [title] => 
+    [keywords] => 
+    [description] => 
+    [discount] => Y
+    [specialPrice] => Y
+    [typegroup] => g
+    [scount] => 
+    [active] => Y
+    [visits] => 0
+    [filter] => 0
+    [compare] => 0
+    [idModificationGroupDef] => 
+    [updatedAt] => 0000-00-00 00:00:00
+    [createdAt] => 0000-00-00 00:00:00
+    [discounts] => Array
+        (
+        )
+
+    [images] => Array
+        (
+        )
+
+    [deliveries] => Array
+        (
+        )
+
+    [linksGroups] => Array
+        (
+        )
+
+    [parametersFilters] => Array
+        (
+        )
+
+    [childs] => Array
+        (
+        )
+
+    [modificationsGroups] => Array
+        (
+        )
+
+    [customFields] => 
+    [nameParent] => 
+    [ids] => Array
+        (
+            [0] => 17
+        )
+
+)
+
+Array
+(
+    [name] => Платья
+    [sortIndex] => 0
+)
+
+Array
+(
+    [name] => Рубашки, блузки
+    [sortIndex] => 1
+)
+
+Array
+(
+    [name] => Кофточки, батники
+    [sortIndex] => 2
+)
+
+Array
+(
+    [name] => Пояса, портупеи
+    [sortIndex] => 3
+)
+
+Array
+(
+    [name] => Брюки, джинсы, лосины
+    [sortIndex] => 4
+)
+
+Array
+(
+    [name] => Юбки, шорты
+    [sortIndex] => 5
+)
+
+Array
+(
+    [name] => Спортивные костюмы
+    [sortIndex] => 6
+)
+
+Array
+(
+    [name] => Костюмы, комбинезоны
+    [sortIndex] => 7
+)
+
+Array
+(
+    [name] => Пиджаки, кардиганы
+    [sortIndex] => 8
+)
+
+Array
+(
+    [name] => Куртки, пальто
+    [sortIndex] => 9
+)
+
+Array
+(
+    [name] => Футболки, майки
+    [sortIndex] => 10
+)
+
+Array
+(
+    [name] => Купальники
+    [sortIndex] => 11
+)
+
+Array
+(
+    [name] => Шапки
+    [sortIndex] => 12
+)
+
+Array
+(
+    [name] => Одежда для дома
+    [sortIndex] => 13
+)
+
+Exception: 
+Array
+(
+    [id] => 1
+    [upid] => 
+    [codeGr] => 1
+    [position] => 0
+    [idMain] => 1
+    [name] => Кондиционеры
+    [lang] => rus
+    [page] => 
+    [picture] => srk25qa_clip_image001-500x500.jpg
+    [pictureAlt] => 
+    [commentary] => Кондиционеры в Уфе по лучшей цене!<br>
+<p>Желаете&nbsp;<strong>купить кондиционеры в Уфе</strong>, но не знаете,
+где это можно сделать? Тогда наша компания поможет в решении данного вопроса не
+только быстро, но и с присутствием остальных преимуществ. Наша компания
+Global-Complect занимается розничной продажей всевозможных моделей современных
+кондиционеров. Дополнительно у нас можно воспользоваться и такими услугами как
+установка, обслуживание, а также комплексное снабжение организации
+климатическим оборудованием.</p>
+    [footertext] => <p>Где купить&nbsp;<strong>кондиционер в Уфе</strong>?</p><p>Находитесь в поиске того, где можно по доступной стоимости приобрести действительно высококачественный кондиционер? Тогда Вы обратились по адресу. Наша компания Global-Complect предлагает приобрести климатическое устройство не только недорого, но и с присутствием установки. Наша компания является одним из самых надежных поставщиков климатического оборудования от проверенных и ведущих поставщиков.</p><p><strong>Купить кондиционер в Уфе</strong>&nbsp;у нас можно в любое удобное время, необходимой модели и на максимально выгодных условиях. Но в любой ситуации, для максимально успешного приобретения такой техники первоначально необходимо учесть размеры собственного помещения, а уже затем можно приступить и к подбору вида, а также модели кондиционера. Рассчитав объем помещения, в дальнейшем можно определить нужную мощность климатического устройства. Лучше если оборудование будет приобретаться с присутствием немного большей мощности, но не в значительной степени. Так как в данной ситуации техника не будет работать по максимуму. Получается, что правильный расчет данного параметра дает возможность обеспечить не просто присутствие стабильного температурного режима в помещении, но и продолжительный период эксплуатации техники.</p><p>Наша компания Global-Complect предлагает воспользоваться широчайшим спектром услуг:</p><p></p><ul><li>Продажа климатического оборудования. У нас можно приобрести самые разнообразные модели климатической техники, начиная с элитных вариантов, и заканчивая бюджетными решениями. Все предлагающиеся к покупке устройства характеризуются присутствием оригинальной комплектации, а их непрерывная работа является гарантированной.</li><li>Высокопрофессиональная установка кондиционера. Монтаж устройства всегда выполняется грамотно и в максимально короткий промежуток времени.</li><li>Снабжение предприятий всеми необходимыми климатическими устройствами.</li><li>Обслуживание кондиционеров. Каждая такая техника вне зависимости от собственной разновидности должна быть тщательным образом проверена и осмотрена. Наши мастера справятся с любыми задачами.</li></ul><p></p><p>Почему стоит обратиться к нам?</p><p>Наша компания занимается установкой, продажей и обслуживанием климатического оборудования на протяжении многих лет. К главным преимуществам обращения к нам принято относить:</p><p></p><ul><li>Минимальная стоимость продукции.</li><li>Огромный ассортимент и высочайшее качество.</li><li>Присутствие возможности проконсультироваться.</li><li>Быстрая обработка заказов.</li><li>Возможность приобрести кондиционер с монтажом.</li><li>Присутствие гарантии.</li></ul><p></p>
+    [title] => Купить {asname} по низким ценам в Уфе :: Характеристики {name}, отзывы {name}, доставка, ремонт
+    [keywords] => Купить {asname} в уфе, {asname} уфа, хорактеристики {name}, {asname} на заказ, ремонт {name}, установка {name}
+    [description] => {краткое описание}
+    [discount] => Y
+    [specialPrice] => Y
+    [typegroup] => s
+    [scount] => 0
+    [active] => Y
+    [visits] => 0
+    [compare] => 0
+    [idModificationGroupDef] => 
+    [updatedAt] => 2017-04-15 13:39:29
+    [createdAt] => 2015-11-18 16:25:42
+    [idsParents] => 0:205
+    [level] => 2
+    [discounts] => Array
+        (
+        )
+
+    [images] => Array
+        (
+        )
+
+    [deliveries] => Array
+        (
+        )
+
+    [linksGroups] => Array
+        (
+        )
+
+    [parametersFilters] => Array
+        (
+            [0] => Array
+                (
+                    [id] => 
+                    [name] => Цена
+                    [code] => price
+                    [sortIndex] => 0
+                    [isActive] => 1
+                )
+
+            [1] => Array
+                (
+                    [id] => 
+                    [name] => Бренды
+                    [code] => brand
+                    [sortIndex] => 1
+                    [isActive] => 1
+                )
+
+            [2] => Array
+                (
+                    [id] => 1
+                    [name] => Размеры
+                    [code] => 
+                    [sortIndex] => 2
+                    [isActive] => 1
+                )
+
+        )
+
+    [childs] => Array
+        (
+            [0] => Array
+                (
+                    [id] => 10
+                    [upid] => 1
+                    [codeGr] => 10
+                    [position] => 0
+                    [idMain] => 1
+                    [name] => Бытовые
+                    [lang] => rus
+                    [page] => 
+                    [picture] => 
+                    [pictureAlt] => 
+                    [commentary] => <h2>Бытовые кондиционеры</h2>
+<p>В наше время новейшие технологии развиваются очень быстро. Они производят для
+нашего удобства много разных оборудований. Для того, чтобы чувствовать
+комфортно в любом помещении изготавливают кондиционеры. В наши дни они
+приобрели заслуженную популярность. Благодаря своим превосходным результатам в
+использовании. Погодные изменения мешают комфортно чувствовать себя? Выход
+есть! Необходимо приобрести качественный кондиционер на дальнейшую уютную
+жизнь.</p>
+                    [footertext] => <h3>Бытовые кондиционеры в Уфе</h3>
+<div>Бытовые кондиционеры - это устройство предназначенное для охлаждения воздуха и поддержания оптимальной температуры в любом помещении. Чаще всего их используют в летний период, когда температура в помещении превышает все стандартные нормы. Очень заманчиво находится в прохладном помещении, когда на улице невообразимая жара. При этом кондиционеры используют и в зимний период для повышения температуры. Естественно намного реже, но многие пользователи практикуют такой дополнительный обогрев своего дома или офиса.</div><h4>Купить кондиционер в Уфе</h4><p><br>Купить кондиционер - это отличный способ забыть о резкой смене температуры и поддерживать оптимальную. Наша компания Global-Complect - предлагает розничную продажу кондиционеров самых известных брендов. Мы занимаем лидирующую позицию на рынке продаж. Наш ассортимент обширен и доступен каждому клиенту, который решил облегчить себе жизнь.</p><h4>Наши преимущества</h4><p>Наша компания предоставляет гарантию качества нашим клиентам. Наши сотрудники имеют профессиональные навыки работы с кондиционерами. Обслуживание клиента происходит у нас на высшем уровне. Мы заботимся о каждом клиенте и оказываем консультацию по всем вопросам. Подбираем товар со всеми вашими пожеланиями. Сотрудничая с нами вы с легкостью можете оценить наши преимущества. Из многочисленных плюсов нашей компании можно выделить самые значительные, а именно:</p><p></p><ol><li>Гарантия качества на весь приобретаемый товар;</li><li>Выгодные предложения для постоянных клиентов;</li><li>Доступная цена для каждого;</li><li>Приветливые сотрудники, которые расскажут вам все о кондиционерах и помогут подобрать самую наилучшую модель;</li><li>Огромный выбор товара, позволяет идеально подобрать именно ту модель, которая соответствует вашим пожеланиям;</li><li>Мы обслуживаем и устанавливаем наш товар;</li><li>Наши кондиционеры оснащены самыми полезными функциями.</li></ol><p></p><h4>Установка кондиционеров</h4><p>Для того, чтобы у вас не было ни каких сомнений для выбора, мы предлагаем вам сопутствующие услуги. Мы занимаемся полным обслуживанием кондиционеров приобретенных у нас. Наши профессиональные сотрудники производят установку и оказывают полную консультацию о правильном пользовании кондиционера. Мы осуществляем комплексное снабжение предприятий, что очень выгодно.</p><h5>Популярные марки, которые находятся именно у нас:</h5><br>1.Akvilon<br>2.Ballu<br>3.Carrier<br>4.Electrolux<br>5.Lessar<br>6.Luberg<br>7.Mitsubishi&nbsp;Electric<br>8.Oasis<br>9.Vertex<br>10.Zerten
+                    [title] => 
+                    [keywords] => 
+                    [description] => 
+                    [discount] => Y
+                    [specialPrice] => Y
+                    [typegroup] => s
+                    [scount] => 189
+                    [active] => Y
+                    [visits] => 0
+                    [compare] => 0
+                    [idModificationGroupDef] => 
+                    [updatedAt] => 2017-04-15 13:39:29
+                    [createdAt] => 2015-11-18 16:25:44
+                    [idsParents] => 0:205;1:1;1:1
+                    [level] => 0
+                )
+
+            [1] => Array
+                (
+                    [id] => 22
+                    [upid] => 1
+                    [codeGr] => 22
+                    [position] => 1
+                    [idMain] => 
+                    [name] => Полупромышленные
+                    [lang] => rus
+                    [page] => 
+                    [picture] => 
+                    [pictureAlt] => 
+                    [commentary] => 
+                    [footertext] => 
+                    [title] => 
+                    [keywords] => 
+                    [description] => 
+                    [discount] => Y
+                    [specialPrice] => Y
+                    [typegroup] => s
+                    [scount] => 0
+                    [active] => Y
+                    [visits] => 0
+                    [compare] => 0
+                    [idModificationGroupDef] => 
+                    [updatedAt] => 2017-04-15 13:39:29
+                    [createdAt] => 2015-11-18 16:25:48
+                    [idsParents] => 0:205;1:1;1:1
+                    [level] => 0
+                )
+
+            [2] => Array
+                (
+                    [id] => 71
+                    [upid] => 1
+                    [codeGr] => 71
+                    [position] => 2
+                    [idMain] => 
+                    [name] => Мульти сплит-системы
+                    [lang] => rus
+                    [page] => 
+                    [picture] => 
+                    [pictureAlt] => 
+                    [commentary] => 
+                    [footertext] => 
+                    [title] => 
+                    [keywords] => 
+                    [description] => 
+                    [discount] => Y
+                    [specialPrice] => Y
+                    [typegroup] => s
+                    [scount] => 0
+                    [active] => Y
+                    [visits] => 0
+                    [compare] => 0
+                    [idModificationGroupDef] => 
+                    [updatedAt] => 2017-04-15 13:39:29
+                    [createdAt] => 2015-11-18 16:26:02
+                    [idsParents] => 0:205;1:1;1:1
+                    [level] => 0
+                )
+
+            [3] => Array
+                (
+                    [id] => 183
+                    [upid] => 1
+                    [codeGr] => kolonnye-kondicionery
+                    [position] => 3
+                    [idMain] => 1
+                    [name] => Колонные кондиционеры
+                    [lang] => rus
+                    [page] => 
+                    [picture] => 
+                    [pictureAlt] => 
+                    [commentary] => 
+                    [footertext] => 
+                    [title] => 
+                    [keywords] => 
+                    [description] => 
+                    [discount] => Y
+                    [specialPrice] => Y
+                    [typegroup] => g
+                    [scount] => 6
+                    [active] => Y
+                    [visits] => 0
+                    [compare] => 0
+                    [idModificationGroupDef] => 
+                    [updatedAt] => 2017-04-15 13:39:29
+                    [createdAt] => 2016-02-07 15:55:10
+                    [idsParents] => 0:205;1:1;1:1
+                    [level] => 0
+                )
+
+            [4] => Array
+                (
+                    [id] => 138
+                    [upid] => 1
+                    [codeGr] => precizionnye-kondicionery
+                    [position] => 4
+                    [idMain] => 1
+                    [name] => Прецизионные кондиционеры
+                    [lang] => rus
+                    [page] => 
+                    [picture] => 
+                    [pictureAlt] => 
+                    [commentary] => 
+                    [footertext] => 
+                    [title] => 
+                    [keywords] => 
+                    [description] => 
+                    [discount] => Y
+                    [specialPrice] => Y
+                    [typegroup] => g
+                    [scount] => 0
+                    [active] => Y
+                    [visits] => 0
+                    [compare] => 0
+                    [idModificationGroupDef] => 
+                    [updatedAt] => 2017-04-15 13:39:29
+                    [createdAt] => 2016-01-16 22:36:38
+                    [idsParents] => 0:205;1:1;1:1
+                    [level] => 0
+                )
+
+            [5] => Array
+                (
+                    [id] => 140
+                    [upid] => 1
+                    [codeGr] => fankoyly
+                    [position] => 5
+                    [idMain] => 1
+                    [name] => Фанкойлы
+                    [lang] => rus
+                    [page] => 
+                    [picture] => 
+                    [pictureAlt] => 
+                    [commentary] => 
+                    [footertext] => 
+                    [title] => 
+                    [keywords] => 
+                    [description] => 
+                    [discount] => Y
+                    [specialPrice] => Y
+                    [typegroup] => g
+                    [scount] => 0
+                    [active] => Y
+                    [visits] => 0
+                    [compare] => 0
+                    [idModificationGroupDef] => 
+                    [updatedAt] => 2017-04-15 13:39:29
+                    [createdAt] => 2016-01-16 22:37:08
+                    [idsParents] => 0:205;1:1;1:1
+                    [level] => 0
+                )
+
+            [6] => Array
+                (
+                    [id] => 141
+                    [upid] => 1
+                    [codeGr] => multizonalnye-vrv-sistemy
+                    [position] => 6
+                    [idMain] => 1
+                    [name] => Мультизональные VRV системы
+                    [lang] => rus
+                    [page] => 
+                    [picture] => 
+                    [pictureAlt] => 
+                    [commentary] => 
+                    [footertext] => 
+                    [title] => 
+                    [keywords] => 
+                    [description] => 
+                    [discount] => Y
+                    [specialPrice] => Y
+                    [typegroup] => g
+                    [scount] => 0
+                    [active] => Y
+                    [visits] => 0
+                    [compare] => 0
+                    [idModificationGroupDef] => 
+                    [updatedAt] => 2017-04-15 13:39:29
+                    [createdAt] => 2016-01-16 22:38:13
+                    [idsParents] => 0:205;1:1;1:1
+                    [level] => 0
+                )
+
+            [7] => Array
+                (
+                    [id] => 142
+                    [upid] => 1
+                    [codeGr] => mobilnye-kondicionery
+                    [position] => 7
+                    [idMain] => 1
+                    [name] => Мобильные кондиционеры
+                    [lang] => rus
+                    [page] => 
+                    [picture] => 
+                    [pictureAlt] => 
+                    [commentary] => 
+                    [footertext] => 
+                    [title] => 
+                    [keywords] => 
+                    [description] => 
+                    [discount] => Y
+                    [specialPrice] => Y
+                    [typegroup] => g
+                    [scount] => 4
+                    [active] => Y
+                    [visits] => 0
+                    [compare] => 0
+                    [idModificationGroupDef] => 
+                    [updatedAt] => 2017-04-15 13:39:29
+                    [createdAt] => 2016-01-16 22:40:01
+                    [idsParents] => 0:205;1:1;1:1
+                    [level] => 0
+                )
+
+            [8] => Array
+                (
+                    [id] => 129
+                    [upid] => 1
+                    [codeGr] => aksessuary-1
+                    [position] => 8
+                    [idMain] => 1
+                    [name] => Аксессуары
+                    [lang] => rus
+                    [page] => 
+                    [picture] => 
+                    [pictureAlt] => 
+                    [commentary] => 
+                    [footertext] => 
+                    [title] => 
+                    [keywords] => 
+                    [description] => 
+                    [discount] => Y
+                    [specialPrice] => Y
+                    [typegroup] => g
+                    [scount] => 0
+                    [active] => Y
+                    [visits] => 0
+                    [compare] => 0
+                    [idModificationGroupDef] => 
+                    [updatedAt] => 2017-04-15 13:39:29
+                    [createdAt] => 2016-01-15 12:29:32
+                    [idsParents] => 0:205;1:1;1:1
+                    [level] => 0
+                )
+
+            [9] => Array
+                (
+                    [id] => 182
+                    [upid] => 1
+                    [codeGr] => okonnye-kondicionery
+                    [position] => 9
+                    [idMain] => 1
+                    [name] => Оконные кондиционеры
+                    [lang] => rus
+                    [page] => 
+                    [picture] => 
+                    [pictureAlt] => 
+                    [commentary] => 
+                    [footertext] => 
+                    [title] => 
+                    [keywords] => 
+                    [description] => 
+                    [discount] => Y
+                    [specialPrice] => Y
+                    [typegroup] => g
+                    [scount] => 0
+                    [active] => Y
+                    [visits] => 0
+                    [compare] => 0
+                    [idModificationGroupDef] => 
+                    [updatedAt] => 2017-04-15 13:39:29
+                    [createdAt] => 2016-01-31 21:38:17
+                    [idsParents] => 0:205;1:1;1:1
+                    [level] => 0
+                )
+
+            [10] => Array
+                (
+                    [id] => 151
+                    [upid] => 1
+                    [codeGr] => montazh-kondicionerov
+                    [position] => 10
+                    [idMain] => 1
+                    [name] => Монтаж кондиционеров
+                    [lang] => rus
+                    [page] => 
+                    [picture] => 
+                    [pictureAlt] => 
+                    [commentary] => 
+                    [footertext] => 
+                    [title] => 
+                    [keywords] => 
+                    [description] => 
+                    [discount] => Y
+                    [specialPrice] => Y
+                    [typegroup] => g
+                    [scount] => 0
+                    [active] => Y
+                    [visits] => 0
+                    [compare] => 0
+                    [idModificationGroupDef] => 
+                    [updatedAt] => 2017-04-15 13:39:29
+                    [createdAt] => 2016-01-22 13:30:21
+                    [idsParents] => 0:205;1:1;1:1
+                    [level] => 0
+                )
+
+        )
+
+    [modificationsGroups] => Array
+        (
+            [0] => Array
+                (
+                    [id] => 4
+                    [idMain] => 1
+                    [name] => площадь обогрева
+                    [vtype] => 2
+                    [sort] => 3
+                    [updatedAt] => 2016-01-17 09:53:26
+                    [createdAt] => 2016-01-17 09:50:22
+                    [values] => 7	5	Площадь обогрева	list
+                    [columns] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [id] => 7
+                                    [idGroup] => 5
+                                    [name] => Площадь обогрева
+                                    [type] => list
+                                )
+
+                        )
+
+                )
+
+            [1] => Array
+                (
+                    [id] => 3
+                    [idMain] => 1
+                    [name] => Размер
+                    [vtype] => 2
+                    [sort] => 2
+                    [updatedAt] => 2016-01-11 23:03:45
+                    [createdAt] => 2016-01-11 23:02:56
+                    [values] => 1	3	Размеры	list
+                    [columns] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [id] => 1
+                                    [idGroup] => 3
+                                    [name] => Размеры
+                                    [type] => list
+                                )
+
+                        )
+
+                )
+
+            [2] => Array
+                (
+                    [id] => 1
+                    [idMain] => 0
+                    [name] => Цвет и размер
+                    [vtype] => 0
+                    [sort] => 1
+                    [updatedAt] => 2015-10-17 13:51:29
+                    [createdAt] => 2015-10-17 13:51:23
+                    [values] => 
+                )
+
+            [3] => Array
+                (
+                    [id] => 2
+                    [idMain] => 0
+                    [name] => Технические характеристики
+                    [vtype] => 0
+                    [sort] => 0
+                    [updatedAt] => 2016-01-17 13:03:24
+                    [createdAt] => 2015-12-15 12:23:19
+                    [values] => 7	6	Площадь обогрева	list
+13	7	Площадь обогрева при 1200Вт/м2,м2	list
+                    [columns] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [id] => 7
+                                    [idGroup] => 6
+                                    [name] => Площадь обогрева
+                                    [type] => list
+                                )
+
+                            [1] => Array
+                                (
+                                    [id] => 13
+                                    [idGroup] => 7
+                                    [name] => Площадь обогрева при 1200Вт/м2,м2
+                                    [type] => list
+                                )
+
+                        )
+
+                )
+
+        )
+
+    [customFields] => 
+    [nameParent] => 
+    [ids] => Array
+        (
+            [0] => 1
+        )
+
+)
+
+1  save1
+
 Exception: Неправильное имя пользователя или пароль!
-SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_149038.se_settings' doesn't exist
-Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'edgestile_149038.se_settings' doesn't exist
-Exception: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '52-16' for key 'UK_shop_price_group'
-Exception: Не удаётся сохранить дополнительные категории товара!
 Exception: Неправильное имя пользователя или пароль!
-Exception: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '118-16' for key 'UK_shop_price_group'
-Exception: Не удаётся сохранить дополнительные категории товара!
-SQLSTATE[42S22]: Column not found: 1054 Unknown column 'db_version' in 'field list'
-Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'db_version' in 'field list'
-SQLSTATE[42S22]: Column not found: 1054 Unknown column 'db_version' in 'field list'
-Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'db_version' in 'field list'
-Exception: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '42-16' for key 'UK_shop_price_group'
-Exception: Не удаётся сохранить дополнительные категории товара!
-Exception: Query: INSERT INTO shop_price_group SET `id_price` = :id_price, `id_group` = :id_group, `is_main` = :is_main
-Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '42-16' for key 'UK_shop_price_group'
-Exception: Не удаётся сохранить категорию товара!
-Exception: Query: INSERT INTO shop_price_group SET `id_price` = :id_price, `id_group` = :id_group, `is_main` = :is_main
-Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '42-17' for key 'UK_shop_price_group'
-Exception: Не удаётся сохранить категорию товара!
-Exception: Query: INSERT INTO shop_price_group SET `id_price` = :id_price, `id_group` = :id_group, `is_main` = :is_main
-Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '42-17' for key 'UK_shop_price_group'
-Exception: Не удаётся сохранить категорию товара!
-Exception: Query: INSERT INTO shop_price_group SET `id_price` = :id_price, `id_group` = :id_group, `is_main` = :is_main
-Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '42-17' for key 'UK_shop_price_group'
-Exception: Не удаётся сохранить категорию товара!
-Exception: Query: INSERT INTO shop_price_group SET `id_price` = :id_price, `id_group` = :id_group, `is_main` = :is_main
-Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '42-17' for key 'UK_shop_price_group'
-Exception: Не удаётся сохранить категорию товара!
-Exception: Query: INSERT INTO shop_price_group SET `id_price` = :id_price, `id_group` = :id_group, `is_main` = :is_main
-Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '42-17' for key 'UK_shop_price_group'
-Exception: Не удаётся сохранить категорию товара!
-Exception: Query: INSERT INTO shop_price_group SET `id_price` = :id_price, `id_group` = :id_group, `is_main` = :is_main
-Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '42-17' for key 'UK_shop_price_group'
-Exception: Не удаётся сохранить категорию товара!
-SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '' at line 1
-Exception: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '' at line 1
-SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '' at line 1
-Exception: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '' at line 1
 Exception: Неправильное имя пользователя или пароль!
-SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sdl.id_usergroup' in 'on clause'
-Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sdl.id_usergroup' in 'on clause'
 Exception: Неправильное имя пользователя или пароль!
-SQLSTATE[42S22]: Column not found: 1054 Unknown column 'main_login' in 'where clause'
-Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'main_login' in 'where clause'
-SQLSTATE[42S22]: Column not found: 1054 Unknown column 'main_login' in 'where clause'
-Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'main_login' in 'where clause'
-SQLSTATE[42S22]: Column not found: 1054 Unknown column 'main_login' in 'where clause'
-Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'main_login' in 'where clause'
-SQLSTATE[42S22]: Column not found: 1054 Unknown column 'main_login' in 'where clause'
-Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'main_login' in 'where clause'
-SQLSTATE[42S22]: Column not found: 1054 Unknown column 'main_login' in 'where clause'
-Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'main_login' in 'where clause'
-Exception: 
-Exception: Не удаётся экспортировать товары!
-SQLSTATE[42S22]: Column not found: 1054 Unknown column 'main_login' in 'where clause'
-Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'main_login' in 'where clause'
-Exception: 
-Exception: Не удаётся экспортировать товары!
-Exception: 
-Exception: Не удаётся экспортировать товары!
-Exception: 
-Exception: Не удаётся экспортировать товары!
-Exception: 
-Exception: Не удаётся экспортировать товары!
-Exception: 
-Exception: Не удаётся экспортировать товары!
-Exception: 
-Exception: Не удаётся экспортировать товары!
-Exception: 
-Exception: Не удаётся экспортировать товары!
-Exception: 
-Exception: Не удаётся экспортировать товары!
-Exception: 
-Exception: Не удаётся экспортировать товары!
-Exception: SQLSTATE[HY000] [1045] Access denied for user 'edgestile_a_9787'@'localhost' (using password: YES)
-Exception: SQLSTATE[HY000] [1045] Access denied for user 'edgestile_a_9787'@'localhost' (using password: YES)
-Exception: SQLSTATE[HY000] [1045] Access denied for user 'edgestile_a_9787'@'localhost' (using password: YES)
-Exception: SQLSTATE[HY000] [1045] Access denied for user 'edgestile_a_9787'@'localhost' (using password: YES)
-Exception: SQLSTATE[HY000] [1045] Access denied for user 'edgestile_a_9787'@'localhost' (using password: YES)
-Exception: SQLSTATE[HY000] [1045] Access denied for user 'edgestile_a_9787'@'localhost' (using password: YES)
+Exception: Неправильное имя пользователя или пароль!
+Exception: Неправильное имя пользователя или пароль!

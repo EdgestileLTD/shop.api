@@ -90,6 +90,7 @@ class Payment extends Base
 
     private function saveOrderAccount()
     {
+        $orderId = $this->input["idOrder"];
         if ($this->input["idUserAccountOut"]) {
             $u = new DB('se_user_account', 'sua');
             $u->where('id = ?', $this->input["idUserAccountOut"])->deleteList();
@@ -103,6 +104,7 @@ class Payment extends Base
             $data["userId"] = $this->input["idAuthor"];
             $data["companyId"] = $this->input["idCompany"];
             $data["datePayee"] = date("Y-m-d");
+            $data["orderId"] = $orderId;
             $data["operation"] = 1;
             $data["inPayee"] = $this->input["amount"];
             $document = null;
@@ -119,8 +121,10 @@ class Payment extends Base
             $data["userId"] = $this->input["idAuthor"];
             $data["companyId"] = $this->input["idCompany"];
             $data["datePayee"] = date("Y-m-d");
+            $data["orderId"] = $orderId;
             $data["operation"] = 2;
-            $data["outPayee"] = $this->input["orderAmount"];
+            $data["inPayee"] = 0;
+            $data["outPayee"] = $this->input["amount"];
             $document = 'Оплата заказа № ' . $this->input["idOrder"];
             $data["docum"] = $document;
             $u->setValuesFields($data);

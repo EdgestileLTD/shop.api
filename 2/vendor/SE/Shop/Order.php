@@ -196,10 +196,10 @@ class Order extends Base
             foreach ($result as $item) {
                 if ($item['picture']) $item['img'] = $item['picture'];
                 $product['id'] = $item['id'];
-                $product['idPrice'] = $item['id_price'];
+                $product['idPrice'] = $item['idPrice'];
                 $product['code'] = $item['code'];
                 $product['name'] = $item['nameitem'];
-                $product['originalName'] = $item['price_name'];
+                $product['originalName'] = $item['priceName'];
                 //$product['modifications'] = getModifications($item);
                 $product['article'] = $item['article'];
                 $product['measurement'] = $item['measure'];
@@ -268,6 +268,9 @@ class Order extends Base
 
     private function saveItems()
     {
+        //$o = new DB('shop_order', 'sto');
+        //$o->add_field('nk', 'tinyint(4)', 0, 1);
+
         $idOrder = $this->input["id"];
         $products = $this->input["items"];
         foreach ($products as $p)
@@ -276,6 +279,17 @@ class Order extends Base
                     $idsUpdate .= ',';
                 $idsUpdate .= $p["id"];
             }
+
+        $o = new DB('shop_order', 'so');
+        $o->add_field('nk', 'tinyint(1)', 0, 1);
+
+        if ($this->input["status"] == 'N') {
+            $o->setValuesFields(array('id'=>$idOrder, 'nk'=>0));
+            $o->save();
+            $ua = new DB('se_user_account');
+            $ua->where('order_id = ?', $idOrder);
+            $ua->deleteList();
+        }
 
         DB::query("UPDATE shop_price sp
             INNER JOIN shop_tovarorder st ON sp.id = st.id_price
