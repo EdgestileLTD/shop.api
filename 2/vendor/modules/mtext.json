@@ -1,0 +1,51 @@
+['info' : 
+	{
+		'comment' : 'Стандартная форма для создания текстовых блоков и статей (on-line управление).',
+		'group' : 'Тексты',
+		'name': 'Текст и рисунок'
+	}, 
+	'objects' : {
+		'tabs' : {
+			'tab_content' : {
+				'field' : {
+					'label' : 'Путь к странице',
+					'type' : 'text'
+				},
+				'note' : {
+					'label' : 'Краткий текст',
+					'type' : 'textarrayedit'
+				},
+				'title' : {
+					'label' : 'Заголовок',
+					'type' : 'text'
+				},
+				'url' : {
+					'label' : 'URL',
+					'type' : 'text'
+				},
+				'image' : {
+					'label' : 'Рисунок',
+					'type' : 'image'
+				}
+			}
+		}
+	}, 'option' : {
+		'interface' : "1",
+		'objectbefore' : "0",
+		'params' : "1"
+	}, 'tabs' : {
+		'tab_content': {
+			'fields' : {
+				'text' : {
+					'label' : 'Содержание',
+					'type' : 'textareaedit'
+				},
+				'title' : {
+					'label' : 'Заголовок',
+					'type' : 'text'
+				}
+			}
+		}
+	}
+
+]
