@@ -106,7 +106,7 @@ class Category extends Base
         return $this->getSettingsFetch();
     }
 
-    public function info()
+    public function info($id = null)
     {
         $result = parent::info();
         if (CORE_VERSION == "5.3") {
@@ -328,11 +328,6 @@ class Category extends Base
         } catch (Exception $e) {
             return false;
         }
-
-    }
-    public function fetch(){
-        $this->limit = $this->input["limit"] ? $this->input["limit"] : 15;
-        parent::fetch();
     }
 
     public function save()
@@ -552,6 +547,10 @@ class Category extends Base
                 $u->andWhere('level = 0');
             }
             $answer = $u->fetchOne();
+            if ($idParent) {
+                DB::query("DELETE FROM shop_group_tree WHERE id_child = {$id} AND id_parent<>{$idParent}");
+            }
+
             writeLog($answer);
             if (empty($answer)) {
                 $level = 0;

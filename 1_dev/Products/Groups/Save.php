@@ -190,20 +190,34 @@ function saveIdParent($id, $idParent)
 {
     global $DBH;
 
-    $DBH->query("DELETE FROM shop_group_tree WHERE id_child = {$id}");
+    $u = new seTable('shop_group_tree');
+    $u->select('id');
+    $u->where('id_child = ?', $id);
+    if ($idParent) {
+        $u->andWhere('id_parent = ?', $idParent);
+    } else {
+        $u->andWhere('level = 0');
+    }
+    $answer = $u->fetchOne();
+    if ($idParent)
+        $DBH->query("DELETE FROM shop_group_tree WHERE id_child = {$id} AND id_parent <> {$idParent}");
 
-    $level = 0;
-    $sqlGroupTree = "INSERT INTO shop_group_tree (id_parent, id_child, `level`)
+    if (empty($answer)) {
+        $DBH->query("DELETE FROM shop_group_tree WHERE id_child = {$id}");
+
+        $level = 0;
+        $sqlGroupTree = "INSERT INTO shop_group_tree (id_parent, id_child, `level`)
                             SELECT id_parent, :id, :level FROM shop_group_tree
                             WHERE id_child = :id_parent
                             UNION ALL
                             SELECT :id, :id, :level";
-    $sthGroupTree = $DBH->prepare($sqlGroupTree);
-    if (!empty($idParent)) {
-        $level = getLevel($idParent);
-        $level++;
+        $sthGroupTree = $DBH->prepare($sqlGroupTree);
+        if (!empty($idParent)) {
+            $level = getLevel($idParent);
+            $level++;
+        }
+        $sthGroupTree->execute(array('id_parent' => $idParent, 'id' => $id, 'level' => $level));
     }
-    $sthGroupTree->execute(array('id_parent' => $idParent, 'id' => $id, 'level' => $level));
 }
 
 $ids = array();
@@ -226,7 +240,7 @@ if ($isNew || !empty($ids)) {
     }
     $isUpdated |= setField($isNew, $u, $json->name, 'name');
 
-    if (CORE_VERSION != "5.3" && isset($json->idParent)) {
+    if (isset($json->idParent)) {
         if ($json->idParent && $json->idParent != $json->id)
             $isUpdated |= setField($isNew, $u, $json->idParent, 'upid');
         else $isUpdated |= setField($isNew, $u, "", 'upid');
@@ -268,10 +282,8 @@ if ($isNew || !empty($ids)) {
     if ($ids && isset($json->linksGroups))
         saveLinksGroups($ids, $json->linksGroups);
 
-    if (CORE_VERSION == "5.3") {
-        if ($isNew || isset($json->idParent))
-            saveIdParent($ids[0], $json->idParent);
-    }
+    if ($isNew || isset($json->idParent))
+       saveIdParent($ids[0], $json->idParent);
 
 }
 

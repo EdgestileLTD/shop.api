@@ -23,22 +23,13 @@ function deleteGroups($ids)
 if ($json->ids) {
     $ids = implode(",", $json->ids);
     if (CORE_VERSION == "5.3") {
-        $u = new seTable('shop_price_group', 'spg');
-        $u->where('id_group in (?)', $ids)->deletelist();
-        $u = new seTable('shop_group_tree', 'sgt');
-        $u->select('sgt.id_child id');
-        $u->where("sgt.id_parent IN ({$ids})");
-        $result = $u->getList();
-        $ids = array();
-        foreach ($result as $item)
-            $ids[] = $item['id'];
-        $ids = implode(",", $ids);
-        if (empty($ids))
-            $ids = implode(",", $json->ids);
-        $u = new seTable('shop_group_tree', 'sgt');
-        $u->where('id_parent in (?)', $ids)->deletelist();
-        $u = new seTable('shop_group', 'sg');
-        $u->where('id in (?)', $ids)->deletelist();
+        foreach ($json->ids as $id) {
+            se_db_query("DELETE FROM shop_price sp INNER JOIN shop_price_group spg ON sp.id = spg.id_price WHERE spg.id_group = {$id}");
+            $u = new seTable('shop_group_tree', 'sgt');
+            $u->where("id_parent = ?", $id)->deletelist();
+            $u = new seTable('shop_group', 'sg');
+            $u->where('id = ?', $id)->deletelist();
+        }
     } else
         deleteGroups($json->ids);
 }
@@ -48,7 +39,7 @@ if (!se_db_error()) {
     $status['status'] = 'ok';
 } else {
     $status['status'] = 'error';
-    $status['error'] = 'Не удаётся удалить группу товаров!';
+    $status['error'] =  'Не удаётся удалить группу товаров!';
 }
 
 outputData($status);
