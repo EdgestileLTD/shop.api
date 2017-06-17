@@ -284,7 +284,7 @@ function getSpecifications($id, &$product)
         $specification['idValue'] = $item['id_value'];
         $specification['valueList'] = $item['value'];
         $specification['valueNumber'] = (float)$item['value_number'];
-        $specification['valueBool'] = (int)$item['value_bool'];
+        $specification['valueBool'] = (bool)$item['value_bool'];
         $specification['valueString'] = $item['value_string'];
         switch ($specification['valueType']) {
             case "S":
@@ -400,14 +400,16 @@ function getFiles($id, &$product)
 }
 
 $u = new seTable('shop_price', 'sp');
-$u->select('sp.*, sg.id idGroup, sb.name AS nameBrand, sg.name AS nameGroup, sg.id_modification_group_def');
+$u->select('sp.*, sg.id idGroup, sb.name AS nameBrand, sg.name AS nameGroup, sg.id_modification_group_def,
+    spm.id_weight_view, spm.id_weight_edit, spm.id_volume_view, spm.id_volume_edit');
 $u->leftjoin('shop_brand sb', 'sb.id = sp.id_brand');
 if (CORE_VERSION == "5.3") {
-    $u->leftjoin("shop_price_group spg", "spg.id_price = sp.id AND spg.is_main = 1");
+    $u->leftjoin("shop_price_group spg", "spg.id_price = sp.id");
     $u->leftjoin('shop_group sg', 'sg.id = spg.id_group');
 } else {
     $u->leftjoin('shop_group sg', 'sp.id_group = sg.id');
 }
+$u->leftjoin('shop_price_measure spm', 'sp.id = spm.id_price');
 $u->where('sp.id=?', $id);
 $u->fetchOne();
 
@@ -463,6 +465,11 @@ if ($u->id) {
     $product['seoDescription'] = $u->description;
     $product['idModificationGroupDef'] = $u->id_modification_group_def;
     $product['idYAMarketCategory'] = $u->market_category;
+
+    $product["idWeightView"] = (int)$u->id_weight_view;
+    $product["idWeightEdit"] = (int)$u->id_weight_edit;
+    $product["idVolumeView"] = (int)$u->id_volume_view;
+    $product["idVolumeEdit"] = (int)$u->id_volume_edit;
 
     // скидки
     $product['discounts'] = getDiscounts($u->id);

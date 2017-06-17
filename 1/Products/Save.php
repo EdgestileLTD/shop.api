@@ -521,6 +521,36 @@ function saveIdGroup($idsProducts, $idGroup)
     }
 }
 
+function saveMeasures($idsProducts, $data)
+{
+    if (!isset($data->idWeightView) && !isset($data->idWeightEdit) &&
+        !isset($data->idVolumeView) && !isset($data->idVolumeEdit)
+    ) return;
+
+    foreach ($idsProducts as $idProduct) {
+        $id = null;
+        $u = new seTable('shop_price_measure', 'spm');
+        $u->select("spm.id");
+        $u->where("spm.id_price = ?", $idProduct);
+        $result = $u->fetchOne();
+        $isNew = empty($result);
+        if (!$isNew)
+            $id = $result["id"];
+
+        $u = new seTable('shop_price_measure');
+        setField($isNew, $u, $idProduct, 'id_price');
+        setField($isNew, $u, $data->idWeightView, 'id_weight_view');
+        setField($isNew, $u, $data->idWeightEdit, 'id_weight_edit');
+        setField($isNew, $u, $data->idVolumeView, 'id_volume_view');
+        setField($isNew, $u, $data->idVolumeEdit, 'id_volume_edit');
+
+        if (!empty($id)) {
+            $u->where('id = ?', $id);
+            $u->save();
+        } else $u->save();
+    }
+}
+
 function getBrandByName($name)
 {
     $brand = new stdClass();
@@ -757,6 +787,9 @@ if ($isNew || !empty($ids)) {
 
     if ($ids && isset($json->idGroup) && (CORE_VERSION == "5.3"))
         saveIdGroup($ids, $json->idGroup);
+
+    if ($ids)
+        saveMeasures($ids, $json);
 
     if ($json->method == "addDescription" && !empty($json->fullDescription)) {
 

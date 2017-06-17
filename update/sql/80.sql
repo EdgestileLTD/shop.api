@@ -1,9 +1,0 @@
-CREATE TABLE word_exclude (
-  id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-  value VARCHAR(255) NOT NULL,
-  updated_at TIMESTAMP NULL,
-  created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id)
-)
-ENGINE = INNODB
-COMMENT = 'Слова исключения для склонения';
