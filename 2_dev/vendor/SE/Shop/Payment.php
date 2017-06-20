@@ -3,6 +3,7 @@
 namespace SE\Shop;
 
 use SE\DB as DB;
+use SE\Exception;
 
 class Payment extends Base
 {
@@ -14,6 +15,12 @@ class Payment extends Base
         if (!empty($this->input["idOrder"]))
             Order::checkStatusOrder($this->input["idOrder"], $this->input["paymentType"]);
         return $result;
+    }
+
+    public function fetch(){
+        $sp = new DB($this->tableName);
+        $sp->addField('payment_target', 'tinyint(1)', 0, 0);
+        parent::fetch();
     }
 
     protected function getSettingsFetch()

@@ -20,7 +20,7 @@ class Analytics extends Base
         $this->data = $this->input["data"];
     }
 
-    public function info()
+    public function info($id = NULL)
     {
         if (empty($this->data)) {
             $this->result["countVisitors"] = $this->countVisitors();

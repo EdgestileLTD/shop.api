@@ -44,7 +44,7 @@ class DeliveryRegion extends Base
         }
     }
 
-    public function info()
+    public function info($id = NULL)
     {
         try {
             $u = new seTable('shop_deliverytype', 'sdt');

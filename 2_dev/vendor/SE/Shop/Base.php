@@ -23,6 +23,11 @@ class Base extends CustomBase
     protected $allowedSearch = true;
     protected $availableSigns = array("=", "<=", "<", ">", ">=", "IN");
     protected $isNew;
+
+    protected $allMode = false;
+    protected $whereStr = null;
+    protected $sqlFilter = null;
+
     private $patterns = [];
 
     function __construct($input = null)
@@ -141,12 +146,19 @@ class Base extends CustomBase
 
     public function delete()
     {
+        $this->correctAll('del');
+
+
         try {
+            $u = new DB($this->tableName,$this->tableAlias);
             if ($this->input["ids"] && !empty($this->tableName)) {
                 $ids = implode(",", $this->input["ids"]);
 
-                $u = new DB($this->tableName);
-                $u->where('id IN (?)', $ids)->deleteList();
+                if($this->allMode and !empty($this->whereStr)){
+                    $u->where($this->sqlFilter)->deleteList();
+                } else {
+                    $u->where('id IN (?)', $ids)->deleteList();
+                }
             }
             return true;
         } catch (Exception $e) {
@@ -155,8 +167,65 @@ class Base extends CustomBase
         return false;
     }
 
+    /**
+     *  correctAll - корректировка запроса с клиента, при использованиии AllMode-режима
+     *
+     * @param string $action - тип запроса AllMode
+     *          * del - режим удаления
+     *          * null (default) - обычный режим
+     * @return void
+     */
+    public function correctAll($action = null){
+        if(isset($this->input['allMode'])){
+            $this->allMode = true;
+            if($action !== 'del'){
+                $input = $this->input['allModeParams'];
+            } else {
+                $input = array();
+            }
+            // Сбрасываем лимиты
+            $this->input['allModeLastParams']['offset'] = 0;
+            $this->input['allModeLastParams']['limit'] = 1000;
+
+            // Устанавливаем фильтры
+            $this->setFilters($this->input['allModeLastParams']['filters']);
+
+            $filter = $this->getFilterQuery();
+            $result = $this->fetch();
+
+
+            # Временое решение
+           /* $db = new DB($this->tableName, $this->tableAlias);
+            $db->select('`'.$this->tableAlias .'`.id');
+            if(!empty($filter)){
+                $db->where($filter);
+                $this->whereStr = $filter;
+                $this->sqlFilter = str_replace($this->tableAlias,'`'.$this->tableName.'`',$filter);
+            }
+
+            writeLog($db->getSql());
+
+            $result = $db->getList();
+            writeLog($result);
+           */
+
+            if($result){
+                $ids = array();
+                foreach ($result as $item){
+                    array_push($ids,$item['id']);
+                }
+                if(!empty($ids)){unset($result);}
+                $input['ids'] = $ids;
+                $this->input = $input;
+            } else
+                return $this->error = "Ошибка при сохранениии";
+        }
+        return true;
+    }
+
     public function save()
     {
+
         try {
             $this->correctValuesBeforeSave();
             DB::beginTransaction();

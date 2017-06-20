@@ -61,7 +61,7 @@ class Company extends Base
     {
         $u = new DB('shop_userfields', 'su');
         $u->select("cu.id, cu.id_company, cu.value, su.id id_userfield, 
-                    su.name, su.type, su.values, sug.id id_group, sug.name name_group");
+                  su.name, su.required, su.enabled, su.type, su.placeholder, su.description, su.values, sug.id id_group, sug.name name_group");
         $u->leftJoin('company_userfields cu', "cu.id_userfield = su.id AND id_company = {$idCompany}");
         $u->leftJoin('shop_userfield_groups sug', 'su.id_group = sug.id');
         $u->where('su.data = "company"');

@@ -90,10 +90,8 @@ class Delivery extends Base
     {
         try {
             $u = new DB('shop_deliverytype', 'sd');
-            $u->select('sd.*, GROUP_CONCAT(DISTINCT(sdp.id_payment) SEPARATOR ";") idsPayments,
-                        GROUP_CONCAT(DISTINCT(sdg.id_group) SEPARATOR ";") idsGroups');
+            $u->select('sd.*, GROUP_CONCAT(DISTINCT(sdp.id_payment) SEPARATOR ";") idsPayments');
             $u->leftJoin('shop_delivery_payment sdp', 'sd.id = sdp.id_delivery');
-            $u->leftJoin('shop_deliverygroup sdg', 'sd.id = id_type');
             $u->where('sd.id = ?', $this->input["id"]);
             $result = $u->getList();
             foreach ($result as $item) {
@@ -106,10 +104,17 @@ class Delivery extends Base
                 $delivery['onePosition'] = $item['forone'] == 'Y';
                 $delivery['needAddress'] = $item['needAddress'] == 'Y';
                 $idsPaySystems = explode(';', $item['idsPayments']);
-                if (trim($item['idsGroups'])) {
-                    $idsGroups = explode(';', $item['idsGroups']);
+
+
+                $u1 = new DB('shop_deliverygroup');
+                $u1->select('id_group');
+                $u1->where('id_type=?', intval($this->input["id"]));
+                $idsGroups = $u1->getList();
+                $delivery['idsGroups'] = array();
+                if (!empty($idsGroups)) {
+                    //$idsGroups = explode(';', $item['idsGroups']);
                     foreach($idsGroups as  $gr) {
-                        $delivery['idsGroups'][] = intval($gr);
+                        $delivery['idsGroups'][] = intval($gr['idGroup']);
                     }
                 }
 
@@ -135,30 +140,6 @@ class Delivery extends Base
         $u->select('MAX(sort) AS sort');
         $u->fetchOne();
         return $u->sort + 1;
-    }
-
-    public function save()
-    {
-        writeLog($this->input["cityFromDelivery"]);
-       if ($this->input["cityFromDelivery"]) {
-            $citys = json_decode(file_get_contents(dirname(__FILE__) . '/delivery/sdek/rus.json'), true);
-            $fl = false;
-            foreach ($citys as $city => $id) {
-                if (mb_stripos($city, $this->input["cityFromDelivery"])===0) {
-                    $fl = true;
-                        //writeLog($city);
-                    //$this->input["cityFromDelivery"] = $city;
-                    $this->input["idCityFrom"] = $city;
-                    break;
-                }
-            }
-            if (!$fl) $this->input["idCityFrom"] = '';
-        }
-        $u = new DB($this->tableName);
-        $u->addField('sms', 'varchar(15)');
-        $u->addField('email', 'varchar(40)');
-        parent::save();
-
     }
 
     private function savePaySystem()

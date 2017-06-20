@@ -226,7 +226,7 @@ class Order extends Base
     {
         $u = new DB('shop_userfields', 'su');
         $u->select("sou.id, sou.id_order, sou.value, su.id id_userfield, 
-                    su.name, su.type, su.values, sug.id id_group, sug.name name_group");
+                   su.name, su.required, su.enabled, su.type, su.placeholder, su.description, su.values, sug.id id_group, sug.name name_group");
         $u->leftJoin('shop_order_userfields sou', "sou.id_userfield = su.id AND id_order = {$idOrder}");
         $u->leftJoin('shop_userfield_groups sug', 'su.id_group = sug.id');
         $u->where('su.data = "order"');
@@ -248,6 +248,13 @@ class Order extends Base
             $groups[$key]["items"][] = $item;
         }
         return array_values($groups);
+    }
+
+    public function fetch()
+    {
+        if ($this->input['searchText'])
+            $this->filters = null;
+        return parent::fetch();
     }
 
     protected function correctValuesBeforeSave()

@@ -4,7 +4,7 @@ namespace SE\Shop;
 
 class SettingSynhro1C extends Base
 {
-    public function info()
+    public function info($id = NULL)
     {
         $url = AUTH_SERVER . "/api/2/SettingSynhro1C/Info.api";
         $ch = curl_init($url);

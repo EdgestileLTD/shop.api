@@ -161,98 +161,52 @@ class DB
         } else throw new Exception("The connection is not initialized!");
     }
 
-    /**
-     * @param string $fieldName
-     * @param int $index
-     * @deprecated
-     */
-    public function add_index($fieldName, $index = 1)
-    {
-        $this->addIndex($fieldName, $index);
-    }
-
-    /**
-     * @param string $fieldName
-     * @param int $index
-     */
-    public function addIndex($fieldName, $index = 1)
-    {
-        if (!DB::isIndex($fieldName)) {
+    public function add_index($field_name, $index = 1){
+        if (!DB::is_index($field_name)){
             $index = ($index == 1) ? 'INDEX' : 'UNIQUE';
-            DB::query("ALTER TABLE `{$this->tableName}` ADD {$index}(`{$fieldName}`);");
+            DB::query("ALTER TABLE `{$this->tableName}` ADD {$index}(`{$field_name}`);");
         }
     }
 
-    /**
-     * @param string $field
-     * @return bool
-     * @deprecated
-     */
     public function is_field($field)
     {
-        return $this->isField($field);
-    }
-
-    /**
-     * @param string $field
-     * @return bool
-     */
-    public function isField($field)
-    {
         $sql = "SHOW COLUMNS FROM `{$this->tableName}` WHERE Field='$field'";
-        $fieldsList = DB::query($sql)->fetchAll();
-        return (count($fieldsList) > 0);
+        $flist = DB::query($sql)->fetchAll();
+        return (count($flist) > 0);
     }
 
-    /**
-     * @param string $fieldName
-     * @param string $nameIndex
-     * @return bool
-     * @deprecated
-     */
-    public function is_index($fieldName, $nameIndex = '')
-    {
-       return $this->isIndex($fieldName, $nameIndex);
+    public function is_index($field_name, $name_index = ''){
+        $key_index = ($name_index) ? " AND `Key_name`='{$name_index}'" : '';
+        $sql = "SHOW INDEX FROM `{$this->tableName}` WHERE `Column_name` = '{$field_name}'".$key_index;
+        $flist = DB::query($sql)->fetchAll();
+        return (count($flist) > 0);
+
     }
 
-    /**
-     * @param string $fieldName
-     * @param string $nameIndex
-     * @return bool
-     */
-    public function isIndex($fieldName, $nameIndex = '')
+    public function getField($field)
     {
-        $keyIndex = ($nameIndex) ? " AND `Key_name`='{$nameIndex}'" : '';
-        $sql = "SHOW INDEX FROM `{$this->tableName}` WHERE `Column_name` = '{$fieldName}'" . $keyIndex;
-        $fieldsList = DB::query($sql)->fetchAll();
-        return (count($fieldsList) > 0);
+        $sql = "SHOW COLUMNS FROM `{$this->tableName}` WHERE Field='{$field}'";
+        try {
+            $stmt = self::$dbh->query($sql);
+            $stmt->setFetchMode(PDO::FETCH_ASSOC);
+            return $stmt->fetch();
+        } catch (Exception $e) {
+            throw new Exception("Отсутствует таблица {$this->tableName}");
+        }
     }
 
-    /**
-     * @param string $field
-     * @param string $type
-     * @param string $default
-     * @param int $index
-     * @deprecated
-     */
-    public function add_field($field, $type = 'varchar(20)', $default = null, $index = 0)
+    public function addField($field, $type = 'varchar(20)', $default = null, $index=0)
     {
-        $this->addField($field, $type, $default, $index);
+        $this->add_field($field, $type, $default, $index);
     }
 
-    /**
-     * @param string $field
-     * @param string $type
-     * @param string $default
-     * @param int $index
-     */
-    public function addField($field, $type = 'varchar(20)', $default = null, $index = 0)
+    public function add_field($field, $type = 'varchar(20)', $default = null, $index=0)
     {
-        if (!$this->isField($field)) {
+        if (!$this->is_field($field)) {
             $type = str_replace(array('integer', 'string', 'integer(2)', 'integer(4)', 'bool', 'boolean'),
                 array('int', 'varchar', 'int', 'bigint', 'tinyint(1)', 'tinyint(1)'), $type);
-            if (preg_match('/float(\([\d\,]+\))?/u', $type, $m)) {
-                $m[1] = preg_replace('/[\(\)]/', '', $m[1]);
+            if (preg_match("/float(\([\d\,]+\))?/u", $type, $m)) {
+                $m[1] = preg_replace("/[\(\)]/", '', $m[1]);
                 if (!empty($m[1])) {
                     list($dec,) = explode(',', $m[1]);
                     if (floatval($dec) < 8) $newType = 'float(' . $m[1] . ')';
@@ -273,11 +227,11 @@ class DB
             } else {
                 $default = ' default NULL ';
             }
-            //writeLog("ALTER TABLE `{$this->tableName}` ADD `{$field}` {$type}{$default}{$after};");
+        //writeLog("ALTER TABLE `{$this->tableName}` ADD `{$field}` {$type}{$default}{$after};");
             DB::exec("ALTER TABLE `{$this->tableName}` ADD `{$field}` {$type}{$default}{$after}");
         }
-        if ($index) {
-            $this->addIndex($field, $index);
+        if ($index){
+            $this->add_index($field, $index);
         }
     }
 
@@ -569,6 +523,7 @@ class DB
     {
         try {
             self::$lastQuery = $this->rawQuery = $query = $this->getDeleteSql();
+            writeLog($query);
             return self::$dbh->exec($query);
         } catch (\PDOException $e) {
             throw new Exception($e->getMessage());
@@ -718,6 +673,7 @@ class DB
         try {
             $sql = implode($query, " ");
             self::$lastQuery = $this->rawQuery = $sql;
+
             $stmt = self::$dbh->prepare($sql);
             if (!empty($values))
                 $this->bindValues($stmt);

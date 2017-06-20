@@ -58,7 +58,7 @@ class PendingOrder extends Base
         }
     }
 
-    public function info()
+    public function info($id = NULL)
     {
         try {
 

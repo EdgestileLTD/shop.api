@@ -45,6 +45,7 @@ class GeoTargeting extends Base
 
     private function getVariables()
     {
+        $this->createDbGeoVariables();
         $sv = new DB('shop_variables', 'sv');
         $sv->select('sgv.id, sv.id AS id_variable, sv.name, sgv.value');
         $sv->leftJoin('shop_geo_variables sgv', 'sv.id=sgv.id_variable AND sgv.id_contact='.intval($this->input['id']));
@@ -53,7 +54,7 @@ class GeoTargeting extends Base
 
     protected function getAddInfo()
     {
-        $result = [];
+        $result = array();
         if (!empty($this->result["idCity"])) {
             $cities = $this->getCitiesByIds(array($this->result["idCity"]));
             if (count($cities))
@@ -61,6 +62,24 @@ class GeoTargeting extends Base
         }
         $result["variables"] = $this->getVariables();
         return $result;
+    }
+
+    private function createDbGeoVariables()
+    {
+        DB::query("CREATE TABLE IF NOT EXISTS `shop_geo_variables` (
+          `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+          `id_contact` int(10) UNSIGNED NOT NULL,
+          `id_variable` int(10) UNSIGNED NOT NULL,
+          `value` varchar(255) DEFAULT NULL,
+          `updated_at` timestamp NULL DEFAULT NULL,
+          `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`),
+          KEY `id_variables` (`id_variable`),
+          KEY `id_contacts` (`id_contact`),
+          CONSTRAINT `shop_geo_variables_ibfk_1` FOREIGN KEY (`id_contact`) REFERENCES `shop_contacts` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+          CONSTRAINT `shop_geo_variables_ibfk_2` FOREIGN KEY (`id_variable`) REFERENCES `shop_variables` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+       ");
     }
 
     protected function saveAddInfo()

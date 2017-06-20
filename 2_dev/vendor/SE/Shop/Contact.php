@@ -66,7 +66,7 @@ class Contact extends Base
     {
         $u = new DB('shop_userfields', 'su');
         $u->select("cu.id, cu.id_person, cu.value, su.id id_userfield, 
-                    su.name, su.type, su.values, sug.id id_group, sug.name name_group");
+                    su.name, su.required, su.enabled, su.type, su.placeholder, su.description, su.values, sug.id id_group, sug.name name_group");
         $u->leftJoin('person_userfields cu', "cu.id_userfield = su.id AND id_person = {$idContact}");
         $u->leftJoin('shop_userfield_groups sug', 'su.id_group = sug.id');
         $u->where('su.data = "contact"');
@@ -77,23 +77,17 @@ class Contact extends Base
 
         $groups = [];
         foreach ($result as $item) {
-            $isNew = true;
-            $newGroup = [];
-            $newGroup["id"] = $item["idGroup"];
-            $newGroup["name"] = empty($item["nameGroup"]) ? "Без категории" : $item["nameGroup"];
-            foreach ($groups as $group)
-                if ($group["id"] == $item["idGroup"]) {
-                    $isNew = false;
-                    $newGroup = $group;
-                    break;
-                }
+            $key = (int)$item["idGroup"];
+            $group = key_exists($key, $groups) ? $groups[$key] : [];
+            $group["id"] = $item["idGroup"];
+            $group["name"] = empty($item["nameGroup"]) ? "Без категории" : $item["nameGroup"];
             if ($item['type'] == "date")
                 $item['value'] = date('Y-m-d', strtotime($item['value']));
-            $newGroup["items"][] = $item;
-            if ($isNew)
-                $groups[] = $newGroup;
+            if (!key_exists($key, $groups))
+                $groups[$key] = $group;
+            $groups[$key]["items"][] = $item;
         }
-        return $groups;
+        return array_values($groups);
     }
 
 
@@ -208,13 +202,19 @@ class Contact extends Base
     {
         $emails = [];
         $u = new DB('person');
-        $u->select('email');
+        $u->select("email, concat_ws(' ', first_name, sec_name) as name");
         $u->where('id IN (?)', implode(",", $idsContacts));
         $u->andWhere('email IS NOT NULL');
         $u->andWhere('email <> ""');
         $list = $u->getList();
-        foreach ($list as $value)
-            $emails[] = $value["email"];
+        foreach ($list as $value) {
+            if (se_CheckMail($value['email']))
+                $emails[] = array(
+                    'email' =>$value['email'],
+                    'variables'=>array('name'=>$value['name'])
+                );
+            //$emails[] = $value["email"];
+        }
         if (empty($emails))
             return;
 
@@ -224,7 +224,7 @@ class Contact extends Base
             (new EmailProvider())->removeEmails($idsBooks, $emails);
     }
 
-    private function saveGroups($groups, $idsContact)
+    private function saveGroups($groups, $idsContact, $addGroup = false)
     {
         try {
             $newIdsGroups = [];
@@ -233,39 +233,62 @@ class Contact extends Base
             $idsGroupsS = implode(",", $newIdsGroups);
             $idsContactsS = implode(",", $idsContact);
 
-            $u = new DB('se_user_group', 'sug');
-            $u->select("id, group_id");
-            if ($newIdsGroups)
-                $u->where("NOT group_id IN ($idsGroupsS) AND user_id IN ($idsContactsS)");
-            else $u->where("user_id IN ($idsContactsS)");
-            $groupsDel = $u->getList();
-            $idsGroupsDelEmail = [];
-            foreach ($groupsDel as $group)
-                $idsGroupsDelEmail[] = $group["groupId"];
-            $u->deleteList();
+            if (!$addGroup) {
+                $u = new DB('se_user_group', 'sug');
+                $u->select("id, group_id, user_id");
+                if ($newIdsGroups)
+                    $u->where("NOT group_id IN ($idsGroupsS) AND user_id IN ($idsContactsS)");
+                else
+                    $u->where("user_id IN ($idsContactsS)");
+                $groupsDel = $u->getList();
+
+                $idsGroupsDelEmail = array();
+                foreach ($groupsDel as $group)
+                    $idsGroupsDelEmail[$group["userId"]][] = $group["groupId"];
+                $u->deleteList();
+
+                //writeLog($idsGroupsDelEmail);
+                foreach($idsGroupsDelEmail as $userId =>$gr) {
+                    if (!empty($gr) && $userId) {
+                        $this->addInAddressBookEmail(array($userId), false, $gr);
+                    }
+                }
+            }
 
             $u = new DB('se_user_group', 'sug');
-            $u->select("group_id");
+            $u->select("group_id, user_id");
             $u->where("user_id IN ($idsContactsS)");
             $objects = $u->getList();
 
             $idsExists = [];
-            $idsGroupsNewEmail = [];
-            foreach ($objects as $object)
-                $idsExists[] = $object["groupId"];
+            //$idsGroupsNewEmail = [];
+            foreach ($objects as $object) {
+                $idsExists[$object["userId"]][] = $object["groupId"];
+            }
+            //writeLog($idsExists);
+                //$idsExists[] = $object["groupId"];
             if (!empty($newIdsGroups)) {
+                $data = array();
                 foreach ($newIdsGroups as $id) {
-                    if (!empty($id) && !in_array($id, $idsExists)) {
-                        $idsGroupsNewEmail[] = $id;
-                        foreach ($idsContact as $idContact)
-                            $data[] = array('user_id' => $idContact, 'group_id' => $id);
+                    $idsContactsNewEmail = array();
+                    if (!empty($id)) {
+                        foreach ($idsContact as $idContact) {
+                            if (!in_array($id, $idsExists[$idContact])) {
+                                $data[] = array('user_id' => $idContact, 'group_id' => $id);
+                                $idsContactsNewEmail[] = $idContact;
+                            }
+                        }
                     }
+                    if (!empty($idsContactsNewEmail))
+                        $this->addInAddressBookEmail($idsContactsNewEmail, array($id), array());
                 }
-                if (!empty($data))
+                //writeLog($data);
+                if (!empty($data)) {
                     DB::insertList('se_user_group', $data);
+                }
+
             }
 
-            $this->addInAddressBookEmail($idsContact, $idsGroupsNewEmail, $idsGroupsDelEmail);
         } catch (Exception $e) {
             $this->error = "Не удаётся сохранить группы контакта!";
             throw new Exception($this->error);
@@ -380,10 +403,22 @@ class Contact extends Base
         try {
             if ($contact)
                 $this->input = $contact;
+            if ($this->input["add"] && !empty($this->input["ids"]) && !empty($this->input["groups"])) {
+                $this->saveGroups($this->input["groups"], $this->input["ids"], true);
+                $this->info();
+                return $this;
+            }
+            if ($this->input["upd"] && !empty($this->input["ids"]) && !empty($this->input["groups"])) {
+                $this->saveGroups($this->input["groups"], $this->input["ids"]);
+                $this->info();
+                return $this;
+            }
+
+
             DB::beginTransaction();
 
             $u = new DB('person', 'p');
-            $u->addField('price_type', 'integer(10)',  0, 1);
+            $u->add_Field('price_type', 'int(10)',  '0', 1);
 
 
             $ids = [];
@@ -515,7 +550,6 @@ class Contact extends Base
         $contact = new Contact();
         $contact = $contact->info($idContact);
 
-        writeLog($contact);
         $fileName = "export_person_{$idContact}.xlsx";
         $filePath = DOCUMENT_ROOT . "/files";
         if (!file_exists($filePath) || !is_dir($filePath))

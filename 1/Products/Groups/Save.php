@@ -190,34 +190,25 @@ function saveIdParent($id, $idParent)
 {
     global $DBH;
 
-    $u = new seTable('shop_group_tree');
-    $u->select('id');
-    $u->where('id_child = ?', $id);
-    if ($idParent) {
-        $u->andWhere('id_parent = ?', $idParent);
-    } else {
-        $u->andWhere('level = 0');
-    }
-    $answer = $u->fetchOne();
-    if ($idParent)
-        $DBH->query("DELETE FROM shop_group_tree WHERE id_child = {$id} AND id_parent <> {$idParent}");
+    $levelIdOld = getLevel($id);
+    $level = 0;
 
-    if (empty($answer)) {
-        $DBH->query("DELETE FROM shop_group_tree WHERE id_child = {$id}");
+    $DBH->query("DELETE FROM shop_group_tree WHERE id_child = {$id}");
 
-        $level = 0;
-        $sqlGroupTree = "INSERT INTO shop_group_tree (id_parent, id_child, `level`)
+    $sqlGroupTree = "INSERT INTO shop_group_tree (id_parent, id_child, `level`)
                             SELECT id_parent, :id, :level FROM shop_group_tree
                             WHERE id_child = :id_parent
                             UNION ALL
                             SELECT :id, :id, :level";
-        $sthGroupTree = $DBH->prepare($sqlGroupTree);
-        if (!empty($idParent)) {
-            $level = getLevel($idParent);
-            $level++;
-        }
-        $sthGroupTree->execute(array('id_parent' => $idParent, 'id' => $id, 'level' => $level));
+    $sthGroupTree = $DBH->prepare($sqlGroupTree);
+    if (!empty($idParent)) {
+        $level = getLevel($idParent);
+        $level++;
     }
+    $sthGroupTree->execute(array('id_parent' => $idParent, 'id' => $id, 'level' => $level));
+    $levelIdNew = getLevel($id);
+    $diffLevel = $levelIdNew - $levelIdOld;
+    $DBH->query("UPDATE shop_group_tree SET `level` = `level` + {$diffLevel}  WHERE id_parent = {$id} AND id_child <> {$id}");
 }
 
 $ids = array();

@@ -8,7 +8,7 @@ use SE\DB as DB;
 
 class Dump extends Base
 {
-    public function info()
+    public function info($id = NULL)
     {
         $filePath = DOCUMENT_ROOT . "/files";
         if (!file_exists($filePath) || !is_dir($filePath))

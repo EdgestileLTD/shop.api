@@ -53,8 +53,6 @@ class ContactCategory extends Base
                 $data["id"] = $this->input["id"];
                 $data["emailSettings"] = json_encode(array("idBook" => $idBook));
                 $u = new DB("se_group");
-                //writeLog($data);
-
                 $u->setValuesFields($data);
                 $u->save();
                 $this->info();
@@ -88,7 +86,7 @@ class ContactCategory extends Base
         $emailSettings = ($settings['emailSettings']) ? json_decode($settings['emailSettings'], true) : array();
         if (!empty($emailSettings) && $emailSettings['idBook']) {
             $u = new DB('se_user_group', 'sug');
-            $u->select('p.email');
+            $u->select("p.email, concat_ws(' ', p.first_name, p.sec_name) as name");
             $u->innerjoin('person p', 'sug.user_id=p.id');
             $u->innerjoin('se_user su', 'sug.user_id=su.id');
             $u->groupBy('p.email');
@@ -100,7 +98,10 @@ class ContactCategory extends Base
             $emails = array();
             foreach($list as $email) {
                 if (se_CheckMail($email['email']))
-                    $emails[] = $email['email'];
+                    $emails[] = array(
+                        'email' =>$email['email'],
+                        'variables'=>array('name'=>$email['name'])
+                    );
             }
             $emailService = new EmailProvider();
             $emailService->addEmails(array($emailSettings['idBook']), $emails);

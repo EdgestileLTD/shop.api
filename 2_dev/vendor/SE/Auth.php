@@ -80,7 +80,7 @@ class Auth extends Base
                 $u->select('su.id,
                     CONCAT_WS(" ", p.last_name, CONCAT_WS(".", SUBSTR(p.first_name, 1, 1), SUBSTR(p.sec_name, 1, 1))) displayName');
                 $u->innerJoin('person p', 'p.id=su.id');
-                $u->where('is_active="Y" AND username="?"', $this->input["login"]);
+                $u->where('is_active="Y" AND username="?"', trim($this->input["login"]));
                 $u->andWhere('password="?"', strtolower($this->input["hash"]));
                 $result = $u->fetchOne();
                 if (!empty($result)) {

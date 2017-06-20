@@ -15,7 +15,7 @@ class SmsProvider extends Base
         return parent::save();
     }
 
-    public function info()
+    public function info($id = NULL)
     {
         parent::info();
         $this->result["balance"] = $this->getBalance();

@@ -76,7 +76,7 @@ class Brand extends Base
         return $this;
     }
 
-    public function info()
+    public function info($id = NULL)
     {
         try {
             $u = new DB('shop_brand', 'sb');

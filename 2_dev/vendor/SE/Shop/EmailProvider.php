@@ -88,6 +88,23 @@ class EmailProvider extends Base
         }
     }
 
+    public function fetch()
+    {
+        parent::fetch();
+        foreach($this->result['items'] as &$item) {
+            if ($item['name'] == 'sendpulse') {
+                $settings = $item['settings'];
+                if (!empty($item['settings'])) {
+                    $settings = json_decode($item['settings'], true);
+                } else {
+                    $settings = array();
+                }
+                if (empty($settings['SECRET']['value']))
+                    $item['url'] = "https://sendpulse.com/ru/?ref=700621";
+            }
+        }
+    }
+
     public function removeEmailFromAllBooks($email)
     {
         $this->initProvider();

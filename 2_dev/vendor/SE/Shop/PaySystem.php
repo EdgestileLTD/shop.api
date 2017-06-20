@@ -132,7 +132,7 @@ class PaySystem extends Base
         return $result;
     }
 
-    public function info()
+    public function info($id = NULL)
     {
         try {
             if (empty($this->input["id"])) {
@@ -141,13 +141,14 @@ class PaySystem extends Base
             }
 
             $u = new DB('shop_payment', 'sp');
+            $u->addField('is_ticket', 'tinyint(1)', '0', 1);
             $paySystem = $u->getInfo($this->input["id"]);
             $paySystem['name'] = $paySystem['name_payment'];
             $paySystem['imageFile'] = $paySystem['logoimg'];
             $paySystem['isExtBlank'] = $paySystem['type'] == 'p';
             $paySystem['isAuthorize'] = $paySystem['authorize'] == 'Y';
-            $paySystem['isAdvance'] = $paySystem['way_payment'] == 'b';
-            $paySystem['isTestMode'] = $paySystem['is_test'] == 'Y';
+            $paySystem['isAdvance'] = ($paySystem['wayPayment'] == 'b');
+            $paySystem['isTestMode'] = ($paySystem['isTest'] == 'Y');
             $paySystem['identifier'] = $paySystem['ident'];
             $paySystem['pageSuccess'] = $paySystem['success'];
             $paySystem['pageFail'] = $paySystem['fail'];

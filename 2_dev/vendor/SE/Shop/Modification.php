@@ -33,7 +33,7 @@ class Modification extends Base
 		);
 	}
 
-	protected function correctValuesBeforeFetch($items)
+	protected function correctValuesBeforeFetch($items = array())
 	{
 		$result = [];
 		foreach ($items as $item) {

@@ -107,7 +107,8 @@ if (!file_exists($root . $dir)) {
 $dir = $root . $dir;
 
 $fields = ["Ид.", "Код (URL)", "Ид. надгруппы", "Код (URL) надгруппы", "Наименование", "Краткое описание",
-    "Полное описание", "Фото", "Тег title", "Мета-тег keywords", "Мета-тег description"];
+    "Полное описание", "Фото", "Тег title", "Мета-тег keywords", "Мета-тег description",
+    "Корневая категория", "Подкатегория 1", "Подкатегория 2"];
 
 $keyFields = ["Идентификатор" => "id", "Код (URL)" => "code_gr", "Наименование" => "name"];
 
@@ -176,6 +177,7 @@ if ($step == 0) {
 
     $status['status'] = 'ok';
     $status['data'] = ["cols" => $cols, "fields" => $fields];
+    writeLog($status);
 
     outputData($status);
 }
@@ -190,7 +192,7 @@ if ($step == 1) {
     $keyField = $keyFields[$keyUser];
 
     $fieldsTable = ["id", "code_gr", "upid", "code_parent", "name", "commentary",
-        "footertext", "picture", "title", "keywords", "description"];
+        "footertext", "picture", "title", "keywords", "description", "catalog0", "catalog1", "catalog2"];
 
     $_SESSION["import"]["group"]["cols"] = $cols = $json->listValues;
     $fileCSV = "{$dir}/groups.csv";
@@ -221,6 +223,65 @@ if ($step == 1) {
 
                 $fieldsKeys = array_flip($fields);
                 $group[$fieldsTable[$fieldsKeys[$col]]] = $value;
+            }
+
+            if (!empty($group["catalog0"])) {
+                $t = new seTable("shop_group");
+                $t->select("id");
+                $t->where("name = '?'", $group["catalog0"]);
+                $result = $t->fetchOne();
+                if (empty($result)) {
+                    $t = new seTable("shop_group", "sg");
+                    $group["name"] = $group["catalog0"];
+                    $group["code_gr"] = strtolower(se_translite_url($group["name"]));
+                    $group["code_gr"] = getCode($group["code_gr"]);
+                    setField(true, $t, $group["name"], "name");
+                    setField(true, $t, $group["code_gr"], "code_gr");
+                    $group["id"] = $idGroup = $t->save();
+                    $group[] = $group;
+                } else $idGroup = $result["id"];
+
+                if (!empty($group["catalog1"])) {
+                    $t = new seTable("shop_group");
+                    $t->select("id");
+                    $t->where("name = '?'", $group["catalog1"]);
+                    $t->andWhere("upid = ?", $idGroup);
+                    $result = $t->fetchOne();
+                    if (empty($result)) {
+                        $t = new seTable("shop_group", "sg");
+                        $group["name"] = $group["catalog1"];
+                        $group["code_gr"] = strtolower(se_translite_url($group["catalog0"] . '_' . $group["name"]));
+                        $group["code_gr"] = getCode($group["code_gr"]);
+                        $group["upid"] = $idGroup;
+                        setField(true, $t, $group["upid"], "upid");
+                        setField(true, $t, $group["name"], "name");
+                        setField(true, $t, $group["code_gr"], "code_gr");
+                        $group["id"] = $idGroup = $t->save();
+                        $group[] = $group;
+                    } else $idGroup = $result["id"];
+
+                    if (!empty($group["catalog2"])) {
+                        $t = new seTable("shop_group");
+                        $t->select("id");
+                        $t->where("name = '?'", $group["catalog2"]);
+                        $t->andWhere("upid = ?", $idGroup);
+                        $result = $t->fetchOne();
+                        if (empty($result)) {
+                            $t = new seTable("shop_group", "sg");
+                            $group["name"] = $group["catalog2"];
+                            $group["code_gr"] = strtolower(se_translite_url($group["catalog1"] . '_' . $group["name"]));
+                            $group["code_gr"] = getCode($group["code_gr"]);
+                            $group["upid"] = $idGroup;
+                            setField(true, $t, $group["upid"], "upid");
+                            setField(true, $t, $group["name"], "name");
+                            setField(true, $t, $group["code_gr"], "code_gr");
+                            $group["id"] = $idGroup = $t->save();
+                            $group[] = $group;
+                        } else $idGroup = $result["id"];
+                    }
+                }
+
+                continue;
             }
 
             if (empty($group[$keyField]) && empty($group["name"]))

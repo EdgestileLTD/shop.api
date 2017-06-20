@@ -202,7 +202,7 @@ class Image extends Base
         }
     }
 
-    public function info()
+    public function info($id = NULL)
     {
         $names = $this->input["listValues"];
         $newNames = [];
