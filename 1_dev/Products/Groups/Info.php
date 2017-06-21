@@ -144,6 +144,7 @@ if (CORE_VERSION == "5.3") {
     $u->select('sg.*, sgp.name nameParent');
     $u->leftjoin('shop_group sgp', 'sgp.id = sg.upid');
 }
+
 $u->where('sg.id in (?)', $ids);
 $u->groupby('sg.id');
 $result = $u->getList();
@@ -199,6 +200,19 @@ foreach ($result as $item) {
         }
     }
     getImages($item['id'], $group);
+
+    if ($_SESSION['isIncPrices']) {
+        $u = new seTable('shop_group_inc_price', 'sgi');
+        $u->select("sgi.*");
+        $u->where('sgi.id_group = ?', $group["id"]);
+        $result = $u->fetchOne();
+        if ($result) {
+            $group["incPrice"] = $result["price"];
+            $group["incPriceOpt"] = $result["price_opt"];
+            $group["incPriceCorp"] = $result["price_opt_corp"];
+        }
+    }
+
     $items[] = $group;
 }
 

@@ -211,6 +211,43 @@ function saveIdParent($id, $idParent)
     $DBH::query("UPDATE shop_group_tree SET `level` = `level` + {$diffLevel}  WHERE id_parent = {$id} AND id_child <> {$id}");
 }
 
+function saveIncPrices($ids, $data)
+{
+    if ($data->isSetDescendants) {
+        $u = new seTable('shop_group_tree', 'sgt');
+        $u->select("sgt.id_child");
+        $u->where("sgt.id_parent IN (?)", implode(",", $ids));
+        $list = $u->getList();
+        foreach ($list as $item)
+            $ids[] = $item["id_child"];
+    }
+
+    foreach ($ids as $idGroup) {
+        $id = null;
+        $isNew = true;
+        $isUpdated = false;
+        $u = new seTable('shop_group_inc_price', 'sgi');
+        $u->select("sgi.id");
+        $u->where("sgi.id_group = ?", $idGroup);
+        $result = $u->fetchOne();
+        if ($result) {
+            $isNew = false;
+            $id = $result["id"];
+        }
+
+        $u = new seTable('shop_group_inc_price');
+        $isUpdated |= setField($isNew, $u, $idGroup, 'id_group');
+        $isUpdated |= setField($isNew, $u, $data->incPrice, 'price');
+        $isUpdated |= setField($isNew, $u, $data->incPriceOpt, 'price_opt');
+        $isUpdated |= setField($isNew, $u, $data->incPriceCorp, 'price_opt_corp');
+        if ($isUpdated) {
+            if (!empty($id))
+                $u->where('id = ?', $id);
+            $u->save();
+        }
+    }
+}
+
 $ids = array();
 if (empty($json->ids) && !empty($json->id))
     $ids[] = $json->id;
@@ -272,9 +309,11 @@ if ($isNew || !empty($ids)) {
         setSortPosition($ids[0], $json->idParent);
     if ($ids && isset($json->linksGroups))
         saveLinksGroups($ids, $json->linksGroups);
+    if ($ids && $_SESSION['isIncPrices'])
+        saveIncPrices($ids, $json);
 
     if ($isNew || isset($json->idParent))
-       saveIdParent($ids[0], $json->idParent);
+        saveIdParent($ids[0], $json->idParent);
 
 }
 

@@ -48,6 +48,13 @@ function getIsShowSESections($hostname)
     return false;
 }
 
+function getIsShowIncPrices()
+{
+    $result = se_db_fetch_row(se_db_query("SHOW TABLES LIKE 'shop_group_inc_price'"));
+    $_SESSION['isIncPrices'] = !empty($result);
+    return $_SESSION['isIncPrices'];
+}
+
 function getYAMarketCategory($hostname) {
     $pluginMarket = PATH_ROOT . $hostname . '/public_html/lib/plugins/plugin_shop/plugin_yandex_market.class.php';
     if (file_exists($pluginMarket)) {
@@ -89,6 +96,7 @@ if ($u->id) {
     $main['costYALocalDelivery'] = (real)$u->local_delivery_cost;
     $main['shopFolder'] = $u->folder;
     $main['isShowSESections'] = getIsShowSESections($json->hostname);
+    $main['isShowIncPrices'] = getIsShowIncPrices();
     if (!IS_EXT) {
         $main['yaMarketCategories'] = getYAMarketCategory($json->hostname);
         getTokenYandex($main);
