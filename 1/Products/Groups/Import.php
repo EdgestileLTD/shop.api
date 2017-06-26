@@ -177,7 +177,7 @@ if ($step == 0) {
 
     $status['status'] = 'ok';
     $status['data'] = ["cols" => $cols, "fields" => $fields];
-    writeLog($status);
+
 
     outputData($status);
 }

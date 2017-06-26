@@ -399,6 +399,41 @@ function getFiles($id, &$product)
     $product['files'] = $objects;
 }
 
+function getOptions($id, &$product)
+{
+    if (!$_SESSION["isShowOptions"])
+        return null;
+
+    $options = array();
+
+    $u = new seTable('shop_product_option', 'spo');
+    $u->select('so.id id_option, so.name `option`, sov.id, sov.name, spo.price, spo.is_default');
+    $u->innerJoin('shop_option_value sov', 'spo.id_option_value = sov.id');
+    $u->innerJoin('shop_option so', 'sov.id_option = so.id');
+    $u->where('spo.id_product = ?', $id);
+    $u->orderBy('spo.sort');
+    $u->groupBy("spo.id");
+
+    $objects = $u->getList();
+    $listOptions = array();
+    foreach ($objects as $object) {
+        $value = null;
+        $value["id"] = $object["id"];
+        $value["name"] = $object["name"];
+        $value["price"] = (float)$object["price"];
+        $value["isDefault"] = (bool)$object["is_default"];
+
+        $listOptions[$object["id_option"]]["id"] = $object["id_option"];
+        $listOptions[$object["id_option"]]["name"] = $object["option"];
+        $listOptions[$object["id_option"]]["optionValues"][] = $value;
+    }
+
+    foreach ($listOptions as $option)
+        $options[] = $option;
+
+    $product['options'] = $options;
+}
+
 $u = new seTable('shop_price', 'sp');
 $u->select('sp.*, sg.id idGroup, sb.name AS nameBrand, sg.name AS nameGroup, sg.id_modification_group_def,
     spm.id_weight_view, spm.id_weight_edit, spm.id_volume_view, spm.id_volume_edit');
@@ -489,6 +524,8 @@ if ($u->id) {
     getCrossGroups($u->id, $product);
     // файлы
     getFiles($u->id, $product);
+    // опции
+    getOptions($u->id, $product);
 
     $product['isDiscountAllowed'] = $product['isDiscount'] && count($product["discounts"]);
     $items[] = $product;

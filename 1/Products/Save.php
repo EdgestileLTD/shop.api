@@ -505,6 +505,54 @@ function saveFiles($idsProducts, $files)
         se_db_InsertList('shop_files', $data);
 }
 
+function saveOptions($idsProducts, $options)
+{
+    if (!$_SESSION["isShowOptions"])
+        return;
+
+    $values = array();
+    foreach ($options as $option) {
+        foreach ($option->optionValues as $value)
+            $values[] = $value;
+    }
+
+    foreach ($idsProducts as $idProduct) {
+        $idsExist = array();
+        foreach ($values as $value) {
+            $id = null;
+            $isNew = true;
+            $isUpdated = false;
+            $u = new seTable('shop_product_option', 'spo');
+            $u->select("spo.id");
+            $u->where("spo.id_product = ?", $idProduct);
+            $u->andWhere("spo.id_option_value = ?", $value->id);
+            $result = $u->fetchOne();
+            if ($result) {
+                $isNew = false;
+                $id = $result["id"];
+            }
+
+            $u = new seTable('shop_product_option');
+            $isUpdated |= setField($isNew, $u, $idProduct, 'id_product');
+            $isUpdated |= setField($isNew, $u, $value->id, 'id_option_value');
+            $isUpdated |= setField($isNew, $u, (real)$value->price, 'price');
+            $isUpdated |= setField($isNew, $u, (bool)$value->isDefault, 'is_default');
+            $isUpdated |= setField($isNew, $u, (int)$value->sortIndex, 'sort');
+            if ($isUpdated) {
+                if (!empty($id))
+                    $u->where('id = ?', $id);
+                $u->save();
+            }
+            $idsExist[] = $value->id;
+        }
+        if ($idsExist) {
+            $u = new seTable('shop_product_option');
+            $u->where("id_product = ?", $idProduct);
+            $u->andWhere("NOT id_option_value IN (?)", implode(',', $idsExist))->deleteList();
+        }
+    }
+}
+
 function saveIdGroup($idsProducts, $idGroup)
 {
     $idsStr = implode(",", $idsProducts);
@@ -523,8 +571,8 @@ function saveIdGroup($idsProducts, $idGroup)
 
 function saveMeasures($idsProducts, $data)
 {
-    if (!isset($data->idWeightView) && !isset($data->idWeightEdit) &&
-        !isset($data->idVolumeView) && !isset($data->idVolumeEdit)
+    if (empty($data->idWeightView) && empty($data->idWeightEdit) &&
+        empty($data->idVolumeView) && empty($data->idVolumeEdit)
     ) return;
 
     foreach ($idsProducts as $idProduct) {
@@ -539,10 +587,14 @@ function saveMeasures($idsProducts, $data)
 
         $u = new seTable('shop_price_measure');
         setField($isNew, $u, $idProduct, 'id_price');
-        setField($isNew, $u, $data->idWeightView, 'id_weight_view');
-        setField($isNew, $u, $data->idWeightEdit, 'id_weight_edit');
-        setField($isNew, $u, $data->idVolumeView, 'id_volume_view');
-        setField($isNew, $u, $data->idVolumeEdit, 'id_volume_edit');
+        if (!empty($data->idWeightView))
+            setField($isNew, $u, $data->idWeightView, 'id_weight_view');
+        if (!empty($data->idWeightEdit))
+            setField($isNew, $u, $data->idWeightEdit, 'id_weight_edit');
+        if (!empty($data->idVolumeView))
+            setField($isNew, $u, $data->idVolumeView, 'id_volume_view');
+        if (!empty($data->idVolumeEdit))
+            setField($isNew, $u, $data->idVolumeEdit, 'id_volume_edit');
 
         if (!empty($id)) {
             $u->where('id = ?', $id);
@@ -784,6 +836,8 @@ if ($isNew || !empty($ids)) {
         saveDiscounts($ids, $json->discounts);
     if ($ids && isset($json->files))
         saveFiles($ids, $json->files);
+    if ($ids && isset($json->options))
+        saveOptions($ids, $json->options);
 
     if ($ids && isset($json->idGroup) && (CORE_VERSION == "5.3"))
         saveIdGroup($ids, $json->idGroup);
