@@ -12,7 +12,6 @@ class Category extends Base
     protected $sortBy = "position";
     protected $limit = null;
     protected $allowedSearch = false;
-    private $treepath = array();
 
     private function getParentItem($item, $items)
     {
@@ -553,27 +552,27 @@ class Category extends Base
         return $level;
     }
 
-    public function saveIdParent($id, $idParent)
+    static public function saveIdParent($id, $idParent)
     {
         try {
-            $idParent = intval($idParent);
-            $u = new DB('shop_group_tree');
-            $u->select('id');
-            $u->where('id_child = ?', $id);
-            if ($idParent) {
-                $u->andWhere('id_parent = ?', $idParent);
-            } else {
-                $u->andWhere('level = 0');
+            $levelIdOld = self::getLevel($id);
+            $level = 0;
+            DB::query("DELETE FROM shop_group_tree WHERE id_child = {$id}");
+
+            $sqlGroupTree = "INSERT INTO shop_group_tree (id_parent, id_child, `level`)
+                                SELECT id_parent, :id, :level FROM shop_group_tree
+                                WHERE id_child = :id_parent
+                                UNION ALL
+                                SELECT :id, :id, :level";
+            $sthGroupTree = DB::prepare($sqlGroupTree);
+            if (!empty($idParent)) {
+                $level = self::getLevel($idParent);
+                $level++;
             }
-            $answer = $u->fetchOne();
-            if ($idParent) {
-                DB::query("DELETE FROM shop_group_tree WHERE id_child = {$id} AND id_parent<>{$idParent}");
-            }
-            writeLog('Группа');
-            writeLog($answer);
-            if (empty($answer)) {
-                self::updateGroupTable();
-            }
+            $sthGroupTree->execute(array('id_parent' => $idParent, 'id' => $id, 'level' => $level));
+            $levelIdNew = self::getLevel($id);
+            $diffLevel = $levelIdNew - $levelIdOld;
+            DB::query("UPDATE shop_group_tree SET `level` = `level` + {$diffLevel}  WHERE id_parent = {$id} AND id_child <> {$id}");
         } catch (Exception $e) {
             throw new Exception("Не удаётся сохранить родителя группы!");
         }
@@ -604,65 +603,9 @@ class Category extends Base
         $this->saveImages();
         $this->saveLinksGroups();
         $this->saveParametersFilters();
-        if (CORE_VERSION == "5.3") {
-            //$tgroup = new Category($this->input);
-            //$group = $tgroup->info();
-            $this->saveIdParent($this->input["id"], $this->input["upid"]);
-        }
+        $this->saveIdParent($this->input["id"], $this->input["upid"]);
         $this->saveCustomFields();
         return true;
     }
 
-    // Обновляем структуру баз
-    private function updateGroupTable() {
-        $sql = "CREATE TABLE IF NOT EXISTS shop_group_tree (
-            id int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-            id_parent int(10) UNSIGNED NOT NULL,
-            id_child int(10) UNSIGNED NOT NULL,
-            level tinyint(4) NOT NULL,
-            updated_at timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
-            created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            UNIQUE INDEX UK_shop_group_tree (id_parent, id_child),
-            CONSTRAINT FK_shop_group_tree_shop_group_id FOREIGN KEY (id_child)
-            REFERENCES shop_group (id) ON DELETE CASCADE ON UPDATE CASCADE,
-            CONSTRAINT FK_shop_group_tree_shop_group_tree_id_parent FOREIGN KEY (id_parent)
-            REFERENCES shop_group (id) ON DELETE CASCADE ON UPDATE RESTRICT
-            )
-            ENGINE = INNODB
-            CHARACTER SET utf8
-            COLLATE utf8_general_ci;";
-
-        DB::query($sql);
-        $tree = array();
-        $tbl = new DB('shop_group', 'sg');
-        $tbl->select('upid, id');
-        $list = $tbl->getList();
-        foreach($list as $it){
-            $tree[intval($it['upid'])][] = $it['id'];
-        }
-        unset($list);
-        $data = $this->addInTree($tree);
-        DB::query("TRUNCATE TABLE `shop_group_tree`");
-        DB::insertList('shop_group_tree', $data);
-    }
-
-    private function addInTree($tree , $parent = 0, $level = 0){
-        if ($level == 0) {
-            $this->treepath = array();
-        } else
-            $this->treepath[$level] = $parent;
-
-        foreach($tree[$parent] as $id) {
-            $data[] = array('id_parent'=>$id, 'id_child'=>$id, 'level'=>$level);
-            if ($level > 0)
-                for ($l=1; $l <= $level; $l++){
-                    $data[] = array('id_parent'=>$this->treepath[$l], 'id_child'=>$id, 'level'=>$level);
-                }
-            if (!empty($tree[$id])) {
-                $data = array_merge ($data, $this->addInTree($tree , $id, $level + 1));
-            }
-        }
-        return $data;
-    }
 }

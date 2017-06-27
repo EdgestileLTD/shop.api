@@ -208,7 +208,7 @@ function saveIdParent($id, $idParent)
     $sthGroupTree->execute(array('id_parent' => $idParent, 'id' => $id, 'level' => $level));
     $levelIdNew = getLevel($id);
     $diffLevel = $levelIdNew - $levelIdOld;
-    $DBH::query("UPDATE shop_group_tree SET `level` = `level` + {$diffLevel}  WHERE id_parent = {$id} AND id_child <> {$id}");
+    $DBH->query("UPDATE shop_group_tree SET `level` = `level` + {$diffLevel}  WHERE id_parent = {$id} AND id_child <> {$id}");
 }
 
 function saveIncPrices($ids, $data)
