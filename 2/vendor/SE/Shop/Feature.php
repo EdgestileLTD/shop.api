@@ -42,7 +42,8 @@ class Feature extends Base
 
     private function getValues()
     {
-        return (new FeatureValue())->fetchByIdFeature($this->input["id"]);
+        $featureValue = new FeatureValue();
+        return $featureValue->fetchByIdFeature($this->input["id"]);
     }
 
     protected function getAddInfo()

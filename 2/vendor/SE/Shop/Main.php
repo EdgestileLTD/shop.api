@@ -8,6 +8,7 @@ class Main extends Base
 
     protected function getAddInfo()
     {
-        return array("listCurrency" => (new Currency())->fetch());
+        $currency = new Currency();
+        return array("listCurrency" => $currency->fetch());
     }
 }

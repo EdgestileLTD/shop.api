@@ -62,7 +62,8 @@ class Coupon extends Base
         if (!$id)
             return array();
 
-        return (new Order(array("filters" => array("field" => "idCoupon", "value" => $id))))->fetch();
+        $order = new Order(array("filters" => array("field" => "idCoupon", "value" => $id)));
+        return $order->fetch();
     }
 
     protected function getAddInfo()

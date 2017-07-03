@@ -19,8 +19,6 @@ class News extends Base
         $str = str_replace('image', 'n.id', $str);
         $str = str_replace('name', 'n.title', $str);
         $str = str_replace('display', 'n.title', $str);
-        //$str = str_replace('localize', 'ng.id', $str);
-
 
         return $str;
     }
@@ -28,7 +26,6 @@ class News extends Base
     public function fetch()
     {
         try {
-            $this->createDb();
             $items = array();
 
             $u = new DB('news', 'n');
@@ -79,7 +76,6 @@ class News extends Base
 
                 if (!empty($item['pubDate'])) {
                     $new['publicationDate'] = date('Y-m-d', $item['pubDate']);
-                    //$new['publicationDateDisplay'] = date('d.m.Y', $item['pubDate']);
                 }
                 if ($new['imageFile']) {
                     if (strpos($new['imageFile'], "://") === false) {
@@ -101,39 +97,6 @@ class News extends Base
         }
 
         return $this;
-    }
-
-    private function createDb()
-    {
-        DB::query("CREATE TABLE IF NOT EXISTS `news_gcontacts` (
-              `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-              `id_news` int(10) UNSIGNED NOT NULL,
-              `id_gcontact` int(10) UNSIGNED NOT NULL,
-              `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-              `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-              PRIMARY KEY (`id`),
-              KEY `id_news` (`id_news`),
-              KEY `id_gcontact` (`id_gcontact`),
-              CONSTRAINT `news_gcontact_ibfk_1` FOREIGN KEY (`id_news`) REFERENCES `news` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-              CONSTRAINT `news_gcontact_ibfk_2` FOREIGN KEY (`id_gcontact`) REFERENCES `shop_contacts` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
-    }
-
-    private function createDbCustom()
-    {
-        DB::query("CREATE TABLE IF NOT EXISTS `news_userfields` (
-          `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-          `id_news` int(10) UNSIGNED NOT NULL,
-          `id_userfield` int(10) UNSIGNED NOT NULL,
-          `value` text,
-          `updated_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
-          `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-          PRIMARY KEY (`id`),
-          KEY `FK_person_userfields_se_user_id` (`id_news`),
-          KEY `FK_person_userfields_shop_userfields_id` (`id_userfield`),
-          CONSTRAINT `news_userfields_ibfk_1` FOREIGN KEY (`id_news`) REFERENCES `news` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-          CONSTRAINT `news_userfields_ibfk_2` FOREIGN KEY (`id_userfield`) REFERENCES `shop_userfields` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
     }
 
     private function getImages($id)
@@ -184,7 +147,6 @@ class News extends Base
     private function getCustomFields()
     {
         try {
-            $this->createDbCustom();
             $idNews = intval($this->input["id"]);
             $u = new DB('shop_userfields', 'su');
             $u->select("cu.id, cu.id_news, cu.value, su.def, su.id id_userfield, 
@@ -225,8 +187,6 @@ class News extends Base
             $news['name'] = $item['title'];
             $news['isActive'] = $item['active'] == 'Y';
             $news['imageFile'] = $item['img'];
-            //$news['description'] = $item['short_txt'];
-            //$news['fullDescription'] = $item['text'];
             if (!empty($item['newsDate'])){
                 $news['newsDate'] = date('Y-m-d', $item['newsDate']);
                 $news['newsDateDisplay'] = date('d.m.Y', $item['newsDate']);
@@ -294,7 +254,7 @@ class News extends Base
         try {
             $ids = $this->input["ids"];
             $gcontacts = $this->input['geoCity'];
-            if (empty($gcontacts)) return true;
+            if (!isset($gcontacts)) return true;
             $idsExists = array();
             foreach ($gcontacts as $p)
                 if ($p["id"])
@@ -379,8 +339,6 @@ class News extends Base
                 $this->input["newsDate"] = strtotime($this->input["newsDate"]);
             if (isset($this->input["publicationDate"]))
                 $this->input["pubDate"] = strtotime($this->input["publicationDate"]);
-            //if (isset($this->input["fullDescription"]))
-            //    $this->input["text"] = $this->input["fullDescription"];
             if (isset($this->input["imageFile"]))
                 $this->input["img"] = $this->input["imageFile"];
             if (isset($this->input["isActive"]))

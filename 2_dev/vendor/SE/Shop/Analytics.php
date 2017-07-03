@@ -20,7 +20,7 @@ class Analytics extends Base
         $this->data = $this->input["data"];
     }
 
-    public function info($id = NULL)
+    public function info()
     {
         if (empty($this->data)) {
             $this->result["countVisitors"] = $this->countVisitors();
@@ -50,7 +50,8 @@ class Analytics extends Base
                 $u->andWhere('created_at >= "?"', date("Y-m-d", $this->startDate));
             if ($this->endDate)
                 $u->andWhere('created_at <= "?"', date("Y-m-d", $this->endDate));
-            return $u->getList()[0]["count"];
+            $result = $u->getList();
+            return $result[0]["count"];
         } catch (Exception $e) {
             $this->error = "Не удаётся получить количество посетителей!";
         }
@@ -68,7 +69,8 @@ class Analytics extends Base
                 $u->andWhere('so.created_at >= "?"', date("Y-m-d", $this->startDate));
             if ($this->endDate)
                 $u->andWhere('so.created_at <= "?"', date("Y-m-d", $this->endDate));
-            return (float) $u->fetchOne()['sum'];
+            $result = (float) $u->fetchOne();
+            return $result['sum'];
         } catch (Exception $e) {
             $this->error = "Не удаётся получить сумму оплаченных заказов!";
         }
@@ -139,7 +141,8 @@ class Analytics extends Base
                 $u->andWhere('so.created_at >= "?"', date("Y-m-d", $this->startDate));
             if ($this->endDate)
                 $u->andWhere('so.created_at <= "?"', date("Y-m-d", $this->endDate));
-            return (float) $u->fetchOne()['sum'];
+            $result = (float) $u->fetchOne();
+            return $result['sum'];
         } catch (Exception $e) {
             $this->error = "Не удаётся получить сумму закупок!";
         }
@@ -159,7 +162,8 @@ class Analytics extends Base
                 $u->andWhere('created_at >= "?"', date("Y-m-d", $this->startDate));
             if ($this->endDate)
                 $u->andWhere('created_at <= "?"', date("Y-m-d", $this->endDate));
-            $result["countAddCart"] = $u->getList()[0]["count"];
+            $result = $u->getList();
+            $result["countAddCart"] = $result[0]["count"];
 
             $u = new DB("shop_stat_events", 'sse');
             $u->select("COUNT(DISTINCT sse.id_session, sse.number) `count`");
@@ -168,7 +172,8 @@ class Analytics extends Base
                 $u->andWhere('created_at >= "?"', date("Y-m-d", $this->startDate));
             if ($this->endDate)
                 $u->andWhere('created_at <= "?"', date("Y-m-d", $this->endDate));
-            $result["countViewProduct"] = $u->getList()[0]["count"];
+            $result = $u->getList();
+            $result["countViewProduct"] = $result[0]["count"];
 
             $u = new DB("shop_stat_events", 'sse');
             $u->select("COUNT(DISTINCT sse.id_session, sse.number) `count`");
@@ -179,7 +184,8 @@ class Analytics extends Base
                 $u->andWhere('sse.created_at >= "?"', date("Y-m-d", $this->startDate));
             if ($this->endDate)
                 $u->andWhere('sse.created_at <= "?"', date("Y-m-d", $this->endDate));
-            $result["countViewCart"] = $u->getList()[0]["count"];
+            $result = $u->getList();
+            $result["countViewCart"] = $result[0]["count"];
 
             $u = new DB("shop_stat_events", 'sse');
             $u->select("COUNT(DISTINCT sse.id_session) `count`");
@@ -188,7 +194,8 @@ class Analytics extends Base
                 $u->andWhere('sse.created_at >= "?"', date("Y-m-d", $this->startDate));
             if ($this->endDate)
                 $u->andWhere('sse.created_at <= "?"', date("Y-m-d", $this->endDate));
-            $result["countPlaceOrder"] = $u->getList()[0]["count"];
+            $result = $u->getList();
+            $result["countPlaceOrder"] = $result[0]["count"];
 
             $u = new DB("shop_stat_events", 'sse');
             $u->select("COUNT(DISTINCT sse.id_session) `count`");
@@ -197,7 +204,8 @@ class Analytics extends Base
                 $u->andWhere('sse.created_at >= "?"', date("Y-m-d", $this->startDate));
             if ($this->endDate)
                 $u->andWhere('sse.created_at <= "?"', date("Y-m-d", $this->endDate));
-            $result["countConfirmOrder"] = $u->getList()[0]["count"];
+            $result = $u->getList();
+            $result["countConfirmOrder"] = $result[0]["count"];
 
             $u = new DB("shop_stat_events", 'sse');
             $u->select("COUNT(DISTINCT sse.content) `count`");
@@ -208,7 +216,8 @@ class Analytics extends Base
             if ($this->endDate)
                 $u->andWhere('sse.created_at <= "?"', date("Y-m-d", $this->endDate));
             $u->groupBy("so.id_author");
-            $result["countPaidOrder"] = $u->getList()[0]["count"];
+            $result = $u->getList();
+            $result["countPaidOrder"] = $result[0]["count"];
 
             $rows[] = array("Name" => "countVisitors",
                 "Title" => "Посетили сайт", "Value" => $result["countVisitors"], "Color" => "#FF6384");
