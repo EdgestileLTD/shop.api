@@ -1209,6 +1209,9 @@ class Product extends Base
     private function saveIdGroup()
     {
         try {
+            if (!isset($this->input["idGroup"]))
+                return true;
+
             $idsProducts = $this->input["ids"];
             $idGroup = $this->input["idGroup"];
             $idsStr = implode(",", $idsProducts);
