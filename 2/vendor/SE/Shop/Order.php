@@ -11,7 +11,8 @@ class Order extends Base
 
     public static function fetchByCompany($idCompany)
     {
-        return (new Order(array("filters" => array("field" => "idCompany", "value" => $idCompany))))->fetch();
+        $order = new Order(array("filters" => array("field" => "idCompany", "value" => $idCompany)));
+        return $order->fetch();
     }
 
     public static function checkStatusOrder($idOrder, $paymentType = null)
@@ -200,7 +201,6 @@ class Order extends Base
                 $product['code'] = $item['code'];
                 $product['name'] = $item['nameitem'];
                 $product['originalName'] = $item['priceName'];
-                //$product['modifications'] = getModifications($item);
                 $product['article'] = $item['article'];
                 $product['measurement'] = $item['measure'];
                 $product['idGroup'] = $item['id_group'];
@@ -226,7 +226,8 @@ class Order extends Base
 
     private function getPayments()
     {
-        return (new Payment())->fetchByOrder($this->input["id"]);
+        $payment = new Payment();
+        return $payment->fetchByOrder($this->input["id"]);
     }
 
     private function getCustomFields($idOrder)
@@ -245,7 +246,7 @@ class Order extends Base
         $groups = array();
         foreach ($result as $item) {
             $key = (int)$item["idGroup"];
-            $group = key_exists($key, $groups) ? $groups[$key] : [];
+            $group = key_exists($key, $groups) ? $groups[$key] : array();
             $group["id"] = $item["idGroup"];
             $group["name"] = empty($item["nameGroup"]) ? "Без категории" : $item["nameGroup"];
             if ($item['type'] == "date")
@@ -389,11 +390,6 @@ class Order extends Base
         $u = new DB('shop_delivery', 'sd');
         $u->setValuesFields($input);
         $u->save();
-    }
-
-    private function savePayments()
-    {
-        $payments = $this->input["payments"];
     }
 
     public function delete()

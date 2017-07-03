@@ -32,7 +32,7 @@ class Coupon extends Base
     {
         $id = $idCoupon ? $idCoupon : $this->input["id"];
         if (!$id)
-            return [];
+            return array();
 
         $u = new DB('shop_coupons_goods', 'scg');
         $u->select('sp.id, sp.code, sp.article, sp.name, sp.price, sp.curr, sp.measure, sp.presence_count');
@@ -46,7 +46,7 @@ class Coupon extends Base
     {
         $id = $idCoupon ? $idCoupon : $this->input["id"];
         if (!$id)
-            return [];
+            return array();
 
         $u = new DB('shop_coupons_goods', 'scg');
         $u->select('sg.id, sg.name');
@@ -60,7 +60,7 @@ class Coupon extends Base
     {
         $id = $idCoupon ? $idCoupon : $this->input["id"];
         if (!$id)
-            return [];
+            return array();
 
         return (new Order(array("filters" => array("field" => "idCoupon", "value" => $id))))->fetch();
     }

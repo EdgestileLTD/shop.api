@@ -11,7 +11,8 @@ class Order extends Base
 
     public static function fetchByCompany($idCompany)
     {
-        return (new Order(array("filters" => array("field" => "idCompany", "value" => $idCompany))))->fetch();
+        $order = new Order(array("filters" => array("field" => "idCompany", "value" => $idCompany)));
+        return $order->fetch();
     }
 
     public static function checkStatusOrder($idOrder, $paymentType = null)
@@ -200,7 +201,6 @@ class Order extends Base
                 $product['code'] = $item['code'];
                 $product['name'] = $item['nameitem'];
                 $product['originalName'] = $item['priceName'];
-                //$product['modifications'] = getModifications($item);
                 $product['article'] = $item['article'];
                 $product['measurement'] = $item['measure'];
                 $product['idGroup'] = $item['id_group'];
@@ -217,16 +217,24 @@ class Order extends Base
 
     }
 
+    public function fetch()
+    {
+        if ($this->input['searchText'])
+            $this->filters = null;
+        return parent::fetch();
+    }
+
     private function getPayments()
     {
-        return (new Payment())->fetchByOrder($this->input["id"]);
+        $payment = new Payment();
+        return $payment->fetchByOrder($this->input["id"]);
     }
 
     private function getCustomFields($idOrder)
     {
         $u = new DB('shop_userfields', 'su');
         $u->select("sou.id, sou.id_order, sou.value, su.id id_userfield, 
-                   su.name, su.required, su.enabled, su.type, su.placeholder, su.description, su.values, sug.id id_group, sug.name name_group");
+                    su.name, su.type, su.values, sug.id id_group, sug.name name_group");
         $u->leftJoin('shop_order_userfields sou', "sou.id_userfield = su.id AND id_order = {$idOrder}");
         $u->leftJoin('shop_userfield_groups sug', 'su.id_group = sug.id');
         $u->where('su.data = "order"');
@@ -238,7 +246,7 @@ class Order extends Base
         $groups = array();
         foreach ($result as $item) {
             $key = (int)$item["idGroup"];
-            $group = key_exists($key, $groups) ? $groups[$key] : [];
+            $group = key_exists($key, $groups) ? $groups[$key] : array();
             $group["id"] = $item["idGroup"];
             $group["name"] = empty($item["nameGroup"]) ? "Без категории" : $item["nameGroup"];
             if ($item['type'] == "date")
@@ -248,13 +256,6 @@ class Order extends Base
             $groups[$key]["items"][] = $item;
         }
         return array_values($groups);
-    }
-
-    public function fetch()
-    {
-        if ($this->input['searchText'])
-            $this->filters = null;
-        return parent::fetch();
     }
 
     protected function correctValuesBeforeSave()
@@ -275,6 +276,9 @@ class Order extends Base
 
     private function saveItems()
     {
+        //$o = new DB('shop_order', 'sto');
+        //$o->add_field('nk', 'tinyint(4)', 0, 1);
+
         $idOrder = $this->input["id"];
         $products = $this->input["items"];
         foreach ($products as $p)
@@ -293,8 +297,6 @@ class Order extends Base
             $ua->where('order_id = ?', $idOrder);
             $ua->deleteList();
         }
-
-
 
         DB::query("UPDATE shop_price sp
             INNER JOIN shop_tovarorder st ON sp.id = st.id_price
@@ -388,11 +390,6 @@ class Order extends Base
         $u = new DB('shop_delivery', 'sd');
         $u->setValuesFields($input);
         $u->save();
-    }
-
-    private function savePayments()
-    {
-        $payments = $this->input["payments"];
     }
 
     public function delete()

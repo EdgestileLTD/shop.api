@@ -3,7 +3,6 @@
 namespace SE\Shop;
 
 use SE\DB as DB;
-use SE\Exception;
 
 class Payment extends Base
 {
@@ -15,12 +14,6 @@ class Payment extends Base
         if (!empty($this->input["idOrder"]))
             Order::checkStatusOrder($this->input["idOrder"], $this->input["paymentType"]);
         return $result;
-    }
-
-    public function fetch(){
-        $sp = new DB($this->tableName);
-        $sp->addField('payment_target', 'tinyint(1)', 0, 0);
-        parent::fetch();
     }
 
     protected function getSettingsFetch()
@@ -76,7 +69,8 @@ class Payment extends Base
         $u = new DB("shop_order_payee");
         $u->select("MAX(num) num");
         $u->where("sop.year = YEAR(NOW())");
-        return $u->fetchOne()["num"] + 1;
+        $result = $u->fetchOne();
+        return $result["num"] + 1;
     }
 
     protected function correctValuesBeforeSave()

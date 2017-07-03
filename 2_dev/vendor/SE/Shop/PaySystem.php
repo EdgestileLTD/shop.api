@@ -110,7 +110,7 @@ class PaySystem extends Base
     private function getFilters($articles)
     {
         if (empty($articles))
-            return [];
+            return array();
 
         foreach ($articles as $article)
             if ($article) {

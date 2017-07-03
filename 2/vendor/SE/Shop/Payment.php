@@ -69,7 +69,8 @@ class Payment extends Base
         $u = new DB("shop_order_payee");
         $u->select("MAX(num) num");
         $u->where("sop.year = YEAR(NOW())");
-        return $u->fetchOne()["num"] + 1;
+        $result = $u->fetchOne();
+        return $result["num"] + 1;
     }
 
     protected function correctValuesBeforeSave()

@@ -34,7 +34,7 @@ class Review extends Base
     public function fetchByIdProduct($idProduct)
     {
         if (!$idProduct)
-            return [];
+            return array();
 
         $this->setFilters(array("field" => "idPrice", "value" => $idProduct));
         return $this->fetch();

@@ -26,7 +26,7 @@ class Auth extends Base
     public function getPermission($idUser)
     {
         if (!$idUser)
-            return [];
+            return array();
 
         try {
             $u = new DB('permission_object', 'po');

@@ -300,7 +300,6 @@ class Category extends Base
     private function getCustomFields()
     {
         try {
-            $this->createDbUserFields();
             $idGroup = intval($this->input["id"]);
             $u = new DB('shop_userfields', 'su');
             $u->select("cu.id, cu.id_shopgroup, cu.value, su.id id_userfield, 

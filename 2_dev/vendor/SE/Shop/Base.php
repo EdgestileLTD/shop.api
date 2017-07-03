@@ -40,7 +40,7 @@ class Base extends CustomBase
         $this->sortBy = $input["sortBy"] ? $input["sortBy"] : $this->sortBy;
         $this->search = $input["searchText"] && $this->allowedSearch ? $input["searchText"] : null;
         $this->filters = empty($this->input["filters"]) || !is_array($this->input["filters"]) ?
-            [] : $this->input["filters"];
+           array() : $this->input["filters"];
         if (!empty($this->input["id"]) && empty($this->input["ids"]))
             $this->input["ids"] = array($this->input["id"]);
         $this->isNew = empty($this->input["id"]) && empty($this->input["ids"]);
@@ -53,7 +53,7 @@ class Base extends CustomBase
 
     public function setFilters($filters)
     {
-        $this->filters = empty($filters) || !is_array($filters) ? [] : $filters;
+        $this->filters = empty($filters) || !is_array($filters) ? array() : $filters;
     }
 
     private function createTableForInfo($settings)
@@ -142,7 +142,7 @@ class Base extends CustomBase
 
     protected function getAddInfo()
     {
-        return [];
+        return array();
     }
 
     public function delete()
@@ -254,7 +254,7 @@ class Base extends CustomBase
 
     protected function getSettingsFetch()
     {
-        return [];
+        return array();
     }
 
     protected function getSettingsFind()
@@ -264,7 +264,7 @@ class Base extends CustomBase
 
     protected function getSettingsInfo()
     {
-        return [];
+        return array();
     }
 
     protected function getPattensBySelect($selectQuery)

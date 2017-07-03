@@ -140,7 +140,7 @@ class GeoTargeting extends Base
                 $result[$item["id"]] = $item["name"];
             return $result;
         }
-        return [];
+        return array();
     }
 
     public function save()

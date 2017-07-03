@@ -78,7 +78,7 @@ class Contact extends Base
         $groups = array();
         foreach ($result as $item) {
             $key = (int)$item["idGroup"];
-            $group = key_exists($key, $groups) ? $groups[$key] : [];
+            $group = key_exists($key, $groups) ? $groups[$key] : array();
             $group["id"] = $item["idGroup"];
             $group["name"] = empty($item["nameGroup"]) ? "Без категории" : $item["nameGroup"];
             if ($item['type'] == "date")
@@ -110,7 +110,8 @@ class Contact extends Base
             $contact['groups'] = $this->getGroups($contact['id']);
             $contact['companyRequisites'] = $this->getCompanyRequisites($contact['id']);
             $contact['personalAccount'] = $this->getPersonalAccount($contact['id']);
-            $contact['accountOperations'] = (new BankAccountTypeOperation())->fetch();
+            $accountTypeOperations = new BankAccountTypeOperation();
+            $contact['accountOperations'] = $accountTypeOperations->fetch();
             $contact["customFields"] = $this->getCustomFields($contact["id"]);
             if ($count = count($contact['personalAccount']))
                 $contact['balance'] = $contact['personalAccount'][$count - 1]['balance'];
@@ -135,8 +136,10 @@ class Contact extends Base
             $emails[] = $value["email"];
         if (parent::delete()) {
             if (!empty($emails))
-                foreach($emails as $email)
-                    (new EmailProvider())->removeEmailFromAllBooks($email);
+                foreach($emails as $email) {
+                    $emailProvider = new EmailProvider();
+                    $emailProvider->removeEmailFromAllBooks($email);
+                }
             return true;
         }
         return false;
@@ -213,15 +216,18 @@ class Contact extends Base
                     'email' =>$value['email'],
                     'variables'=>array('name'=>$value['name'])
                 );
-            //$emails[] = $value["email"];
         }
         if (empty($emails))
             return;
 
-        if ($idsNewsGroups && ($idsBooks = ContactCategory::getIdsBooksByIdGroups($idsNewsGroups)))
-            (new EmailProvider())->addEmails($idsBooks, $emails);
-        if ($idsDelGroups && ($idsBooks = ContactCategory::getIdsBooksByIdGroups($idsDelGroups)))
-            (new EmailProvider())->removeEmails($idsBooks, $emails);
+        if ($idsNewsGroups && ($idsBooks = ContactCategory::getIdsBooksByIdGroups($idsNewsGroups))) {
+            $emailProvider = new EmailProvider();
+            $emailProvider->addEmails($idsBooks, $emails);
+        }
+        if ($idsDelGroups && ($idsBooks = ContactCategory::getIdsBooksByIdGroups($idsDelGroups))) {
+            $emailProvider = new EmailProvider();
+            $emailProvider->removeEmails($idsBooks, $emails);
+        }
     }
 
     private function saveGroups($groups, $idsContact, $addGroup = false)
