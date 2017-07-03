@@ -134,7 +134,7 @@ class Payment extends Base
 
     protected function getAddInfo()
     {
-        $result = [];
+        $result = array();
         if ($idAuthor = $this->result["idAuthor"]) {
             $contact = new Contact();
             $result["contact"] = $contact->info($idAuthor);

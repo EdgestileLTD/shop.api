@@ -79,7 +79,7 @@ class Feature extends Base
                 $u->where("id_feature = ?", $idFeature)->deleteList();
             }
 
-            $data = [];
+            $data = array();
             foreach ($values as $value)
                 if (empty($value["id"]) || ($value["id"] <= 0)) {
                     $data[] = array('id_feature' => $idFeature, 'value' => $value["value"], 'color' => $value["color"],

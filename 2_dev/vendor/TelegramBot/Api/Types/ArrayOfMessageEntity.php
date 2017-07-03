@@ -12,7 +12,7 @@ abstract class ArrayOfMessageEntity
 {
     public static function fromResponse($data)
     {
-        $arrayOfMessageEntity = [];
+        $arrayOfMessageEntity = array();
         foreach ($data as $messageEntity) {
             $arrayOfMessageEntity[] = MessageEntity::fromResponse($messageEntity);
         }

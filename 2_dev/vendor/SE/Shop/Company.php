@@ -70,10 +70,10 @@ class Company extends Base
         $u->addOrderBy('su.sort');
         $result = $u->getList();
 
-        $groups = [];
+        $groups = array();
         foreach ($result as $item) {
             $isNew = true;
-            $newGroup = [];
+            $newGroup = array();
             $newGroup["id"] = $item["idGroup"];
             $newGroup["name"] = empty($item["nameGroup"]) ? "Без категории": $item["nameGroup"];
             foreach ($groups as $group)
@@ -107,7 +107,7 @@ class Company extends Base
         try {
             $idCompany = $this->input["id"];
             $groups = $this->input["customFields"];
-            $customFields = [];
+            $customFields = array();
             foreach ($groups as $group)
                 foreach ($group["items"] as $item)
                     $customFields[] = $item;

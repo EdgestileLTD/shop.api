@@ -847,7 +847,7 @@ if ($isNew || !empty($ids)) {
 
     if ($json->method == "addDescription" && !empty($json->fullDescription)) {
 
-        $textAddList = [];
+        $textAddList = array();
         preg_match_all('#<tab title="(.+)">(.+)</tab>#U', $json->fullDescription, $matches);
         if (!empty($matches[1])) {
             $i = 0;
@@ -861,7 +861,7 @@ if ($isNew || !empty($ids)) {
         $items = $t->getList();
         foreach ($items as $item) {
             $text = $item["text"];
-            $textList = [];
+            $textList = array();
             preg_match_all('#<tab title="(.+)">(.+)</tab>#U', $text, $matches);
             if (empty($matches[1]))
                 $textList["Описание товара"] = $text;

@@ -17,7 +17,7 @@ class Base extends CustomBase
     protected $availableFields;
     protected $filterFields;
     protected $search;
-    protected $filters = [];
+    protected $filters = array();
     protected $tableName;
     protected $tableAlias;
     protected $allowedSearch = true;
@@ -28,7 +28,7 @@ class Base extends CustomBase
     protected $whereStr = null;
     protected $sqlFilter = null;
 
-    private $patterns = [];
+    private $patterns = array();
 
     function __construct($input = null)
     {
@@ -77,11 +77,14 @@ class Base extends CustomBase
         return $u;
     }
 
-    public function fetch()
+    public function fetch($isId = false)
     {
         $settingsFetch = $this->getSettingsFetch();
 
         $settingsFetch["select"] = $settingsFetch["select"] ? $settingsFetch["select"] : "*";
+        if ($isId) {
+            $settingsFetch["select"] = $this->tableAlias . '.id';
+        }
         $this->patterns = $this->getPattensBySelect($settingsFetch["select"]);
         try {
             $u = $this->createTableForInfo($settingsFetch);
@@ -97,8 +100,6 @@ class Base extends CustomBase
             if ($this->groupBy)
                 $u->groupBy($this->groupBy);
             $u->orderBy($this->sortBy, $this->sortOrder == 'desc');
-            //writeLog($this);
-            //writeLog($this->input);
 
             $this->result["items"] = $this->correctValuesBeforeFetch($u->getList($this->limit, $this->offset));
             $this->result["count"] = $u->getListCount();
@@ -153,12 +154,7 @@ class Base extends CustomBase
             $u = new DB($this->tableName,$this->tableAlias);
             if ($this->input["ids"] && !empty($this->tableName)) {
                 $ids = implode(",", $this->input["ids"]);
-
-                if($this->allMode and !empty($this->whereStr)){
-                    $u->where($this->sqlFilter)->deleteList();
-                } else {
-                    $u->where('id IN (?)', $ids)->deleteList();
-                }
+                $u->where('id IN (?)', $ids)->deleteList();
             }
             return true;
         } catch (Exception $e) {
@@ -178,47 +174,22 @@ class Base extends CustomBase
     public function correctAll($action = null){
         if(isset($this->input['allMode'])){
             $this->allMode = true;
-            if($action !== 'del'){
-                $input = $this->input['allModeParams'];
-            } else {
-                $input = array();
-            }
             // Сбрасываем лимиты
-            $this->input['allModeLastParams']['offset'] = 0;
-            $this->input['allModeLastParams']['limit'] = 1000;
-
+            $this->limit = 10000;
             // Устанавливаем фильтры
             $this->setFilters($this->input['allModeLastParams']['filters']);
+            $this->search = $this->input['allModeLastParams']['searchText'];
 
-            $filter = $this->getFilterQuery();
-            $result = $this->fetch();
-
-
-            # Временое решение
-           /* $db = new DB($this->tableName, $this->tableAlias);
-            $db->select('`'.$this->tableAlias .'`.id');
-            if(!empty($filter)){
-                $db->where($filter);
-                $this->whereStr = $filter;
-                $this->sqlFilter = str_replace($this->tableAlias,'`'.$this->tableName.'`',$filter);
-            }
-
-            writeLog($db->getSql());
-
-            $result = $db->getList();
-            writeLog($result);
-           */
-
+            $result = $this->fetch(true);
             if($result){
                 $ids = array();
                 foreach ($result as $item){
                     array_push($ids,$item['id']);
                 }
                 if(!empty($ids)){unset($result);}
-                $input['ids'] = $ids;
-                $this->input = $input;
+                $this->input['ids'] = $ids;
             } else
-                return $this->error = "Ошибка при сохранениии";
+                return $this->error = "Не выбрано ни одной записи!";
         }
         return true;
     }
@@ -228,12 +199,15 @@ class Base extends CustomBase
 
         try {
             $this->correctValuesBeforeSave();
+            $this->correctAll();
+            writelog($this->input);
             DB::beginTransaction();
             $u = new DB($this->tableName);
             $u->setValuesFields($this->input);
             $this->input["id"] = $u->save();
             if (empty($this->input["ids"]) && $this->input["id"])
                 $this->input["ids"] = array($this->input["id"]);
+
             if ($this->input["id"] && $this->saveAddInfo()) {
                 $this->info();
                 DB::commit();
@@ -295,7 +269,7 @@ class Base extends CustomBase
 
     protected function getPattensBySelect($selectQuery)
     {
-        $result = [];
+        $result = array();
         preg_match_all('/\w+[.]+\w+\s\w+/', $selectQuery, $matches);
         if (count($matches) && count($matches[0])) {
             foreach ($matches[0] as $match) {
@@ -375,73 +349,11 @@ class Base extends CustomBase
         }
         return implode(" AND ", $where);
     }
-/*
-    protected function getSearchQuery($searchFields = [])
-    {
-        $result = [];
-        $searchItem = trim($this->search);
-        if (empty($searchItem))
-            return $result;
-        if (is_string($searchItem))
-            $searchItem = trim(DB::quote($searchItem), "'");
-
-        $finds = $this->getSettingsFind();
-        $time = 0;
-        if (strpos($searchItem, "-") !== false) {
-            $time = strtotime($searchItem);
-        }
-
-        foreach ($searchFields as $field) {
-            if (strpos($field["Field"], ".") === false)
-                $field["Field"] = $this->tableAlias . "." . $field["Field"];
-
-            if (!empty($finds) && !in_array($field["Field"], $finds)) continue;
-
-            // текст
-            if ((strpos($field["Type"], "char") !== false) || (strpos($field["Type"], "text") !== false)) {
-                $result[] = "{$field["Field"]} LIKE '%{$searchItem}%'";
-                continue;
-            }
-            // дата
-            if ($field["Type"] == "date") {
-                if ($time) {
-                    $searchItem = date("Y-m-d", $time);
-                    $result[] = "{$field["Field"]} = '$searchItem'";
-                }
-                continue;
-            }
-            // время
-            if ($field["Type"] == "time") {
-                if ($time) {
-                    $searchItem = date("H:i:s", $time);
-                    $result[] = "{$field["Field"]} = '$searchItem'";
-                }
-                continue;
-            }
-            // дата и время
-            if ($field["Type"] == "datetime") {
-                if ($time) {
-                    $searchItem = date("Y-m-d H:i:s", $time);
-                    $result[] = "{$field["Field"]} = '$searchItem'";
-                }
-                continue;
-            }
-            // число
-            if (strpos($field["Type"], "int") !== false) {
-                if (intval($searchItem)) {
-                    $result[] = "{$field["Field"]} = {$searchItem}";
-                    continue;
-                }
-            }
-        }
-        return implode(" OR ", $result);
-    }
-*/
 
     protected function getFilterQuery()
     {
-        $where = [];
-        $filters = [];
+        $where = array();
+        $filters = array();
         if (!empty($this->filters["field"]))
             $filters[] = $this->filters;
         else $filters = $this->filters;
@@ -492,16 +404,16 @@ class Base extends CustomBase
         if (!file_exists($file))
             return null;
 
-        $result = [];
+        $result = array();
         if (($handle = fopen($file, "r")) !== FALSE) {
             $i = 0;
-            $keys = [];
+            $keys = array();
             while (($row = fgetcsv($handle, 10000, $csvSeparator)) !== FALSE) {
                 if (!$i) {
                     foreach ($row as &$item)
                         $keys[] = iconv('CP1251', 'utf-8', $item);
                 } else {
-                    $object = [];
+                    $object = array();
                     $j = 0;
                     foreach ($row as &$item) {
                         $object[$keys[$j]] = iconv('CP1251', 'utf-8', $item);
@@ -520,7 +432,7 @@ class Base extends CustomBase
     {
         $countFiles = count($_FILES);
         $ups = 0;
-        $items = [];
+        $items = array();
         $dir = DOCUMENT_ROOT . "/files";
         $url = !empty($_POST["url"]) ? $_POST["url"] : null;
         if (!file_exists($dir) || !is_dir($dir))

@@ -31,6 +31,7 @@ if ($isNew  || !empty($ids)) {
 
     $isUpdated |= setField($isNew, $u, $json->name, 'name');
     $isUpdated |= setField($isNew, $u, $json->code, 'code');
+    $isUpdated |= setField($isNew, $u, $json->note, 'note');
     $isUpdated |= setField($isNew, $u, $json->imageFile, 'image');
     $isUpdated |= setField($isNew, $u, $json->type, 'type');
     $isUpdated |= setField($isNew, $u, $json->typePrice, 'type_price');

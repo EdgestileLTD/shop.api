@@ -143,7 +143,7 @@ if ($step == 0) {
 
     $count = 0;
     $maxHeaderRows = 25;
-    $samples = [];
+    $samples = array();
     if (($handle = fopen($fileCSV, "r")) !== false) {
         $i = 0;
         while (($row = fgetcsv($handle, 16000, $separator)) !== false &&
@@ -163,7 +163,7 @@ if ($step == 0) {
     }
     fclose($handle);
     $count = count($samples);
-    $cols = [];
+    $cols = array();
     for ($i = 0; $i < $count; $i++)
         $cols[] = ["id" => $i, "title" => "Столбец № {$i}", "sample" => $samples[$i]];
 
@@ -196,7 +196,7 @@ if ($step == 1) {
     $fileCSV = "{$dir}/groups.csv";
     $countInsert = 0;
     $countUpdate = 0;
-    $groups = [];
+    $groups = array();
 
 
     if (($handle = fopen($fileCSV, "r")) !== false) {
@@ -207,7 +207,7 @@ if ($step == 1) {
             if ($i++ < $skip)
                 continue;
 
-            $group = [];
+            $group = array();
             foreach ($row as $index => $value) {
 
                 if ($index >= count($cols))

@@ -20,7 +20,7 @@ $fieldsTable = ["id", "code", "idParent", "name", "description",
     "fullDescription", "imageFile", "seoHeader", "seoKeywords", "seoDescription"];
 $fields = array_combine($fieldsTable, $fields);
 
-$cols = [];
+$cols = array();
 for ($i = 65; $i <= 90; $i++)
     $cols[] = chr($i);
 

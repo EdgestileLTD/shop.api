@@ -17,7 +17,7 @@ class DB
     static public $dbPassword;
     /* @var $dbh PDO */
     static protected $dbh = null;
-    static private $tables = [];
+    static private $tables = array();
 
     private $isCamelCaseMode = true;
     /* @var $lastQuery string */
@@ -31,19 +31,19 @@ class DB
     protected $selectExpression;
     /* @var $groupBy string */
     protected $groupBy;
-    protected $orderBy = [];
-    protected $joins = [];
+    protected $orderBy = array();
+    protected $joins = array();
     /* @var $limit integer */
     protected $limit;
     /* @var $offset integer */
     protected $offset;
     /* @var $whereDefinitions string */
     protected $whereDefinitions;
-    protected $whereValues = [];
-    protected $dataValues = [];
-    protected $inputData = [];
+    protected $whereValues = array();
+    protected $dataValues = array();
+    protected $inputData = array();
 
-    private $fields = [];
+    private $fields = array();
 
     function __construct($tableName, $alias = null, $isCamelCaseMode = true)
     {
@@ -153,106 +153,35 @@ class DB
         } else throw new Exception("The connection is not initialized!");
     }
 
-    public static function prepare($statement)
-    {
-        if (self::$dbh) {
-            self::$lastQuery = $statement;
-            return self::$dbh->prepare($statement);
-        } else throw new Exception("The connection is not initialized!");
-    }
-
-    /**
-     * @param string $fieldName
-     * @param int $index
-     * @deprecated
-     */
-    public function add_index($fieldName, $index = 1)
-    {
-        $this->addIndex($fieldName, $index);
-    }
-
-    /**
-     * @param string $fieldName
-     * @param int $index
-     */
-    public function addIndex($fieldName, $index = 1)
-    {
-        if (!DB::isIndex($fieldName)) {
+    public function add_index($field_name, $index = 1){
+        if (!DB::is_index($field_name)){
             $index = ($index == 1) ? 'INDEX' : 'UNIQUE';
-            DB::query("ALTER TABLE `{$this->tableName}` ADD {$index}(`{$fieldName}`);");
+            DB::query("ALTER TABLE `{$this->tableName}` ADD {$index}(`{$field_name}`);");
         }
     }
 
-    /**
-     * @param string $field
-     * @return bool
-     * @deprecated
-     */
     public function is_field($field)
     {
-        return $this->isField($field);
-    }
-
-    /**
-     * @param string $field
-     * @return bool
-     */
-    public function isField($field)
-    {
         $sql = "SHOW COLUMNS FROM `{$this->tableName}` WHERE Field='$field'";
-        $fieldsList = DB::query($sql)->fetchAll();
-        return (count($fieldsList) > 0);
+        $flist = DB::query($sql)->fetchAll();
+        return (count($flist) > 0);
     }
 
-    /**
-     * @param string $fieldName
-     * @param string $nameIndex
-     * @return bool
-     * @deprecated
-     */
-    public function is_index($fieldName, $nameIndex = '')
-    {
-        return $this->isIndex($fieldName, $nameIndex);
+    public function is_index($field_name, $name_index = ''){
+        $key_index = ($name_index) ? " AND `Key_name`='{$name_index}'" : '';
+        $sql = "SHOW INDEX FROM `{$this->tableName}` WHERE `Column_name` = '{$field_name}'".$key_index;
+        $flist = DB::query($sql)->fetchAll();
+        return (count($flist) > 0);
+
     }
 
-    /**
-     * @param string $fieldName
-     * @param string $nameIndex
-     * @return bool
-     */
-    public function isIndex($fieldName, $nameIndex = '')
+    public function add_field($field, $type = 'varchar(20)', $default = null, $index=0)
     {
-        $keyIndex = ($nameIndex) ? " AND `Key_name`='{$nameIndex}'" : '';
-        $sql = "SHOW INDEX FROM `{$this->tableName}` WHERE `Column_name` = '{$fieldName}'" . $keyIndex;
-        $fieldsList = DB::query($sql)->fetchAll();
-        return (count($fieldsList) > 0);
-    }
-
-    /**
-     * @param string $field
-     * @param string $type
-     * @param string $default
-     * @param int $index
-     * @deprecated
-     */
-    public function add_field($field, $type = 'varchar(20)', $default = null, $index = 0)
-    {
-        $this->addField($field, $type, $default, $index);
-    }
-
-    /**
-     * @param string $field
-     * @param string $type
-     * @param string $default
-     * @param int $index
-     */
-    public function addField($field, $type = 'varchar(20)', $default = null, $index = 0)
-    {
-        if (!$this->isField($field)) {
+        if (!$this->is_field($field)) {
             $type = str_replace(array('integer', 'string', 'integer(2)', 'integer(4)', 'bool', 'boolean'),
                 array('int', 'varchar', 'int', 'bigint', 'tinyint(1)', 'tinyint(1)'), $type);
-            if (preg_match('/float(\([\d\,]+\))?/u', $type, $m)) {
-                $m[1] = preg_replace('/[\(\)]/', '', $m[1]);
+            if (preg_match("/float(\([\d\,]+\))?/u", $type, $m)) {
+                $m[1] = preg_replace("/[\(\)]/", '', $m[1]);
                 if (!empty($m[1])) {
                     list($dec,) = explode(',', $m[1]);
                     if (floatval($dec) < 8) $newType = 'float(' . $m[1] . ')';
@@ -273,14 +202,37 @@ class DB
             } else {
                 $default = ' default NULL ';
             }
-            //writeLog("ALTER TABLE `{$this->tableName}` ADD `{$field}` {$type}{$default}{$after};");
             DB::exec("ALTER TABLE `{$this->tableName}` ADD `{$field}` {$type}{$default}{$after}");
         }
-        if ($index) {
-            $this->addIndex($field, $index);
+        if ($index){
+            $this->add_index($field, $index);
         }
     }
 
+    public function addField($field, $type = 'varchar(20)', $default = null, $index=0)
+    {
+        $this->add_field($field, $type, $default, $index);
+    }
+
+    public function getField($field)
+    {
+        $sql = "SHOW COLUMNS FROM `{$this->tableName}` WHERE Field='{$field}'";
+        try {
+            $stmt = self::$dbh->query($sql);
+            $stmt->setFetchMode(PDO::FETCH_ASSOC);
+            return $stmt->fetch();
+        } catch (Exception $e) {
+            throw new Exception("Отсутствует таблица {$this->tableName}");
+        }
+    }
+
+    public static function prepare($statement)
+    {
+        if (self::$dbh) {
+            self::$lastQuery = $statement;
+            return self::$dbh->prepare($statement);
+        } else throw new Exception("The connection is not initialized!");
+    }
 
     public static function strToCamelCase($str)
     {
@@ -311,7 +263,7 @@ class DB
             $query[] = $isIgnoreMode ? 'INSERT IGNORE INTO' : 'INSERT INTO';
             $query[] = $tableName;
             $query[] = "SET";
-            $fields = [];
+            $fields = array();
             while (list($columns,) = each($data[0])) {
                 $columns = str_replace('`', '', $columns);
                 $fields[] = '`' . str_replace('`', '', $columns) . '` = :' . $columns;
@@ -341,14 +293,14 @@ class DB
     public static function saveManyToMany($idKey, $links = [], $setting = [])
     {
         try {
-            $existIds = [];
+            $existIds = array();
             $sql = "SELECT {$setting['link']} FROM {$setting["table"]} WHERE {$setting['table']}.{$setting['key']} = {$idKey}";
             $items = DB::query($sql)->fetchAll();
             foreach ($items as $item)
                 if (!empty($item[$setting["link"]]))
                     $existIds[] = $item[$setting["link"]];
 
-            $deleteIds = [];
+            $deleteIds = array();
             foreach ($existIds as $id) {
                 $isFind = false;
                 foreach ($links as $link) {
@@ -365,8 +317,8 @@ class DB
                                   {$setting['table']}.{$setting['key']} = {$idKey} AND {$setting['link']} IN ({$ids})");
             }
 
-            $newLinks = [];
-            $updateLinks = [];
+            $newLinks = array();
+            $updateLinks = array();
             foreach ($links as $link) {
                 $item = empty($setting["isSort"]) ? array("id" => $link["id"]) :
                     array("id" => $link["id"], "sort" => $link["sort"]);
@@ -375,7 +327,7 @@ class DB
                 else $updateLinks[] = $item;
             }
             if ($newLinks) {
-                $sql = [];
+                $sql = array();
                 foreach ($newLinks as $link)
                     $sql[] = empty($setting["isSort"]) ? "({$link["id"]}, {$idKey})" :
                         "({$link["id"]}, {$idKey}, {$link["sort"]})";
@@ -385,7 +337,7 @@ class DB
                 DB::exec($sql);
             }
             if ($updateLinks && !empty($setting["isSort"])) {
-                $sql = [];
+                $sql = array();
                 foreach ($updateLinks as $link)
                     $sql[] = "UPDATE {$setting['table']} SET sort = {$link["sort"]} 
                               WHERE ({$setting['link']} = {$link["id"]} AND {$setting['key']} = {$idKey})";
@@ -403,16 +355,11 @@ class DB
         if ($this->fields)
             return $this->fields;
 
-        try {
-            $stmt = self::$dbh->query("SHOW COLUMNS FROM `{$this->tableName}`");
-            $stmt->setFetchMode(PDO::FETCH_ASSOC);
-            while ($row = $stmt->fetch())
-                if (!in_array($row['Field'], array("updated_at", "created_at")))
-                    $this->fields[$row['Field']] = $row;
-        } catch (Exception $e) {
-            throw new Exception("Отсутствует таблица {$this->tableName}");
-        }
-
+        $stmt = self::$dbh->query("SHOW COLUMNS FROM `{$this->tableName}`");
+        $stmt->setFetchMode(PDO::FETCH_ASSOC);
+        while ($row = $stmt->fetch())
+            if (!in_array($row['Field'], array("updated_at", "created_at")))
+                $this->fields[$row['Field']] = $row;
         return $this->fields;
     }
 
@@ -449,7 +396,7 @@ class DB
     public function orderBy($field = null, $desc = false)
     {
         $field = empty($field) ? $this->aliasName . ".id" : $field;
-        $this->orderBy = [];
+        $this->orderBy = array();
         $this->addOrderBy($field, $desc);
     }
 
@@ -489,9 +436,9 @@ class DB
             $this->bindValues($stmt);
             $stmt->execute();
             $stmt->setFetchMode(PDO::FETCH_ASSOC);
-            $items = [];
+            $items = array();
             while ($row = $stmt->fetch()) {
-                $item = [];
+                $item = array();
                 foreach ($row as $key => $value) {
                     if ($this->isNumericField($key) && !is_null($value))
                         $value += 0;
@@ -501,6 +448,7 @@ class DB
             }
             return $items;
         } catch (\PDOException $e) {
+            writeLog($e->getMessage());
             throw new Exception($e->getMessage());
         }
     }
@@ -621,7 +569,7 @@ class DB
         if (!$countMode) {
             if (!empty($this->orderBy)) {
                 $result[] = "ORDER BY";
-                $orders = [];
+                $orders = array();
                 foreach ($this->orderBy as $orderBy) {
                     $field = $orderBy["field"];
                     if (!$orderBy["asc"])
@@ -751,7 +699,7 @@ class DB
 
     private function getValuesString($isInsert, $isInsertId = false)
     {
-        $result = [];
+        $result = array();
         foreach ($this->dataValues as $field => $value) {
             if ($isInsert && !$isInsertId && in_array($field, array("id", "ids")))
                 continue;

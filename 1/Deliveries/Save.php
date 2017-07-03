@@ -57,7 +57,7 @@ function saveGroups($idsGroups, $idDelivery)
     $u->select("id_group");
     $u->where("id_type = {$idDelivery}");
     $items = $u->getList();
-    $idsExist = [];
+    $idsExist = array();
     foreach ($items as $item)
         $idsExist[] = $item["id_group"];
     if (!empty($idsGroups)) {

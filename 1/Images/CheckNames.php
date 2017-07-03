@@ -21,7 +21,7 @@ $dir = $dirRoot . "/images/$lang/$section";
 
 $names = $json->names;
 foreach ($names as $name) {
-    $item = [];
+    $item = array();
     $item['oldName'] = $name;
     $item['newName'] = getNewName($dir, $name);
     $items[] = $item;

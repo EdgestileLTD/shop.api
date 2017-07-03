@@ -101,6 +101,33 @@ function saveLinksGroups($idsGroups, $links)
     }
 }
 
+function saveSimilarGroups($idsGroups, $similarities)
+{
+    $idsExists = array();
+    foreach ($idsGroups as $idGroup) {
+        foreach ($similarities as $similar) {
+            $u = new seTable('shop_group_related', 'sr');
+            $u->select('sr.id');
+            $u->where("sr.id_group = {$idGroup} AND sr.id_related = {$similar->id}");
+            $u->orWhere("sr.id_group = {$similar->id} AND sr.id_related = {$idGroup}");
+            $result = $u->fetchOne();
+            if (!empty($result))
+                $idsExists[] = $result["id"];
+            else {
+                $u = new seTable('shop_group_related');
+                $u->id_group = $idGroup;
+                $u->id_related = $similar->id;
+                $idsExists[] = $u->save();
+            }
+        }
+        $idsExistsStr = implode(",", $idsExists);
+        $u = new seTable('shop_group_related', 'sr');
+        if ($idsExistsStr)
+            $u->where("(NOT id IN ({$idsExistsStr})) AND id_group = ?", $idGroup)->deleteList();
+        else $u->where('id_group = ?', $idGroup)->deleteList();
+    }
+}
+
 function saveParametersFilters($idsGroups, $filters)
 {
     $idsStr = implode(",", $idsGroups);
@@ -309,11 +336,15 @@ if ($isNew || !empty($ids)) {
         setSortPosition($ids[0], $json->idParent);
     if ($ids && isset($json->linksGroups))
         saveLinksGroups($ids, $json->linksGroups);
+    if ($ids && isset($json->similarGroups))
+        saveSimilarGroups($ids, $json->similarGroups);
     if ($ids && $_SESSION['isIncPrices'])
         saveIncPrices($ids, $json);
 
-    if ($isNew || isset($json->idParent))
-        saveIdParent($ids[0], $json->idParent);
+    if ($isNew || isset($json->idParent)) {
+        foreach ($ids as $id)
+            saveIdParent($id, $json->idParent);
+    }
 
 }
 

@@ -281,7 +281,7 @@ if ($step == 0) {
 
     $count = 0;
     $maxHeaderRows = 25;
-    $samples = [];
+    $samples = array();
 
     if (($handle = fopen($fileCSV, "r")) !== false) {
         $i = 0;
@@ -303,7 +303,7 @@ if ($step == 0) {
     fclose($handle);
 
     $count = count($samples);
-    $cols = [];
+    $cols = array();
     for ($i = 0; $i < $count; $i++)
         $cols[] = ["id" => $i, "title" => "Столбец № {$i}", "sample" => $samples[$i]];
 
@@ -344,9 +344,9 @@ if ($step == 1) {
     $fileCSV = "{$dir}/catalog.csv";
     $countInsert = 0;
     $countUpdate = 0;
-    $products = [];
+    $products = array();
 
-    $colsProducts = [];
+    $colsProducts = array();
     $fieldsKeys = array_flip(array_merge($fields, $addFields));
     $result = se_db_query("SHOW COLUMNS FROM shop_price");
     while ($row = se_db_fetch_row($result))
@@ -366,14 +366,14 @@ if ($step == 1) {
     }
     $u->groupBy('sg.id');
     $groups = $u->getList();
-    $idsGroups = [];
-    $idsGroupsByCode = [];
+    $idsGroups = array();
+    $idsGroupsByCode = array();
     foreach ($groups as $group) {
         $idsGroups[] = $group["id"];
         $idsGroupsByCode[$group["code_gr"]] = $group["id"];
     }
 
-    $features = [];
+    $features = array();
     $t = new seTable("shop_feature", "sf");
     $t->select("sf.id, sf.name, sf.type");
     $t->orderBy("sf.id");
@@ -391,7 +391,7 @@ if ($step == 1) {
             if ($i++ < $skip)
                 continue;
 
-            $product = [];
+            $product = array();
 
             foreach ($row as $index => $value) {
 

@@ -19,7 +19,7 @@ class Product extends Base
     protected function getSettingsFetch()
     {
         if (CORE_VERSION == "5.3") {
-            $select = 'sp.id, sp.code, sp.article, sp.name, sp.price, sp.price_opt, sp.price_opt_corp, 
+            $select = 'sp.id, sp.id_group shop_id_group, sp.code, sp.article, sp.name, sp.price, sp.price_opt, sp.price_opt_corp, 
                 sp.img_alt, sp.curr, sp.presence, sp.bonus,
                 sp.presence_count presence_count, sp.flag_hit, sp.enabled, sp.flag_new, sp.note, sp.text, 
                 sp.price_purchase price_purchase, sp.measure, sp.step_count, sp.max_discount, sp.discount,
@@ -27,7 +27,6 @@ class Product extends Base
                 spg.id_group id_group, sg.name name_group, sg.id_modification_group_def id_modification_group_def, 
                 (SELECT picture FROM shop_img WHERE id_price=sp.id LIMIT 1) img,
                 sb.name name_brand';
-//                (SELECT picture FROM shop_img WHERE id_price=sp.id LIMIT 1) img,
 
             $joins[] = array(
                 "type" => "left",
@@ -75,46 +74,124 @@ class Product extends Base
             } else {
                 $item['imageUrlPreview'] = $item['img'];
             }
+            if ($item['shopIdGroup'] !== $item['idGroup']) {
+                DB::query("UPDATE shop_price SET id_group={$item['idGroup']} WHERE id={$item['id']}");
+            }
             $this->result['items'][] = $item;
         }
+        return $this->result["items"];
     }
-    public function info()
+
+    public function addModifications($ids)
     {
-        if(isset($this->input['set']) and is_array($this->input['id']) and count($this->input['id']) > 1){
+        $array = $result = array();
+        $searchBase = array(
+            'values' => array(),
+            'group' => array(),
+            'items' => array()
+        );
+        foreach ($ids as $id) {
+
+            $array[$id] = $this->getModifications($id);
+            // Если у товара нет модификаций то отправляем пустое значение
+            if (empty($array[$id])) return $this->result['modifications'] = array();
+
+            // Собираем информацию о схожих группах
+            foreach ($array[$id] as $group) {
+                $searchBase['group'][$id][] = $group['id'];
+                foreach ($group['items'] as $item)
+                    $searchBase['items'][$id][$group['id']][] = $this->diffArray($item['values'], true);
+            }
+        }
+        // Проверка групп
+        $tmp = array_shift($searchBase['group']);
+        foreach ($searchBase['group'] as $gr) {
+            $tmp = array_intersect($tmp, $gr);
+        }
+        $searchBase['group'] = $tmp;
+        // Проверка элементов групп
+        foreach ($searchBase['group'] as $gid) {
+            foreach ($searchBase['items'] as $arrayItem) {
+                if (!is_array($searchBase['values'][$gid])) {
+                    $searchBase['values'][$gid] = array();
+                    $i = $gid;
+                }
+                $searchBase['values'][$gid][] = $arrayItem[$gid];
+            }
+        }
+
+        foreach ($searchBase['group'] as $gid) {
+            $tmp = false;
+            $first = true;
+            foreach ($searchBase['values'][$gid] as $val) {
+                if (!is_array($tmp)) {
+                    if ($first == false) {
+                        $tmp = array();
+                        break 2;
+                    }
+                    $tmp = $val;
+                    $first = false;
+                } else {
+                    $tmp = array_intersect($tmp, $val);
+                }
+            }
+            $searchBase['values'][$gid] = $tmp;
+        }
+
+        if (!empty($searchBase['values'])) {
+            $result = array_shift($array);
+            foreach ($result as $indexG => $group) {
+                if (in_array($group['id'], $searchBase['group'])) {
+                    foreach ($group['items'] as $indexI => $item) {
+                        $needle = $this->diffArray($item['values'], true);
+                        if (!in_array($needle, $searchBase['values'][$group['id']])) unset($result[$indexG]['items'][$indexI]);
+                    }
+                } else unset($result[$indexG]);
+            }
+        }
+
+        return $this->result['modifications'] = array_values($result);
+    }
+
+
+    public function info($id = NULL)
+    {
+        $this->correctAll();
+        if (isset($this->input['action']) and $this->input['action'] == 'addModifications') {
+            return $this->addModifications($this->input['ids']);
+        }
+        if (isset($this->input['set']) and is_array($this->input['id']) and count($this->input['id']) > 1) {
             $id_array = $this->input['id'];
-            foreach ($id_array as $id){
-                if(!is_numeric($id)){
+            foreach ($id_array as $id) {
+                if (!is_numeric($id)) {
                     return false;
                 }
             }
 
-            return $this->result = $this->getDiffFeatures($id_array,true);
+            return $this->result = $this->getDiffFeatures($id_array, true);
         }
         parent::info(array_shift($this->input['id']));
     }
 
-    private function getDiffFeatures($id_array, $retard = FALSE){
-        if(count($id_array) < 2){
+    private function getDiffFeatures($id_array, $retard = FALSE)
+    {
+        if (count($id_array) < 2) {
             return array();
         }
         $id = array_shift($id_array);
-        $ids = implode(',',$id_array);
+        $ids = implode(',', $id_array);
         $sql = 'SELECT `id` FROM `shop_modifications_feature` WHERE `id_price` = %d AND `id_value` IN (SELECT `id_value` FROM `shop_modifications_feature` WHERE `id_price` IN (%s))';
-        $sql = sprintf($sql,$id,$ids);
+        $sql = sprintf($sql, $id, $ids);
         $result = DB::query($sql)->fetchAll(\PDO::FETCH_ASSOC);
-        writeLog('RESULT');
-        writeLog($result);
-        writeLog('SQL');
-        writeLog($sql);
         $return = array();
-        foreach ($this->getSpecifications($id) as $items){
-            foreach($result as $item){
-                if($retard){
-                    if($item['id'] == $items['id']){
+        foreach ($this->getSpecifications($id) as $items) {
+            foreach ($result as $item) {
+                if ($retard) {
+                    if ($item['id'] == $items['id']) {
                         $return[] = $items;
                     }
                 } else {
-                    if($item['id'] == $items['id']){
+                    if ($item['id'] == $items['id']) {
                         $return[] = array(
                             'id_feature' => $items['idFeature'],
                             'id_value' => $items['idValue']
@@ -133,7 +210,7 @@ class Product extends Base
 
     public function getImages($idProduct = null)
     {
-        $result = [];
+        $result = array();
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
             return $result;
@@ -170,6 +247,7 @@ class Product extends Base
 
     public function addPrice()
     {
+        $this->correctAll();
         try {
             $idsProducts = $this->input["ids"];
             $idsStr = implode(",", $idsProducts);
@@ -191,7 +269,7 @@ class Product extends Base
 
     public function getSpecifications($idProduct = null)
     {
-        $result = [];
+        $result = array();
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
             return $result;
@@ -207,7 +285,7 @@ class Product extends Base
             $u->orderBy('sfg.sort');
             $u->addOrderBy('sf.sort');
             $items = $u->getList();
-            $result = [];
+            $result = array();
             foreach ($items as $item) {
                 if ($item["type"] == "number")
                     $item["value"] = (real)$item["valueNumber"];
@@ -225,7 +303,7 @@ class Product extends Base
 
     public function getSimilarProducts($idProduct = null)
     {
-        $result = [];
+        $result = array();
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
             return $result;
@@ -254,7 +332,7 @@ class Product extends Base
 
     public function getAccompanyingProducts($idProduct = null)
     {
-        $result = [];
+        $result = array();
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
             return $result;
@@ -292,7 +370,7 @@ class Product extends Base
 
     public function getCrossGroups($idProduct = null)
     {
-        $result = [];
+        $result = array();
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
             return $result;
@@ -313,13 +391,13 @@ class Product extends Base
 
     public function getModifications($idProduct = null)
     {
-        $result = [];
+        $result = array();
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
             return $result;
 
         $newTypes = array("string" => "S", "number" => "D", "bool" => "B", "list" => "L", "colorlist" => "CL");
-        $product = [];
+        $product = array();
 
         $u = new DB('shop_modifications', 'sm');
         $u->select('smg.*,
@@ -368,7 +446,7 @@ class Product extends Base
                 $column['valueType'] = $newTypes[$column['type']];
                 $group['columns'][] = $column;
             }
-            $group['items'] = [];
+            //$group['items'] = array();
             $groups[] = $group;
         }
         if (!isset($groups))
@@ -387,7 +465,7 @@ class Product extends Base
         $u->where('sm.id_price = ?', $id);
         $u->groupBy();
         $objects = $u->getList();
-        $existFeatures = [];
+        $existFeatures = array();
         foreach ($objects as $item) {
             if ($item['id']) {
                 $modification = null;
@@ -405,7 +483,7 @@ class Product extends Base
                 $modification['priceOpt'] = (real)$item['valueOptCorp'];
                 $modification['description'] = $item['description'];
                 $features = explode("\n", $item['valuesFeature']);
-                $sorts = [];
+                $sorts = array();
                 foreach ($features as $feature) {
                     $feature = explode("\t", $feature);
                     $value = null;
@@ -450,7 +528,7 @@ class Product extends Base
 
     public function getDiscounts($idProduct = null)
     {
-        $result = [];
+        $result = array();
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
             return $result;
@@ -497,10 +575,22 @@ class Product extends Base
 
     public function save()
     {
-        if(isset($this->input['isAddSpecifications'],$this->input['ids']) && !empty($this->input['specifications'])){
+        $this->correctAll();
+
+        if (isset($this->input['isAddSpecifications'], $this->input['ids']) && !empty($this->input['specifications'])) {
             $this->saveSpecifications();
             return isset($this->error);
         }
+
+        if (isset($this->input['brand'], $this->input['ids'])) {
+            $brand = (int)$this->input['brand']['id'];
+            $idsStr = implode(",", $this->input['ids']);
+
+            DB::exec("UPDATE `shop_price` SET `id_brand` = '" . $brand . "' WHERE `shop_price`.`id` IN (" . $idsStr . ");");
+
+            return true;
+        }
+
         DB::exec("ALTER TABLE `shop_price` CHANGE `code` `code` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL;");
         if (isset($this->input["code"]) && empty($this->input["code"]))
             $this->input["code"] = strtolower(se_translite_url($this->input["code"]));
@@ -557,7 +647,7 @@ class Product extends Base
                 $u->where('id_price IN (?)', $idsStr)->deleteList();
             }
 
-            $data = [];
+            $data = array();
             foreach ($images as $image)
                 if (empty($image["id"]) || ($image["id"] <= 0)) {
                     foreach ($idsProducts as $idProduct) {
@@ -607,7 +697,7 @@ class Product extends Base
             return $result["id"];
 
         $u = new DB('shop_feature', 'sf');
-        $data = [];
+        $data = array();
         if ($idGroup)
             $data["idFeatureGroup"] = $idGroup;
         $data["name"] = $name;
@@ -627,7 +717,7 @@ class Product extends Base
         try {
             $u = new DB('shop_userfields', 'su');
             $u->select("cu.id, cu.id_price, cu.value, su.id id_userfield, 
-                    su.name, su.type, su.values, sug.id id_group, sug.name name_group");
+                      su.name, su.required, su.enabled, su.type, su.placeholder, su.description, su.values, sug.id id_group, sug.name name_group");
             $u->leftJoin('shop_price_userfields cu', "cu.id_userfield = su.id AND cu.id_price = {$idPrice}");
             $u->leftJoin('shop_userfield_groups sug', 'su.id_group = sug.id');
             $u->where('su.data = "product"');
@@ -657,7 +747,7 @@ class Product extends Base
     private function saveSpecifications()
     {
         if (!isset($this->input["specifications"]))
-            return FALSE;
+            return true;
 
         try {
 
@@ -667,11 +757,11 @@ class Product extends Base
             $idsStr = implode(",", $idsProducts);
 
             if (!$isAddSpecifications) {
-                if(count($idsProducts) > 1){
+                if (count($idsProducts) > 1) {
                     $delIdsArray = $this->getDiffFeatures($idsProducts);
 
                     $u = new DB('shop_modifications_feature', 'smf');
-                    foreach($delIdsArray as $die){
+                    foreach ($delIdsArray as $die) {
                         $u->where("id_modification IS NULL AND id_price IN (?) AND id_feature = {$die['id_feature']} AND id_value = {$die['id_value']}", $idsStr)->deleteList();
                     }
                 } else {
@@ -705,15 +795,6 @@ class Product extends Base
                         if ($result["id"])
                             continue;
                     }
-                    /*
-                    if ($specification["type"] == "number")
-                        $specification["valueNumber"] = $specification["value"];
-                    elseif ($specification["type"] == "string")
-                        $specification["valueString"] = $specification["value"];
-                    elseif ($specification["type"] == "bool")
-                        $specification["valueBool"] = $specification["value"];
-                    else
-                         */
                     if (($specification["type"] == "colorlist" || $specification["type"] == "list") && empty($specification["idValue"]))
                         continue;
                     $data[] = array('id_price' => $idProduct, 'id_feature' => $specification["idFeature"],
@@ -723,7 +804,7 @@ class Product extends Base
                 }
             }
             if (!empty($data))
-                DB::insertList('shop_modifications_feature', $data,true);
+                DB::insertList('shop_modifications_feature', $data, true);
             return true;
         } catch (Exception $e) {
             $this->error = "Не удаётся сохранить спецификации товара!";
@@ -739,7 +820,7 @@ class Product extends Base
         try {
             $idsProducts = $this->input["ids"];
             $products = $this->input["similarProducts"];
-            $idsExists = [];
+            $idsExists = array();
             foreach ($products as $p)
                 if ($p["id"])
                     $idsExists[] = $p["id"];
@@ -751,7 +832,7 @@ class Product extends Base
                 $u->where("((NOT id_acc IN ({$idsExistsStr})) AND id_price IN (?)) OR 
                            ((NOT id_price IN ({$idsExistsStr})) AND id_acc IN (?))", $idsStr)->deleteList();
             else $u->where('id_price IN (?) OR id_acc IN (?)', $idsStr)->deleteList();
-            $idsExists = [];
+            $idsExists = array();
             if ($idsExistsStr) {
                 $u->select("id_price, id_acc");
                 $u->where("((id_acc IN ({$idsExistsStr})) AND id_price IN (?)) OR 
@@ -762,7 +843,7 @@ class Product extends Base
                     $idsExists[] = $item["idPrice"];
                 }
             };
-            $data = [];
+            $data = array();
             foreach ($products as $p)
                 if (empty($idsExists) || !in_array($p["id"], $idsExists))
                     foreach ($idsProducts as $idProduct)
@@ -833,7 +914,7 @@ class Product extends Base
             $idsProducts = $this->input["ids"];
             $reviews = $this->input["reviews"];
             $idsStr = implode(",", $idsProducts);
-            $idsExists = [];
+            $idsExists = array();
             foreach ($reviews as $review)
                 if ($review["id"])
                     $idsExists[] = $review["id"];
@@ -908,6 +989,47 @@ class Product extends Base
         }
     }
 
+    private function diffArray($values, $stringMode = false)
+    {
+        $newValues = array();
+        foreach ($values as $value) {
+            array_push($newValues, array(
+                'id' => $value['id'],
+                'idFeature' => $value['idFeature']
+            ));
+        }
+        sort($newValues);
+        if ($stringMode) {
+            $newValues = json_encode($newValues);
+        }
+        return $newValues;
+    }
+
+    private function correctModificationsBeforeSave($tabs)
+    {
+        $newMod = array();
+        foreach ($tabs as $tabIndex => $tab) {
+            $newMod[$tabIndex] = $tab;
+            $newMod[$tabIndex]['items'] = array();
+            $searchBase = array();
+            foreach ($tab['items'] as $itemIndex => $item) {
+                if ($itemIndex == 0) {
+                    $newMod[$tabIndex]['items'][] = $item;
+                    $searchBase[] = $this->diffArray($item['values']);
+                } else {
+                    foreach ($searchBase as $example) {
+                        if ($example == $this->diffArray($item['values'])) {
+                            continue 2;
+                        }
+                    }
+                    $newMod[$tabIndex]['items'][] = $item;
+                    $searchBase[] = $this->diffArray($item['values']);
+                }
+            }
+        }
+        return $newMod;
+    }
+
     private function saveModifications()
     {
         if (!isset($this->input["modifications"]))
@@ -917,7 +1039,7 @@ class Product extends Base
             $idsProducts = $this->input["ids"];
             $ifAdd = !empty($this->input["add"]);
 
-            $modifications = $this->input["modifications"];
+            $modifications = $this->correctModificationsBeforeSave($this->input["modifications"]);
 
             if ($this->isNew)
                 foreach ($modifications as &$mod)
@@ -927,7 +1049,7 @@ class Product extends Base
             $idsStr = implode(",", $idsProducts);
             $isMultiMode = sizeof($idsProducts) > 1;
 
-            $namesToIds = [];
+            $namesToIds = array();
             if (!empty($this->newImages)) {
                 $imagesStr = '';
                 foreach ($this->newImages as $image) {
@@ -959,22 +1081,15 @@ class Product extends Base
                 }
             }
             // Удаление лишних модификаций когда идет замена
-            if (!$ifAdd) {
-                $u = new DB('shop_modifications', 'sm');
-                if (!empty($idsUpdateM))
-                    $u->where("NOT id IN ($idsUpdateM) AND id_price in (?)", $idsStr)->deleteList();
-                else $u->where("id_price IN (?)", $idsStr)->deleteList();
-            } else {
-                $u = new DB('shop_modifications', 'sm');
-                $u->select('sm.id, sm.id_price, smf.id_feature, smf.id_value');
-                $u->innerJoin('shop_modifications_feature smf', 'smf.id_modification = sm.id');
-                $u->where('sm.id_price IN (?)', $idsStr);
-                $tems = $u->getList();
-            }
+            $u = new DB('shop_modifications', 'sm');
+            if (!empty($idsUpdateM))
+                $u->where("NOT id IN ($idsUpdateM) AND id_price in (?)", $idsStr)->deleteList();
+            else $u->where("id_price IN (?)", $idsStr)->deleteList();
+
             // новые модификации
-            $dataM = [];
-            $dataF = [];
-            $dataI = [];
+            $dataM = array();
+            $dataF = array();
+            $dataI = array();
             $result = DB::query("SELECT MAX(id) FROM shop_modifications")->fetch();
             $i = $result[0] + 1;
 
@@ -1001,8 +1116,7 @@ class Product extends Base
                                 'description' => $item["description"]);
 
                             foreach ($item["values"] as $v)
-                                $newDataF = array(
-                                    'id' => $i,
+                                $dataF[] = array(
                                     'id_price' => $idProduct,
                                     'id_modification' => $i,
                                     'id_feature' => $v["idFeature"],
@@ -1016,19 +1130,20 @@ class Product extends Base
                                     'sort' => $img["sortIndex"]);
                             }
 
-                            if(isset($tems) || $ifAdd){
-                                foreach ($tems as $it){
-                                    if($it['idPrice'] == $newDataM['id_price'] and $it['idValue'] == $newDataF['id_value']){
+                            if (isset($tems) || $ifAdd) {
+                                foreach ($tems as $it) {
+                                    if ($it['idPrice'] == $newDataM['id_price']/* and $it['idValue'] == $newDataF['id_value']*/) {
                                         $notAdd = true;
                                     }
                                 }
                             }
-                            if(!$notAdd){
-                                if(!empty($newDataM))
+
+                            if (!$notAdd) {
+                                if (!empty($newDataM))
                                     $dataM[] = $newDataM;
-                                if(!empty($newDataF))
+                                if (!empty($newDataF))
                                     $dataF[] = $newDataF;
-                                if(!empty($newDataI))
+                                if (!empty($newDataI))
                                     $dataI[] = $newDataI;
                                 $i++;
                             }
@@ -1036,32 +1151,21 @@ class Product extends Base
                     }
                 }
             }
-            /*
-            $u = new DB($this->tableName);
-            $u->setValuesFields($this->input);
-            */
-            /*
-                writeLog('dataM');
-                writeLog(json_encode($dataM,JSON_PRETTY_PRINT));
-                writeLog('dataF');
-                writeLog(json_encode($dataF,JSON_PRETTY_PRINT));
-                writeLog('dataI');
-                writeLog(json_encode($dataI,JSON_PRETTY_PRINT));
-            */
-
             try {
+
+
                 if (!empty($dataM)) {
-                    DB::insertList('shop_modifications', $dataM,true);
-                    if (!empty($dataF)){
-                        DB::insertList('shop_modifications_feature', $dataF,true);
+                    DB::insertList('shop_modifications', $dataM);
+                    if (!empty($dataF)) {
+                        DB::insertList('shop_modifications_feature', $dataF);
                     }
                     if (!empty($dataI)) {
-                        DB::insertList('shop_modifications_img', $dataI,true);
+                        DB::insertList('shop_modifications_img', $dataI);
                     }
                     $dataI = null;
                 }
 
-            } catch (Exception $e){
+            } catch (Exception $e) {
                 writeLog(DB::$lastQuery);
                 throw new Exception();
             }
@@ -1081,7 +1185,7 @@ class Product extends Base
 
                             $u = new DB('shop_modifications_img', 'smi');
                             $u->where("id_modification = ?", $item["id"])->deleteList();
-                            $dataI = [];
+                            $dataI = array();
                             foreach ($item["images"] as $img) {
                                 if ($img["id"] <= 0)
                                     $img["id"] = $namesToIds[$img["imageFile"]];
@@ -1094,6 +1198,7 @@ class Product extends Base
                     }
                 }
             }
+
             return true;
         } catch (Exception $e) {
             $this->error = "Не удаётся сохранить модификации товара!";
@@ -1103,9 +1208,6 @@ class Product extends Base
 
     private function saveIdGroup()
     {
-        if (CORE_VERSION != "5.3" || !isset($this->input["idGroup"]))
-            return true;
-
         try {
             $idsProducts = $this->input["ids"];
             $idGroup = $this->input["idGroup"];
@@ -1117,8 +1219,9 @@ class Product extends Base
 
                 if (empty($chgr[$idProduct][$idGroup])) {
                     $u = new DB('shop_price_group');
-                    $u->where('id_price IN (?) AND id_group=' . $idGroup, $idsStr)->deleteList();
+                    $u->where('id_price = ? AND id_group = ' . $idGroup, $idProduct)->deleteList();
 
+                    $group = array();
                     $group["idPrice"] = $idProduct;
                     $group["idGroup"] = $idGroup;
                     $group["isMain"] = true;
@@ -1126,6 +1229,7 @@ class Product extends Base
                     $u = new DB('shop_price_group');
                     $u->setValuesFields($group);
                     $u->save();
+
                     $chgr[$idProduct][$idGroup] = true;
                 }
             }
@@ -1144,7 +1248,7 @@ class Product extends Base
         try {
             $idProduct = $this->input["id"];
             $groups = $this->input["customFields"];
-            $customFields = [];
+            $customFields = array();
             foreach ($groups as $group)
                 foreach ($group["items"] as $item)
                     $customFields[] = $item;
@@ -1161,16 +1265,15 @@ class Product extends Base
         }
     }
 
-
     protected function saveAddInfo()
     {
-        if (!$this->input["ids"])
+        if (!isset($this->input["ids"]))
             return false;
 
         return $this->saveImages() && $this->saveSpecifications() && $this->saveSimilarProducts() &&
-        $this->saveAccompanyingProducts() && $this->saveComments() && $this->saveReviews() &&
-        $this->saveCrossGroups() && $this->saveDiscounts() && $this->saveModifications() && $this->saveIdGroup() &&
-        $this->saveCustomFields();
+            $this->saveAccompanyingProducts() && $this->saveComments() && $this->saveReviews() &&
+            $this->saveCrossGroups() && $this->saveDiscounts() && $this->saveModifications() && $this->saveIdGroup() &&
+            $this->saveCustomFields();
     }
 
     private function getGroup($groups, $idGroup)
@@ -1248,8 +1351,8 @@ class Product extends Base
             $u->orderBy('sp.id');
             $u->groupBy('sp.id');
 
-            $goodsL = [];
-            $goodsIndex = [];
+            $goodsL = array();
+            $goodsIndex = array();
             for ($i = 0; $i < $pages; ++$i) {
                 $goodsL = array_merge($goodsL, $u->getList($offset, $limit));
                 $offset += $limit;
@@ -1314,7 +1417,7 @@ class Product extends Base
 
             $fp = fopen($filePath, 'w');
             $header = array_keys($goodsL[0]);
-            $headerCSV = [];
+            $headerCSV = array();
             foreach ($header as $col)
                 if (!in_array($col, $excludingKeys)) {
                     $col = iconv('utf-8', 'CP1251', $rusCols[$col] ? $rusCols[$col] : $col);
@@ -1325,12 +1428,12 @@ class Product extends Base
             $i = 0;
             $header = null;
             $lastId = null;
-            $goodsItem = [];
+            $goodsItem = array();
 
             // вывод товаров без модификаций
             foreach ($goodsL as $row) {
                 if (empty($row['idModification'])) {
-                    $out = [];
+                    $out = array();
                     if ($row['count'] == "-1" || (empty($row["count"]) && $row["count"] !== "0"))
                         $row["count"] = $row['presence'];
                     foreach ($row as $key => $r) {
@@ -1378,7 +1481,7 @@ class Product extends Base
                                 $row[$valCol[0]] = $valCol[1];
                         }
                     }
-                    $out = [];
+                    $out = array();
                     foreach ($row as $key => $r) {
                         if (!in_array($key, $excludingKeys)) {
                             if ($key == "description" || $key == "fullDescription") {
@@ -1408,480 +1511,20 @@ class Product extends Base
             $this->import($items[0]["url"], $items[0]["name"]);
     }
 
-    public function import($url, $fileName)
+    public function import($url = null, $fileName = null)
     {
-        $dir = DOCUMENT_ROOT . "/files";
-        $filePath = $dir . "/{$fileName}";
-        $isRemoveAll = !empty($_POST["reset"]) ? $_POST["reset"] : false;
-        $ext = substr(strrchr($fileName, '.'), 1);
-
-        if ($isRemoveAll) {
-            DB::query("SET foreign_key_checks = 0");
-            DB::query("TRUNCATE TABLE shop_group");
-            DB::query("TRUNCATE TABLE shop_price");
-            DB::query("TRUNCATE TABLE shop_brand");
-            DB::query("TRUNCATE TABLE shop_img");
-            DB::query("TRUNCATE TABLE shop_group_price");
-            DB::query("TRUNCATE TABLE shop_discounts");
-            DB::query("TRUNCATE TABLE shop_discount_links");
-            DB::query("TRUNCATE TABLE shop_modifications");
-            DB::query("TRUNCATE TABLE shop_modifications_group");
-            DB::query("TRUNCATE TABLE shop_feature_group");
-            DB::query("TRUNCATE TABLE shop_feature");
-            DB::query("TRUNCATE TABLE shop_group_feature");
-            DB::query("TRUNCATE TABLE shop_modifications_feature");
-            DB::query("TRUNCATE TABLE shop_feature_value_list");
-            DB::query("TRUNCATE TABLE shop_modifications_img");
-            DB::query("TRUNCATE TABLE shop_tovarorder");
-            DB::query("TRUNCATE TABLE shop_order");
-            DB::query("SET foreign_key_checks = 1");
+        if (is_null($fileName)) {
+            $import = new Import($this->input);
+            $this->result = $import->startImport($this->input['filename'], false);
+            return true;
         }
-
-        $importFile = new Import();
-        $importFile->import($url, $fileName);
-        writeLog('END');
-
-        /*if ($ext != "csv")
-            $this->importFromYml($url);
-        else $this->importFromCsv($filePath);*/
+        return $this->productsImport($url, $fileName);
     }
 
-    private function importFromYml($fileUrl)
+    private function productsImport($url, $fileName)
     {
-        $url = "http://" . HOSTNAME . "/lib/loader_from_yml.php";
-        $ch = curl_init($url);
-        $data["serial"] = DB::$dbSerial;
-        $data["db_password"] = DB::$dbPassword;
-        $data["url_yml"] = $fileUrl;
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        $result = curl_exec($ch);
-        if ($result != "ok")
-            $this->error = "Не удаётся импортировать товары с заданными параметрами!";
-    }
-
-    private function importFromCsv($filePath)
-    {
-        $isInsertMode = !empty($_POST["type"]) ? $_POST["type"] : false;
-        $rusCols = $this->rusCols;
-        $trCols = array_flip($rusCols);
-        $rows = $this->getArrayFromCsv($filePath);
-
-        // START: RUS to ENG keys
-        $newsRows = [];
-        foreach ($rows as $row) {
-            $newRow = [];
-            foreach ($row as $key => $value) {
-                if (key_exists($key, $trCols)) {
-                    $newRow[$trCols[$key]] = $value;
-                } else $newRow[$key] = $value;
-            }
-            if ($newRow)
-                $newsRows[] = $newRow;
-        }
-        $rows = $newsRows;
-        unset($newsRows);
-        // END: RUS to ENG keys
-
-        writeLog('ROWS');
-        writeLog($rows);
-
-        // START: Поиск моддификаций
-        $isModificationMode = false; // режим с модификациями
-        $featuresCols = [];
-        $featuresKeys = [];
-        $modsGroupsKeys = [];
-        if ($rows) {
-            $cols = array_keys($rows[0]);
-            writeLog('COLS $rows[0]');
-            writeLog($cols);
-            foreach ($cols as $col)
-                if (!in_array($col, $trCols)) {
-                    $featuresCols[] = $col;
-                    $name = explode('#', $col);
-                    if (count($name) == 2) {
-                        if (!in_array($name[0], $modsGroupsKeys))
-                            $modsGroupsKeys[$name[0]] = null;
-                        if (!in_array($name[1], $featuresKeys))
-                            $featuresKeys[$name[1]] = null;
-                        $isModificationMode = true;
-                    }
-                }
-        }
-
-        writeLog('$featuresCols');
-        writeLog($featuresCols);
-        writeLog('$featuresKeys');
-        writeLog($featuresKeys);
-
-        $lastVal = null;
-        $lastRow = null;
-        $goodsInsert = [];
-        $goodsUpdate = [];
-        $groupsKeys = [];
-        $featureValuesKeys = [];
-        $groupTypesMods = [];
-        $i = 0;
-        foreach ($rows as &$row) {
-            $mods = [];
-            $mods['article'] = $row['article'];
-            $mods['price'] = $row['price'];
-            $mods['count'] = $row['count'];
-            $mods['images'] = $row['images'];
-            $mods['type'] = 0;
-            if ($isModificationMode)
-                foreach ($featuresCols as $col) {
-                    $cols = explode('#', $col);
-                    if (count($cols) == 2) {
-                        $mods['groupModifications'] = $cols[0];
-                        $groupTypesMods[$cols[0]][$cols[1]] = null;
-                    }
-                    if (count($cols) == 2 && !empty($row[$col])) {
-                        $mods["features"][$cols[1]] = $row[$col];
-                        $featureValuesKeys[$cols[1]][$row[$col]] = null;
-                    }
-                }
-            if ((!empty($row['id']) && $row['id'] != $lastVal) ||
-                (empty($row['id']) && !empty($row['name']) && $row['name'] != $lastVal)
-            ) {
-                foreach ($featuresCols as $col)
-                    unset($row[$col]);
-                if (!$isInsertMode)
-                    $goodsUpdate[] = &$row;
-                else $goodsInsert[] = &$row;
-                $lastRow = &$row;
-                $lastVal = !empty($row['id']) ? $row['id'] : $row['name'];
-                if (!empty($row['category']))
-                    $groupsKeys[str_replace("/ ", "/", $row['category'])] = null;
-                if (!empty($row['features'])) {
-                    $features = explode(';', $row['features']);
-                    foreach ($features as $feature) {
-                        $f = explode('#', $feature);
-                        if (count($f) == 2) {
-                            $featureName = $f[0];
-                            $featureValue = $f[1];
-                            if (!in_array($featureName, $featuresKeys))
-                                $featuresKeys[$featureName] = null;
-                            if (!empty($featureValue))
-                                $featureValuesKeys[$featureName][$featureValue] = null;
-                        }
-                    }
-                }
-            }
-            if ($isModificationMode)
-                $lastRow['modifications'][] = $mods;
-        }
-        try {
-            DB::beginTransaction();
-            // добавление товаров
-            if ($goodsInsert) {
-                // добавление группы товаров
-                $u = new DB('shop_group', 'sg');
-                if (CORE_VERSION == "5.3") {
-                    $u->select('sg.id, GROUP_CONCAT(sgp.name ORDER BY sgt.level SEPARATOR "/") name');
-                    $u->innerJoin("shop_group_tree sgt", "sg.id = sgt.id_child");
-                    $u->innerJoin("shop_group sgp", "sgp.id = sgt.id_parent");
-                    $u->orderBy('sgt.level');
-                } else {
-                    $u->select('sg.*');
-                    $u->orderBy('sg.id');
-                }
-                $u->groupBy('sg.id');
-                $groups = $u->getList();
-                foreach ($groups as $group) {
-                    if (CORE_VERSION == "5.3")
-                        $path = $this->getGroup53($groups, $group['id']);
-                    else $path = $this->getGroup($groups, $group['id']);
-                    if ($path)
-                        $groupsKeys[$path] = $group['id'];
-                }
-
-                foreach ($groupsKeys as $key => $value) {
-                    if (!$value) {
-                        $names = explode("/", $key);
-                        $idParent = null;
-                        foreach ($names as $name) {
-                            if (CORE_VERSION == "5.3")
-                                $idParent = $this->createGroup53($groups, $idParent, $name);
-                            else $idParent = $this->createGroup($groups, $idParent, $name);
-                        }
-                        $groupsKeys[$key] = $idParent;
-                    }
-                }
-                // добавление группы модификации
-                $newModsGroupsKeys = [];
-                if ($isModificationMode && $modsGroupsKeys) {
-                    $u = new DB('shop_modifications_group', 'smg');
-                    $u->select('id, name');
-                    $u->orderBy('id');
-                    $modsGroups = $u->getList();
-                    $id = 0;
-                    foreach ($modsGroups as $modGroup) {
-                        $modsGroupsKeys[$modGroup['name']] = $modGroup['id'];
-                        $id = $id < $modGroup['id'] ? $modGroup['id'] + 1 : $id;
-                    }
-                    foreach ($modsGroupsKeys as $key => $value) {
-                        if (empty($value))
-                            $dataModsGroups[] = array('id' => $value = ++$id, 'name' => $key);
-                        $newModsGroupsKeys[$key] = $value;
-                    }
-                    if (!empty($dataModsGroups))
-                        DB::insertList('shop_modifications_group', $dataModsGroups);
-                    unset($modsGroupsKeys);
-                    unset($dataModsGroups);
-                }
-                // добавление параметров для модификаций
-                $newFeaturesKeys = [];
-                if ($featuresKeys) {
-                    $u = new DB('shop_feature', 'sf');
-                    $u->select('id, name, type');
-                    $u->orderBy('id');
-                    $features = $u->getList();
-                    $id = 0;
-                    foreach ($features as $feature) {
-                        $featuresKeys[$feature['name']] = $feature['id'];
-                        $id = $id < $feature['id'] ? $feature['id'] + 1 : $id;
-                    }
-                    foreach ($featuresKeys as $key => $value) {
-                        if (empty($value))
-                            $dataFeatures[] = array('id' => $value = ++$id, 'name' => $key, 'type' => 'list');
-                        $newFeaturesKeys[$key] = $value;
-                    }
-
-                    if (!empty($dataFeatures))
-                        DB::insertList('shop_feature', $dataFeatures);
-                    unset($featuresKeys);
-                    unset($dataFeatures);
-                }
-                // добавление значений для параметров
-                $newValuesKeys = [];
-                if ($featureValuesKeys) {
-                    $u = new DB('shop_feature_value_list', 'sfvl');
-                    $u->select('sfvl.id, sfvl.value, sf.name feature');
-                    $u->innerJoin('shop_feature sf', 'sf.id = sfvl.id_feature');
-                    $u->orderBy('id');
-                    $values = $u->getList();
-                    $id = 0;
-                    foreach ($values as $value) {
-                        $featureValuesKeys[$value['feature']][$value['value']] = $value['id'];
-                        $id = $id < $value['id'] ? $value['id'] + 1 : $id;
-                    }
-                    foreach ($featureValuesKeys as $key => $val) {
-                        $idFeature = array_key_exists($key, $newFeaturesKeys) ? $newFeaturesKeys[$key] : null;
-                        foreach ($val as $k => $v) {
-                            if (!empty($idFeature) && empty($v))
-                                $dataFeaturesValues[] = array('id' => $v = ++$id, 'id_feature' => $idFeature, 'value' => $k);
-                            $newValuesKeys[$key][$k] = $v;
-                        }
-                    }
-                    if (!empty($dataFeaturesValues))
-                        DB::insertList('shop_feature_value_list', $dataFeaturesValues);
-                    unset($dataFeaturesValues);
-                    unset($featureValuesKeys);
-                }
-                // объединение модификаций в группу (shop_group_feature)
-                if ($isModificationMode && $groupTypesMods) {
-                    $u = new DB('shop_group_feature', 'sgf');
-                    $u->select('sgf.id, sf.name feature, smg.name `group`');
-                    $u->innerJoin('shop_feature sf', 'sf.id = sgf.id_feature');
-                    $u->innerJoin('shop_modifications_group smg', 'smg.id = sgf.id_group');
-                    $u->orderBy('id');
-                    $rows = $u->getList();
-                    foreach ($rows as $row)
-                        $groupTypesMods[$row['group']][$row['feature']] = $row['id'];
-                    foreach ($groupTypesMods as $key => $value) {
-                        $idGroup = array_key_exists($key, $newModsGroupsKeys) ? $newModsGroupsKeys[$key] : null;
-                        foreach ($value as $k => $v) {
-                            $idFeature = array_key_exists($k, $newFeaturesKeys) ? $newFeaturesKeys[$k] : null;
-                            if (!empty($idGroup) && !empty($idFeature) && empty($v))
-                                $dataTypesMods[] = array('id_feature' => $idFeature, 'id_group' => $idGroup);
-                        }
-                    }
-                    if (!empty($dataTypesMods))
-                        DB::insertList('shop_group_feature', $dataTypesMods);
-                }
-                // добавление товаров
-                $u = new DB('shop_price', 'sp');
-                $u->select('MAX(id) maxId');
-                $result = $u->fetchOne();
-                $idProduct = $result["maxId"];
-                $u = new DB('shop_modifications', 'sm');
-                $u->select('MAX(id) maxId');
-                $result = $u->fetchOne();
-                $idModification = $result["maxId"];
-                $dataGoodsGroups = [];
-                $rowInsert = 0;
-                $rowCount = 0;
-                $countGoods = count($goodsInsert);
-                $codes = [];
-                foreach ($goodsInsert as &$goodsItem) {
-                    $idProduct++;
-                    $images = !empty($goodsItem['images']) ? explode(";", $goodsItem['images']) : [];
-                    $goodsItem['idGroup'] = $IdGroup = !empty($goodsItem['category']) ?
-                        $groupsKeys[str_replace("/ ", "/", $goodsItem['category'])] : null;
-                    if (empty($goodsItem['code']))
-                        $goodsItem['code'] = strtolower(se_translite_url($goodsItem['name']));
-                    $goodsItem['code'] = $this->getUrl($goodsItem['code'], 'shop_price', $codes);
-                    $codes[] = $goodsItem['code'];
-                    $price = $goodsItem['price'];
-                    if (($ind = strpos($price, '+')) || ($ind = strpos($price, '*')))
-                        $price = substr($price, 0, $ind - 1);
-                    $count = $goodsItem['count'];
-                    if ($isModificationMode) {
-                        $count = empty($goodsItem['modifications']) ? $goodsItem['count'] : null;
-                        if (!empty($goodsItem['modifications'])) {
-                            foreach ($goodsItem['modifications'] as $mod) {
-                                if ($mod['count'] > 0)
-                                    $count += $mod['count'];
-                                $codeM = empty($mod['article']) ? $goodsItem['article'] : $mod['article'];
-                                $valueM = !empty($mod['price']) ? $mod['price'] : 'null';
-                                if (($ind = strpos($valueM, '+')) || ($ind = strpos($valueM, '*')))
-                                    $valueM = substr($valueM, $ind + 1, strlen($valueM) - $ind);
-                                $countM = !empty($mod['count']) || ($mod['count'] == '0.000') ? $mod['count'] : 'null';
-                                $idModGroup = !empty($mod['groupModifications']) ? $newModsGroupsKeys[$mod['groupModifications']] : null;
-                                if ($idModGroup) {
-                                    $dataModifications[] = array("id" => ++$idModification, "id_mod_group" => $idModGroup,
-                                        "id_price" => $idProduct, 'code' => $codeM,
-                                        'value' => $valueM, 'count' => $countM);
-                                    if (!empty($mod['features'])) {
-                                        $featuresM = $mod['features'];
-                                        foreach ($featuresM as $key => $val) {
-                                            $idFeature = array_key_exists($key, $newFeaturesKeys) ? $newFeaturesKeys[$key] : null;
-                                            if (!$idFeature)
-                                                continue;
-                                            $idValue = $newValuesKeys[$key][$val];
-                                            if (!$idValue)
-                                                continue;
-                                            $dataModFeatures[] = array("id_price" => $idProduct, 'id_modification' => $idModification,
-                                                'id_feature' => $idFeature, 'id_value' => $idValue);
-                                        }
-                                    }
-                                }
-                                $images = array_merge($images, !empty($mod['images']) ? explode(";", $mod['images']) : []);
-                            }
-                        }
-                    }
-                    if (!empty($goodsItem['features'])) {
-                        $features = explode(';', $goodsItem['features']);
-                        foreach ($features as $feature) {
-                            $f = explode('#', $feature);
-                            if (count($f) == 2) {
-                                $featureName = $f[0];
-                                $featureValue = $f[1];
-                                $idFeature = array_key_exists($featureName, $newFeaturesKeys) ? $newFeaturesKeys[$featureName] : null;
-                                if (!$idFeature)
-                                    continue;
-                                $idValue = $newValuesKeys[$featureName][$featureValue];
-                                if (!$idValue)
-                                    continue;
-                                $dataModFeatures[] = array("id_price" => $idProduct, 'id_feature' => $idFeature, 'id_value' => $idValue);
-                            }
-                        }
-                    }
-                    $images = array_unique($images);
-                    if (empty($count) && $count != "0.000")
-                        $count = -1;
-                    $measure = !empty($goodsItem['measurement']) ? $goodsItem['measurement'] : 'null';
-                    $weight = !empty($goodsItem['weight']) ? $goodsItem['weight'] : 'null';
-                    $volume = !empty($goodsItem['volume']) ? $goodsItem['volume'] : 'null';
-                    $description = !empty($goodsItem['description']) ? $goodsItem['description'] : 'null';
-                    $fullDescription = !empty($goodsItem['fullDescription']) ? $goodsItem['fullDescription'] : 'null';
-                    $codeCurrency = !empty($goodsItem['codeCurrency']) ? $goodsItem['codeCurrency'] : 'RUB';
-                    $metaHeader = !empty($goodsItem['metaHeader']) ? $goodsItem['metaHeader'] : 'null';
-                    $metaKeywords = !empty($goodsItem['metaKeywords']) ? $goodsItem['metaKeywords'] : 'null';
-                    $metaDescription = !empty($goodsItem['metaDescription']) ? $goodsItem['metaDescription'] : 'null';
-                    if (CORE_VERSION == "5.3" && $goodsItem['idGroup'])
-                        $dataGoodsGroups[] = array("id_group" => $goodsItem['idGroup'], "id_price" => $idProduct, "is_main" => 1);
-                    $dataGoods[] = array("id" => $idProduct, "code" => $goodsItem['code'], "article" => $goodsItem['article'],
-                        "id_group" => $IdGroup, "name" => $goodsItem['name'], 'price' => $price, 'presence_count' => $count,
-                        'text' => $fullDescription, 'note' => $description, 'measure' => $measure, 'weight' => $weight,
-                        'volume' => $volume, 'curr' => $codeCurrency, "title" => $metaHeader, "keywords" => $metaKeywords,
-                        "description" => $metaDescription);
-                    $i = 0;
-                    foreach ($images as $image) {
-                        $dataImages[] = array("id_price" => $idProduct, "picture" => $image, "default" => !$i);
-                        $i++;
-                    }
-                    ++$rowCount;
-                    if (++$rowInsert == 500 || ($rowCount >= $countGoods)) {
-                        if (!empty($dataGoods)) {
-                            DB::insertList('shop_price', $dataGoods);
-                            $dataGoods = null;
-                        }
-                        if (!empty($dataImages)) {
-                            DB::insertList('shop_img', $dataImages);
-                            $dataImages = null;
-                        }
-                        if (!empty($dataModifications)) {
-                            DB::insertList('shop_modifications', $dataModifications);
-                            $dataModifications = null;
-                        }
-                        if (!empty($dataModFeatures)) {
-                            DB::insertList('shop_modifications_feature', $dataModFeatures);
-                            $dataModFeatures = null;
-                        }
-                        if (!empty($dataGoodsGroups)) {
-                            DB::insertList('shop_price_group', $dataGoodsGroups);
-                            $dataGoodsGroups = null;
-                        }
-                        $rowInsert = 0;
-                    }
-                }
-            }
-
-
-//            // обновление товаров
-//            //        if ($goodsUpdate) {
-//            //            $sql = null;
-//            //            foreach ($goodsUpdate as $goodsItem) {
-//            //                $sqlItem = 'UPDATE shop_price SET ';
-//            //                $fields = [];
-//            //                if (!empty($goodsItem['Code']))
-//            //                    $fields[] = "code = '{$goodsItem['Code']}'";
-//            //                if (!empty($goodsItem['Article']))
-//            //                    $fields[] = "article = '{$goodsItem['Article']}'";
-//            //                if (!empty($goodsItem['Name']))
-//            //                    $fields[] = "name = '{$goodsItem['Name']}'";
-//            //                if (!empty($goodsItem['Price'])) {
-//            //                    $price = $goodsItem['Price'];
-//            //                    if (($ind = strpos($price, '+')) || ($ind = strpos($price, '*')))
-//            //                        $price = substr($price, 0, $ind - 1);
-//            //                    $fields[] = "price = '{$price}'";
-//            //                }
-//            //                if (!empty($goodsItem['CodeCurrency']))
-//            //                    $fields[] = "curr = '{$goodsItem['CodeCurrency']}'";
-//            //                if (!empty($goodsItem['Count']))
-//            //                    $fields[] = "presence_count = '{$goodsItem['Count']}'";
-//            //                if (!empty($goodsItem['Measurement']))
-//            //                    $fields[] = "measure = '{$goodsItem['Measurement']}'";
-//            //                if (!empty($goodsItem['Weight']))
-//            //                    $fields[] = "weight = '{$goodsItem['Weight']}'";
-//            //                if (!empty($goodsItem['Volume']))
-//            //                    $fields[] = "volume = '{$goodsItem['Volume']}'";
-//            //                if (!empty($goodsItem['Description']))
-//            //                    $fields[] = "note = '{$goodsItem['Description']}'";
-//            //                if (!empty($goodsItem['FullDescription']))
-//            //                    $fields[] = "text = '{$goodsItem['FullDescription']}'";
-//            //                if (!empty($goodsItem['MetaHeader']))
-//            //                    $fields[] = "title = '{$goodsItem['MetaHeader']}'";
-//            //                if (!empty($goodsItem['MetaKeywords']))
-//            //                    $fields[] = "keywords = '{$goodsItem['MetaKeywords']}'";
-//            //                if (!empty($goodsItem['MetaDescription']))
-//            //                    $fields[] = "description = '{$goodsItem['MetaDescription']}'";
-//            //                $sqlItem .= implode(",", $fields);
-//            //                $sqlItem .= ' WHERE id = ' . $goodsItem['Id'] . ';';
-//            //                $sql .= $sqlItem . "\n";
-//            //            }
-//            //            if ($sql)
-//            //                mysqli_multi_query($db_link, $sql);
-//            //        }
-            DB::commit();
-        } catch (Exception $e) {
-            DB::rollBack();
-            $this->error = "Не удаётся произвести импорт товаров!";
-        }
+        $import = new Import($this->input);
+        return $this->result = $import->startImport($fileName, true);
     }
 
     function createGroup(&$groups, $idParent, $name)
@@ -1899,37 +1542,12 @@ class Product extends Base
         $u->setValuesFields($data);
         $id = $u->save();
 
-        $group = [];
+        $group = array();
         $group["id"] = $id;
         $group['name'] = trim($name);
         $group["codeGr"] = $data["codeGr"];
         $group['upid'] = $idParent;
         $groups[] = $group;
-
-        return $id;
-    }
-
-    private function createGroup53(&$groups, $idParent, $name)
-    {
-        foreach ($groups as $group) {
-            if ($group['upid'] == $idParent && $group['name'] == $name)
-                return $group['id'];
-        }
-
-        $u = new DB('shop_group', 'sg');
-        $data["codeGr"] = Category::getUrl(strtolower(se_translite_url(trim($name))));
-        $data["name"] = $name;
-        $u->setValuesFields($data);
-        $id = $u->save();
-
-        $group = [];
-        $group["id"] = $id;
-        $group['name'] = $name;
-        $group["codeGr"] = $data["codeGr"];
-        $group['upid'] = $idParent;
-        $groups[] = $group;
-
-        Category::saveIdParent($id, $idParent);
 
         return $id;
     }

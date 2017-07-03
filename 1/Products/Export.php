@@ -116,18 +116,18 @@ if (CORE_VERSION == "5.3") {
 }
 $u->groupBy('sg.id');
 $items = $u->getList();
-$groups = [];
+$groups = array();
 foreach ($items as $item)
     $groups[$item["id"]] = $item;
 
-$cols = [];
-$symbols = [];
+$cols = array();
+$symbols = array();
 for ($i = 65; $i <= 90; $i++)
     $cols[] = $symbols[] = chr($i);
 for ($i = 0; $i < 10; $i++)
     foreach ($symbols as $sym)
         $cols[] = $cols[$i] . $sym;
-$colsFill = [];
+$colsFill = array();
 
 if (IS_EXT) {
     $xls = new PHPExcel();
@@ -141,7 +141,7 @@ if (IS_EXT) {
 
 $i = 0;
 $row = 1;
-$header = [];
+$header = array();
 foreach ($fields as $key => $field)
     if (IS_EXT)
         $sheet->setCellValue("{$cols[$i++]}{$row}", $field);
@@ -166,7 +166,7 @@ foreach ($products as $product) {
         }
         else $product["img"] = $photos[0];
     }
-    $features = [];
+    $features = array();
     if ($product["features"]) {
         $featuresV = explode(";", $product["features"]);
         foreach ($featuresV as $featureV) {
@@ -178,7 +178,7 @@ foreach ($products as $product) {
         foreach ($features as $key => $value)
             $product[$key] = $value;
     }
-    $dataItem = [];
+    $dataItem = array();
     foreach ($fields as $key => $field) {
         if (!empty($product[$key]) && !in_array($i, $colsFill))
             $colsFill[] = $i;

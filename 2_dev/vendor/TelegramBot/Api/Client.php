@@ -126,7 +126,7 @@ class Client
             if (isset($matches[3]) && !empty($matches[3])) {
                 $parameters = str_getcsv($matches[3], chr(32));
             } else {
-                $parameters = [];
+                $parameters = array();
             }
 
             array_unshift($parameters, $message);

@@ -75,7 +75,7 @@ class Contact extends Base
         $u->addOrderBy('su.sort');
         $result = $u->getList();
 
-        $groups = [];
+        $groups = array();
         foreach ($result as $item) {
             $key = (int)$item["idGroup"];
             $group = key_exists($key, $groups) ? $groups[$key] : [];
@@ -124,7 +124,7 @@ class Contact extends Base
 
     public function delete()
     {
-        $emails = [];
+        $emails = array();
         $u = new DB('person');
         $u->select('email');
         $u->where('id IN (?)', implode(",", $this->input["ids"]));
@@ -148,7 +148,7 @@ class Contact extends Base
         $u->where('user_id = ?', $id);
         $u->orderBy("date_payee");
         $result = $u->getList();
-        $account = [];
+        $account = array();
         $balance = 0;
         foreach ($result as $item) {
             $balance += ($item['inPayee'] - $item['outPayee']);
@@ -200,7 +200,7 @@ class Contact extends Base
 
     private function addInAddressBookEmail($idsContacts, $idsNewsGroups, $idsDelGroups)
     {
-        $emails = [];
+        $emails = array();
         $u = new DB('person');
         $u->select("email, concat_ws(' ', first_name, sec_name) as name");
         $u->where('id IN (?)', implode(",", $idsContacts));
@@ -227,7 +227,7 @@ class Contact extends Base
     private function saveGroups($groups, $idsContact, $addGroup = false)
     {
         try {
-            $newIdsGroups = [];
+            $newIdsGroups = array();
             foreach ($groups as $group)
                 $newIdsGroups[] = $group["id"];
             $idsGroupsS = implode(",", $newIdsGroups);
@@ -260,8 +260,8 @@ class Contact extends Base
             $u->where("user_id IN ($idsContactsS)");
             $objects = $u->getList();
 
-            $idsExists = [];
-            //$idsGroupsNewEmail = [];
+            $idsExists = array();
+            //$idsGroupsNewEmail = array();
             foreach ($objects as $object) {
                 $idsExists[$object["userId"]][] = $object["groupId"];
             }
@@ -380,7 +380,7 @@ class Contact extends Base
         try {
             $idContact = $this->input["id"];
             $groups = $this->input["customFields"];
-            $customFields = [];
+            $customFields = array();
             foreach ($groups as $group)
                 foreach ($group["items"] as $item)
                     $customFields[] = $item;
@@ -421,7 +421,7 @@ class Contact extends Base
             $u->add_Field('price_type', 'int(10)',  '0', 1);
 
 
-            $ids = [];
+            $ids = array();
             if (empty($this->input["ids"]) && !empty($this->input["id"]))
                 $ids[] = $this->input["id"];
             else $ids = $this->input["ids"];
@@ -504,7 +504,7 @@ class Contact extends Base
         $fp = fopen($filePath, 'w');
         $urlFile = 'http://' . HOSTNAME . "/files/{$fileName}";
 
-        $header = [];
+        $header = array();
         $u = new DB('person', 'p');
         $u->select('p.reg_date regDateTime, su.username, p.last_name, p.first_name Name, p.sec_name patronymic, 
             p.sex gender, p.birth_date, p.email, p.phone, p.note');
@@ -516,14 +516,14 @@ class Contact extends Base
         foreach ($contacts as $contact) {
             if (!$header) {
                 $header = array_keys($contact);
-                $headerCSV = [];
+                $headerCSV = array();
                 foreach ($header as $col) {
                     $headerCSV[] = iconv('utf-8', 'CP1251', $col);
                 }
                 $list[] = $header;
                 fputcsv($fp, $headerCSV, ";");
             }
-            $out = [];
+            $out = array();
             foreach ($contact as $r)
                 $out[] = iconv('utf-8', 'CP1251', $r);
             fputcsv($fp, $out, ";");

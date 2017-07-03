@@ -35,14 +35,14 @@ class Modification extends Base
 
 	protected function correctValuesBeforeFetch($items)
 	{
-		$result = [];
+		$result = array();
 		foreach ($items as $item) {
 			if (!empty($item['values'])) {
-				$values = [];
+				$values = array();
 				$params = explode("\n", $item['values']);
 				foreach ($params as $itemParam) {
 					$itemParam = explode("\t", $itemParam);
-					$value = [];
+					$value = array();
 					$value['id'] = $itemParam[0];
 					$value['idGroup'] = $itemParam[1];
 					$value['name'] = $itemParam[2];

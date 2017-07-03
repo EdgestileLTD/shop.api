@@ -108,9 +108,9 @@ class Menus extends Base
     private function getTree($pages)
     {
         $oldLevel = 1;
-        $thisMenu = [];
+        $thisMenu = array();
         $tmpLevel = [-1, -1, -1, -1, -1, -1, -1, -1];
-        $tmpNode = [];
+        $tmpNode = array();
         $pages = trim($pages);
 
         if (!empty($pages))

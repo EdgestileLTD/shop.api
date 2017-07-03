@@ -331,23 +331,6 @@ class Category extends Base
         }
     }
 
-    private function createDbUserFields()
-    {
-        DB::query("CREATE TABLE IF NOT EXISTS `shop_group_userfields` (
-          `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-          `id_shopgroup` int(10) UNSIGNED NOT NULL,
-          `id_userfield` int(10) UNSIGNED NOT NULL,
-          `value` text,
-          `updated_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
-          `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-          PRIMARY KEY (`id`),
-          KEY `FK_shop_group_userfields_id_shopgroup` (`id_shopgroup`),
-          KEY `FK_shop_group_userfields_sid_userfield` (`id_userfield`),
-          CONSTRAINT `shop_group_userfields_ibfk_1` FOREIGN KEY (`id_shopgroup`) REFERENCES `shop_group` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-          CONSTRAINT `shop_group_userfields_ibfk_2` FOREIGN KEY (`id_userfield`) REFERENCES `shop_userfields` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
-    }
-
     public function save()
     {
         if (isset($this->input["codeGr"])) {
@@ -498,7 +481,7 @@ class Category extends Base
         try {
             $idCategory = $this->input["id"];
             $groups = $this->input["customFields"];
-            $customFields = [];
+            $customFields = array();
             foreach ($groups as $group)
                 foreach ($group["items"] as $item)
                     $customFields[] = $item;
@@ -552,7 +535,7 @@ class Category extends Base
         return $level;
     }
 
-    static public function saveIdParent($id, $idParent)
+    public function saveIdParent($id, $idParent)
     {
         try {
             $levelIdOld = self::getLevel($id);

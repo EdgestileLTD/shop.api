@@ -6,7 +6,7 @@ abstract class ArrayOfPhotoSize
 {
     public static function fromResponse($data)
     {
-        $arrayOfPhotoSize = [];
+        $arrayOfPhotoSize = array();
         foreach ($data as $photoSizeItem) {
             $arrayOfPhotoSize[] = PhotoSize::fromResponse($photoSizeItem);
         }

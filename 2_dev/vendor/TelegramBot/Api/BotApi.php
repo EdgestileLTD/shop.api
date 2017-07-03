@@ -141,7 +141,7 @@ class BotApi
      *
      * @var array
      */
-    protected $trackedEvents = [];
+    protected $trackedEvents = array();
 
     /**
      * Check whether return associative array

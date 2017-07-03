@@ -24,7 +24,7 @@ if (!empty($profile)) {
 }
 
 
-$status = [];
+$status = array();
 
 if (!se_db_error()) {
     $status['status'] = 'ok';

@@ -10,7 +10,7 @@ class Functions extends Base
     {
         $vars = $this->input["vars"];
         $i = 0;
-        $items = [];
+        $items = array();
         foreach ($vars as $var) {
             $items[] = se_translite_url($var);
             $i++;

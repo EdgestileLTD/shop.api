@@ -14,7 +14,7 @@ class PaySystem extends Base
         $urlRoot = 'http://' . HOSTNAME;
         $buffer = file_get_contents($urlRoot . "/lib/merchant/getlist.php");
         $items = explode("|", $buffer);
-        $plugins = [];
+        $plugins = array();
         foreach ($items as $item)
             if (!empty($item)) {
                 $plugin['id'] = $item;
@@ -32,7 +32,7 @@ class PaySystem extends Base
             $u->orderBy('sort');
             $u->addOrderBy('id');
             $objects = $u->getList($this->limit, $this->offset);
-            $paySystems = [];
+            $paySystems = array();
             foreach ($objects as $item) {
                 $paySystem = $item;
                 $paySystem['imageFile'] = $item['logoimg'];
@@ -72,13 +72,13 @@ class PaySystem extends Base
             if (empty($this->input["ids"]) && $this->input["id"])
                 $this->input["ids"] = array($this->input["id"]);
             if ($this->input["id"]) {
-                $this->info();
+                $this->saveParams();
                 DB::commit();
                 if (!empty($this->input["identifier"])) {
                     $scriptPlugin = 'http://' . HOSTNAME . "/lib/merchant/result.php?payment=" . $this->input["identifier"];
                     file_get_contents($scriptPlugin);
                 }
-                $this->saveParams();
+                $this->info();
                 return $this;
             } else throw new Exception();
         } catch (Exception $e) {
@@ -94,7 +94,7 @@ class PaySystem extends Base
         $u->select('ba.*');
         $u->where('ba.id_payment = ?', $idPayment);
         $objects = $u->getList();
-        $items = [];
+        $items = array();
         foreach ($objects as $item) {
             $value = null;
             $value['id'] = $item['id'];
@@ -126,13 +126,13 @@ class PaySystem extends Base
 
     private function getHosts($hosts)
     {
-        $result = [];
+        $result = array();
         foreach ($hosts as $host)
             $result[]['name'] = $host;
         return $result;
     }
 
-    public function info()
+    public function info($id = NULL)
     {
         try {
             if (empty($this->input["id"])) {
@@ -141,13 +141,14 @@ class PaySystem extends Base
             }
 
             $u = new DB('shop_payment', 'sp');
+            $u->addField('is_ticket', 'tinyint(1)', '0', 1);
             $paySystem = $u->getInfo($this->input["id"]);
             $paySystem['name'] = $paySystem['name_payment'];
             $paySystem['imageFile'] = $paySystem['logoimg'];
             $paySystem['isExtBlank'] = $paySystem['type'] == 'p';
             $paySystem['isAuthorize'] = $paySystem['authorize'] == 'Y';
-            $paySystem['isAdvance'] = $paySystem['way_payment'] == 'b';
-            $paySystem['isTestMode'] = $paySystem['is_test'] == 'Y';
+            $paySystem['isAdvance'] = ($paySystem['wayPayment'] == 'b');
+            $paySystem['isTestMode'] = ($paySystem['isTest'] == 'Y');
             $paySystem['identifier'] = $paySystem['ident'];
             $paySystem['pageSuccess'] = $paySystem['success'];
             $paySystem['pageFail'] = $paySystem['fail'];

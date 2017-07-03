@@ -11,7 +11,7 @@ class ContactCategory extends Base
 
     static public function getIdsBooksByIdGroups($idsGroups)
     {
-        $idsBooks = [];
+        $idsBooks = array();
         if (!empty($idsGroups)) {
             $u = new DB('se_group', 'sg');
             $u->select("email_settings");

@@ -53,7 +53,7 @@ class Delivery extends Base
         $u->innerJoin('shop_delivery_region sdr', 'sd.id = sdr.id_delivery');
         $u->where('sd.id_parent = ?', $id);
         $result = $u->getList();
-        $regions = [];
+        $regions = array();
         foreach ($result as $item) {
             $region = $item;
             $region['idCountryTo'] = !empty($item['idCountry']) ? $item['idCountry'] : null;
@@ -73,7 +73,7 @@ class Delivery extends Base
         $u->select('sdr.*');
         $u->where('sdr.id_delivery = ?', $id);
         $result = $u->getList();
-        $regions = [];
+        $regions = array();
         foreach ($result as $item) {
             $region = null;
             $region['id'] = $item['id'];
@@ -90,15 +90,13 @@ class Delivery extends Base
     {
         try {
             $u = new DB('shop_deliverytype', 'sd');
-            $u->select('sd.*, GROUP_CONCAT(DISTINCT(sdp.id_payment) SEPARATOR ";") idsPayments,
-                        GROUP_CONCAT(DISTINCT(sdg.id_group) SEPARATOR ";") idsGroups');
+            $u->select('sd.*, GROUP_CONCAT(DISTINCT(sdp.id_payment) SEPARATOR ";") idsPayments');
             $u->leftJoin('shop_delivery_payment sdp', 'sd.id = sdp.id_delivery');
-            $u->leftJoin('shop_deliverygroup sdg', 'sd.id = id_type');
             $u->where('sd.id = ?', $this->input["id"]);
             $result = $u->getList();
             foreach ($result as $item) {
                 $delivery = $item;
-                $delivery['idsGroups'] = [];
+                $delivery['idsGroups'] = array();
                 $delivery['period'] = $item['time'];
                 $delivery['idCityFrom'] = $item['cityFromDelivery'];
                 $delivery['isActive'] = $item['status'] == 'Y';
@@ -106,10 +104,17 @@ class Delivery extends Base
                 $delivery['onePosition'] = $item['forone'] == 'Y';
                 $delivery['needAddress'] = $item['needAddress'] == 'Y';
                 $idsPaySystems = explode(';', $item['idsPayments']);
-                if (trim($item['idsGroups'])) {
-                    $idsGroups = explode(';', $item['idsGroups']);
+
+
+                $u1 = new DB('shop_deliverygroup');
+                $u1->select('id_group');
+                $u1->where('id_type=?', intval($this->input["id"]));
+                $idsGroups = $u1->getList();
+                $delivery['idsGroups'] = array();
+                if (!empty($idsGroups)) {
+                    //$idsGroups = explode(';', $item['idsGroups']);
                     foreach($idsGroups as  $gr) {
-                        $delivery['idsGroups'][] = intval($gr);
+                        $delivery['idsGroups'][] = intval($gr['idGroup']);
                     }
                 }
 
@@ -137,36 +142,12 @@ class Delivery extends Base
         return $u->sort + 1;
     }
 
-    public function save()
-    {
-        writeLog($this->input["cityFromDelivery"]);
-       if ($this->input["cityFromDelivery"]) {
-            $citys = json_decode(file_get_contents(dirname(__FILE__) . '/delivery/sdek/rus.json'), true);
-            $fl = false;
-            foreach ($citys as $city => $id) {
-                if (mb_stripos($city, $this->input["cityFromDelivery"])===0) {
-                    $fl = true;
-                        //writeLog($city);
-                    //$this->input["cityFromDelivery"] = $city;
-                    $this->input["idCityFrom"] = $city;
-                    break;
-                }
-            }
-            if (!$fl) $this->input["idCityFrom"] = '';
-        }
-        $u = new DB($this->tableName);
-        $u->addField('sms', 'varchar(15)');
-        $u->addField('email', 'varchar(40)');
-        parent::save();
-
-    }
-
     private function savePaySystem()
     {
         try {
             $idDelivery = $this->input["id"];
             $idsPaySystems = $this->input["idsPaySystems"];
-            $idsExist = [];
+            $idsExist = array();
             foreach ($idsPaySystems as $id)
                 if ($id)
                     $idsExist[] = $id;
@@ -177,7 +158,7 @@ class Delivery extends Base
             else $u->findList("id_delivery = {$idDelivery} AND NOT id_payment IN ({$idsExistStr})")->deleteList();
             $u = new DB('shop_delivery_payment', 'sdp');
             $u->where("id_delivery = ?", $idDelivery);
-            $idsExist = [];
+            $idsExist = array();
             $result = $u->getList();
             foreach ($result as $item)
                 $idsExist[] = $item["idPayment"];
@@ -213,7 +194,7 @@ class Delivery extends Base
     {
         $idDelivery = $this->input["id"];
         $conditions = $this->input["conditionsParams"];
-        $idsExist = [];
+        $idsExist = array();
         foreach ($conditions as $condition)
             if (!empty($condition["id"]))
                 $idsExist[] = $condition["id"];
@@ -235,8 +216,8 @@ class Delivery extends Base
         $idDelivery = $this->input["id"];
         $deliveries = $this->input["conditionsRegions"];
 
-                $idsUpdate = [];
-        $idsGeoUpdate = [];
+                $idsUpdate = array();
+        $idsGeoUpdate = array();
         foreach ($deliveries as $delivery) {
             if (!empty($delivery["id"]))
                 $idsUpdate[] = $delivery["id"];
@@ -250,8 +231,8 @@ class Delivery extends Base
         else $u->where('id_parent = ' . $idDelivery)->deleteList();
 
         // вставка новых
-        $dataD = [];
-        $dataR = [];
+        $dataD = array();
+        $dataR = array();
         $u = new DB('shop_deliverytype');
         $u->select('MAX(id) max');
         $result = $u->fetchOne();
@@ -327,7 +308,7 @@ class Delivery extends Base
     {
         $regions = $this->input["geoLocationsRegions"];
         $idDelivery = $this->input["id"];
-        $idsUpdate = [];
+        $idsUpdate = array();
         foreach ($regions as $region) {
             if (!empty($region["id"]))
                 $idsUpdate[] = intval($region["id"]);

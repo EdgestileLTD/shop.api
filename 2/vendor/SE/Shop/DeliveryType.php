@@ -35,7 +35,15 @@ class DeliveryType extends Base
         $type['isIn'] = true;
         $types[] = $type;
 
-
+        $res = $this->postRequest('lib/delivery.php', array('get_services'=>1, 'token' => md5(DB::$dbSerial.DB::$dbPassword)));
+        if ($res) {
+            $res = json_decode($res, true);
+            foreach ($res as $item) {
+                $item['isIn'] = false;
+                $types[] = $item;
+            }
+        }
+        /*
         $type = null;
         $type['id'] = "ems";
         $type['code'] = "ems";
@@ -56,11 +64,51 @@ class DeliveryType extends Base
         $type['name'] = "СДЭК";
         $type['isIn'] = false;
         $types[] = $type;
+        */
 
         $this->result['count'] = sizeof($types);
         $this->result['items'] = $types;
 
+
         return $types;
+    }
+    public function info()
+    {
+        switch($this->input['type']){
+            case 'city':
+                if ($res = $this->postRequest('lib/delivery.php', array(
+                    'get_cities' => $this->input['value'],
+                    'limit' => 10,
+                    'token' => md5(DB::$dbSerial.DB::$dbPassword)
+                ))) {
+                    return $this->result = json_decode($res, true);
+                }
+                break;
+            case 'settings':
+                if ($res = $this->postRequest('lib/delivery.php', array(
+                    'get_settings' => 1,
+                    'id_delivery' => $this->input['id_delivery'],
+                    'code' => $this->input['code'],
+                    'token' => md5(DB::$dbSerial.DB::$dbPassword)
+                ))) {
+                    return $this->result = json_decode($res, true);
+                }
+                break;
+            case 'save':
+                if(!empty($this->input['fields']) and isset($this->input['fields'])){
+                    if ($res = $this->postRequest('lib/delivery.php', array(
+                        'save_settings' => 1,
+                        'id_delivery' => $this->input['id_delivery'],
+                        'settings' => json_encode($this->input['fields'],JSON_PRETTY_PRINT),
+                        'token' => md5(DB::$dbSerial.DB::$dbPassword)
+                    ))) {
+                        return $this->result = $res;
+                    }
+                }
+                return $this->result = true;
+                break;
+        }
+        $this->error = 'Неправильный запрос';
     }
 
     public function sort()

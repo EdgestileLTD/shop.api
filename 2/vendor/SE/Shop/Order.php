@@ -160,7 +160,7 @@ class Order extends Base
 
     protected function getAddInfo()
     {
-        $result = [];
+        $result = array();
         $this->result["amount"] = (real)$this->result["amount"];
         $result["items"] = $this->getOrderItems();
         $result['payments'] = $this->getPayments();
@@ -191,7 +191,7 @@ class Order extends Base
         $u->groupBy('sto.id');
         $result = $u->getList();
         unset($u);
-        $items = [];
+        $items = array();
         if (!empty($result)) {
             foreach ($result as $item) {
                 if ($item['picture']) $item['img'] = $item['picture'];
@@ -217,6 +217,13 @@ class Order extends Base
 
     }
 
+    public function fetch()
+    {
+        if ($this->input['searchText'])
+            $this->filters = null;
+        return parent::fetch();
+    }
+
     private function getPayments()
     {
         return (new Payment())->fetchByOrder($this->input["id"]);
@@ -235,7 +242,7 @@ class Order extends Base
         $u->addOrderBy('su.sort');
         $result = $u->getList();
 
-        $groups = [];
+        $groups = array();
         foreach ($result as $item) {
             $key = (int)$item["idGroup"];
             $group = key_exists($key, $groups) ? $groups[$key] : [];
@@ -282,11 +289,10 @@ class Order extends Base
 
         $o = new DB('shop_order', 'so');
         $o->add_field('nk', 'tinyint(1)', 0, 1);
-
         if ($this->input["status"] == 'N') {
             $o->setValuesFields(array('id'=>$idOrder, 'nk'=>0));
             $o->save();
-            $ua = new DB('se_user_account');
+            $ua = new DB('se_user_account', 'sua');
             $ua->where('order_id = ?', $idOrder);
             $ua->deleteList();
         }
@@ -352,7 +358,7 @@ class Order extends Base
         try {
             $idOrder = $this->input["id"];
             $groups = $this->input["customFields"];
-            $customFields = [];
+            $customFields = array();
             foreach ($groups as $group)
                 foreach ($group["items"] as $item)
                     $customFields[] = $item;

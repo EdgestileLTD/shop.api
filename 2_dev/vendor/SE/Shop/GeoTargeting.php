@@ -32,7 +32,7 @@ class GeoTargeting extends Base
 
     protected function correctValuesBeforeFetch($items = [])
     {
-        $idsCities = [];
+        $idsCities = array();
         foreach ($items as $item)
             $idsCities[] = $item["idCity"];
         if ($idsCities) {
@@ -135,7 +135,7 @@ class GeoTargeting extends Base
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         $data = json_decode(curl_exec($curl), true);
         if ($data["items"]) {
-            $result = [];
+            $result = array();
             foreach ($data["items"] as $item)
                 $result[$item["id"]] = $item["name"];
             return $result;

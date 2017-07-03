@@ -57,7 +57,7 @@ class Integration extends Base
     public function fetch()
     {
         try {
-            $items = [];
+            $items = array();
             $objects = json_decode($this->integrations, 1);
             if ($objects) {
                 $objects = $objects["integrations"];
@@ -89,7 +89,7 @@ class Integration extends Base
             $u->where("NOT id IN (?)", $idsStr)->deleteList();
         else $u->deleteList();
 
-        $data = [];
+        $data = array();
         foreach ($parameters as $parameter) {
             if ($parameter["id"] > 0) {
                 $u = new DB('shop_integration_parameter', 'sip');

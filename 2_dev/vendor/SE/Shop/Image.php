@@ -33,7 +33,7 @@ class Image extends Base
         else $searchStr = strtolower(trim($this->search));
         if ($searchStr)
             $this->offset = 0;
-        $listFiles = [];
+        $listFiles = array();
         $count = 0;
         if (file_exists($this->dir) && is_dir($this->dir)) {
             $handleDir = opendir($this->dir);
@@ -48,7 +48,7 @@ class Image extends Base
                     continue;
 
                 if ($count <= $this->limit + $this->offset) {
-                    $item = [];
+                    $item = array();
                     $item["name"] = $file;
                     $item["title"] = $file;
                     $item["weight"] = number_format(filesize($this->dir . "/" . $file), 0, '', ' ');
@@ -75,7 +75,7 @@ class Image extends Base
         $files = $this->input["files"];
 
         $isUnused = (bool) $this->input["isUnused"];
-        $usedImages = [];
+        $usedImages = array();
 
         if ($this->section == 'shopprice' && $isUnused) {
             $u = new DB('shop_price', 'sp');
@@ -149,8 +149,8 @@ class Image extends Base
     {
         $countFiles = count($_FILES);
         $ups = 0;
-        $files = [];
-        $items = [];
+        $files = array();
+        $items = array();
 
         for ($i = 0; $i < $countFiles; $i++) {
             $file = $_FILES["file$i"]['name'];
@@ -163,7 +163,7 @@ class Image extends Base
             if (!filesize($fileTemp) || move_uploaded_file($fileTemp, $uploadFile)) {
                 if (file_exists($uploadFile)) {
                     $files[] = $uploadFile;
-                    $item = [];
+                    $item = array();
                     $item["name"] = $file;
                     $item["title"] = $file;
                     $item["weight"] = number_format(filesize($uploadFile), 0, '', ' ');
@@ -205,7 +205,7 @@ class Image extends Base
     public function info($id = NULL)
     {
         $names = $this->input["listValues"];
-        $newNames = [];
+        $newNames = array();
         foreach ($names as $name)
             $newNames[] = $this->getNewName($this->dir, $name);
         $item['newNames'] = $newNames;
@@ -216,10 +216,10 @@ class Image extends Base
 
     public function checkNames()
     {
-        $items = [];
+        $items = array();
         $names = $this->input["names"];
         foreach ($names as $name) {
-            $item = [];
+            $item = array();
             $item['oldName'] = $name;
             $item['newName'] = $this->getNewName($this->dir, $name);
             $items[] = $item;

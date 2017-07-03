@@ -24,7 +24,7 @@ class DeliveryRegion extends Base
             foreach ($objects as $item) {
                 $delivery = null;
                 $delivery['id'] = $item['id'];
-                $delivery['regions'] = [];
+                $delivery['regions'] = array();
                 $delivery['regions']['idCountry'] = explode(',', $item['id_country']);
                 $delivery['regions']['idRegion'] = explode(',', $item['id_region']);
                 $delivery['regions']['idCity'] = explode(',', $item['id_city']);
@@ -58,7 +58,7 @@ class DeliveryRegion extends Base
             foreach ($objects as $item) {
                 $delivery = null;
                 $delivery['id'] = $item['id'];
-                $delivery['regions'] = [];
+                $delivery['regions'] = array();
                 $delivery['regions']['idCountry'] = explode(',', $item['id_country']);
                 $delivery['regions']['idRegion'] = explode(',', $item['id_region']);
                 $delivery['regions']['idCity'] = explode(',', $item['id_city']);
