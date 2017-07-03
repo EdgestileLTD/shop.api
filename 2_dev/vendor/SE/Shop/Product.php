@@ -557,7 +557,7 @@ class Product extends Base
         return $result;
     }
 
-    private function getUrl($code, $id, $existCodes = [])
+    private function getUrl($code, $id, $existCodes = array())
     {
         $code_n = $code;
         $id = (int)$id;

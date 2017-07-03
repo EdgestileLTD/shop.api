@@ -81,7 +81,7 @@ class Payment extends Base
         $this->saveOrderAccount();
     }
 
-    protected function correctValuesBeforeFetch($items = [])
+    protected function correctValuesBeforeFetch($items = array())
     {
         foreach ($items as &$item)
             $item["name"] = empty($item["name"]) ? "С лицевого счёта" : $item["name"];

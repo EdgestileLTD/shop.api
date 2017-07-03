@@ -30,7 +30,7 @@ class GeoTargeting extends Base
         return $this->getSettingsFetch();
     }
 
-    protected function correctValuesBeforeFetch($items = [])
+    protected function correctValuesBeforeFetch($items = array())
     {
         $idsCities = array();
         foreach ($items as $item)
@@ -125,7 +125,7 @@ class GeoTargeting extends Base
         return false;
     }
 
-    private function getCitiesByIds($ids = [])
+    private function getCitiesByIds($ids = array())
     {
         $data = array('action' => 'city',
             'ids' => $ids);

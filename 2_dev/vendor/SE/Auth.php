@@ -42,7 +42,7 @@ class Auth extends Base
         }
     }
 
-    public function getAuthData($data = [])
+    public function getAuthData($data = array())
     {
         $url = AUTH_SERVER . "/api/2/Auth/Register.api";
         $ch = curl_init($url);

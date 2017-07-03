@@ -73,8 +73,9 @@ class DB
             self::$dbSerial = $connection['DBSerial'];
             self::$dbPassword = $connection['DBPassword'];
             self::$projectKey = $connection['ProjectKey'];
-            self::$dbh = new PDO("mysql:host={$connection['HostName']};dbname={$connection['DBName']}",
+            self::$dbh = new PDO("mysql:host={$connection['HostName']};dbname={$connection['DBName']};charset=UTF8",
                 $connection['DBUserName'], $connection['DBPassword'], array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION));
+            self::$dbh->exec('SET NAMES utf8');
         } catch (\PDOException $e) {
             throw new Exception($e->getMessage());
         }
@@ -292,7 +293,7 @@ class DB
         }
     }
 
-    public static function saveManyToMany($idKey, $links = [], $setting = [])
+    public static function saveManyToMany($idKey, $links = array(), $setting = array())
     {
         try {
             $existIds = array();

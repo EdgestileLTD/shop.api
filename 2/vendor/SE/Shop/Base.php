@@ -242,7 +242,7 @@ class Base extends CustomBase
         return true;
     }
 
-    protected function correctValuesBeforeFetch($items = [])
+    protected function correctValuesBeforeFetch($items = array())
     {
         return $items;
     }
@@ -384,7 +384,7 @@ class Base extends CustomBase
         return implode(" AND ", $where);
     }
 
-    protected function getWhereQuery($searchFields = [])
+    protected function getWhereQuery($searchFields = array())
     {
         $query = null;
         $searchQuery = $this->getSearchQuery($searchFields);
