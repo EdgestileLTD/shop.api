@@ -142,6 +142,9 @@ echo "\n";
 echo "Старт парсинга: " . date("H:i:s d.m.Y") . "\n";
 $start = microtime(true);
 
+
+//
+
 //$file = getcwd() . "/import_mebel.xml";
 //$reader = new XMLReader;
 //$reader->open($file);
@@ -157,8 +160,98 @@ $start = microtime(true);
 //            $t->select("sp.id");
 //            $t->where("sp.id_exchange = '?'", $product["idExchange"]);
 //            $result = $t->fetchOne();
-//            if (!empty($result))
+//            if (!empty($result)) {
+//
+//                $idProduct = $result["id"];
+//
+//                foreach ($xml->ЗначенияСвойств as $xmlProperties) {
+//                    foreach ($xmlProperties as $xmlProperty) {
+//
+//                        $property = array();
+//                        $property["id"] = (string)$xmlProperty->Ид;
+//                        $property["value"] = (string)$xmlProperty->Значение;
+//
+//                        print_r($property);
+//
+//                        if (empty($property["value"]))
+//                            continue;
+//
+//                        $u = new DB("shop_feature", "sf");
+//                        $u->select("sf.id, sf.type");
+//                        $u->where("sf.id_exchange = '?'", $property["id"]);
+//                        $result = $u->fetchOne();
+//                        if (!empty($result)) {
+//                            echo "ok\n";
+//                            $idFeature = $result["id"];
+//                            if ($result["type"] == "list" || $result["type"] == "colorlist") {
+//                                $value = (string)$property["value"];
+//                                $u = new DB("shop_feature_value_list", "sfl");
+//                                $u->select("sfl.id");
+//                                $u->where("sfl.id_feature = ?", $idFeature);
+//                                $u->andWhere("sfl.value = '?'", $value);
+//                                $answer = $u->fetchOne();
+//                                if (empty($answer)) {
+//                                    $u = new DB("shop_feature_value_list");
+//                                    $data = array();
+//                                    $data["idFeature"] = $idFeature;
+//                                    $data["value"] = $value;
+//                                    $u->setValuesFields($data);
+//                                    $idValue = $u->save();
+//                                } else $idValue = $answer["id"];
+//                                $u = new DB("shop_modifications_feature", "smf");
+//                                $u->where("smf.id_price = ?", $idProduct);
+//                                $u->andWhere("smf.id_value = '?'", $idValue);
+//                                $answer = $u->fetchOne();
+//                                if (empty($answer)) {
+//                                    $u = new DB("shop_modifications_feature");
+//                                    $data = array();
+//                                    $data["idPrice"] = $idProduct;
+//                                    $data["idFeature"] = $idFeature;
+//                                    $data["idValue"] = $idValue;
+//                                    $u->setValuesFields($data);
+//                                    $u->save();
+//                                }
+//                            }
+//                            if ($result["type"] == "number") {
+//                                $u = new DB("shop_modifications_feature", "smf");
+//                                $u->where("smf.id_price = ?", $idProduct);
+//                                $u->andWhere("smf.value_number = '?'", (float)$property["value"]);
+//                                $answer = $u->fetchOne();
+//                                if (empty($answer)) {
+//                                    $u = new DB("shop_modifications_feature");
+//                                    $data = array();
+//                                    $data["idPrice"] = $idProduct;
+//                                    $data["idFeature"] = $idFeature;
+//                                    $data["valueNumber"] = (float)$property["value"];
+//                                    $u->setValuesFields($data);
+//                                    $u->save();
+//                                }
+//
+//                            }
+//                            if ($result["type"] == "bool") {
+//                                $u = new DB("shop_modifications_feature", "smf");
+//                                $u->where("smf.id_price = ?", $idProduct);
+//                                $u->andWhere("smf.value_bool = '?'", (bool)$property["value"]);
+//                                $answer = $u->fetchOne();
+//                                if (empty($answer)) {
+//                                    $u = new DB("shop_modifications_feature");
+//                                    $data = array();
+//                                    $data["idPrice"] = $idProduct;
+//                                    $data["idFeature"] = $idFeature;
+//                                    $data["valueBool"] = (bool)$property["value"];
+//                                    $u->setValuesFields($data);
+//                                    $u->save();
+//                                }
+//                            }
+//                        }
+//
+//
+//                    }
+//                }
+//
+//
 //                continue;
+//            }
 //
 //            if ($xml->article)
 //                $product['article'] = (string)$xml->article;
@@ -177,34 +270,154 @@ $start = microtime(true);
 //}
 //
 //$reader->close();
+//
+//exit;
+//
+//$file = getcwd() . "/offers_mebel.xml";
+//$reader = new XMLReader;
+//$reader->open($file);
+//
+//while ($reader->read()) {
+//    if ($reader->nodeType == XMLReader::ELEMENT) {
+//        if ($reader->localName == 'Предложение') {
+//            $product = array();
+//            $xml = new SimpleXMLElement($reader->readOuterXML());
+//            $product["idExchange"] = (string)$xml->Ид;
+//
+//            $t = new DB("shop_price", "sp");
+//            $t->select("sp.id");
+//            $t->where("sp.id_exchange = '?'", $product["idExchange"]);
+//            $result = $t->fetchOne();
+//            if (empty($result))
+//                continue;
+//
+//            $product["id"] = $result["id"];
+//            $product["price"] = (float)$xml->Цены->Цена->ЦенаЗаЕдиницу;
+//            updateProduct($product);
+//        }
+//    }
+//}
+//
+//$reader->close();
 
-$file = getcwd() . "/offers_mebel.xml";
-$reader = new XMLReader;
-$reader->open($file);
+$urlRoot = 'https://mebelvdom.ru';
+$html = getContent($urlRoot);
+$html = str_replace('<meta charset="UTF-8" />', '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>', $html);
+$saw = new parserHtml($html);
+$res = $saw->get('a.one_directory_partitions')->toArray();
+foreach ($res as $resGroup) {
 
-while ($reader->read()) {
-    if ($reader->nodeType == XMLReader::ELEMENT) {
-        if ($reader->localName == 'Предложение') {
-            $product = array();
-            $xml = new SimpleXMLElement($reader->readOuterXML());
-            $product["idExchange"] = (string)$xml->Ид;
+    $urlGroup = $resGroup["href"];
+    while (!empty($urlGroup)) {
 
+        $urlGroup = $urlRoot . $urlGroup;
+        echo $urlGroup . "\n";
+        $html = getContent($urlGroup);
+        $html = str_replace('<meta charset="UTF-8" />', '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>', $html);
+        $saw = new parserHtml($html);
+        $res = $saw->get('.show-more-button')->toArray();
+        $urlGroup = $res["data-url"];
+
+        $res = $saw->get('.on_title a')->toArray();
+        foreach ($res as $cardItem) {
+            $url = $urlRoot . $cardItem["href"];
+
+            $html = getContent($url);
+            $html = str_replace('<meta charset="UTF-8" />', '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>', $html);
+            $saw = new parserHtml($html);
+            $res = $saw->get('h1')->toArray();
+            $name = $res["#text"];
             $t = new DB("shop_price", "sp");
-            $t->select("sp.id");
-            $t->where("sp.id_exchange = '?'", $product["idExchange"]);
+            $t->select("sp.id, sp.text");
+            $t->where("name = '?'", $name);
             $result = $t->fetchOne();
             if (empty($result))
                 continue;
 
-            $product["id"] = $result["id"];
-            $product["price"] = (float)$xml->Цены->Цена->ЦенаЗаЕдиницу;
-            updateProduct($product);
+            $idProduct = $result["id"];
+
+            if (empty($result["text"])) {
+                $matches = array();
+                $html = str_replace("\r", "", $html);
+                $html = str_replace("\n", " ", $html);
+                preg_match_all('#<div class="text-normal post-content">(.*<p class="space-bottom">.*)</div>#U', $html, $matches);
+                $text = trim($matches[1][0]);
+                $data = array();
+                $data["id"] = $idProduct;
+                $data["text"] = $text;
+                $t = new DB("shop_price");
+                $t->setValuesFields($data);
+                $t->save();
+            }
+
+
+            $res = $saw->get('.accessory-item label')->toArray();
+            foreach ($res as $resAccessory) {
+                $idOptionValue = $resAccessory["input"][0]["value"];
+
+                if (empty($idOptionValue)) {
+                    writeLog("Не найдено:" . $name . "\n");
+                    continue;
+                }
+
+                $t = new DB("shop_product_option", "spo");
+                $t->select("spo.id");
+                $t->where("spo.id_product = ?", $idProduct);
+                $t->andWhere("spo.id_option_value = ?", $idOptionValue);
+                $result = $t->fetchOne();
+                if (!empty($result))
+                    continue;
+
+                $data = array();
+                $t = new DB("shop_product_option");
+                $data["idProduct"] = $idProduct;
+                $data["idOptionValue"] = $idOptionValue;
+                $t->setValuesFields($data);
+                $t->save();
+
+                echo "Аксессуары\n";
+                print_r($data);
+            }
+
+            $res = $saw->get('.texture-item label')->toArray();
+            foreach ($res as $resAccessory) {
+                $idTextures = $resAccessory["input"][0]["value"];
+
+                if (empty($idTextures)) {
+                    writeLog("Не найдено:" . $name . "\n");
+                    continue;
+                }
+
+                $t = new DB("shop_option_value", "sov");
+                $t->select("sov.id");
+                $t->where("sov.id_textures = ?", $idTextures);
+                $result = $t->fetchOne();
+                if (empty($result))
+                    continue;
+
+                $idOptionValue = $result["id"];
+
+                $t = new DB("shop_product_option", "spo");
+                $t->select("spo.id");
+                $t->where("spo.id_product = ?", $idProduct);
+                $t->andWhere("spo.id_option_value = ?", $idOptionValue);
+                $result = $t->fetchOne();
+                if (!empty($result))
+                    continue;
+
+                $data = array();
+                $t = new DB("shop_product_option");
+                $data["idProduct"] = $idProduct;
+                $data["idOptionValue"] = $idOptionValue;
+                $t->setValuesFields($data);
+                $t->save();
+
+                echo "Цвета\n";
+                print_r($data);
+            }
         }
     }
 }
-
-$reader->close();
-
 
 echo 'Затраченное время: ' . (microtime(true) - $start) . ' сек.';
 echo "\n";

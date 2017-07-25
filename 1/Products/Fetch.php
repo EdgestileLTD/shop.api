@@ -54,9 +54,14 @@ $crossGroup = 'spg.id isCrossGroup';
 if (CORE_VERSION == "5.3")
     $crossGroup = '0 isCrossGroup';
 
+$select = "sp.*, sg.name namegroup, sdl.discount_id is_discount, 
+            COUNT(DISTINCT(smf.id_modification)) as countModifications, sb.name nameBrand, {$crossGroup}";
+
+if ($_SESSION['isShowOptions'])
+    $select .= ", COUNT(spo.id) countOptions";
+
 $u = new seTable('shop_price', 'sp');
-$u->select("sp.*, sg.name namegroup, sdl.discount_id is_discount, 
-            COUNT(DISTINCT(smf.id_modification)) as countModifications, sb.name nameBrand, {$crossGroup}");
+$u->select("{$select}");
 if (CORE_VERSION == "5.3") {
     $u->leftjoin("shop_price_group spg", "spg.id_price = sp.id AND spg.is_main");
     $u->leftjoin('shop_group sg', 'sg.id = spg.id_group');
@@ -65,6 +70,10 @@ if (CORE_VERSION == "5.3") {
     $u->leftjoin('shop_group sg', 'sg.id=sp.id_group');
     $u->leftjoin('shop_group_price spg', 'sp.id = spg.price_id');
 }
+
+if ($_SESSION['isShowOptions'])
+    $u->leftjoin('shop_product_option spo', 'sp.id = spo.id_product');
+
 $u->leftjoin('shop_discount_links sdl', 'sdl.id_price=sp.id');
 $u->leftjoin('(SELECT smf.id_price, smf.id_modification FROM shop_modifications_feature smf
                            WHERE NOT smf.id_value IS NULL AND NOT smf.id_modification IS NULL GROUP BY smf.id_modification) smf', 'sp.id=smf.id_price');
@@ -171,6 +180,7 @@ foreach ($objects as $item) {
     $product['isActive'] = $item['enabled'] == 'Y';
     $product['isInfinitely'] = true;
     $product['countModifications'] = (int)$item['countModifications'];
+    $product['countOptions'] = (int)$item['countOptions'];
     if (!empty($item['presence_count']) && $item['presence_count'] >= 0) {
         $product['count'] = (float)$item['presence_count'];
         $product['isInfinitely'] = false;

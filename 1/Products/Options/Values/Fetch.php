@@ -23,6 +23,10 @@ foreach ($objects as $item) {
     $item['isActive'] = (bool)$item['is_active'];
     $item['sortIndex'] = (int)$item['sort'];
     $item['price'] = (real)$item['price'];
+    if ($item['image']) {
+        $item['imageUrl'] = 'http://' . $json->hostname . "/images/rus/shopfeature/" . $item['image'];
+        $item['imageUrlPreview'] = "http://{$json->hostname}/lib/image.php?size=64&img=images/rus/shopfeature/" . $item['image'];
+    }
     $items[] = $item;
 }
 

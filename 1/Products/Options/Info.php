@@ -20,7 +20,7 @@ foreach ($result as $item) {
     $item['isActive'] = (bool)$item['is_active'];
     $item['isCounted'] = (bool)$item['is_counted'];
     $item['type'] = (int)$item['type'];
-    $item['typePrice'] = (int)$item['typePrice'];
+    $item['typePrice'] = (int)$item['type_price'];
     $item['sortIndex'] = (int)$item['sort'];
     $item['imageFile'] = $item['image'];
     $items[] = $item;

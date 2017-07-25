@@ -31,11 +31,39 @@ function saveProducts($idsOrders, $products) {
     // новый товары/услуги заказа
     foreach ($products as $p) {
         if (!$p->id) {
-            foreach ($idsOrders as $idOrder)
-                $data[] = array('id_order' => $idOrder, 'id_price' => $p->idPrice, 'article' => $p->article,
-                    'nameitem' => $p->name, 'price' => $p->price, 'price_purchase' => $p->pricePurchase,
-                    'discount' => $p->discount, 'count' => $p->count, 'modifications' => $p->idsModifications,
-                    'license' => $p->license, 'commentary' => $p->note, 'action' => $p->action);
+            foreach ($idsOrders as $idOrder) {
+                $u = new seTable('shop_tovarorder','st');
+                setField(true, $u, $idOrder, 'id_order');
+                setField(true, $u, $p->idPrice, 'id_price');
+                setField(true, $u, $p->article, 'article');
+                setField(true, $u, $p->name, 'nameitem');
+                setField(true, $u, $p->price, 'price');
+                setField(true, $u, $p->pricePurchase, 'price_purchase');
+                setField(true, $u, $p->discount, 'discount');
+                setField(true, $u, $p->count, 'count');
+                setField(true, $u, $p->license, 'license');
+                setField(true, $u, $p->note, 'commentary');
+                setField(true, $u, $p->action, 'action');
+                $idItem = $u->save();
+                foreach ($p->options as $option) {
+                   foreach ($option->optionValues as $value) {
+                       if (!$value->isChecked)
+                           continue;
+
+                       $u = new seTable('shop_tovarorder_option','sto');
+                       setField(true, $u, $idItem, 'id_tovarorder');
+                       setField(true, $u, $value->id, 'id_option_value');
+                       setField(true, $u, $value->price, 'base_price');
+                       if ($option->typePrice == 1)
+                           $value->price = $p->price * $value->price / 100;
+                       setField(true, $u, $value->price, 'price');
+                       if (!$value->count)
+                           $value->count = 1;
+                       setField(true, $u, $value->count, 'count');
+                       $u->save();
+                   }
+                }
+            }
         } else {
             $u = new seTable('shop_tovarorder','sto');
             $u->select("modifications");

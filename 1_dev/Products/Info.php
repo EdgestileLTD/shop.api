@@ -407,11 +407,12 @@ function getOptions($id, &$product)
     $options = array();
 
     $u = new seTable('shop_product_option', 'spo');
-    $u->select('so.id id_option, so.name `option`, sov.id, sov.name, spo.price, spo.is_default');
+    $u->select('so.id id_option, so.name `option`, so.type, so.type_price, 
+                sov.id, sov.name, spo.price, spo.is_default, so.is_counted');
     $u->innerJoin('shop_option_value sov', 'spo.id_option_value = sov.id');
     $u->innerJoin('shop_option so', 'sov.id_option = so.id');
     $u->where('spo.id_product = ?', $id);
-    $u->orderBy('spo.sort');
+    $u->orderBy('so.sort, spo.sort');
     $u->groupBy("spo.id");
 
     $objects = $u->getList();
@@ -425,12 +426,16 @@ function getOptions($id, &$product)
 
         $listOptions[$object["id_option"]]["id"] = $object["id_option"];
         $listOptions[$object["id_option"]]["name"] = $object["option"];
+        $listOptions[$object["id_option"]]["isCounted"] = $object["is_counted"];
+        $listOptions[$object["id_option"]]["type"] = (int)$object["type"];
+        $listOptions[$object["id_option"]]["typePrice"] = (int)$object["type_price"];
         $listOptions[$object["id_option"]]["optionValues"][] = $value;
     }
 
     foreach ($listOptions as $option)
         $options[] = $option;
 
+    $product['countOptions'] = count($options);
     $product['options'] = $options;
 }
 
@@ -439,7 +444,7 @@ $u->select('sp.*, sg.id idGroup, sb.name AS nameBrand, sg.name AS nameGroup, sg.
     spm.id_weight_view, spm.id_weight_edit, spm.id_volume_view, spm.id_volume_edit');
 $u->leftjoin('shop_brand sb', 'sb.id = sp.id_brand');
 if (CORE_VERSION == "5.3") {
-    $u->leftjoin("shop_price_group spg", "spg.id_price = sp.id");
+    $u->leftjoin("shop_price_group spg", "spg.id_price = sp.id AND spg.is_main");
     $u->leftjoin('shop_group sg', 'sg.id = spg.id_group');
 } else {
     $u->leftjoin('shop_group sg', 'sp.id_group = sg.id');
