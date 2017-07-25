@@ -93,14 +93,63 @@ function getModifications($item)
     return $result;
 }
 
+
+function getOptions($idProduct, $idItem)
+{
+    if (!$_SESSION["isShowOptions"])
+        return null;
+
+    $options = array();
+
+    $u = new seTable('shop_product_option', 'spo');
+    $u->select('so.id id_option, so.name `option`, so.type, so.type_price, sto.id id_tovarorder_option,  
+                sov.id, sov.name, spo.price, spo.is_default, so.is_counted');
+    $u->innerJoin('shop_option_value sov', 'spo.id_option_value = sov.id');
+    $u->innerJoin('shop_option so', 'sov.id_option = so.id');
+    $u->leftJoin('shop_tovarorder_option sto', "sto.id_option_value = spo.id_option_value AND sto.id_tovarorder = {$idItem}");
+    $u->where('spo.id_product = ?', $idProduct);
+    $u->orderBy('so.sort');
+    $u->addOrderBy('sov.sort');
+    $u->groupBy("spo.id");
+
+    $objects = $u->getList();
+    $listOptions = array();
+    foreach ($objects as $object) {
+        $value = null;
+        $value["id"] = $object["id"];
+        $value["name"] = $object["name"];
+        $value["price"] = (float)$object["price"];
+        $value["isDefault"] = (bool)$object["is_default"];
+        $value["isChecked"] = !empty($object["id_tovarorder_option"]);
+
+        $listOptions[$object["id_option"]]["id"] = $object["id_option"];
+        $listOptions[$object["id_option"]]["name"] = $object["option"];
+        $listOptions[$object["id_option"]]["isCounted"] = $object["is_counted"];
+        $listOptions[$object["id_option"]]["type"] = (int)$object["type"];
+        $listOptions[$object["id_option"]]["typePrice"] = (int)$object["type_price"];
+        $listOptions[$object["id_option"]]["optionValues"][] = $value;
+    }
+
+    foreach ($listOptions as $option)
+        $options[] = $option;
+
+    return $options;
+}
+
 function getOrderItems($idOrder, $currency)
 {
     global $url_img;
 
+    $select = "sto.*, sp.code, sp.id_group, sp.curr, sp.lang, sp.img, si.picture, sp.measure, sp.name price_name";
+    if ($_SESSION["isShowOptions"])
+        $select .= ", COUNT(sop.id) count_options";
+
     $u = new seTable('shop_tovarorder', 'sto');
-    $u->select("sto.*, sp.code, sp.id_group, sp.curr, sp.lang, sp.img, si.picture, sp.measure, sp.name price_name");
+    $u->select($select);
     $u->leftjoin('shop_price sp', 'sp.id=sto.id_price');
     $u->leftjoin('shop_img si', 'si.id_price=sto.id_price AND si.`default`=1');
+    if ($_SESSION["isShowOptions"])
+        $u->innerjoin('shop_tovarorder_option sop', 'sto.id = sop.id_tovarorder');
     $u->where("id_order=?", $idOrder);
     $u->groupby('sto.id');
     $result = $u->getList();
@@ -121,12 +170,16 @@ function getOrderItems($idOrder, $currency)
             $product['price'] = (real)$item['price'];
             $product['pricePurchase'] = (real)$item['price_purchase'];
             $product['count'] = (real)$item['count'];
+            $product['countOptions'] = (int)$item['count_options'];
             $product['bonus'] = (real)$item['bonus'];
             $product['discount'] = (real)$item['discount'];
             $product['currency'] = $currency;
             $product['license'] = $item['license'];
             $product['note'] = $item['commentary'];
             $product['imageFile'] = (strpos($item['img'], '://') === false) ? $url_img . $item['lang'] . '/shopprice/' . $item['img'] : $item['img'];
+            if ($_SESSION["isShowOptions"]) {
+                $product['options'] = getOptions($product['idPrice'], $item["id"]);
+            }
             $items[] = $product;
         }
     }
@@ -160,15 +213,17 @@ if (!$u->isFindField('id_city')) {
 }
 unset($u);
 
-$u = new seTable('shop_order', 'so');
-$u->select('so.*, sto.nameitem, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) as customer, p.phone as customerPhone,
-                p.email as customerEmail,
+
+$select = 'so.*, sto.nameitem, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) as customer, p.phone as customerPhone,
+                p.email as customerEmail, 
                 c.name company, c.phone companyPhone, c.email companyEmail,
                 (SUM((sto.price-IFNULL(sto.discount, 0))*sto.count)-IFNULL(so.discount, 0)+IFNULL(so.delivery_payee, 0)) as summ,
                 sdt.name as delivery_name, sdt.note AS delivery_note,
                 sd.id_city,sd.name_recipient, sd.telnumber, sd.email, sd.calltime, sd.address, sd.postindex,
                 CONCAT_WS(" ",  pm.last_name, pm.first_name, pm.sec_name) as manager, sp.name_payment,
-                sdts.note delivery_note_add');
+                sdts.note delivery_note_add';
+$u = new seTable('shop_order', 'so');
+$u->select($select);
 $u->leftjoin('person p', 'p.id = so.id_author');
 $u->leftjoin('company c', 'c.id=so.id_company');
 $u->leftjoin('person pm', 'pm.id = so.id_admin');
@@ -207,6 +262,7 @@ if (!empty($result)) {
         $order['discountSum'] = (real)$item['discount'];
         $order['deliverySum'] = (real)$item['delivery_payee'];
         $order['note'] = htmlspecialchars_decode($item['commentary']);
+        $order['countOptions'] = (int)$item['count_options'];
 
         // информация о доставке
         $order['statusDelivery'] = $item['delivery_status'];

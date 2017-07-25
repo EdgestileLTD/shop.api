@@ -412,7 +412,8 @@ function getOptions($id, &$product)
     $u->innerJoin('shop_option_value sov', 'spo.id_option_value = sov.id');
     $u->innerJoin('shop_option so', 'sov.id_option = so.id');
     $u->where('spo.id_product = ?', $id);
-    $u->orderBy('so.sort, spo.sort');
+    $u->orderBy('so.sort');
+    $u->addOrderBy('sov.sort');
     $u->groupBy("spo.id");
 
     $objects = $u->getList();
