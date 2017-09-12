@@ -255,6 +255,13 @@ if ($isNew || !empty($ids)) {
     }
 
     setUserGroup($ids[0]);
+
+    $params = array(
+        'id' => $ids[0],
+        'token' => md5($CONFIG["DBSerial"] . $CONFIG["DBPassword"])
+    );
+    $urlSendEmail = 'http://' . $json->hostname . '/upload/saveuser.php?' . http_build_query($params);
+    $result = file_get_contents($urlSendEmail);
 }
 
 $data['id'] = $ids[0];

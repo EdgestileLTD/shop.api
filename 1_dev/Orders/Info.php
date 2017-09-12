@@ -149,7 +149,7 @@ function getOrderItems($idOrder, $currency)
     $u->leftjoin('shop_price sp', 'sp.id=sto.id_price');
     $u->leftjoin('shop_img si', 'si.id_price=sto.id_price AND si.`default`=1');
     if ($_SESSION["isShowOptions"])
-        $u->innerjoin('shop_tovarorder_option sop', 'sto.id = sop.id_tovarorder');
+        $u->leftjoin('shop_tovarorder_option sop', 'sto.id = sop.id_tovarorder');
     $u->where("id_order=?", $idOrder);
     $u->groupby('sto.id');
     $result = $u->getList();

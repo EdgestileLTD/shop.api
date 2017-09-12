@@ -236,8 +236,7 @@ if ($isNew || !empty($ids)) {
         $u->save();
     }
 
-    if (count($ids) < 2)
-        saveCompanyRequisites($ids[0], $json);
+    saveCompanyRequisites($ids[0], $json);
     if ($ids && isset($json->personalAccount))
         savePersonalAccounts($ids[0], $json->personalAccount);
     if (!empty($json->groups)) {
@@ -254,8 +253,15 @@ if ($isNew || !empty($ids)) {
             $u->where('group_id=3 AND user_id=?', $ids[0])->deletelist();
         }
     }
-    if (count($ids) < 2)
-        setUserGroup($ids[0]);
+
+    setUserGroup($ids[0]);
+
+    $params = array(
+        'id' => $ids[0],
+        'token' => md5($CONFIG["DBSerial"] . $CONFIG["DBPassword"])
+    );
+    $urlSendEmail = 'http://' . $json->hostname . '/upload/saveuser.php?' . http_build_query($params);
+    $result = file_get_contents($urlSendEmail);
 }
 
 $data['id'] = $ids[0];
