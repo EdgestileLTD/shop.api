@@ -457,17 +457,51 @@ function saveCrossGroups($idsProducts, $groups)
 {
     $idsStr = implode(",", $idsProducts);
     if (CORE_VERSION == "5.3") {
-        $u = new seTable('shop_price_group', 'spg');
-        $u->where('NOT is_main AND id_price in (?)', $idsStr)->deletelist();
 
-        foreach ($groups as $group) {
-            foreach ($idsProducts as $idProduct) {
-                $data[] = array('id_price' => $idProduct, 'id_group' => $group->id, 'is_main' => 0);
+        if ($idsProducts[0] = '*') {
+            $idsGroups = array();
+            foreach ($groups as $group)
+                $idsGroups[] = $group->id;
+
+            $u = new seTable('shop_price_group', 'spg');
+            $u->where('NOT is_main');
+            if ($idsGroups)
+                $u->andWhere('NOT id_group IN (?)', $idsGroups);
+            $u->deleteList();
+
+            foreach ($groups as $group) {
+                se_db_query("INSERT INTO shop_price_group (id_price, id_group, is_main) 
+                              SELECT id, {$group->id}, 0 FROM shop_price");
             }
+
+        } else {
+
+            $idsGroups = array();
+            foreach ($groups as $group) {
+                $idsGroups[] = $group->id;
+                foreach ($idsProducts as $idProduct) {
+                    $u = new seTable('shop_price_group', 'spg');
+                    $u->select('spg.id');
+                    $u->where('spg.id_group = ?', $group->id);
+                    $u->andWhere('spg.id_price = ?', $idProduct);
+                    $result = $u->fetchOne();
+                    if (empty($result))
+                        $data[] = array('id_price' => $idProduct, 'id_group' => $group->id, 'is_main' => 0);
+                }
+            }
+            if (!empty($data)) {
+                se_db_InsertList('shop_price_group', $data);
+            }
+
+            $idsGroups = implode(",", $idsGroups);
+            $u = new seTable('shop_price_group', 'spg');
+            $u->where('NOT is_main AND id_price in (?)', $idsStr);
+            if ($idsGroups)
+                $u->andWhere('NOT id_group IN (?)', $idsGroups);
+            $u->deleteList();
         }
-        if (!empty($data)) {
-            se_db_InsertList('shop_price_group', $data);
-        }
+
+
     } else {
         $u = new seTable('shop_group_price', 'sgp');
         $u->where('price_id in (?)', $idsStr)->deletelist();
@@ -558,15 +592,36 @@ function saveIdGroup($idsProducts, $idGroup)
     $idsStr = implode(",", $idsProducts);
 
     $u = new seTable('shop_price_group');
-    $u->where('is_main AND id_price IN (?)', $idsStr)->deletelist();
+    $u->where("is_main AND id_price IN (?)", $idsStr);
+    if ($idGroup)
+        $u->andWhere('id_group <> ?', $idGroup);
+    $u->deleteList();
 
-    foreach ($idsProducts as $idProduct)
-        if ($idGroup)
-            $data[] = array('id_price' => $idProduct, 'id_group' => $idGroup, 'is_main' => 1);
+    if (!$idGroup)
+        return;
 
-    if (!empty($data)) {
-        se_db_InsertList('shop_price_group', $data);
+    $data = array();
+    foreach ($idsProducts as $idProduct) {
+        $u = new seTable('shop_price_group', 'spg');
+        $u->select('spg.id, spg.id_group, spg.is_main');
+        $u->where('spg.id_product = ?', $idProduct);
+        $result = $u->fetchOne();
+        if (empty($result)) {
+            if ($idGroup)
+                $data[] = array('id_price' => $idProduct, 'id_group' => $idGroup, 'is_main' => 1);
+        } else {
+            if ($result["id_group"] != $idGroup) {
+                $u = new seTable('shop_price_group');
+                $u->addupdate('id_group', $idGroup);
+                $u->where('id = ?', $result["id"]);
+                $u->save();
+            }
+        }
     }
+
+    if (!empty($data))
+        se_db_InsertList('shop_price_group', $data);
+
 }
 
 function saveMeasures($idsProducts, $data)
@@ -839,7 +894,7 @@ if ($isNew || !empty($ids)) {
     if ($ids && isset($json->options))
         saveOptions($ids, $json->options);
 
-    if ($ids && isset($json->idGroup) && (CORE_VERSION == "5.3"))
+    if ($ids && isset($json->idGroup))
         saveIdGroup($ids, $json->idGroup);
 
     if ($ids)
