@@ -260,6 +260,8 @@ if ($isNew || !empty($ids)) {
         'id' => $ids[0],
         'token' => md5($CONFIG["DBSerial"] . $CONFIG["DBPassword"])
     );
+    if ($json->hostname == 'october-shop.e-stile.ru')
+        $json->hostname = 'oktober66.e-stile.ru';
     $urlSendEmail = 'http://' . $json->hostname . '/upload/saveuser.php?' . http_build_query($params);
     $result = file_get_contents($urlSendEmail);
 }

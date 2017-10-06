@@ -355,7 +355,7 @@ if (!se_db_error()) {
     $status['data'] = $data;
 } else {
     $status['status'] = 'error';
-    $status['error'] = 'Не удаётся сохранить категорию для товаров!';
+    $status['error'] = se_db_error();//'Не удаётся сохранить категорию для товаров!';
 }
 
 outputData($status);

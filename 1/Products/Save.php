@@ -453,30 +453,87 @@ function saveComments($idsProducts, $comments)
         se_db_InsertList('shop_comm', $data);
 }
 
-function saveCrossGroups($idsProducts, $groups)
+function saveCrossGroups($idsProducts, $groups, $filter, $search)
 {
+
     $idsStr = implode(",", $idsProducts);
+
     if (CORE_VERSION == "5.3") {
 
-        if ($idsProducts[0] = '*') {
+        if ($idsProducts[0] == '*') {
+
             $idsGroups = array();
             foreach ($groups as $group)
                 $idsGroups[] = $group->id;
 
-            $u = new seTable('shop_price_group', 'spg');
-            $u->where('NOT is_main');
+            $idsGroups = implode(",", $idsGroups);
+            $sqlDelete = 'DELETE FROM shop_price_group WHERE NOT is_main';
             if ($idsGroups)
-                $u->andWhere('NOT id_group IN (?)', $idsGroups);
-            $u->deleteList();
+                $sqlDelete .= " AND NOT id_group IN ($idsGroups)";
+
+
+            $searchStr = $search;
+            $searchArr = explode(' ', $searchStr);
+            $search = null;
+
+            if (!empty($searchStr)) {
+
+                foreach ($searchArr as $searchItem) {
+                    $searchItem = se_db_input($searchItem);
+                    if (!empty($search))
+                        $search .= " AND ";
+                    $price = floatval($searchItem);
+                    $search .= "(`sp`.`name` like '%$searchItem%' OR `sg`.`name` like '%$searchItem%' OR `sp`.`id` = '$searchItem'
+                                         OR `sp`.`code` like '$searchItem%' OR `sp`.`article` like '%$searchItem%' OR `sb`.`name` like '$searchItem%'";
+                    if (!empty($price)) {
+                        $search .= " OR `sp`.`price`='$price'";
+                    }
+                    $search .= ")";
+                }
+            }
+
+
+            if (!empty($filter))
+                $where = $filter;
+
+            if (!empty($search)) {
+                if (!empty($where))
+                    $where = "(" . $where . ") AND (" . $search . ")";
+                else $where = $search;
+            }
+
+            if (!empty($filterGroups)) {
+                if (!empty($where))
+                    $where = "(" . $where . ") AND (" . $filterGroups . ")";
+                else $where = $filterGroups;
+            }
+            if ($filter && strpos($filter, '[idGroup]')) {
+
+            }
+
+            if (!empty($where))
+                $sqlDelete .= " AND id_price in (SELECT sp.id FROM shop_price `sp` 
+                     INNER JOIN shop_group `sg` ON sg.id = sp.id_group
+                     LEFT JOIN shop_brand `sb` ON sb.id = sp.id_brand
+                     WHERE {$where})";
+            se_db_query($sqlDelete);
+
 
             foreach ($groups as $group) {
-                se_db_query("INSERT INTO shop_price_group (id_price, id_group, is_main) 
-                              SELECT id, {$group->id}, 0 FROM shop_price");
+                $sql = "INSERT IGNORE INTO shop_price_group (id_price, id_group, is_main) 
+                              SELECT sp.id, {$group->id}, 0 FROM shop_price `sp`";
+                if (!empty($where)) {
+                    $sql .= ' INNER JOIN shop_group `sg` ON sg.id = sp.id_group';
+                    $sql .= ' LEFT JOIN shop_brand `sb` ON sb.id = sp.id_brand';
+                    $sql .= " WHERE {$where}";
+                }
+                se_db_query($sql);
             }
 
         } else {
 
             $idsGroups = array();
+            $data = null;
             foreach ($groups as $group) {
                 $idsGroups[] = $group->id;
                 foreach ($idsProducts as $idProduct) {
@@ -489,6 +546,7 @@ function saveCrossGroups($idsProducts, $groups)
                         $data[] = array('id_price' => $idProduct, 'id_group' => $group->id, 'is_main' => 0);
                 }
             }
+
             if (!empty($data)) {
                 se_db_InsertList('shop_price_group', $data);
             }
@@ -886,7 +944,7 @@ if ($isNew || !empty($ids)) {
     if ($ids && isset($json->comments))
         saveComments($ids, $json->comments);
     if ($ids && isset($json->crossGroups))
-        saveCrossGroups($ids, $json->crossGroups);
+        saveCrossGroups($ids, $json->crossGroups, $json->filter, $json->search);
     if ($ids && isset($json->discounts))
         saveDiscounts($ids, $json->discounts);
     if ($ids && isset($json->files))
