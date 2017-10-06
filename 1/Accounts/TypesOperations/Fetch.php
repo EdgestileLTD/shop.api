@@ -22,4 +22,5 @@
         $status['status'] = 'error';
         $status['error'] = se_db_error();
     }
-    outputData($status); 
+
+    outputData($status);
