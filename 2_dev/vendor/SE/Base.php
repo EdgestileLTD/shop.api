@@ -2,6 +2,7 @@
 
 namespace SE;
 
+// база
 class Base
 {
     protected $result;
@@ -19,6 +20,7 @@ class Base
     protected $imageSize = 256;
     protected $imagePreviewSize = 64;
 
+    // собрать
     function __construct($input = null)
     {
         //$this->seFolder = SE_FOLDER;
@@ -28,6 +30,7 @@ class Base
         $this->contentFolder = DOCUMENT_ROOT . $this->seFolder;
     }
 
+    // в этом соединении
     public function initConnection($connection)
     {
         try {
@@ -39,6 +42,7 @@ class Base
         }
     }
 
+    // вывод
     public function output()
     {
         if (!empty($this->error) && $this->statusAnswer == 200)
@@ -61,12 +65,14 @@ class Base
         }
     }
 
+    // задать
     function __set($name, $value)
     {
         if (is_array($this->input))
             $this->input[$name] = $value;
     }
 
+    // получить
     function __get($name)
     {
         if (is_array($this->input) && isset($this->input[$name]))

@@ -42,8 +42,9 @@ class Feature extends Base
 
     private function getValues()
     {
-        $featureValue = new FeatureValue();
-        return $featureValue->fetchByIdFeature($this->input["id"]);
+        $fvalues = new FeatureValue();
+
+        return $fvalues->fetchByIdFeature($this->input["id"]);
     }
 
     protected function getAddInfo()
@@ -80,7 +81,7 @@ class Feature extends Base
                 $u->where("id_feature = ?", $idFeature)->deleteList();
             }
 
-            $data = array();
+            $data = [];
             foreach ($values as $value)
                 if (empty($value["id"]) || ($value["id"] <= 0)) {
                     $data[] = array('id_feature' => $idFeature, 'value' => $value["value"], 'color' => $value["color"],

@@ -2,9 +2,10 @@
 
 namespace SE\Shop;
 
+// геолокация-город
 class GeoCity extends Base
 {
-
+    // получить
     public function fetch()
     {
         $idCountry = $this->input["idCountry"] ? $this->input["idCountry"] : $_GET['idCountry'];

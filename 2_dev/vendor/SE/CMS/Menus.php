@@ -8,6 +8,7 @@ class Menus extends Base
     private $lang = 'ru';
     private $menulist = array('mainmenu', 'pagemenu');
 
+    // сборка
     function __construct($input)
     {
         parent::__construct($input);
@@ -39,6 +40,7 @@ class Menus extends Base
         }
     }
 
+    // предметы
     public function items(){
         $items = array();
         $mlist = glob($this->pathEdit .'menu/'. '*.json');
@@ -49,6 +51,7 @@ class Menus extends Base
         $this->result = array('items' => $items, 'count' => count($items));
     }
 
+    // получить
     public function fetch()
     {
         if ($this->input["name"]) {
@@ -60,11 +63,13 @@ class Menus extends Base
         }
     }
 
+    // информация
     public function info()
     {
 
     }
 
+    // удалить
     public function delete()
     {
         if ($this->input['name']) {
@@ -88,6 +93,7 @@ class Menus extends Base
         $this->fetch();
     }
 
+    // снять защиту с пункта
     private function unsetItem(&$items, $name) {
         $result = false;
         foreach($items as $i=>$item) {
@@ -105,6 +111,7 @@ class Menus extends Base
         return false;
     }
 
+    // получить структуру
     private function getTree($pages)
     {
         $oldLevel = 1;
@@ -149,6 +156,7 @@ class Menus extends Base
         return $thisMenu;
     }
 
+    // разобрать полученный xlm меню
     private function parseMunuXmlArr($xml)
     {
         $result = array();

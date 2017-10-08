@@ -11,8 +11,11 @@ class Payment extends Base
     public function save()
     {
         $result = parent::save();
-        if (!empty($this->input["idOrder"]))
-            Order::checkStatusOrder($this->input["idOrder"], $this->input["paymentType"]);
+        if (!empty($this->input["idOrder"]) && Order::checkStatusOrder($this->input["idOrder"], $this->input["paymentType"])) {
+            $this->input['send'] = true;
+            $this->sendMail('payuser', $this->input["idOrder"]);
+        }
+
         return $result;
     }
 
@@ -69,8 +72,7 @@ class Payment extends Base
         $u = new DB("shop_order_payee");
         $u->select("MAX(num) num");
         $u->where("sop.year = YEAR(NOW())");
-        $result = $u->fetchOne();
-        return $result["num"] + 1;
+        return $u->fetchOne()["num"] + 1;
     }
 
     protected function correctValuesBeforeSave()
@@ -82,7 +84,7 @@ class Payment extends Base
         $this->saveOrderAccount();
     }
 
-    protected function correctValuesBeforeFetch($items = array())
+    protected function correctValuesBeforeFetch($items = [])
     {
         foreach ($items as &$item)
             $item["name"] = empty($item["name"]) ? "С лицевого счёта" : $item["name"];
@@ -91,7 +93,6 @@ class Payment extends Base
 
     private function saveOrderAccount()
     {
-        $orderId = $this->input["idOrder"];
         if ($this->input["idUserAccountOut"]) {
             $u = new DB('se_user_account', 'sua');
             $u->where('id = ?', $this->input["idUserAccountOut"])->deleteList();
@@ -105,7 +106,6 @@ class Payment extends Base
             $data["userId"] = $this->input["idAuthor"];
             $data["companyId"] = $this->input["idCompany"];
             $data["datePayee"] = date("Y-m-d");
-            $data["orderId"] = $orderId;
             $data["operation"] = 1;
             $data["inPayee"] = $this->input["amount"];
             $document = null;
@@ -122,10 +122,8 @@ class Payment extends Base
             $data["userId"] = $this->input["idAuthor"];
             $data["companyId"] = $this->input["idCompany"];
             $data["datePayee"] = date("Y-m-d");
-            $data["orderId"] = $orderId;
             $data["operation"] = 2;
-            $data["inPayee"] = 0;
-            $data["outPayee"] = $this->input["amount"];
+            $data["outPayee"] = $this->input["orderAmount"];
             $document = 'Оплата заказа № ' . $this->input["idOrder"];
             $data["docum"] = $document;
             $u->setValuesFields($data);
@@ -135,7 +133,7 @@ class Payment extends Base
 
     protected function getAddInfo()
     {
-        $result = array();
+        $result = [];
         if ($idAuthor = $this->result["idAuthor"]) {
             $contact = new Contact();
             $result["contact"] = $contact->info($idAuthor);

@@ -9,6 +9,7 @@ class Image extends Base
     private $section;
     private $lang;
 
+    // собрать
     function __construct($input = null)
     {
         parent::__construct($input);
@@ -26,6 +27,7 @@ class Image extends Base
             mkdir($this->dir, 0700, true);
     }
 
+    // получить
     public function fetch()
     {
         if (function_exists("mb_strtolower"))
@@ -71,6 +73,7 @@ class Image extends Base
         return $listFiles;
     }
 
+    // удалить
     public function delete()
     {
         $files = $this->input["files"];
@@ -94,6 +97,7 @@ class Image extends Base
 
     }
 
+    // после
     public function post()
     {
         $countFiles = count($_FILES);
@@ -140,12 +144,14 @@ class Image extends Base
         return $items;
     }
 
+    // конвертировать имя
     private function convertName($name)
     {
         $chars = array(" ", "#", ":", "!", "+", "?", "&", "@", "~", "%");
         return str_replace($chars, "_", $name);
     }
 
+    // получить новое имя
     private function getNewName($dir, $name)
     {
         $i = 0;
@@ -157,6 +163,7 @@ class Image extends Base
         }
     }
 
+    // информация
     public function info()
     {
         $names = $this->input["listValues"];
@@ -169,6 +176,7 @@ class Image extends Base
         return $item;
     }
 
+    // проверить имена
     public function checkNames()
     {
         $items = array();

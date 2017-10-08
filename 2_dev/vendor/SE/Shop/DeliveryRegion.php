@@ -5,10 +5,12 @@ namespace SE\Shop;
 use SE\DB as seTable;
 use SE\Exception;
 
+// регионы доставки
 class DeliveryRegion extends Base
 {
     protected $tableName = "shop_delivery_region";
 
+    // получить
     public function fetch()
     {
         try {
@@ -44,6 +46,7 @@ class DeliveryRegion extends Base
         }
     }
 
+    // информация о регионе доставки
     public function info($id = NULL)
     {
         try {

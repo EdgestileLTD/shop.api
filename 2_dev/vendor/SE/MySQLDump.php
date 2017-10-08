@@ -4,6 +4,7 @@ namespace SE;
 
 use \PDO as PDO;
 
+// MySQL свалка
 class MySQLDump
 {
     const MAX_SQL_SIZE = 1e6;
@@ -25,6 +26,7 @@ class MySQLDump
      * @param  string filename
      * @return void
      */
+    // сохранить
     public function save($file)
     {
         $handle = strcasecmp(substr($file, -3), '.gz') ? fopen($file, 'wb') : gzopen($file, 'wb');
@@ -39,6 +41,7 @@ class MySQLDump
      * @param  resource
      * @return void
      */
+    // записать
     public function write($handle = NULL)
     {
         if ($handle === NULL) {
@@ -86,6 +89,7 @@ class MySQLDump
      * @param  resource
      * @return void
      */
+    // свалка таблиц
     public function dumpTable($handle, $table)
     {
         $delTable = $this->delimite($table);
@@ -168,7 +172,7 @@ class MySQLDump
         fwrite($handle, "\n");
     }
 
-
+    // удаление лимитов
     private function delimite($s)
     {
         return '`' . str_replace('`', '``', $s) . '`';

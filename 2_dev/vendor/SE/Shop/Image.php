@@ -4,14 +4,34 @@ namespace SE\Shop;
 
 use SE\DB;
 
+// отладка
+function debugging($group,$funct,$act) {    // группа_логов/функция/комент
+    // значение:  True/False (печатать/не_печатать в логи)
+
+    $print = array(
+        'funct'                     => False,   // безымянные
+    );
+
+    if($print[$group] == True) {
+        $wrLog          = __FILE__;
+        $Indentation    = str_repeat(" ", (100 - strlen($wrLog)));
+        $wrLog          = "{$wrLog} {$Indentation}| Start function: {$funct}";
+        $Indentation    = str_repeat(" ", (150 - strlen($wrLog)));
+        writeLog("{$wrLog}{$Indentation} | Act: {$act}");
+    }
+}
+
+// изображение
 class Image extends Base
 {
     private $dir;
     private $section;
     private $lang;
 
+    // сборка
     function __construct($input = null)
     {
+        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         parent::__construct($input);
 
         $this->section = !empty($this->input["section"]) ? $this->input["section"] : $_GET['section'];
@@ -26,14 +46,16 @@ class Image extends Base
             mkdir($this->dir, 0700, true);
     }
 
+    // получить
     public function fetch()
     {
+        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         if (function_exists("mb_strtolower"))
             $searchStr = mb_strtolower(trim($this->search));
         else $searchStr = strtolower(trim($this->search));
         if ($searchStr)
             $this->offset = 0;
-        $listFiles = array();
+        $listFiles = [];
         $count = 0;
         if (file_exists($this->dir) && is_dir($this->dir)) {
             $handleDir = opendir($this->dir);
@@ -48,7 +70,7 @@ class Image extends Base
                     continue;
 
                 if ($count <= $this->limit + $this->offset) {
-                    $item = array();
+                    $item = [];
                     $item["name"] = $file;
                     $item["title"] = $file;
                     $item["weight"] = number_format(filesize($this->dir . "/" . $file), 0, '', ' ');
@@ -70,12 +92,14 @@ class Image extends Base
         return $listFiles;
     }
 
+    // удалить
     public function delete()
     {
+        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $files = $this->input["files"];
 
         $isUnused = (bool) $this->input["isUnused"];
-        $usedImages = array();
+        $usedImages = [];
 
         if ($this->section == 'shopprice' && $isUnused) {
             $u = new DB('shop_price', 'sp');
@@ -145,16 +169,34 @@ class Image extends Base
         } else $this->error = "Не удаётся удалить файлы изображений!";
     }
 
+    // после
     public function post()
     {
+        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $countFiles = count($_FILES);
         $ups = 0;
-        $files = array();
-        $items = array();
+        $files = [];
+        $items = [];
 
         for ($i = 0; $i < $countFiles; $i++) {
             $file = $_FILES["file$i"]['name'];
             $uploadFile = $this->dir . '/' . $file;
+            while (file_exists($uploadFile)) {
+                $ext = end(explode('.', $file));
+                $fil = substr($file, 0, 0 - (strlen($ext) + 1));
+
+                $num = end(explode('_', $fil));
+                if ($num && is_numeric($num)) {
+                    $fil = substr($fil, 0, 0 - strlen($num));
+                    $num++;
+                    $fil .= $num;
+                } else {
+                    $fil .= '_1';
+                }
+                $file = $fil . '.' . $ext;
+                $uploadFile = $this->dir . '/' . $file;
+            }
+
             $fileTemp = $_FILES["file$i"]['tmp_name'];
             if (!getimagesize($fileTemp)) {
                 $this->error = "Ошибка! Найден файл не являющийся изображением!";
@@ -163,7 +205,7 @@ class Image extends Base
             if (!filesize($fileTemp) || move_uploaded_file($fileTemp, $uploadFile)) {
                 if (file_exists($uploadFile)) {
                     $files[] = $uploadFile;
-                    $item = array();
+                    $item = [];
                     $item["name"] = $file;
                     $item["title"] = $file;
                     $item["weight"] = number_format(filesize($uploadFile), 0, '', ' ');
@@ -187,12 +229,16 @@ class Image extends Base
         return $items;
     }
 
+    // конвертировать имя
     private function convertName($name) {
+        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $chars = array(" ", "#", ":", "!", "+", "?", "&", "@", "~", "%");
         return str_replace($chars, "_", $name);
     }
 
+    // получить новое имя
     private function getNewName($dir, $name) {
+        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $i = 0;
         $newName = $name = $this->convertName(trim($name));
         while (true) {
@@ -202,10 +248,12 @@ class Image extends Base
         }
     }
 
+    // информация
     public function info($id = NULL)
     {
+        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $names = $this->input["listValues"];
-        $newNames = array();
+        $newNames = [];
         foreach ($names as $name)
             $newNames[] = $this->getNewName($this->dir, $name);
         $item['newNames'] = $newNames;
@@ -214,12 +262,14 @@ class Image extends Base
         return $item;
     }
 
+    // проверить имена
     public function checkNames()
     {
-        $items = array();
+        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $items = [];
         $names = $this->input["names"];
         foreach ($names as $name) {
-            $item = array();
+            $item = [];
             $item['oldName'] = $name;
             $item['newName'] = $this->getNewName($this->dir, $name);
             $items[] = $item;

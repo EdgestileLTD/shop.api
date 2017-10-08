@@ -16,17 +16,20 @@ class EmailProvider extends Base
     /* @var $sendPulseApi SendPulseApi */
     private $sendPulseApi;
 
+    // сохранить
     public function save()
     {
         DB::query("UPDATE email_providers SET is_active = FALSE");
         return parent::save();
     }
 
+    // включить поставщика
     public function providerEnable()
     {
         return ($this->providerName == "sendpulse" && !empty($this->settingsProvider["SECRET"]["value"]));
     }
 
+    // информация
     public function info()
     {
         parent::info();
@@ -34,6 +37,7 @@ class EmailProvider extends Base
         return $this->result;
     }
 
+    // инициализация поставщика
     public function initProvider()
     {
         $u = new DB("email_providers");
@@ -46,6 +50,7 @@ class EmailProvider extends Base
     }
 
     /* @return SendpulseApi */
+    // отправить импульс API
     public function getInstanceSendPulseApi()
     {
         if (empty($this->settingsProvider)) return false;
@@ -55,6 +60,7 @@ class EmailProvider extends Base
         return $this->sendPulseApi;
     }
 
+    // создать адресную книгу
     public function createAddressBook($bookName)
     {
         $this->initProvider();
@@ -63,6 +69,7 @@ class EmailProvider extends Base
         }
     }
 
+    // удалить адресную книгу
     public function removeAddressBook($idBook)
     {
         $this->initProvider();
@@ -70,6 +77,7 @@ class EmailProvider extends Base
             $this->getInstanceSendPulseApi()->removeAddressBook($idBook);
     }
 
+    // добавить сообщения электронной почты
     public function addEmails($idsBooks = array(), $emails = array())
     {
         $this->initProvider();
@@ -79,6 +87,7 @@ class EmailProvider extends Base
         }
     }
 
+    // удалить сообщения эллектронной почты
     public function removeEmails($idsBooks = array(), $emails = array())
     {
         $this->initProvider();
@@ -88,6 +97,12 @@ class EmailProvider extends Base
         }
     }
 
+    // @@@@@@ @@@@@@    @@    @@  @@ @@  @@ @@    @@ @@@@@@@@ @@
+    // @@  @@ @@  @@   @@@@   @@  @@ @@  @@ @@   @@@    @@    @@
+    // @@  @@ @@  @@  @@  @@   @@@@  @@@@@@ @@  @@@@    @@    @@@@@@
+    // @@  @@ @@  @@ @@    @@   @@       @@ @@@@  @@    @@    @@  @@
+    // @@  @@ @@@@@@ @@    @@   @@       @@ @@@   @@    @@    @@@@@@
+    // получить
     public function fetch()
     {
         parent::fetch();
@@ -105,6 +120,12 @@ class EmailProvider extends Base
         }
     }
 
+    // @@  @@ @@@@@@     @@       @@      @@@@@@ @@@@@@ @@  @@ @@@@@@@@
+    // @@  @@ @@   @@   @@@@     @@@@     @@  @@ @@  @@ @@  @@    @@
+    //  @@@@  @@   @@  @@  @@   @@  @@    @@  @@ @@  @@ @@@@@@    @@
+    //   @@   @@   @@ @@@@@@@@ @@    @@   @@  @@ @@  @@     @@    @@
+    //   @@   @@@@@@  @@    @@ @@    @@   @@  @@ @@@@@@     @@    @@
+    // Удалить электронную почту из всех книг
     public function removeEmailFromAllBooks($email)
     {
         $this->initProvider();
@@ -112,6 +133,12 @@ class EmailProvider extends Base
             $this->getInstanceSendPulseApi()->removeEmailFromAllBooks($email);
     }
 
+    // @@  @@ @@@@@@ @@     @@ @@@@@@    @@    @@  @@
+    // @@ @@  @@  @@ @@@   @@@ @@  @@   @@@@   @@  @@
+    // @@@@   @@  @@ @@ @@@ @@ @@  @@  @@  @@  @@@@@@
+    // @@ @@  @@  @@ @@  @  @@ @@  @@ @@@@@@@@ @@  @@
+    // @@  @@ @@@@@@ @@     @@ @@  @@ @@    @@ @@  @@
+    // Создать кампанию
     public function createCampaign($subject, $body, $idBook, $sendDate)
     {
         $this->initProvider();
@@ -138,11 +165,13 @@ class EmailProvider extends Base
         }
     }
 
+    // получить баланс
     private function getBalance()
     {
         return (float)$this->requestSmsProviderInfo($this->result["name"], "balance");
     }
 
+    // запросить информацию смс-провайдера
     private function requestSmsProviderInfo($provider, $action, $parameters = null)
     {
         $url = "http://" . HOSTNAME . "/lib/esp.php";

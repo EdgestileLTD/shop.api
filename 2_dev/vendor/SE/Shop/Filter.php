@@ -5,8 +5,10 @@ namespace SE\Shop;
 use SE\DB as DB;
 use SE\Exception;
 
+// фильтр
 class Filter extends Base
 {
+    // получить список фильтров
     public function fetch()
     {
         try {

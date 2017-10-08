@@ -5,12 +5,14 @@ namespace SE\Shop;
 use SE\Exception;
 use SE\DB;
 
+// геотаргетинг
 class GeoTargeting extends Base
 {
     protected $tableName = "shop_contacts";
     protected $sortBy = "sort";
     protected $sortOrder = "asc";
 
+    // получить настройки
     protected function getSettingsFetch()
     {
         return [
@@ -25,11 +27,13 @@ class GeoTargeting extends Base
         ];
     }
 
+    // получить информацию по настройкам
     protected function getSettingsInfo()
     {
         return $this->getSettingsFetch();
     }
 
+    // правильные значения перед извлечением
     protected function correctValuesBeforeFetch($items = array())
     {
         $idsCities = array();
@@ -43,6 +47,7 @@ class GeoTargeting extends Base
         return $items;
     }
 
+    // получить переменные
     private function getVariables()
     {
         $this->createDbGeoVariables();
@@ -52,6 +57,7 @@ class GeoTargeting extends Base
         return $sv->getList();
     }
 
+    // добавить полученную информацию
     protected function getAddInfo()
     {
         $result = array();
@@ -64,6 +70,7 @@ class GeoTargeting extends Base
         return $result;
     }
 
+    // создать Db гео-переменные
     private function createDbGeoVariables()
     {
         DB::query("CREATE TABLE IF NOT EXISTS `shop_geo_variables` (
@@ -82,11 +89,13 @@ class GeoTargeting extends Base
        ");
     }
 
+    // сохранить добавленную информацию
     protected function saveAddInfo()
     {
         return $this->saveContactGeo() && $this->saveVariables();
     }
 
+    // сохранить переменные
     private function saveVariables()
     {
         $data = $this->input;
@@ -106,6 +115,7 @@ class GeoTargeting extends Base
     }
 
 
+    // сохранить гео-контакт
     private function saveContactGeo()
     {
         $data = $this->input;
@@ -125,6 +135,7 @@ class GeoTargeting extends Base
         return false;
     }
 
+    // получить IDs городов
     private function getCitiesByIds($ids = array())
     {
         $data = array('action' => 'city',
@@ -143,6 +154,7 @@ class GeoTargeting extends Base
         return array();
     }
 
+    // сохранить
     public function save()
     {
         $t = new DB('shop_contacts');

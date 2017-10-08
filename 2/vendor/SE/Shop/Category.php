@@ -12,6 +12,7 @@ class Category extends Base
     protected $sortBy = "position";
     protected $limit = null;
     protected $allowedSearch = false;
+    protected $treepath = array();
 
     private function getParentItem($item, $items)
     {
@@ -188,6 +189,33 @@ class Category extends Base
         return $result;
     }
 
+    public function getRelatedGroups($idCategory = null)
+    {
+        $result = array();
+        $id = $idCategory ? $idCategory : $this->input["id"];
+        if (!$id)
+            return $result;
+
+        $u = new DB('shop_group_related', 'sr');
+        $u->select('sg1.id id, sg1.name name');
+        //$u->select('sg1.id id1, sg2.id id2, sg1.name name1, sg2.name name2');
+        //$u->innerJoin('shop_group sg1', 'sr.id_group = sg1.id');
+        $u->innerJoin('shop_group sg1', 'sr.id_related = sg1.id');
+        $u->where('sr.id_group = ?', $id);
+        $objects = $u->getList();
+        foreach ($objects as $item) {
+            //$similar = null;
+            //$i = 1;
+            //if ($item['id1'] == $id)
+            //    $i = 2;
+            //$similar['id'] = $item['id1' . $i];
+            //$similar['name'] = $item['name1' . $i];
+            $result[] = $item;
+        }
+
+        return $result;
+    }
+
     public function getLinksGroups($idCategory = null)
     {
         $result = array();
@@ -289,6 +317,7 @@ class Category extends Base
         $result["deliveries"] = $this->getDeliveries();
         $result['linksGroups'] = $this->getLinksGroups();
         $result['parametersFilters'] = $this->getFilterParams();
+        $result['relatedGroups'] = $this->getRelatedGroups();
         $result["childs"] = $this->getChilds();
         $modf = new Modification();
         $result["modificationsGroups"] = $modf->fetch();
@@ -300,6 +329,7 @@ class Category extends Base
     private function getCustomFields()
     {
         try {
+            $this->createDbUserFields();
             $idGroup = intval($this->input["id"]);
             $u = new DB('shop_userfields', 'su');
             $u->select("cu.id, cu.id_shopgroup, cu.value, su.id id_userfield, 
@@ -328,6 +358,23 @@ class Category extends Base
         } catch (Exception $e) {
             return false;
         }
+    }
+
+    private function createDbUserFields()
+    {
+        DB::query("CREATE TABLE IF NOT EXISTS `shop_group_userfields` (
+          `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+          `id_shopgroup` int(10) UNSIGNED NOT NULL,
+          `id_userfield` int(10) UNSIGNED NOT NULL,
+          `value` text,
+          `updated_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
+          `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`),
+          KEY `FK_shop_group_userfields_id_shopgroup` (`id_shopgroup`),
+          KEY `FK_shop_group_userfields_sid_userfield` (`id_userfield`),
+          CONSTRAINT `shop_group_userfields_ibfk_1` FOREIGN KEY (`id_shopgroup`) REFERENCES `shop_group` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+          CONSTRAINT `shop_group_userfields_ibfk_2` FOREIGN KEY (`id_userfield`) REFERENCES `shop_userfields` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
     }
 
     public function save()
@@ -396,6 +443,61 @@ class Category extends Base
                 DB::insertList('shop_group_img', $data);
         } catch (Exception $e) {
             $this->error = "Не удаётся сохранить изображения категории товара!";
+            throw new Exception($this->error);
+        }
+    }
+
+    private function saveRelatedGroups()
+    {
+        try {
+            $idsGroups = $this->input["ids"];
+            $links = $this->input["relatedGroups"];
+            $idsExists = array();
+            foreach ($links as $group)
+                if ($group["id"])
+                    $idsExists[] = $group["id"];
+            if (CORE_VERSION != "5.3")
+                $idsExists = array_diff($idsExists, $idsGroups);
+            $idsExistsStr = implode(",", $idsExists);
+            $idsStr = implode(",", $idsGroups);
+
+            $u = new DB('shop_group_related');
+            $u->where("`id_group` = `id_related`");
+            $u->deleteList();
+
+            if ($idsExistsStr) {
+                //$u->where("((NOT id_related IN ({$idsExistsStr})) AND id_group IN (?)) OR
+                //           ((NOT id_group IN ({$idsExistsStr})) AND id_related IN (?))", $idsStr)->deleteList();
+
+                $u->where("(NOT id_related IN ({$idsExistsStr})) AND id_group IN (?)", $idsStr);
+                $u->deleteList();
+            } else {
+                //else $u->where('id_group IN (?) OR id_acc IN (?)', $idsStr)->deleteList();
+                $u->where('id_group IN (?)', $idsStr);
+                $u->deleteList();
+            }
+            $idsExists = array();
+            if ($idsExistsStr) {
+                $u->select("id_related, id_group");
+                $u->where("(id_related IN ({$idsExistsStr})) AND id_group IN (?)", $idsStr);
+                $objects = $u->getList();
+                foreach ($objects as $item) {
+                    //$idsExists[] = $item["idGroup"];
+                    $idsExists[] = $item["idRelated"];
+                }
+            };
+            $data = array();
+            foreach ($links as $group)
+                if (empty($idsExists) || !in_array($group["id"], $idsExists))
+                    foreach ($idsGroups as $idGroup) {
+                        if ($idGroup !== $group['id'])
+                            $data[] = array('id_group' => $idGroup, 'id_related' => $group['id']);
+                    }
+            if (!empty($data)) {
+                DB::insertList('shop_group_related', $data);
+            }
+        } catch (Exception $e) {
+            $this->error = "Не удаётся сохранить похожие категории!";
             throw new Exception($this->error);
         }
     }
@@ -480,7 +582,7 @@ class Category extends Base
         try {
             $idCategory = $this->input["id"];
             $groups = $this->input["customFields"];
-            $customFields = array();
+            $customFields = [];
             foreach ($groups as $group)
                 foreach ($group["items"] as $item)
                     $customFields[] = $item;
@@ -537,24 +639,22 @@ class Category extends Base
     public function saveIdParent($id, $idParent)
     {
         try {
-            $levelIdOld = self::getLevel($id);
-            $level = 0;
-            DB::query("DELETE FROM shop_group_tree WHERE id_child = {$id}");
-
-            $sqlGroupTree = "INSERT INTO shop_group_tree (id_parent, id_child, `level`)
-                                SELECT id_parent, :id, :level FROM shop_group_tree
-                                WHERE id_child = :id_parent
-                                UNION ALL
-                                SELECT :id, :id, :level";
-            $sthGroupTree = DB::prepare($sqlGroupTree);
-            if (!empty($idParent)) {
-                $level = self::getLevel($idParent);
-                $level++;
+            $idParent = intval($idParent);
+            $u = new DB('shop_group_tree');
+            $u->select('id');
+            $u->where('id_child = ?', $id);
+            if ($idParent) {
+                $u->andWhere('id_parent = ?', $idParent);
+            } else {
+                $u->andWhere('level = 0');
             }
-            $sthGroupTree->execute(array('id_parent' => $idParent, 'id' => $id, 'level' => $level));
-            $levelIdNew = self::getLevel($id);
-            $diffLevel = $levelIdNew - $levelIdOld;
-            DB::query("UPDATE shop_group_tree SET `level` = `level` + {$diffLevel}  WHERE id_parent = {$id} AND id_child <> {$id}");
+            $answer = $u->fetchOne();
+            //if ($idParent) {
+            //    DB::query("DELETE FROM shop_group_tree WHERE id_child = {$id} AND id_parent<>{$idParent}");
+            //}
+            if (empty($answer)) {
+               $this->updateGroupTable();
+            }
         } catch (Exception $e) {
             throw new Exception("Не удаётся сохранить родителя группы!");
         }
@@ -585,9 +685,74 @@ class Category extends Base
         $this->saveImages();
         $this->saveLinksGroups();
         $this->saveParametersFilters();
-        $this->saveIdParent($this->input["id"], $this->input["upid"]);
+        $this->saveRelatedGroups();
+        if (CORE_VERSION == "5.3") {
+            //$tgroup = new Category($this->input);
+            //$group = $tgroup->info();
+            $this->saveIdParent($this->input["id"], $this->input["upid"]);
+        }
         $this->saveCustomFields();
         return true;
+    }
+
+    // Обновляем структуру баз
+    public function updateGroupTable() {
+        $sql = "CREATE TABLE IF NOT EXISTS shop_group_tree (
+            id int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+            id_parent int(10) UNSIGNED NOT NULL,
+            id_child int(10) UNSIGNED NOT NULL,
+            level tinyint(4) NOT NULL,
+            updated_at timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
+            created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE INDEX UK_shop_group_tree (id_parent, id_child),
+            CONSTRAINT FK_shop_group_tree_shop_group_id FOREIGN KEY (id_child)
+            REFERENCES shop_group (id) ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT FK_shop_group_tree_shop_group_tree_id_parent FOREIGN KEY (id_parent)
+            REFERENCES shop_group (id) ON DELETE CASCADE ON UPDATE RESTRICT
+            )
+            ENGINE = INNODB
+            CHARACTER SET utf8
+            COLLATE utf8_general_ci;";
+
+        DB::query($sql);
+
+        $this->treepath = array();
+        $tree = array();
+
+        $tbl = new DB('shop_group', 'sg');
+        $tbl->select('upid, id');
+        $list = $tbl->getList();
+        foreach($list as $it){
+            $tree[intval($it['upid'])][] = $it['id'];
+        }
+
+
+        unset($list);
+        $data = $this->addInTree($tree);
+        DB::query("TRUNCATE TABLE `shop_group_tree`");
+        writeLog($data);
+        DB::insertList('shop_group_tree', $data);
+
+    }
+
+    private function addInTree($tree , $parent = 0, $level = 0){
+        if ($level == 0) {
+            $this->treepath = array();
+        } else
+            $this->treepath[$level] = $parent;
+
+        foreach($tree[$parent] as $id) {
+            $data[] = array('id_parent'=>$id, 'id_child'=>$id, 'level'=>$level);
+            if ($level > 0)
+                for ($l=1; $l <= $level; $l++){
+                    $data[] = array('id_parent'=>$this->treepath[$l], 'id_child'=>$id, 'level'=>$level);
+                }
+            if (!empty($tree[$id])) {
+                $data = array_merge ($data, $this->addInTree($tree , $id, $level + 1));
+            }
+        }
+        return $data;
     }
 
 }

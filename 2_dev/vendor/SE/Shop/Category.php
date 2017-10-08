@@ -13,6 +13,7 @@ class Category extends Base
     protected $limit = null;
     protected $allowedSearch = false;
 
+    // получить родительский пункт
     private function getParentItem($item, $items)
     {
         foreach ($items as $it)
@@ -20,6 +21,7 @@ class Category extends Base
                 return $it;
     }
 
+    // получить имя пути
     private function getPathName($item, $items)
     {
         if (!$item["upid"])
@@ -31,6 +33,7 @@ class Category extends Base
         return $this->getPathName($parent, $items) . " / " . $item["name"];
     }
 
+    // получить патчи
     public function getPatches($items)
     {
         $result = array();
@@ -45,6 +48,7 @@ class Category extends Base
         return $result;
     }
 
+    // просмотреть полученную структуру
     private function getTreeView($items, $idParent = null)
     {
         $result = array();
@@ -57,6 +61,7 @@ class Category extends Base
         return $result;
     }
 
+    // установить id основного родителя
     private function setIdMainParent($items)
     {
         $result = array();
@@ -79,6 +84,7 @@ class Category extends Base
         return $result;
     }
 
+    // получить настройки
     protected function getSettingsFetch()
     {
         if (CORE_VERSION == "5.3") {
@@ -101,11 +107,13 @@ class Category extends Base
         return $result;
     }
 
+    // получить информацию по настройкам
     protected function getSettingsInfo()
     {
         return $this->getSettingsFetch();
     }
 
+    // информация
     public function info($id = null)
     {
         $result = parent::info();
@@ -117,6 +125,7 @@ class Category extends Base
         return $this->result;
     }
 
+    // получить правильные значения
     protected function correctValuesBeforeFetch($items = array())
     {
         if (CORE_VERSION == "5.3")
@@ -127,6 +136,7 @@ class Category extends Base
         return $result;
     }
 
+    // получить скидки
     public function getDiscounts($idCategory = null)
     {
         $result = array();
@@ -142,6 +152,7 @@ class Category extends Base
         return $u->getList();
     }
 
+    // получить изображения
     public function getImages($idCategory = null)
     {
         $result = array();
@@ -178,6 +189,7 @@ class Category extends Base
         return $result;
     }
 
+    // получить поставки
     public function getDeliveries($idCategory = null)
     {
         $result = array();
@@ -188,6 +200,7 @@ class Category extends Base
         return $result;
     }
 
+    // получить ссылки групп
     public function getLinksGroups($idCategory = null)
     {
         $result = array();
@@ -212,6 +225,7 @@ class Category extends Base
         return $result;
     }
 
+    // перевод
     private function translate($name)
     {
         if (strcmp($name, "price") === 0)
@@ -225,6 +239,7 @@ class Category extends Base
         return $name;
     }
 
+    // получить отфильтрованные параметры
     public function getFilterParams($idCategory = null)
     {
         $result = array();
@@ -254,6 +269,7 @@ class Category extends Base
     }
 
 
+    // получить детей
     protected function getChilds()
     {
         $idParent = $this->input["id"];
@@ -271,6 +287,7 @@ class Category extends Base
         return $result;
     }
 
+    // получить имя родителя
     private function getNameParent()
     {
         if (!$this->result["upid"])
@@ -282,6 +299,7 @@ class Category extends Base
         return $result["name"];
     }
 
+    // добавить полученную информацию
     protected function getAddInfo()
     {
         $result["discounts"] = $this->getDiscounts();
@@ -297,6 +315,7 @@ class Category extends Base
         return $result;
     }
 
+    // получить пользовательские поля
     private function getCustomFields()
     {
         try {
@@ -330,6 +349,7 @@ class Category extends Base
         }
     }
 
+    // сохранить
     public function save()
     {
         if (isset($this->input["codeGr"])) {
@@ -339,6 +359,7 @@ class Category extends Base
     }
 
 
+    // сохранить скидки
     private function saveDiscounts()
     {
         try {
@@ -351,6 +372,7 @@ class Category extends Base
         }
     }
 
+    // сохранить изображения
     private function saveImages()
     {
         try {
@@ -400,6 +422,7 @@ class Category extends Base
         }
     }
 
+    // сохранить ссылки групп
     private function saveLinksGroups()
     {
         try {
@@ -445,6 +468,7 @@ class Category extends Base
         }
     }
 
+    // сохранить параметры фильтров
     private function saveParametersFilters()
     {
         try {
@@ -472,6 +496,7 @@ class Category extends Base
         }
     }
 
+    // сохранить пользовательские поля
     private function saveCustomFields()
     {
         if (!isset($this->input["customFields"]) && !$this->input["customFields"])
@@ -502,6 +527,7 @@ class Category extends Base
     }
 
 
+    // получить url
     static public function getUrl($code, $id = null)
     {
         $code_n = $code;
@@ -519,6 +545,7 @@ class Category extends Base
         return uniqid();
     }
 
+    // получить уровень
     static public function getLevel($id)
     {
         $level = 0;
@@ -534,6 +561,7 @@ class Category extends Base
         return $level;
     }
 
+    // сохранить id родителя
     public function saveIdParent($id, $idParent)
     {
         try {
@@ -560,6 +588,7 @@ class Category extends Base
         }
     }
 
+    // правильные значения перед сохранением
     protected function correctValuesBeforeSave()
     {
         if (!$this->input["id"] && !$this->input["ids"] || isset($this->input["codeGr"])) {
@@ -575,6 +604,7 @@ class Category extends Base
             $this->input["active"] = $this->input["active"] ? "Y" : "N";
     }
 
+    // сохранить добавленную информацию
     protected function saveAddInfo()
     {
         $this->input["ids"] = empty($this->input["ids"]) ? array($this->input["id"]) : $this->input["ids"];

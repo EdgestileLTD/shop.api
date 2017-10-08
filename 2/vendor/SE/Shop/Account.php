@@ -12,7 +12,7 @@ class Account extends Base
 
     public function fetch()
     {
-        $items = array();
+        $items = [];
         $project = str_replace(".e-stile.ru", "", HOSTNAME);
         $items[] = array("alias" => $project, "project" => $project, "login" => $_SESSION["login"],
             "hash" => $_SESSION["hash"], "isMain" => true);

@@ -5,16 +5,18 @@ namespace SE\Shop;
 use SE\DB as DB;
 use SE\Exception;
 
-class Order extends Base
+    class Order extends Base // порядок
 {
     protected $tableName = "shop_order";
 
+    // получить от компании
     public static function fetchByCompany($idCompany)
     {
         $order = new Order(array("filters" => array("field" => "idCompany", "value" => $idCompany)));
         return $order->fetch();
     }
 
+    // проверить статус заказа
     public static function checkStatusOrder($idOrder, $paymentType = null)
     {
         $u = new DB('shop_order', 'so');
@@ -46,11 +48,13 @@ class Order extends Base
         };
     }
 
+    // получить настройки
     protected function getSettingsFind()
     {
         return array('so.id', 'so.date_order', 'so.date_payee', 'so.serial', 'so.commentary');
     }
 
+    // получить настройки
     protected function getSettingsFetch()
     {
         return array(
@@ -103,6 +107,7 @@ class Order extends Base
         );
     }
 
+    // получить информацию по настройкам
     protected function getSettingsInfo()
     {
         return array(
@@ -159,6 +164,7 @@ class Order extends Base
         );
     }
 
+    // добавить полученную информацию
     protected function getAddInfo()
     {
         $result = array();
@@ -171,6 +177,7 @@ class Order extends Base
         return $result;
     }
 
+    // получить оплаченную сумму
     private function getPaidSum()
     {
         $idOrder = $this->result["id"];
@@ -181,6 +188,7 @@ class Order extends Base
         return (real)$result['amount'];
     }
 
+    // получить ордера
     private function getOrderItems()
     {
         $idOrder = $this->result["id"];
@@ -217,19 +225,22 @@ class Order extends Base
 
     }
 
-    public function fetch()
+    // получить
+    public function fetch($isId = false)
     {
         if ($this->input['searchText'])
             $this->filters = null;
-        return parent::fetch();
+        return parent::fetch($isId);
     }
 
+    // получить плтежи
     private function getPayments()
     {
         $payment = new Payment();
         return $payment->fetchByOrder($this->input["id"]);
     }
 
+    // получить пользовательские поля
     private function getCustomFields($idOrder)
     {
         $u = new DB('shop_userfields', 'su');
@@ -258,6 +269,7 @@ class Order extends Base
         return array_values($groups);
     }
 
+    // правильные значения перед сохранением
     protected function correctValuesBeforeSave()
     {
         if (empty($this->input["id"]))
@@ -265,15 +277,17 @@ class Order extends Base
         return true;
     }
 
+    // сохранить добавленную информацию
     protected function saveAddInfo()
     {
         $this->saveItems();
         $this->saveDelivery();
-        $this->savePayments();
+        //$this->savePayments();
         $this->saveCustomFields();
         return true;
     }
 
+    // сохранить элементы
     private function saveItems()
     {
         //$o = new DB('shop_order', 'sto');
@@ -351,6 +365,7 @@ class Order extends Base
             }
     }
 
+    // сохранить пользовательские поля
     private function saveCustomFields()
     {
         if (!isset($this->input["customFields"]))
@@ -376,6 +391,7 @@ class Order extends Base
         }
     }
 
+    // сохранить доставку
     private function saveDelivery()
     {
         $input = $this->input;
@@ -392,6 +408,7 @@ class Order extends Base
         $u->save();
     }
 
+    // удалить
     public function delete()
     {
         try {

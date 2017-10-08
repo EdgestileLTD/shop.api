@@ -75,10 +75,10 @@ class Contact extends Base
         $u->addOrderBy('su.sort');
         $result = $u->getList();
 
-        $groups = array();
+        $groups = [];
         foreach ($result as $item) {
             $key = (int)$item["idGroup"];
-            $group = key_exists($key, $groups) ? $groups[$key] : array();
+            $group = key_exists($key, $groups) ? $groups[$key] : [];
             $group["id"] = $item["idGroup"];
             $group["name"] = empty($item["nameGroup"]) ? "Без категории" : $item["nameGroup"];
             if ($item['type'] == "date")
@@ -110,8 +110,7 @@ class Contact extends Base
             $contact['groups'] = $this->getGroups($contact['id']);
             $contact['companyRequisites'] = $this->getCompanyRequisites($contact['id']);
             $contact['personalAccount'] = $this->getPersonalAccount($contact['id']);
-            $accountTypeOperations = new BankAccountTypeOperation();
-            $contact['accountOperations'] = $accountTypeOperations->fetch();
+            $contact['accountOperations'] = (new BankAccountTypeOperation())->fetch();
             $contact["customFields"] = $this->getCustomFields($contact["id"]);
             if ($count = count($contact['personalAccount']))
                 $contact['balance'] = $contact['personalAccount'][$count - 1]['balance'];
@@ -125,7 +124,35 @@ class Contact extends Base
 
     public function delete()
     {
-        $emails = array();
+        $emails = [];
+        $u = new DB('se_user', 'su');
+        $u->select('su.id, count(so.id) AS cnt');
+        $u->innerJoin('shop_order so', 'so.id_author=su.id');
+        $u->where('su.id IN (?)', implode(",", $this->input["ids"]));
+        $u->andWhere("(so.is_delete <> 'Y' AND so.status <> 'N' AND so.delivery_status <> 'N')");
+        $u->groupBy('su.id');
+        $ido = $u->getList();
+        $delIds = array();
+        foreach($this->input["ids"] as $i=>$id){
+            foreach($ido as $del) {
+                if ($id ==  $del['id'] && $del['cnt'] > 0){
+                        unset($this->input["ids"][$i]);
+                        $delIds[] = $del['id'];
+                }
+
+            }
+        }
+
+        if (!empty($delIds)) {
+            $delIds = implode(',', $delIds);
+            $this->error = "Нельзя удалить контакты c ID ({$delIds}), которые содержат заказы!";
+            return new Exception($this->error);
+        }
+        DB::beginTransaction();
+        $u = new DB('shop_order');
+        $u->where('id_author IN (?)', implode(",", $this->input["ids"]));
+        $u->deleteList();
+
         $u = new DB('person');
         $u->select('email');
         $u->where('id IN (?)', implode(",", $this->input["ids"]));
@@ -134,14 +161,20 @@ class Contact extends Base
         $list = $u->getList();
         foreach ($list as $value)
             $emails[] = $value["email"];
+
         if (parent::delete()) {
             if (!empty($emails))
                 foreach($emails as $email) {
-                    $emailProvider = new EmailProvider();
-                    $emailProvider->removeEmailFromAllBooks($email);
+                    try {
+                        (new EmailProvider())->removeEmailFromAllBooks($email);
+                    } catch (Exception $e) {
+
+                    }
                 }
+            DB::commit();
             return true;
         }
+        DB::rollBack();
         return false;
     }
 
@@ -151,7 +184,7 @@ class Contact extends Base
         $u->where('user_id = ?', $id);
         $u->orderBy("date_payee");
         $result = $u->getList();
-        $account = array();
+        $account = [];
         $balance = 0;
         foreach ($result as $item) {
             $balance += ($item['inPayee'] - $item['outPayee']);
@@ -203,7 +236,7 @@ class Contact extends Base
 
     private function addInAddressBookEmail($idsContacts, $idsNewsGroups, $idsDelGroups)
     {
-        $emails = array();
+        $emails = [];
         $u = new DB('person');
         $u->select("email, concat_ws(' ', first_name, sec_name) as name");
         $u->where('id IN (?)', implode(",", $idsContacts));
@@ -216,24 +249,21 @@ class Contact extends Base
                     'email' =>$value['email'],
                     'variables'=>array('name'=>$value['name'])
                 );
+            //$emails[] = $value["email"];
         }
         if (empty($emails))
             return;
 
-        if ($idsNewsGroups && ($idsBooks = ContactCategory::getIdsBooksByIdGroups($idsNewsGroups))) {
-            $emailProvider = new EmailProvider();
-            $emailProvider->addEmails($idsBooks, $emails);
-        }
-        if ($idsDelGroups && ($idsBooks = ContactCategory::getIdsBooksByIdGroups($idsDelGroups))) {
-            $emailProvider = new EmailProvider();
-            $emailProvider->removeEmails($idsBooks, $emails);
-        }
+        if ($idsNewsGroups && ($idsBooks = ContactCategory::getIdsBooksByIdGroups($idsNewsGroups)))
+            (new EmailProvider())->addEmails($idsBooks, $emails);
+        if ($idsDelGroups && ($idsBooks = ContactCategory::getIdsBooksByIdGroups($idsDelGroups)))
+            (new EmailProvider())->removeEmails($idsBooks, $emails);
     }
 
     private function saveGroups($groups, $idsContact, $addGroup = false)
     {
         try {
-            $newIdsGroups = array();
+            $newIdsGroups = [];
             foreach ($groups as $group)
                 $newIdsGroups[] = $group["id"];
             $idsGroupsS = implode(",", $newIdsGroups);
@@ -266,8 +296,8 @@ class Contact extends Base
             $u->where("user_id IN ($idsContactsS)");
             $objects = $u->getList();
 
-            $idsExists = array();
-            //$idsGroupsNewEmail = array();
+            $idsExists = [];
+            //$idsGroupsNewEmail = [];
             foreach ($objects as $object) {
                 $idsExists[$object["userId"]][] = $object["groupId"];
             }
@@ -386,7 +416,7 @@ class Contact extends Base
         try {
             $idContact = $this->input["id"];
             $groups = $this->input["customFields"];
-            $customFields = array();
+            $customFields = [];
             foreach ($groups as $group)
                 foreach ($group["items"] as $item)
                     $customFields[] = $item;
@@ -427,7 +457,7 @@ class Contact extends Base
             $u->add_Field('price_type', 'int(10)',  '0', 1);
 
 
-            $ids = array();
+            $ids = [];
             if (empty($this->input["ids"]) && !empty($this->input["id"]))
                 $ids[] = $this->input["id"];
             else $ids = $this->input["ids"];
@@ -443,7 +473,7 @@ class Contact extends Base
                 }
             } else {
                 $u = new DB('se_user', 'su');
-                if (!empty($this->input["username"])) {
+                if (empty($this->input["username"])) {
                     $login = !empty($this->input["lastName"]) ? trim($this->input["lastName"]) : $this->input["firstName"];
                     $this->input["username"] = $this->getUserName($login, $userName, $ids[0]);
                 }
@@ -510,7 +540,7 @@ class Contact extends Base
         $fp = fopen($filePath, 'w');
         $urlFile = 'http://' . HOSTNAME . "/files/{$fileName}";
 
-        $header = array();
+        $header = [];
         $u = new DB('person', 'p');
         $u->select('p.reg_date regDateTime, su.username, p.last_name, p.first_name Name, p.sec_name patronymic, 
             p.sex gender, p.birth_date, p.email, p.phone, p.note');
@@ -522,14 +552,14 @@ class Contact extends Base
         foreach ($contacts as $contact) {
             if (!$header) {
                 $header = array_keys($contact);
-                $headerCSV = array();
+                $headerCSV = [];
                 foreach ($header as $col) {
                     $headerCSV[] = iconv('utf-8', 'CP1251', $col);
                 }
                 $list[] = $header;
                 fputcsv($fp, $headerCSV, ";");
             }
-            $out = array();
+            $out = [];
             foreach ($contact as $r)
                 $out[] = iconv('utf-8', 'CP1251', $r);
             fputcsv($fp, $out, ";");

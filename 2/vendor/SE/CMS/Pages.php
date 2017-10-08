@@ -478,9 +478,9 @@ class Pages extends Base
     private function getTree($pages)
     {
         $oldLevel = 1;
-        $thisMenu = array();
+        $thisMenu = [];
         $tmpLevel = [-1, -1, -1, -1, -1, -1];
-        $tmpNode = array();
+        $tmpNode = [];
 
         if (!empty($pages))
             foreach ($pages as $value) {

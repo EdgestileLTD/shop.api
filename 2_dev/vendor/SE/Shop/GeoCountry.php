@@ -2,9 +2,10 @@
 
 namespace SE\Shop;
 
+// геолокация-страна
 class GeoCountry extends Base
 {
-
+    // получить
     public function fetch()
     {
         $search = $this->input["searchText"];

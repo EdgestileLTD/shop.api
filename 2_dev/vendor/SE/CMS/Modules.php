@@ -7,11 +7,13 @@ class Modules extends Base
     private $root = DOCUMENT_ROOT;
     private $lang = 'ru';
 
+    // собрать
     function __construct($input)
     {
 
     }
 
+    // получить
     public function fetch()
     {
         $items = array();
@@ -25,6 +27,7 @@ class Modules extends Base
         $this->result = array('items' => $items, 'count' => count($items), 'test' => true);
     }
 
+    // получить модули
     private function getModules()
     {
         $groups = array();
@@ -87,6 +90,7 @@ class Modules extends Base
         return $groups;
     }
 
+    // получить папку модуля
     private function getFolderModule($type)
     {
         $pathalt = '/lib';

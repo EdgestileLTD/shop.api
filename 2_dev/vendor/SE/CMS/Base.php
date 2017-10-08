@@ -12,6 +12,7 @@ class Base extends CustomBase
     protected $pathEdit;
     protected $projectFolder;
 
+    // собрать
     function __construct($input)
     {
         parent::__construct($input);
@@ -23,6 +24,7 @@ class Base extends CustomBase
         //$this->siteFolder = 'www/';
     }
 
+    // разбор страницы на Json
     protected function parsePagesToJson($pageTo = 'edit')
     {
         $fileSource = $this->projectFolder . "/pages.xml";
@@ -47,6 +49,7 @@ class Base extends CustomBase
         return $pagesArr;
     }
 
+    // проанаизировать страницу на Json
     protected function parsePageToJson($name, $pageTo = 'edit')
     {
         if (!empty($name)) {
@@ -79,6 +82,7 @@ class Base extends CustomBase
         }
     }
 
+    // проанализировать полученную страницу xml
     protected function parsePageXmlArr($xml)
     {
         $data = array();
@@ -112,6 +116,7 @@ class Base extends CustomBase
         return $data;
     }
 
+    // разобрать полученный проект xml
     protected function parseProjectXmlArr($xml)
     {
         $data = array();
@@ -148,6 +153,7 @@ class Base extends CustomBase
         return $data;
     }
 
+    // разобрать полученную страницу
     protected function parseArrPage($arr)
     {
         $xml = simplexml_load_string('<?xml version="1.0" encoding="utf-8" ?><page></page>');
@@ -174,6 +180,7 @@ class Base extends CustomBase
         return $xml;
     }
 
+    // разобрать полученный проект
     protected function parseArrProject($data)
     {
         $xml = simplexml_load_string('<?xml version="1.0" encoding="utf-8" ?><site></site>');
@@ -201,6 +208,7 @@ class Base extends CustomBase
         return $xml;
     }
 
+    // задать объект
     private function setObject(&$xml, $arr)
     {
         //$xml['name'] = $arr['id'];
@@ -261,6 +269,7 @@ class Base extends CustomBase
         }
     }
 
+    // получить объект
     private function getObject($obj, $nobj = 'sections')
     {
         $arr = array();

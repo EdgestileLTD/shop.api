@@ -2,8 +2,10 @@
 
 namespace SE\Shop;
 
+// тип особенности
 class FeatureType extends Base
 {
+    // получать
     public function fetch()
     {
         $isList = $this->input["isList"];

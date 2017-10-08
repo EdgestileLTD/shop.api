@@ -13,6 +13,7 @@ class Pages extends Base
     private $isPage = true;
     private $pages = array();
 
+    // собрать
     function __construct($input)
     {
         parent::__construct($input);
@@ -28,6 +29,7 @@ class Pages extends Base
         $this->pages = $this->parsePagesToJson('edit');
     }
 
+    // удалить
     public function delete()
     {
         $this->result = array();
@@ -56,6 +58,8 @@ class Pages extends Base
         $this->info();
     }
 
+
+    // пункт
     public function items()
     {
         $items = array();
@@ -65,6 +69,7 @@ class Pages extends Base
         $this->result = array('items' => $items, 'count' => count($items));
     }
 
+    // получить
     public function fetch()
     {
         if (!empty($this->input["searchText"])) {
@@ -78,6 +83,7 @@ class Pages extends Base
 
 
 
+    // информация
     public function info()
     {
         $this->result = array();
@@ -91,6 +97,7 @@ class Pages extends Base
             return true;
         }
         if (trim($this->input["isObject"])) {
+            writeLog('Pages.php ');
             writeLog($data);
             $section = $this->getSection($data, $this->input["sectionId"]);
             $this->result = $section['objects'][$this->input["id"]];
@@ -120,6 +127,7 @@ class Pages extends Base
         $this->result = array('item' => $data, 'interface' => $interface, 'maps' => $this->getMaps());//$this->parseXmlArr($xml);
     }
 
+    // сохранить
     public function save()
     {
         $data = array();
@@ -231,6 +239,7 @@ class Pages extends Base
         $this->info();
     }
 
+    // сортировать
     public function sort()
     {
         if (file_exists($this->fileEdit)) {
@@ -241,7 +250,9 @@ class Pages extends Base
                 $tmpobj = &$this->getSection($data, $this->input["id"]);
                 $oldItem = $tmpobj['objects'][$this->input["oldIndex"]];
                 $newItem = $tmpobj['objects'][$this->input["newIndex"]];
+                writeLog('Pages.php ');
                 writeLog($oldItem);
+                writeLog('Pages.php ');
                 writeLog($newItem);
                 $tmpobj['objects'][$this->input["newIndex"]] = $oldItem;
                 $tmpobj['objects'][$this->input["oldIndex"]] = $newItem;
@@ -259,6 +270,7 @@ class Pages extends Base
 
     }
 
+    // получить раздел
     private function &getSection(&$data, $section_id)
     {
         foreach ($data['containers'] as &$item) {
@@ -270,6 +282,7 @@ class Pages extends Base
         }
     }
 
+    // новый id раздела
     private function newSectionId(&$data, $icont_id)
     {
         $max_id = 0;
@@ -288,6 +301,7 @@ class Pages extends Base
         return ($icont_id * 1000) + 1;
     }
 
+    // новый id объекта
     private function newObjectId($data, $section_id)
     {
         $max_id = 0;
@@ -306,6 +320,7 @@ class Pages extends Base
         }
     }
 
+    // получить информацию по разделу
     private function getInfoSection($section)
     {
         $result = array();
@@ -322,6 +337,7 @@ class Pages extends Base
         return $result;
     }
 
+    // пустые данные
     private function emptyData(&$data)
     {
         if (empty($data)) {
@@ -345,6 +361,7 @@ class Pages extends Base
     }
 
 
+    // информация по объекту
     private function infoObject($obj, $oarr = array())
     {
         $arr = array();
@@ -359,6 +376,7 @@ class Pages extends Base
     }
 
 
+    // получить интерфейс
     private function getInterface($type)
     {
         // Поля для раздела
@@ -482,6 +500,7 @@ class Pages extends Base
             );
     }
 
+    // получить патчи
     private function getPatches($items)
     {
         $result = array();
@@ -498,6 +517,7 @@ class Pages extends Base
     }
 
 
+    // получить структуру
     private function getTree($pages)
     {
         $oldLevel = 1;
@@ -524,6 +544,7 @@ class Pages extends Base
         return $thisMenu;
     }
 
+    // получить папку модуля
     private function getFolderModule($type)
     {
         $pathalt = '/lib';
@@ -542,6 +563,7 @@ class Pages extends Base
         return;
     }
 
+    // получить контейнеры
     private function getContainers($mapfile)
     {
         if (!$mapfile) $mapfile = 'default';
@@ -562,6 +584,7 @@ class Pages extends Base
         return $containers;
     }
 
+    // получить карты
     private function getMaps($mapfile)
     {
         $maps = glob($this->pathContent . '/skin/*.map');
@@ -572,6 +595,7 @@ class Pages extends Base
         return $result;
     }
 
+    // найти страницу
     private function isFindPage($name)
     {
         $filePages = $this->projectFolder . "/edit/pages.json";

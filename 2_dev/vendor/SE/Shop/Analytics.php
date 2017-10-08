@@ -5,6 +5,7 @@ namespace SE\Shop;
 use SE\DB;
 use SE\Exception;
 
+// аналитика
 class Analytics extends Base
 {
 
@@ -12,6 +13,7 @@ class Analytics extends Base
     private $endDate;
     private $data;
 
+    // сборка
     function __construct($input = null)
     {
         parent::__construct($input);
@@ -20,6 +22,7 @@ class Analytics extends Base
         $this->data = $this->input["data"];
     }
 
+    // информация
     public function info()
     {
         if (empty($this->data)) {
@@ -40,6 +43,7 @@ class Analytics extends Base
         return $this->result;
     }
 
+    // количество посетителей
     private function countVisitors()
     {
         try {
@@ -57,6 +61,7 @@ class Analytics extends Base
         }
     }
 
+    // сумма оплаченных заказов
     private function sumPaidOrders()
     {
         try {
@@ -76,6 +81,7 @@ class Analytics extends Base
         }
     }
 
+    // подсчеты
     private function countOrders($isPaid = false)
     {
         try {
@@ -93,6 +99,7 @@ class Analytics extends Base
         }
     }
 
+    // количество клиентов
     private function countCustomers($isPaid = false)
     {
         try {
@@ -128,6 +135,7 @@ class Analytics extends Base
         }
     }
 
+    // сумма покупки
     private function sumPurchase()
     {
         try {
@@ -148,6 +156,7 @@ class Analytics extends Base
         }
     }
 
+    // получить воронку
     private function getFunnel()
     {
         $rows = array();
@@ -240,6 +249,7 @@ class Analytics extends Base
         return null;
     }
 
+    // получить заказы на получение статистики
     private function getStatisticsOrders()
     {
         try {
@@ -259,6 +269,7 @@ class Analytics extends Base
         return null;
     }
 
+    // получить продукты
     private function getProducts()
     {
         try {

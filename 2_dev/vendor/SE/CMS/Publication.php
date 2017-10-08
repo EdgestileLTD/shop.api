@@ -11,6 +11,7 @@ class Publication extends Base
 
     }
 
+    // сохранить
     public function save()
     {
         $this->parsePagesToJson('arhiv');
@@ -43,11 +44,13 @@ class Publication extends Base
         $this->result = array('result' => $filePages);
     }
 
+    // отмена
     public function cancel()
     {
 
     }
 
+    // разобрать полученную страницу
     private function parseArrPages($pages)
     {
         $xml = simplexml_load_string('<?xml version="1.0" encoding="utf-8" ?><pages></pages>');
@@ -58,6 +61,7 @@ class Publication extends Base
 
     }
 
+    // набор страниц
     private function setPages(&$xml, $arr, $filtr = '')
     {
         if ($arr['name']) {
@@ -81,6 +85,7 @@ class Publication extends Base
         }
     }
 
+    // список меню магазина
     private function storeMenuList()
     {
         $menulist = array('mainmenu', 'pagemenu');
@@ -102,6 +107,7 @@ class Publication extends Base
         }
     }
 
+    // файл меню
     private function menuItemsFile($items, $level = 0)
     {
         $menu = "";

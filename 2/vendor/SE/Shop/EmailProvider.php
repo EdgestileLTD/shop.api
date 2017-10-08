@@ -42,13 +42,15 @@ class EmailProvider extends Base
         if ($result) {
             $this->providerName = strtolower($result["name"]);
             $this->settingsProvider = json_decode($result["settings"], 1);
+            if (empty($this->settingsProvider['ID']['value']) || empty($this->settingsProvider['SECRET']['value'])) {
+                $this->providerName = '';
+            }
         }
     }
 
     /* @return SendpulseApi */
     public function getInstanceSendPulseApi()
     {
-        if (empty($this->settingsProvider)) return false;
         if (!$this->sendPulseApi)
             $this->sendPulseApi = new SendpulseApi($this->settingsProvider["ID"]["value"],
                 $this->settingsProvider["SECRET"]["value"], "session");
@@ -58,69 +60,49 @@ class EmailProvider extends Base
     public function createAddressBook($bookName)
     {
         $this->initProvider();
-        if (!empty($this->settingsProvider) && $this->providerName == "sendpulse") {
+        if ($this->providerName == "sendpulse")
             return $this->getInstanceSendPulseApi()->createAddressBook($bookName)->id;
-        }
     }
 
     public function removeAddressBook($idBook)
     {
         $this->initProvider();
-        if (!empty($this->settingsProvider) && $this->providerName == "sendpulse")
+        if ($this->providerName == "sendpulse")
             $this->getInstanceSendPulseApi()->removeAddressBook($idBook);
     }
 
-    public function addEmails($idsBooks = array(), $emails = array())
+    public function addEmails($idsBooks = [], $emails = [])
     {
         $this->initProvider();
-        if (!empty($this->settingsProvider) && $this->providerName == "sendpulse") {
+        if ($this->providerName == "sendpulse") {
             foreach ($idsBooks as $idBook)
                 $this->getInstanceSendPulseApi()->addEmails($idBook, $emails);
         }
     }
 
-    public function removeEmails($idsBooks = array(), $emails = array())
+    public function removeEmails($idsBooks = [], $emails = [])
     {
         $this->initProvider();
-        if (!empty($this->settingsProvider) && $this->providerName == "sendpulse") {
+        if ($this->providerName == "sendpulse") {
             foreach ($idsBooks as $idBook)
                 $this->getInstanceSendPulseApi()->removeEmails($idBook, $emails);
-        }
-    }
-
-    public function fetch()
-    {
-        parent::fetch();
-        foreach($this->result['items'] as &$item) {
-            if ($item['name'] == 'sendpulse') {
-                $settings = $item['settings'];
-                if (!empty($item['settings'])) {
-                    $settings = json_decode($item['settings'], true);
-                } else {
-                    $settings = array();
-                }
-                if (empty($settings['SECRET']['value']))
-                    $item['url'] = "https://sendpulse.com/ru/?ref=700621";
-            }
         }
     }
 
     public function removeEmailFromAllBooks($email)
     {
         $this->initProvider();
-        if (!empty($this->settingsProvider) && $this->providerName == "sendpulse")
+        if ($this->providerName == "sendpulse")
             $this->getInstanceSendPulseApi()->removeEmailFromAllBooks($email);
     }
 
     public function createCampaign($subject, $body, $idBook, $sendDate)
     {
         $this->initProvider();
-        $m = new Main();
-        $info = $m->info();
-
+        $info = (new Main())->info();
         $senderName = $info["shopname"];
         $senderEmail = $info["esales"];
-        if (!empty($this->settingsProvider) && $this->providerName == "sendpulse") {
+        if ($this->providerName == "sendpulse") {
             $senders = $this->getInstanceSendPulseApi()->listSenders();
             $isExist = false;
             $senderEmailDef = null;

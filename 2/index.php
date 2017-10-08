@@ -33,6 +33,7 @@ function writeLog($data)
 if (IS_EXT) {  
     require_once 'api/update.php';
     require_once 'lib/lib_function.php';
+    require_once 'lib/lib_se_function.php';
     require_once 'lib/PHPExcel.php';
     require_once 'lib/PHPExcel/Writer/Excel2007.php';
 } else {

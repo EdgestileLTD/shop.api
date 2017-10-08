@@ -2,6 +2,7 @@
 
 namespace SE\Shop;
 
+// категории новостей
 class NewsCategory extends Base
 {
     protected $tableName = "news_category";

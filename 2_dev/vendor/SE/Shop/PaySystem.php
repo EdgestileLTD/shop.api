@@ -5,6 +5,7 @@ namespace SE\Shop;
 use SE\DB as DB;
 use SE\Exception;
 
+// платежная система
 class PaySystem extends Base
 {
     protected $tableName = "shop_payment";

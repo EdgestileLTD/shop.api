@@ -10,6 +10,7 @@ class Account extends Base
     protected $tableName = "accounts";
     protected $sortOrder = "asc";
 
+    // получить
     public function fetch()
     {
         $items = array();
@@ -33,6 +34,7 @@ class Account extends Base
         }
     }
 
+    // сохранить
     public function save()
     {
         $isNew = empty($this->input["id"]);

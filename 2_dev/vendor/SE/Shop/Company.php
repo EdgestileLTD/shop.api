@@ -5,10 +5,12 @@ namespace SE\Shop;
 use SE\DB as DB;
 use SE\Exception;
 
+// компания
 class Company extends Base
 {
     protected $tableName = "company";
 
+    // получить настройки
     protected function getSettingsFetch()
     {
         return array(
@@ -23,6 +25,7 @@ class Company extends Base
         );
     }
 
+    // получить информацию по настройкам
     protected function getSettingsInfo()
     {
         return array(
@@ -42,6 +45,7 @@ class Company extends Base
         );
     }
 
+    // получить контакты
     public function getContacts($idCompany)
     {
         $u = new DB('company_person', 'cp');
@@ -52,11 +56,13 @@ class Company extends Base
         return $u->getList();
     }
 
+    // получить заказы
     public function getOrders($idCompany)
     {
         return (new Order())->fetchByCompany($idCompany);
     }
 
+    // получить пользовательские поля
     private function getCustomFields($idCompany)
     {
         $u = new DB('shop_userfields', 'su');
@@ -91,6 +97,7 @@ class Company extends Base
         return $groups;
     }
 
+    // получить добавленную информацию
     protected function getAddInfo()
     {
         $result["contacts"] = $this->getContacts($this->result["id"]);
@@ -99,6 +106,7 @@ class Company extends Base
         return $result;
     }
 
+    // сохранить пользовательские поля
     private function saveCustomFields()
     {
         if (!isset($this->input["customFields"]))
@@ -124,6 +132,7 @@ class Company extends Base
         }
     }
 
+    // сохранить контакты
     private function saveContacts()
     {
         if (!isset($this->input["contacts"]))
@@ -140,6 +149,7 @@ class Company extends Base
         }
     }
 
+    // сохранить логин
     private function saveLogin()
     {
         if (!isset($this->input["username"]))
@@ -174,6 +184,7 @@ class Company extends Base
         }
     }
 
+    // сохранить добавленную информацию
     protected function saveAddInfo()
     {
         return $this->saveLogin() && $this->saveContacts() && $this->saveCustomFields();

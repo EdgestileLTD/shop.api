@@ -8,6 +8,7 @@ use SE\Exception;
 class Auth extends Base
 {
 
+    // получить разрешение
     public function getPermission($idUser)
     {
         if (!$idUser)
@@ -27,6 +28,7 @@ class Auth extends Base
         }
     }
 
+    // получить id валюты
     private function getIdCurrency()
     {
         $u = new DB('shop_currency', 'sc');
@@ -35,6 +37,7 @@ class Auth extends Base
         return $u->fetchOne()["id"];
     }
 
+    // получить id типа цены
     private function getIdTypePrice()
     {
         $t = new DB("shop_typeprice");
@@ -43,6 +46,7 @@ class Auth extends Base
         return $t->fetchOne()["id"];
     }
 
+    // информация
     public function info($id = null)
     {
         try {
@@ -78,6 +82,7 @@ class Auth extends Base
         }
     }
 
+    // получить
     public function get()
     {
         $this->result["permissions"] = $this->getPermission($_SESSION['idUser']);

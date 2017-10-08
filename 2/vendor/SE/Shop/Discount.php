@@ -32,6 +32,14 @@ class Discount extends Base
         return $result;
     }
 
+    public function save(){
+        if (!empty($this->input['dateFrom']))
+            $this->input['dateFrom'] = date('Y-m-d H:i:s', strtotime($this->input['dateFrom']));
+        if (!empty($this->input['dateTo']))
+            $this->input['dateTo'] = date('Y-m-d H:i:s', strtotime($this->input['dateTo']));
+        parent::save();
+    }
+
     protected function saveAddInfo()
     {
         return $this->saveProducts() && $this->saveGroupsProducts() && $this->saveContacts() && $this->saveGroupsContacts() ;

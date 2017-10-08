@@ -1,6 +1,7 @@
 <?php
 
 error_reporting(E_ALL);
+// ошибка журнала
 function log_error( $num, $str, $file, $line, $context = null )
 {
     if($num > 8){

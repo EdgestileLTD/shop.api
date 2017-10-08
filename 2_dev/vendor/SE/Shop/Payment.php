@@ -4,10 +4,12 @@ namespace SE\Shop;
 
 use SE\DB as DB;
 
+// оплата
 class Payment extends Base
 {
     protected $tableName = "shop_order_payee";
 
+    // сохранить
     public function save()
     {
         $result = parent::save();
@@ -16,6 +18,7 @@ class Payment extends Base
         return $result;
     }
 
+    // получить настройки
     protected function getSettingsFetch()
     {
         return array(
@@ -39,6 +42,7 @@ class Payment extends Base
         );
     }
 
+    // получить информацию по настройкам
     protected function getSettingsInfo()
     {
         return array(
@@ -64,6 +68,7 @@ class Payment extends Base
         );
     }
 
+    // получить новый номер
     private function getNewNum()
     {
         $u = new DB("shop_order_payee");
@@ -73,6 +78,7 @@ class Payment extends Base
         return $result["num"] + 1;
     }
 
+    // правильные заначения перед сохранением
     protected function correctValuesBeforeSave()
     {
         if (empty($this->input["id"])) {
@@ -82,6 +88,7 @@ class Payment extends Base
         $this->saveOrderAccount();
     }
 
+    // правильные значения перед извлечением
     protected function correctValuesBeforeFetch($items = array())
     {
         foreach ($items as &$item)
@@ -89,6 +96,7 @@ class Payment extends Base
         return $items;
     }
 
+    // сохранить учетную запись заказа
     private function saveOrderAccount()
     {
         $orderId = $this->input["idOrder"];
@@ -133,6 +141,7 @@ class Payment extends Base
         } else $this->input["idUserAccountOut"] = 0;
     }
 
+    // добавить полученную информацию
     protected function getAddInfo()
     {
         $result = array();
@@ -147,6 +156,7 @@ class Payment extends Base
         return $result;
     }
 
+    // выбор по заказу
     public function fetchByOrder($idOrder)
     {
         $this->setFilters(array("field" => "idOrder", "value" => $idOrder));

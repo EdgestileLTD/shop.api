@@ -2,9 +2,10 @@
 
 namespace SE\Shop;
 
-
+// валютный курс
 class EnumValutes extends Base
 {
+    // получить курс валют
     public function fetch()
     {
         $data = file_get_contents("http://www.cbr.ru/scripts/XML_daily.asp");

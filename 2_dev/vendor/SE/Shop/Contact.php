@@ -12,6 +12,12 @@ class Contact extends Base
 {
     protected $tableName = "person";
 
+    // @@@@@@ @@@@@@    @@    @@  @@ @@  @@   @@  @@    @@    @@@@@@ @@@@@@@@ @@@@@@ @@@@@@ @@    @@
+    // @@  @@ @@  @@   @@@@   @@  @@ @@  @@   @@  @@   @@@@   @@        @@    @@  @@ @@  @@ @@   @@@
+    // @@  @@ @@  @@  @@  @@   @@@@  @@@@@@   @@@@@@  @@  @@  @@        @@    @@@@@@ @@  @@ @@  @@@@
+    // @@  @@ @@  @@ @@    @@   @@       @@   @@  @@ @@@@@@@@ @@        @@    @@     @@  @@ @@@@  @@
+    // @@  @@ @@@@@@ @@    @@   @@       @@   @@  @@ @@    @@ @@@@@@    @@    @@     @@@@@@ @@@   @@
+    // получить настройки
     protected function getSettingsFetch()
     {
         return array(
@@ -62,6 +68,12 @@ class Contact extends Base
         );
     }
 
+    // @@@@@@   @@@@@@ @@@@@@    @@    @@     @@@@@@   @@@@@@ @@@@@@    @@    @@@@@@
+    // @@  @@   @@  @@ @@  @@   @@@@   @@         @@   @@  @@ @@  @@   @@@@   @@  @@
+    // @@  @@   @@  @@ @@  @@  @@  @@  @@@@@@ @@@@@    @@  @@ @@  @@  @@  @@  @@@@@@
+    // @@  @@   @@  @@ @@  @@ @@    @@ @@  @@     @@   @@  @@ @@  @@ @@    @@  @@ @@
+    // @@  @@   @@  @@ @@@@@@ @@    @@ @@@@@@ @@@@@@   @@  @@ @@@@@@ @@    @@ @@  @@
+    // получить пользовательские поля
     private function getCustomFields($idContact)
     {
         $u = new DB('shop_userfields', 'su');
@@ -91,6 +103,12 @@ class Contact extends Base
     }
 
 
+    // @@    @@ @@  @@ @@@@@@@@@ @@@@@@
+    // @@   @@@ @@  @@ @@  @  @@ @@  @@
+    // @@  @@@@ @@@@@@ @@  @  @@ @@  @@
+    // @@@@  @@ @@  @@ @@@ @ @@@ @@  @@
+    // @@@   @@ @@  @@     @     @@@@@@
+    // информация
     public function info($id = null)
     {
         $id = empty($id) ? $this->input["id"] : $id;
@@ -123,6 +141,12 @@ class Contact extends Base
         return $this->result;
     }
 
+    // @@  @@ @@@@@@     @@       @@    @@@@@@ @@  @@ @@    @@ @@@@@@
+    // @@  @@ @@   @@   @@@@     @@@@   @@     @@  @@ @@   @@@ @@
+    //  @@@@  @@   @@  @@  @@   @@  @@  @@@@@@ @@@@@@ @@  @@@@ @@@@@@
+    //   @@   @@   @@ @@@@@@@@ @@    @@ @@     @@  @@ @@@@  @@ @@
+    //   @@   @@@@@@  @@    @@ @@    @@ @@@@@@ @@  @@ @@@   @@ @@@@@@
+    // удаление
     public function delete()
     {
         $emails = array();
@@ -145,6 +169,12 @@ class Contact extends Base
         return false;
     }
 
+    // @@  @@ @@  @@ @@@@@@ @@@@@@@@   @@@@@@    @@    @@@@@@ @@    @@ @@@@@@ @@
+    // @@  @@ @@  @@ @@        @@          @@   @@@@   @@  @@ @@   @@@ @@     @@
+    //  @@@@  @@@@@@ @@@@@@    @@      @@@@@   @@  @@  @@  @@ @@  @@@@ @@     @@@@@@
+    //   @@       @@ @@        @@          @@ @@@@@@@@ @@  @@ @@@@  @@ @@     @@  @@
+    //   @@       @@ @@@@@@    @@      @@@@@@ @@    @@ @@  @@ @@@   @@ @@@@@@ @@@@@@
+    // получить личную учетную запись
     private function getPersonalAccount($id)
     {
         $u = new DB('se_user_account');
@@ -161,6 +191,12 @@ class Contact extends Base
         return $account;
     }
 
+    // @@@@@@ @@@@@@ @@  @@ @@@@@    @@  @@ @@@@@@ @@     @@ @@@@@@
+    // @@  @@ @@     @@ @@  @@  @@   @@ @@  @@  @@ @@@   @@@ @@  @@
+    // @@@@@@ @@@@@@ @@@@   @@@@@    @@@@   @@  @@ @@ @@@ @@ @@  @@
+    // @@     @@     @@ @@  @@  @@   @@ @@  @@  @@ @@  @  @@ @@  @@
+    // @@     @@@@@@ @@  @@ @@@@@    @@  @@ @@@@@@ @@     @@ @@  @@
+    // получить реквизиты компании
     private function getCompanyRequisites($id)
     {
         $u = new DB('user_rekv_type', 'urt');
@@ -171,6 +207,12 @@ class Contact extends Base
         return $u->getList();
     }
 
+    // @@@@@@  @@@@@@ @@  @@ @@@@@@ @@@@@@
+    // @@      @@  @@ @@  @@ @@  @@ @@  @@
+    // @@      @@@@@@  @@@@  @@  @@ @@  @@
+    // @@      @@       @@   @@  @@ @@  @@
+    // @@      @@       @@   @@  @@ @@  @@
+    // получить группы
     private function getGroups($id)
     {
         $u = new DB('se_group', 'sg');
@@ -181,8 +223,15 @@ class Contact extends Base
     }
 
 
+    // @@@@@@@@ @@@@@@    @@    @@  @@ @@@@@@    @@    @@    @@ @@@@@@@@
+    //    @@    @@  @@   @@@@   @@  @@ @@       @@@@   @@   @@@    @@
+    //    @@    @@@@@@  @@  @@  @@@@@@ @@      @@  @@  @@  @@@@    @@
+    //    @@    @@     @@@@@@@@ @@  @@ @@     @@    @@ @@@@  @@    @@
+    //    @@    @@     @@    @@ @@  @@ @@@@@@ @@    @@ @@@   @@    @@
+    // транслит (перевод знаков в латинский алфавит)
     private function getUserName($lastName, $userName, $id = 0)
     {
+        // преобразование $userName в транслит
         if (empty($userName))
             $userName = strtolower(rus2translit($lastName));
         $username_n = $userName;
@@ -201,6 +250,12 @@ class Contact extends Base
         return uniqid();
     }
 
+    // @@@@@@ @@@@@@ @@  @@ @@@@@@@@    @@
+    // @@  @@ @@  @@ @@  @@    @@      @@@@
+    // @@  @@ @@  @@ @@@@@@    @@     @@  @@
+    // @@  @@ @@  @@     @@    @@    @@@@@@@@
+    // @@  @@ @@@@@@     @@    @@    @@    @@
+    // Добавить адрес электронной почты в адресную книгу
     private function addInAddressBookEmail($idsContacts, $idsNewsGroups, $idsDelGroups)
     {
         $emails = array();
@@ -230,6 +285,12 @@ class Contact extends Base
         }
     }
 
+    // @@@@@@ @@@@@@ @@  @@ @@@@@@   @@@@@@  @@@@@@ @@  @@ @@@@@@
+    // @@     @@  @@  @@@@  @@  @@   @@      @@  @@ @@  @@ @@  @@
+    // @@     @@  @@   @@   @@@@@@   @@      @@@@@@  @@@@  @@  @@
+    // @@     @@  @@  @@@@  @@       @@      @@       @@   @@  @@
+    // @@@@@@ @@@@@@ @@  @@ @@       @@      @@       @@   @@  @@
+    // сохранеие группы
     private function saveGroups($groups, $idsContact, $addGroup = false)
     {
         try {
@@ -301,6 +362,13 @@ class Contact extends Base
         }
     }
 
+
+    // @@@@@@ @@@@@@ @@  @@ @@@@@@   @@@@@@ @@@@@@ @@  @@ @@@@@  @@    @@ @@@@@@
+    // @@     @@  @@  @@@@  @@  @@   @@  @@ @@     @@ @@  @@  @@ @@   @@@     @@
+    // @@     @@  @@   @@   @@@@@@   @@@@@@ @@@@@@ @@@@   @@@@@  @@  @@@@ @@@@@
+    // @@     @@  @@  @@@@  @@       @@     @@     @@ @@  @@  @@ @@@@  @@     @@
+    // @@@@@@ @@@@@@ @@  @@ @@       @@     @@@@@@ @@  @@ @@@@@  @@@   @@ @@@@@@
+    // Сохранить реквизиты компании
     private function saveCompanyRequisites($id, $input)
     {
         try {
@@ -316,6 +384,13 @@ class Contact extends Base
         }
     }
 
+
+    // @@@@@@ @@@@@@ @@  @@ @@@@@@      @@    @@  @@ @@  @@
+    // @@     @@  @@  @@@@  @@  @@     @@@@   @@ @@  @@ @@
+    // @@     @@  @@   @@   @@@@@@    @@  @@  @@@@   @@@@
+    // @@     @@  @@  @@@@  @@       @@@@@@@@ @@ @@  @@ @@
+    // @@@@@@ @@@@@@ @@  @@ @@       @@    @@ @@  @@ @@  @@
+    // Сохранить личные аккаунты
     private function savePersonalAccounts($id, $accounts)
     {
         try {
@@ -344,6 +419,12 @@ class Contact extends Base
         }
     }
 
+    // @@@@@@    @@    @@@@@@     @@    @@@@@@@@ @@         @@@@@@  @@@@@@ @@  @@ @@@@@@
+    //     @@   @@@@   @@   @@   @@@@      @@    @@         @@      @@  @@ @@  @@ @@  @@
+    // @@@@@   @@  @@  @@   @@  @@  @@     @@    @@@@@@     @@      @@@@@@  @@@@  @@  @@
+    //     @@ @@@@@@@@ @@   @@ @@@@@@@@    @@    @@  @@     @@      @@       @@   @@  @@
+    // @@@@@@ @@    @@ @@@@@@  @@    @@    @@    @@@@@@     @@      @@       @@   @@  @@
+    // задать группу пользователя
     private function setUserGroup($idUser)
     {
         try {
@@ -378,11 +459,19 @@ class Contact extends Base
         }
     }
 
+    // @@@@@@ @@@@@@ @@  @@ @@@@@@   @@@@@@ @@@@@@    @@    @@     @@@@@@
+    // @@     @@  @@  @@@@  @@  @@   @@  @@ @@  @@   @@@@   @@         @@
+    // @@     @@  @@   @@   @@@@@@   @@  @@ @@  @@  @@  @@  @@@@@@ @@@@@
+    // @@     @@  @@  @@@@  @@       @@  @@ @@  @@ @@    @@ @@  @@     @@
+    // @@@@@@ @@@@@@ @@  @@ @@       @@  @@ @@@@@@ @@    @@ @@@@@@ @@@@@@
+    // сохранить пользовательские поля
     private function saveCustomFields()
     {
+        // если присутствуют нстраиваемые поля - передать правду
         if (!isset($this->input["customFields"]))
             return true;
 
+        // сохраняем информацию о контакте
         try {
             $idContact = $this->input["id"];
             $groups = $this->input["customFields"];
@@ -398,15 +487,23 @@ class Contact extends Base
             }
             return true;
         } catch (Exception $e) {
+            // ошибка сохранения
             $this->error = "Не удаётся сохранить доп. информацию о контакте!";
             throw new Exception($this->error);
         }
     }
 
 
+    // @@@@@@ @@@@@@ @@  @@ @@@@@@
+    // @@     @@  @@  @@@@  @@  @@
+    // @@     @@  @@   @@   @@@@@@
+    // @@     @@  @@  @@@@  @@
+    // @@@@@@ @@@@@@ @@  @@ @@
+    // сохранить
     public function save($contact = null)
     {
         try {
+            // добавляем группу (привязка по ids)
             if ($contact)
                 $this->input = $contact;
             if ($this->input["add"] && !empty($this->input["ids"]) && !empty($this->input["groups"])) {
@@ -421,22 +518,52 @@ class Contact extends Base
             }
 
 
+            // начать транзакцию БД
             DB::beginTransaction();
 
+            // инициализируем новую БД
             $u = new DB('person', 'p');
             $u->add_Field('price_type', 'int(10)',  '0', 1);
 
 
+            // масив индетефикаторов
             $ids = array();
+            // если ids пустой и id определен: добавляем в ids
             if (empty($this->input["ids"]) && !empty($this->input["id"]))
                 $ids[] = $this->input["id"];
             else $ids = $this->input["ids"];
+            // инициализация поля ввода нового пользователя
             $isNew = empty($ids);
+            // если присутствует логин, то выдаем логин, иначе ноль
             $userName = isset($this->input["login"]) ? $this->input["login"] : null;
+            // создаем новый контакт
             if ($isNew) {
-                $login = !empty($this->input["lastName"]) ? trim($this->input["lastName"]) : $this->input["firstName"];
+                // разбиваем ФИО на фамилию, имя, отчество
+                $lastfirstsec = explode(" ", $this->input["firstName"]);
+                if (count($lastfirstsec) == 1) {
+                    $this->input["firstName"] = $lastfirstsec[0];
+                } elseif (count($lastfirstsec) == 2) {
+                    $this->input["lastName"] = $lastfirstsec[0];
+                    $this->input["firstName"] = $lastfirstsec[1];
+                } elseif (count($lastfirstsec) == 3) {
+                    $this->input["lastName"] = $lastfirstsec[0];
+                    $this->input["firstName"] = $lastfirstsec[1];
+                    $this->input["secName"] = $lastfirstsec[2];
+                } elseif (count($lastfirstsec) > 3) {
+                    $this->input["lastName"] = $lastfirstsec[0];
+                    $this->input["firstName"] = $lastfirstsec[1];
+                    $secN = array_slice($lastfirstsec, 2);
+                    $secN = implode(" ", $secN);
+                    $this->input["secName"] = $secN;
+                } else {
+                    throw new Exception("Не удаётся сохранить контакт!");
+                }
+
+                // если ИМЯ не пустое, то удаляя пробелы в начале и конце строки выдаем ИМЯ, в ином случае передаем фамилию
+                $login = !empty($this->input["lastName"]) ? trim($this->input["lastName"]) : $this->input["firstName"]; // входной параметр
                 $this->input["username"] = $this->getUserName($login, $userName);
                 if (!empty($this->input["username"])) {
+                    // таблиблица в БД, куда передается username
                     $u = new DB('se_user', 'su');
                     $u->setValuesFields($this->input);
                     $ids[] = $u->save();
@@ -451,17 +578,20 @@ class Contact extends Base
                 $u->save();
             }
 
+            // если поле нового контакта не пустое...
             if ($isNew || !empty($ids)) {
                 if ($isNew)
                     $this->input["regDate"] = date("Y-m-d H:i:s");
                 $this->input["id"] = $ids[0];
                 if (isset($this->input["imageFile"]))
                     $this->input["avatar"] = $this->input["imageFile"];
-                $u = new DB('person', 'p');
+                $u = new DB('person', 'p'); // вписываем БД
                 $u->setValuesFields($this->input);
                 $id = $u->save($isNew);
                 if (empty($id))
                     throw new Exception("Не удаётся сохранить контакт!");
+
+                // обработать имя $this->input // explode(...)
 
                 $u = new DB('user_urid', 'uu');
                 $u->setValuesFields($this->input);
@@ -495,13 +625,21 @@ class Contact extends Base
 
     }
 
+    // @@@@@  @@  @@ @@@@@@ @@@@@@ @@@@@@ @@@@@@ @@@@@@@@
+    //     @@ @@ @@  @@     @@  @@ @@  @@ @@  @@    @@
+    // @@@@@@ @@@@   @@     @@  @@ @@  @@ @@@@@@    @@
+    //     @@ @@ @@  @@     @@  @@ @@  @@ @@        @@
+    // @@@@@  @@  @@ @@@@@@ @@  @@ @@@@@@ @@        @@
+    // экспорт
     public function export()
     {
+        // проверяем на наличие записей в id
         if (!empty($this->input["id"])) {
             $this->exportItem();
             return;
         }
 
+        // инициализируем файл экспорта
         $fileName = "export_persons.csv";
         $filePath = DOCUMENT_ROOT . "/files";
         if (!file_exists($filePath) || !is_dir($filePath))
@@ -510,21 +648,49 @@ class Contact extends Base
         $fp = fopen($filePath, 'w');
         $urlFile = 'http://' . HOSTNAME . "/files/{$fileName}";
 
+        // поднимаем записи из БД
+        $rusCols = array(
+            "regDateTime"   => "Время регистрации",
+            "username"      => "Код",
+            "lastName"      => "Фамилия",
+            "firstName"     => "Имя",
+            "secName"       => "Отчество",
+            "gender"        => "Пол",
+            "birthDate"     => "Дата рождения",
+            "email"         => "Email",
+            "phone"         => "Телефон",
+            "note"          => "Заметка"
+        );
+
         $header = array();
         $u = new DB('person', 'p');
-        $u->select('p.reg_date regDateTime, su.username, p.last_name, p.first_name Name, p.sec_name patronymic, 
+        // отбираем
+        //$u->select('p.reg_date regDateTime, su.username, p.last_name, p.first_name Name, p.sec_name patronymic,
+            //p.sex gender, p.birth_date, p.email, p.phone, p.note');
+//        $u->select('p.reg_date regDateTime, su.username, p.last_name, p.first_name, p.sec_name,
+//            p.sex gender, p.birth_date, p.email, p.phone, p.note');
+
+        $u->select('p.reg_date regDateTime, su.username, p.last_name, p.first_name, p.sec_name, 
             p.sex gender, p.birth_date, p.email, p.phone, p.note');
+
+        // сопоставляем, выводим результат
         $u->innerJoin('se_user su', 'p.id = su.id');
+        // вернуть записи из левой таблицы
         $u->leftJoin('se_user_group sug', 'p.id = sug.user_id');
+        // группируем
         $u->groupBy('p.id');
+        // сортируем
         $u->orderBy('p.id');
+        // формируем список
         $contacts = $u->getList();
+        // для каждого контакта (в случае наличия заголовка)... экспортируем
         foreach ($contacts as $contact) {
             if (!$header) {
                 $header = array_keys($contact);
                 $headerCSV = array();
                 foreach ($header as $col) {
-                    $headerCSV[] = iconv('utf-8', 'CP1251', $col);
+                    // $headerCSV[] = iconv('utf-8', 'CP1251', $col);
+                    $headerCSV[] = iconv('utf-8', 'CP1251', $rusCols[$col] ? $rusCols[$col] : $col);
                 }
                 $list[] = $header;
                 fputcsv($fp, $headerCSV, ";");
@@ -541,8 +707,15 @@ class Contact extends Base
         } else $this->result = "Не удаётся экспортировать контакты!";
     }
 
+    // @@@@@  @@  @@ @@@@@@ @@@@@@     @@  @@ @@@@@@ @@  @@ @@@@@@@@    @@    @@  @@ @@@@@@@@    @@
+    //     @@ @@ @@  @@     @@  @@     @@ @@  @@  @@ @@  @@    @@      @@@@   @@ @@     @@      @@@@
+    // @@@@@@ @@@@   @@     @@  @@     @@@@   @@  @@ @@@@@@    @@     @@  @@  @@@@      @@     @@  @@
+    //     @@ @@ @@  @@     @@  @@     @@ @@  @@  @@ @@  @@    @@    @@@@@@@@ @@ @@     @@    @@@@@@@@
+    // @@@@@  @@  @@ @@@@@@ @@  @@     @@  @@ @@@@@@ @@  @@    @@    @@    @@ @@  @@    @@    @@    @@
+    // экспорт контактА
     private function exportItem()
     {
+        // проверка параметров / библиотек
         $idContact = $this->input["id"];
         if (!$idContact) {
             $this->result = "Отсутствует параметр: id контакта!";
@@ -553,9 +726,11 @@ class Contact extends Base
             return;
         }
 
+        // инициализация контакта
         $contact = new Contact();
         $contact = $contact->info($idContact);
 
+        // задаем параметры файла
         $fileName = "export_person_{$idContact}.xlsx";
         $filePath = DOCUMENT_ROOT . "/files";
         if (!file_exists($filePath) || !is_dir($filePath))
@@ -563,6 +738,7 @@ class Contact extends Base
         $filePath .= "/{$fileName}";
         $urlFile = 'http://' . HOSTNAME . "/files/{$fileName}";
 
+        // инициализация файла
         $xls = new PHPExcel();
         $xls->setActiveSheetIndex(0);
         $sheet = $xls->getActiveSheet();
@@ -611,19 +787,68 @@ class Contact extends Base
         } else $this->result = "Не удаётся экспортировать данные контакта!";
     }
 
+    // @@@@@@ @@@@@@ @@@@@@ @@@@@@@@
+    // @@  @@ @@  @@ @@        @@
+    // @@  @@ @@  @@ @@        @@
+    // @@  @@ @@  @@ @@        @@
+    // @@  @@ @@@@@@ @@@@@@    @@
+    // пост
     public function post()
     {
         if ($items = parent::post())
             $this->import($items[0]["name"]);
     }
 
+    // @@    @@ @@     @@ @@@@@@ @@@@@@ @@@@@@ @@@@@@@@
+    // @@   @@@ @@@   @@@ @@  @@ @@  @@ @@  @@    @@
+    // @@  @@@@ @@ @@@ @@ @@  @@ @@  @@ @@@@@@    @@
+    // @@@@  @@ @@  @  @@ @@  @@ @@  @@ @@        @@
+    // @@@   @@ @@     @@ @@  @@ @@@@@@ @@        @@
+    // импорт (обновление!!)
     public function import($fileName)
     {
+        // адрес эксель файла
         $dir = DOCUMENT_ROOT . "/files";
         $filePath = $dir . "/{$fileName}";
+        // получаем массив из файла
         $contacts = $this->getArrayFromCsv($filePath);
-        foreach ($contacts as $contact)
-            $this->save($contact);
+
+        // сохранить каждый контакт
+        foreach ($contacts as $contact) {
+
+            // Словарь заголовков
+            $enCols = array(
+                "Время регистрации"     => "regDateTime",
+                "Код"                   => "username",
+                "Фамилия"               => "lastName",
+                "Имя"                   => "firstName",
+                "Отчество"              => "secName",
+                "Пол"                   => "gender",
+                "Дата рождения"         => "birthDate",
+                "Email"                 => "email",
+                "Телефон"               => "phone",
+                "Заметка"               => "note"
+            );
+
+            // замена ру-заголовков на стандартные англ-заголовки
+            $header = array_keys($contact);
+            foreach ($header as $head)
+                $headerDB[$enCols[$head] ? $enCols[$head] : $head] = $contact[$head];
+
+            // фильтрация нулевых значений даты рождения
+            if($headerDB['birthDate'] === '0000-00-00')
+                unset($headerDB['birthDate']);
+
+            // фильтрация пустых значений
+            $header = array_keys($headerDB);
+            foreach ($header as $head)
+                if($headerDB[$head] == '')
+                    unset($headerDB[$head]);
+
+            // сохранение в БД
+            $this->save($headerDB);
+        }
     }
 
 }
+

@@ -5,12 +5,14 @@ namespace SE\Shop;
 use SE\DB as DB;
 use SE\Exception;
 
+// группа пользовательских полей
 class CustomFieldGroup extends Base
 {
     protected $tableName = "shop_userfield_groups";
     protected $sortBy = "sort";
     protected $sortOrder = "asc";
 
+    // сохранить
     public function save()
     {
         $u = new DB('shop_userfield_groups');

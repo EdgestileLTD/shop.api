@@ -6,8 +6,28 @@ use SE\DB as DB;
 use SE\Exception;
 use SE\Base as CustomBase;
 
+
 class Base extends CustomBase
 {
+    // отладка
+    function debugging($group,$funct,$act) {                // группа логв / функция / комент
+        // значение:        True - печатать в логи /        False - не печатать
+
+        $print = array(
+            'funct'                                 => False,   // безымянные
+            'данные по товару'                      => False
+        );
+
+        if($print[$group] == True) {
+            $wrLog          = __FILE__;
+            $Indentation    = str_repeat(" ", (100 - strlen($wrLog)));
+            $wrLog          = "{$wrLog} {$Indentation}| Start function: {$funct}";
+            $Indentation    = str_repeat(" ", (150 - strlen($wrLog)));
+            writeLog("{$wrLog}{$Indentation} | Act: {$act}");
+        }
+    }
+
+
     protected $isTableMode = true;
     protected $limit = 100;
     protected $offset = 0;
@@ -30,8 +50,10 @@ class Base extends CustomBase
 
     private $patterns = array();
 
+    // создание
     function __construct($input = null)
     {
+        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         parent::__construct($input);
         $input = $this->input;
         $this->limit = $input["limit"] && $this->limit ? (int)$input["limit"] : $this->limit;
@@ -51,13 +73,17 @@ class Base extends CustomBase
         }
     }
 
+    // набор фильтров
     public function setFilters($filters)
     {
+        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $this->filters = empty($filters) || !is_array($filters) ? array() : $filters;
     }
 
+    // Создать таблицу для информации
     private function createTableForInfo($settings)
     {
+        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $u = new DB($this->tableName, $this->tableAlias);
         $u->select($settings["select"]);
 
@@ -77,17 +103,23 @@ class Base extends CustomBase
         return $u;
     }
 
+    // получить
     public function fetch($isId = false)
     {
+        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        // Получить настройки Fetch
         $settingsFetch = $this->getSettingsFetch();
 
         $settingsFetch["select"] = $settingsFetch["select"] ? $settingsFetch["select"] : "*";
         if ($isId) {
             $settingsFetch["select"] = $this->tableAlias . '.id';
         }
+        // Получить шаблоны по выбору
         $this->patterns = $this->getPattensBySelect($settingsFetch["select"]);
         try {
+            // Создать таблицу для информации
             $u = $this->createTableForInfo($settingsFetch);
+            // Получить поля
             $searchFields = $u->getFields();
             if (!empty($this->patterns)) {
                 $this->sortBy = key_exists($this->sortBy, $this->patterns) ?
@@ -96,8 +128,10 @@ class Base extends CustomBase
                     $searchFields[$key] = array("Field" => $field, "Type" => "text");
             }
             if (!empty($this->search) || !empty($this->filters))
+                // получит запрос
                 $u->where($this->getWhereQuery($searchFields));
             if ($this->groupBy)
+                // группа по
                 $u->groupBy($this->groupBy);
             $u->orderBy($this->sortBy, $this->sortOrder == 'desc');
 
@@ -114,12 +148,13 @@ class Base extends CustomBase
         } catch (Exception $e) {
             $this->error = "Не удаётся получить список объектов!";
         }
-
         return $this->result["items"];
     }
 
+    // информация
     public function info($id = null)
     {
+        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $id = empty($id) ? $this->input["id"] : $id;
         $this->input["id"] = $id;
         $settingsInfo = $this->getSettingsInfo();
@@ -140,13 +175,17 @@ class Base extends CustomBase
         return $this->result;
     }
 
+    // получить добавленную информацию
     protected function getAddInfo()
     {
+        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         return array();
     }
 
+    // удалить
     public function delete()
     {
+        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $this->correctAll('del');
 
 
@@ -171,7 +210,9 @@ class Base extends CustomBase
      *          * null (default) - обычный режим
      * @return void
      */
+    // исправить все
     public function correctAll($action = null){
+        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         if(isset($this->input['allMode'])){
             $this->allMode = true;
             // Сбрасываем лимиты
@@ -194,13 +235,16 @@ class Base extends CustomBase
         return true;
     }
 
+    // сохранить
     public function save()
     {
+        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
 
         try {
             $this->correctValuesBeforeSave();
             $this->correctAll();
-            writelog($this->input);
+            $this->debugging('данные по товару',__FUNCTION__.' '.__LINE__,"данные по товару 240"); // отладка
+            //writelog($this->input);
             DB::beginTransaction();
             $u = new DB($this->tableName);
             $u->setValuesFields($this->input);
@@ -219,8 +263,10 @@ class Base extends CustomBase
         }
     }
 
+    // сортировать
     public function sort()
     {
+        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         if (empty($this->tableName))
             return;
 
@@ -237,38 +283,52 @@ class Base extends CustomBase
         }
     }
 
+    // сохранить правильные значения
     protected function correctValuesBeforeSave()
     {
+        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         return true;
     }
 
+    // Правильные значения перед извлечением
     protected function correctValuesBeforeFetch($items = array())
     {
+        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         return $items;
     }
 
+    // сохранить добавленную информацию
     protected function saveAddInfo()
     {
+        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         return true;
     }
 
+    // получить настройки
     protected function getSettingsFetch()
     {
+        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         return array();
     }
 
+    // найти настройки
     protected function getSettingsFind()
     {
+        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         return array();
     }
 
+    // получить информацию по настройкам
     protected function getSettingsInfo()
     {
+        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         return array();
     }
 
+    // Получить шаблоны по выбору
     protected function getPattensBySelect($selectQuery)
     {
+        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $result = array();
         preg_match_all('/\w+[.]+\w+\s\w+/', $selectQuery, $matches);
         if (count($matches) && count($matches[0])) {
@@ -283,8 +343,10 @@ class Base extends CustomBase
         return $result;
     }
 
+    // получить запрос на поиск
     protected function getSearchQuery($searchFields = array())
     {
+        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $searchItem = trim($this->search);
         if (empty($searchItem))
             return array();
@@ -350,8 +412,10 @@ class Base extends CustomBase
         return implode(" AND ", $where);
     }
 
+    // получить запрос фильтра
     protected function getFilterQuery()
     {
+        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $where = array();
         $filters = array();
         if (!empty($this->filters["field"]))
@@ -384,8 +448,10 @@ class Base extends CustomBase
         return implode(" AND ", $where);
     }
 
+    // получить положение запроса
     protected function getWhereQuery($searchFields = array())
     {
+        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $query = null;
         $searchQuery = $this->getSearchQuery($searchFields);
         $filterQuery = $this->getFilterQuery();
@@ -399,8 +465,11 @@ class Base extends CustomBase
         return $query;
     }
 
+
+    // получить масив из Csv
     public function getArrayFromCsv($file, $csvSeparator = ";")
     {
+        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         if (!file_exists($file))
             return null;
 
@@ -428,8 +497,10 @@ class Base extends CustomBase
         return $result;
     }
 
+    // после
     public function post()
     {
+        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $countFiles = count($_FILES);
         $ups = 0;
         $items = array();
@@ -465,8 +536,10 @@ class Base extends CustomBase
         return $items;
     }
 
+    // почтовый запрос
     public function postRequest($shorturl, $data)
     {
+        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $url = "http://" . HOSTNAME . "/" . $shorturl;
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");

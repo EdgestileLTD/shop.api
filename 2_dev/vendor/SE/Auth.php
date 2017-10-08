@@ -26,7 +26,7 @@ class Auth extends Base
     public function getPermission($idUser)
     {
         if (!$idUser)
-            return array();
+            return [];
 
         try {
             $u = new DB('permission_object', 'po');
@@ -42,7 +42,7 @@ class Auth extends Base
         }
     }
 
-    public function getAuthData($data = array())
+    public function getAuthData($data = [])
     {
         $url = AUTH_SERVER . "/api/2/Auth/Register.api";
         $ch = curl_init($url);
@@ -129,6 +129,7 @@ class Auth extends Base
 
             $authData["login"] = $this->input["login"];
             $authData["hash"] = $this->input["hash"];
+            $authData["idUser"] = $data['idUser'];
             $data['config'] = $authData;
             $data['permissions'] = $this->getPermission($data['idUser']);
             $data['countSites'] = $authData['countSites'];

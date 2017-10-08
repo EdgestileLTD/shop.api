@@ -8,11 +8,11 @@ use SE\Exception;
 class Order extends Base
 {
     protected $tableName = "shop_order";
+    private $oldOrder = array();
 
     public static function fetchByCompany($idCompany)
     {
-        $order = new Order(array("filters" => array("field" => "idCompany", "value" => $idCompany)));
-        return $order->fetch();
+        return (new Order(array("filters" => array("field" => "idCompany", "value" => $idCompany))))->fetch();
     }
 
     public static function checkStatusOrder($idOrder, $paymentType = null)
@@ -43,6 +43,7 @@ class Order extends Base
             $data["id"] = $idOrder;
             $u->setValuesFields($data);
             $u->save();
+            return true;
         };
     }
 
@@ -54,7 +55,8 @@ class Order extends Base
     protected function getSettingsFetch()
     {
         return array(
-            "select" => 'so.*, IFNULL(c.name, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name)) customer, 
+            "select" => 'so.*, IFNULL(c.name, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name)) customer,
+                CONCAT_WS(" ", pm.last_name, pm.first_name, pm.sec_name) manager,
                 IFNULL(c.phone, p.phone) customer_phone, IFNULL(c.email, p.email) customer_email, 
                 (SUM((sto.price-IFNULL(sto.discount, 0))*sto.count)-IFNULL(so.discount, 0) + IFNULL(so.delivery_payee, 0)) amount, 
                 sp.name_payment name_payment_primary, spp.name_payment, sch.id_coupon id_coupon, sch.discount coupon_discount',
@@ -93,6 +95,11 @@ class Order extends Base
                     "type" => "left",
                     "table" => 'shop_coupons_history sch',
                     "condition" => 'sch.id_order = so.id'
+                ),
+                array(
+                    "type" => "left",
+                    "table" => 'person pm',
+                    "condition" => 'pm.id = so.manager_id'
                 )
             ),
             "aggregation" => array(
@@ -128,7 +135,7 @@ class Order extends Base
                 array(
                     "type" => "left",
                     "table" => 'person pm',
-                    "condition" => 'pm.id = so.id_admin'
+                    "condition" => 'pm.id = so.manager_id'
                 ),
                 array(
                     "type" => "inner",
@@ -161,7 +168,7 @@ class Order extends Base
 
     protected function getAddInfo()
     {
-        $result = array();
+        $result = [];
         $this->result["amount"] = (real)$this->result["amount"];
         $result["items"] = $this->getOrderItems();
         $result['payments'] = $this->getPayments();
@@ -192,7 +199,7 @@ class Order extends Base
         $u->groupBy('sto.id');
         $result = $u->getList();
         unset($u);
-        $items = array();
+        $items = [];
         if (!empty($result)) {
             foreach ($result as $item) {
                 if ($item['picture']) $item['img'] = $item['picture'];
@@ -201,6 +208,7 @@ class Order extends Base
                 $product['code'] = $item['code'];
                 $product['name'] = $item['nameitem'];
                 $product['originalName'] = $item['priceName'];
+                //$product['modifications'] = getModifications($item);
                 $product['article'] = $item['article'];
                 $product['measurement'] = $item['measure'];
                 $product['idGroup'] = $item['id_group'];
@@ -226,8 +234,7 @@ class Order extends Base
 
     private function getPayments()
     {
-        $payment = new Payment();
-        return $payment->fetchByOrder($this->input["id"]);
+        return (new Payment())->fetchByOrder($this->input["id"]);
     }
 
     private function getCustomFields($idOrder)
@@ -243,10 +250,10 @@ class Order extends Base
         $u->addOrderBy('su.sort');
         $result = $u->getList();
 
-        $groups = array();
+        $groups = [];
         foreach ($result as $item) {
             $key = (int)$item["idGroup"];
-            $group = key_exists($key, $groups) ? $groups[$key] : array();
+            $group = key_exists($key, $groups) ? $groups[$key] : [];
             $group["id"] = $item["idGroup"];
             $group["name"] = empty($item["nameGroup"]) ? "Без категории" : $item["nameGroup"];
             if ($item['type'] == "date")
@@ -272,6 +279,20 @@ class Order extends Base
         $this->savePayments();
         $this->saveCustomFields();
         return true;
+    }
+
+    public function save()
+    {
+
+        if (!empty($this->input["id"])) {
+            $idOrder = $this->input["id"];
+            // Получим данные статусов
+            $o = new DB('shop_order', 'so');
+            $o->select('so.status, so.delivery_status');
+            $o->where('id=?', $idOrder);
+            $this->oldOrder = $o->fetchOne();
+        }
+        parent::save();
     }
 
     private function saveItems()
@@ -349,6 +370,27 @@ class Order extends Base
                 $u->setValuesFields($p);
                 $u->save();
             }
+        if (!$idsUpdate) {
+            $codeMail = 'orderuser';
+        } else {
+            $codeMail = false;
+        }
+        $codeMailD = false;
+        if (isset($this->input['deliveryStatus']) && $this->oldOrder['deliveryStatus'] != $this->input['deliveryStatus'] ){
+            switch ($this->input['deliveryStatus']) {
+                case "P": $codeMailD = 'orderdelivP'; break;
+                case "M": $codeMailD = 'orderdelivM'; break;
+                case "Y": $codeMailD = 'orderdelivY'; break;
+            }
+            $this->sendMail($codeMailD);
+        }
+        if($this->oldOrder['status'] != $this->input['status']){
+            $codeMail = 'orduserch';
+        }
+
+        if ($codeMailD) sleep(1);
+        if ($codeMail)
+            $this->sendMail($codeMail);
     }
 
     private function saveCustomFields()
@@ -359,7 +401,7 @@ class Order extends Base
         try {
             $idOrder = $this->input["id"];
             $groups = $this->input["customFields"];
-            $customFields = array();
+            $customFields = [];
             foreach ($groups as $group)
                 foreach ($group["items"] as $item)
                     $customFields[] = $item;
@@ -390,6 +432,12 @@ class Order extends Base
         $u = new DB('shop_delivery', 'sd');
         $u->setValuesFields($input);
         $u->save();
+    }
+
+    private function savePayments()
+    {
+        $payments = $this->input["payments"];
+
     }
 
     public function delete()

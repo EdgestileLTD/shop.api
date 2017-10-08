@@ -3,11 +3,13 @@
 namespace SE\Shop;
 use SE\DB;
 
+// модификация
 class Modification extends Base
 {
     protected $tableName = "shop_modifications_group";
     protected $sortBy = "sort";
 
+    // получить натройки
 	protected function getSettingsFetch()
 	{
 		return array(
@@ -33,6 +35,7 @@ class Modification extends Base
 		);
 	}
 
+	// правильные значения перед извлечением
 	protected function correctValuesBeforeFetch($items = array())
 	{
 		$result = array();
@@ -56,6 +59,7 @@ class Modification extends Base
 		return $result;
 	}
 
+	// получить значения
 	private function getValues()
 	{
 		$u = new DB('shop_feature', 'sf');
@@ -65,11 +69,13 @@ class Modification extends Base
 		return $u->getList();
 	}
 
+	// добавить полученную информацию
 	protected function getAddInfo()
 	{
 		return array("values" => $this->getValues());
 	}
 
+	// сохранить значения
 	private function saveValues()
 	{
 		try {
@@ -81,6 +87,7 @@ class Modification extends Base
 		}
 	}
 
+	// сохранить добавленную информацию
 	protected function saveAddInfo()
 	{
 		$this->saveValues();

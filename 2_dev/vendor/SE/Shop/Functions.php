@@ -2,10 +2,10 @@
 
 namespace SE\Shop;
 
-
+// функции
 class Functions extends Base
 {
-
+    // трансляция?
     public function Translit()
     {
         $vars = $this->input["vars"];

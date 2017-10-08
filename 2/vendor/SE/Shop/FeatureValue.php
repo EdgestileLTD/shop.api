@@ -7,11 +7,12 @@ class FeatureValue extends Base
     protected $tableName = "shop_feature_value_list";
     protected $sortBy = "sort";
     protected $sortOrder = "asc";
+    protected $limit = 10000;
     
     public function fetchByIdFeature($idFeature)
     {
         if (!$idFeature)
-            return array();
+            return [];
 
         $this->setFilters(array("field" => "idFeature", "value" => $idFeature));
         return $this->fetch();

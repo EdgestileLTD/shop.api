@@ -9,7 +9,8 @@ class Brand extends Base
 {
     protected $tableName = "shop_brand";
 
-    public function fetch()
+    // получить
+    public function fetch($isId = false)
     {
         try {
             $u = new DB('shop_brand', 'sb');
@@ -76,6 +77,7 @@ class Brand extends Base
         return $this;
     }
 
+    // информация
     public function info($id = NULL)
     {
         try {
@@ -102,6 +104,7 @@ class Brand extends Base
         return $this;
     }
 
+    // получить код
     private function getCode($id, $title, $code)
     {
         if (empty($code))
@@ -123,6 +126,7 @@ class Brand extends Base
     }
 
 
+    // сохранить
     public function save()
     {
         try {

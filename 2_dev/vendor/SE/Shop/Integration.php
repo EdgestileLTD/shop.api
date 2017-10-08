@@ -5,6 +5,7 @@ namespace SE\Shop;
 use SE\DB as DB;
 use SE\Exception;
 
+// интеграция с Яндекс.Маркетом
 class Integration extends Base
 {
     // возможные типы: B, S, I, D  "(boolean, string, integer, double)"
@@ -37,7 +38,7 @@ class Integration extends Base
             }
         ]}';
 
-
+    // получить параметры
     private function getParameters($parameters)
     {
         $u = new DB('shop_integration_parameter');
@@ -54,6 +55,7 @@ class Integration extends Base
         return $parameters;
     }
 
+    // получить
     public function fetch()
     {
         try {
@@ -74,6 +76,7 @@ class Integration extends Base
         }
     }
 
+    // сохранить параметры
     private function saveParameters($parameters)
     {
         $idsStr = "";
@@ -101,6 +104,7 @@ class Integration extends Base
             DB::insertList('shop_integration_parameter', $data);
     }
 
+    // сохранить
     public function save()
     {
         try {

@@ -12,7 +12,7 @@ class Geo extends Base
         $idCity = $this->input["idCity"];
         $search = $this->input["searchText"];
         if (!$idCountry && !$idRegion && !$idCity && !$search) {
-            $this->result["items"] = array();
+            $this->result["items"] = [];
             $this->result["count"] = 0;
             return;
         }

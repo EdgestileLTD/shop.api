@@ -5,14 +5,33 @@ namespace SE\Shop;
 use SE\DB as DB;
 use SE\Exception;
 
+// отладка
+function debugging($group,$funct,$act) {    // группа логов / функция / комент
+    // значение:  True - печатать в логи /  False - не печатать
+
+    $print = array(
+        'funct'                     => False,   // безымянные
+    );
+
+    if($print[$group] == True) {
+        $wrLog          = __FILE__;
+        $Indentation    = str_repeat(" ", (100 - strlen($wrLog)));
+        $wrLog          = "{$wrLog} {$Indentation}| Start function: {$funct}";
+        $Indentation    = str_repeat(" ", (150 - strlen($wrLog)));
+        writeLog("{$wrLog}{$Indentation} | Act: {$act}");
+    }
+}
+
 class Discount extends Base
 {
     protected $tableName = "shop_discounts";
     protected $sortBy = "sort";
     protected $sortOrder = "asc";
 
+    // получить натройки
     protected function getSettingsFetch()
     {
+        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         return array(
             "select" => 'sd.*',
             "left" => array(
@@ -23,8 +42,10 @@ class Discount extends Base
         );
     }
 
+    // добавить информацию
     protected function getAddInfo()
     {
+        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $result["listGroupsProducts"] = $this->getListGroupsProducts($this->result["id"]);
         $result["listProducts"] = $this->getListProducts($this->result["id"]);
         $result['listContacts'] = $this->getListContacts($this->result["id"]);
@@ -32,12 +53,16 @@ class Discount extends Base
         return $result;
     }
 
+    // сохранить информацию
     protected function saveAddInfo()
     {
+        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         return $this->saveProducts() && $this->saveGroupsProducts() && $this->saveContacts() && $this->saveGroupsContacts() ;
     }
 
+    // получить список продуктов
     private function getListProducts($id) {
+        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         try {
             $u = new DB('shop_discount_links', 'sdl');
             $u->select('sp.id, sp.code, sp.article, sp.name, sp.price, sp.curr');
@@ -50,7 +75,9 @@ class Discount extends Base
         }
     }
 
+    // получить список групп продуктов
     private function getListGroupsProducts($id) {
+        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         try {
             $u = new DB('shop_discount_links', 'sdl');
             $u->select('sg.id, sg.code_gr, sg.name');
@@ -63,7 +90,9 @@ class Discount extends Base
         }
     }
 
+    // получить список контактов
     private function getListContacts($id) {
+        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         try {
             $u = new DB('shop_discount_links', 'sdl');
             $u->select('p.id, p.first_name, p.sec_name, p.last_name, p.email');
@@ -76,7 +105,9 @@ class Discount extends Base
         }
     }
 
+    // получить лист групп контактов
     private function getListGroupsContacts($id) {
+        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         try {
             $u = new DB('shop_discount_links', 'sdl');
             $u->select('sg.id, sg.name, sg.title');
@@ -90,15 +121,28 @@ class Discount extends Base
     }
 
 
+    // сохранить продукты
     private function saveProducts()
     {
+        debugging('funct',__FUNCTION__.' '.__LINE__,'сохраняемые в базу значения товара'); // отладка
         if (!isset($this->input["listProducts"]))
             return true;
 
         try {
-            foreach ($this->input["ids"] as $id)
+            foreach ($this->input["ids"] as $id) {
+                //writeLog($this->input["listProducts"]); // сохраняемые в базу значения товара
                 DB::saveManyToMany($id, $this->input["listProducts"],
                     array("table" => "shop_discount_links", "key" => "discount_id", "link" => "id_price"));
+            }
+            // перевод переключателя скидки (в товаре) в вкл
+            foreach ($this->input["listProducts"] as $prod) {
+                $data = array('id'=> $prod['id'], 'discount'=>'Y');
+                $u = new DB('shop_price');
+                $u->setValuesFields($data);
+                $u->save();
+            }
+
+
             return true;
         } catch (Exception $e) {
             $this->error = "Не удаётся сохранить товары для скидки!";
@@ -107,8 +151,10 @@ class Discount extends Base
 
     }
 
+    // сохранить группы продуктов
     private function saveGroupsProducts()
     {
+        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         if (!isset($this->input["listGroupsProducts"]))
             return true;
 
@@ -123,8 +169,10 @@ class Discount extends Base
         }
     }
 
+    // сохранить контакты
     private function saveContacts()
     {
+        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         if (!isset($this->input["listContacts"]))
             return true;
 
@@ -139,8 +187,10 @@ class Discount extends Base
         }
     }
 
+    // сохранить группы контактов
     private function saveGroupsContacts()
     {
+        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         if (!isset($this->input["listGroupsContacts"]))
             return true;
 

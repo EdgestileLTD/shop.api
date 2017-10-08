@@ -26,7 +26,7 @@ class Auth extends Base
     public function getPermission($idUser)
     {
         if (!$idUser)
-            return array();
+            return [];
 
         try {
             $u = new DB('permission_object', 'po');
@@ -42,7 +42,7 @@ class Auth extends Base
         }
     }
 
-    public function getAuthData($data = array())
+    public function getAuthData($data = [])
     {
         $url = AUTH_SERVER . "/api/2/Auth/Register.api";
         $ch = curl_init($url);
@@ -80,7 +80,7 @@ class Auth extends Base
                 $u->select('su.id,
                     CONCAT_WS(" ", p.last_name, CONCAT_WS(".", SUBSTR(p.first_name, 1, 1), SUBSTR(p.sec_name, 1, 1))) displayName');
                 $u->innerJoin('person p', 'p.id=su.id');
-                $u->where('is_active="Y" AND username="?"', $this->input["login"]);
+                $u->where('is_active="Y" AND username="?"', trim($this->input["login"]));
                 $u->andWhere('password="?"', strtolower($this->input["hash"]));
                 $result = $u->fetchOne();
                 if (!empty($result)) {
@@ -114,8 +114,12 @@ class Auth extends Base
                         if ($this->getMySQLVersion() < 56)
                             $this->correctFileUpdateForMySQL56($fileUpdate);
                         $query = file_get_contents($fileUpdate);
-                        DB::query($query);
-                        DB::query("UPDATE se_settings SET db_version=$i");
+                        try {
+                            DB::query($query);
+                            DB::query("UPDATE se_settings SET db_version=$i");
+                        } catch (\PDOException $e) {
+                            writeLog("Exception ERROR UPDATE {$i}.sql: ".$query);
+                        }
                     }
                 }
                 DB::setErrorMode(\PDO::ERRMODE_EXCEPTION);
@@ -123,6 +127,7 @@ class Auth extends Base
 
             $authData["login"] = $this->input["login"];
             $authData["hash"] = $this->input["hash"];
+            $authData["idUser"] = $data['idUser'];
             $data['config'] = $authData;
             $data['permissions'] = $this->getPermission($data['idUser']);
 

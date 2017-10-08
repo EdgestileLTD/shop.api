@@ -2,9 +2,10 @@
 
 namespace SE\Shop;
 
+// геолокация-регион
 class GeoRegion extends Base
 {
-
+    // получить
     public function fetch()
     {
         $ids = array();

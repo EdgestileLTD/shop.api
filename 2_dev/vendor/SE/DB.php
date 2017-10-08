@@ -45,6 +45,7 @@ class DB
 
     private $fields = array();
 
+    // сборка
     function __construct($tableName, $alias = null, $isCamelCaseMode = true)
     {
         $this->tableName = trim($tableName, "`");
@@ -52,6 +53,7 @@ class DB
         $this->isCamelCaseMode = $isCamelCaseMode;
     }
 
+    // задать
     function __set($name, $value)
     {
         if ($this->isCamelCaseMode)
@@ -59,6 +61,7 @@ class DB
         $this->dataValues[$name] = $value;
     }
 
+    // получить
     function __get($name)
     {
         if ($this->isCamelCaseMode)
@@ -67,6 +70,7 @@ class DB
             return $this->dataValues[$name];
     }
 
+    // в этом соединении
     public static function initConnection($connection)
     {
         try {
@@ -84,6 +88,7 @@ class DB
     /**
      * @param $errorMode int
      */
+    // Установить режим ошибки
     public static function setErrorMode($errorMode)
     {
         if (self::$dbh)
@@ -91,6 +96,7 @@ class DB
         else throw new Exception("The connection is not initialized!");
     }
 
+    // получить таблицы
     public static function getTables()
     {
         if (self::$tables)
@@ -104,12 +110,14 @@ class DB
         return self::$tables;
     }
 
+    // существующая таблица
     public static function existTable($tableName)
     {
         $tableName = trim($tableName, "`");
         return in_array($tableName, self::getTables());
     }
 
+    // Начать транзакцию
     public static function beginTransaction()
     {
         if (self::$dbh)
@@ -117,6 +125,7 @@ class DB
         else throw new Exception("The connection is not initialized!");
     }
 
+    // совершить
     public static function commit()
     {
         if (self::$dbh)
@@ -124,6 +133,7 @@ class DB
         else throw new Exception("The connection is not initialized!");
     }
 
+    // откат
     public static function rollBack()
     {
         if (self::$dbh)
@@ -131,6 +141,7 @@ class DB
         else throw new Exception("The connection is not initialized!");
     }
 
+    // запрос
     public static function query($statement)
     {
         if (self::$dbh) {
@@ -139,6 +150,7 @@ class DB
         } else throw new Exception("The connection is not initialized!");
     }
 
+    // соединить
     public static function exec($statement)
     {
         if (self::$dbh) {
@@ -147,6 +159,7 @@ class DB
         } else throw new Exception("The connection is not initialized!");
     }
 
+    // котировка
     public static function quote($string)
     {
         if (self::$dbh) {
@@ -154,6 +167,7 @@ class DB
         } else throw new Exception("The connection is not initialized!");
     }
 
+    // подготовить
     public static function prepare($statement)
     {
         if (self::$dbh) {
@@ -162,6 +176,7 @@ class DB
         } else throw new Exception("The connection is not initialized!");
     }
 
+    // добавить индекс
     public function add_index($field_name, $index = 1){
         if (!DB::is_index($field_name)){
             $index = ($index == 1) ? 'INDEX' : 'UNIQUE';
@@ -169,6 +184,7 @@ class DB
         }
     }
 
+    // поле
     public function is_field($field)
     {
         $sql = "SHOW COLUMNS FROM `{$this->tableName}` WHERE Field='$field'";
@@ -176,6 +192,7 @@ class DB
         return (count($flist) > 0);
     }
 
+    // индекс
     public function is_index($field_name, $name_index = ''){
         $key_index = ($name_index) ? " AND `Key_name`='{$name_index}'" : '';
         $sql = "SHOW INDEX FROM `{$this->tableName}` WHERE `Column_name` = '{$field_name}'".$key_index;
@@ -184,6 +201,7 @@ class DB
 
     }
 
+    // получить поле
     public function getField($field)
     {
         $sql = "SHOW COLUMNS FROM `{$this->tableName}` WHERE Field='{$field}'";
@@ -196,11 +214,13 @@ class DB
         }
     }
 
+    // добавить поле
     public function addField($field, $type = 'varchar(20)', $default = null, $index=0)
     {
         $this->add_field($field, $type, $default, $index);
     }
 
+    // добавить поле
     public function add_field($field, $type = 'varchar(20)', $default = null, $index=0)
     {
         if (!$this->is_field($field)) {
@@ -237,6 +257,7 @@ class DB
     }
 
 
+    // строка к случаю верблюда?
     public static function strToCamelCase($str)
     {
         $separator = '_';
@@ -244,6 +265,7 @@ class DB
         return str_replace(" ", "", $name);
     }
 
+    // подчеркнуть строку
     public static function strToUnderscore($str)
     {
         $separator = '_';
@@ -256,6 +278,7 @@ class DB
         return strtolower($result);
     }
 
+    // вставить список
     public static function insertList($tableName, $data, $isIgnoreMode = false)
     {
         if (empty($data) || !is_array($data))
@@ -293,6 +316,7 @@ class DB
         }
     }
 
+    // сохранить множество к множеству
     public static function saveManyToMany($idKey, $links = array(), $setting = array())
     {
         try {
@@ -353,6 +377,7 @@ class DB
         }
     }
 
+    // получить поля
     public function getFields()
     {
         if ($this->fields)
@@ -371,36 +396,43 @@ class DB
         return $this->fields;
     }
 
+    // получить столбцы
     public function getColumns()
     {
         return array_keys($this->getFields());
     }
 
+    // выбрать
     public function select($selectExpression)
     {
         $this->selectExpression = $selectExpression;
     }
 
+    // внутреннее соединение
     public function innerJoin($tableName, $condition = null)
     {
         $this->join(0, $tableName, $condition);
     }
 
+    // левое соединение
     public function leftJoin($tableName, $condition = null)
     {
         $this->join(1, $tableName, $condition);
     }
 
+    // правое соединение
     public function rightJoin($tableName, $condition = null)
     {
         $this->join(2, $tableName, $condition);
     }
 
+    // группа по...
     public function groupBy($field = null)
     {
         $this->groupBy = !empty($field) ? $field : $this->aliasName . ".id";
     }
 
+    // сортировать по...
     public function orderBy($field = null, $desc = false)
     {
         $field = empty($field) ? $this->aliasName . ".id" : $field;
@@ -408,16 +440,19 @@ class DB
         $this->addOrderBy($field, $desc);
     }
 
+    // добавить ордер от
     public function addOrderBy($field, $desc = false)
     {
         $this->orderBy[] = array("field" => $this->convertModelToField($field), "asc" => !$desc);
     }
 
+    // получить список
     public function getListCount()
     {
         return $this->getListAggregation("COUNT(*)");
     }
 
+    // Получить агрегацию списков
     public function getListAggregation($statement)
     {
         $sql = "SELECT {$statement} FROM (" . $this->getSelectSql(true) . ") res_count";
@@ -433,6 +468,7 @@ class DB
         }
     }
 
+    // Получить список
     public function getList($limit = null, $offset = null)
     {
         if ($limit)
@@ -460,6 +496,7 @@ class DB
         }
     }
 
+    // получить данные
     public function getInfo($id)
     {
         if (is_numeric($id))
@@ -470,17 +507,20 @@ class DB
         return null;
     }
 
+    // найти
     public function find($id)
     {
         return $this->getInfo($id);
     }
 
+    // задать предел
     public function setLimit($limit, $offset = null)
     {
         $this->offset = $offset;
         $this->limit = $limit;
     }
 
+    // а также где
     public function andWhere($where, $values = null)
     {
         if (empty($where))
@@ -498,12 +538,14 @@ class DB
         return $this;
     }
 
+    // где
     public function where($where, $values = null)
     {
         $this->whereDefinitions = null;
         return $this->andWhere($where, $values);
     }
 
+    // найти список
     public function findList($findText)
     {
         if (is_numeric($findText))
@@ -512,6 +554,7 @@ class DB
         return $this;
     }
 
+    // забрать один
     public function fetchOne()
     {
         $result = $this->getList(1);
@@ -520,17 +563,18 @@ class DB
         return null;
     }
 
+    // удалить список
     public function deleteList()
     {
         try {
             self::$lastQuery = $this->rawQuery = $query = $this->getDeleteSql();
-            writeLog($query);
             return self::$dbh->exec($query);
         } catch (\PDOException $e) {
             throw new Exception($e->getMessage());
         }
     }
 
+    // получить SQL
     public function getSql()
     {
         if (empty($this->rawQuery))
@@ -538,6 +582,7 @@ class DB
         else return $this->rawQuery;
     }
 
+    // выбрать полученную SQL
     function getSelectSql($countMode = false)
     {
         $result[] = "SELECT";
@@ -596,6 +641,7 @@ class DB
         return implode(" ", $result);
     }
 
+    // удалить полученную SQL
     function getDeleteSql()
     {
         if (empty($this->whereDefinitions))
@@ -610,6 +656,7 @@ class DB
         return implode(" ", $result);
     }
 
+    // установить значение полей
     public function setValuesFields($values)
     {
         $this->inputData = $values;
@@ -634,6 +681,7 @@ class DB
         }
     }
 
+    // сохранить
     public function save($isInsertId = false)
     {
         if (empty($this->tableName))
@@ -693,6 +741,7 @@ class DB
         }
     }
 
+    // является числовым полем
     private function isNumericField($name)
     {
         $fields = $this->getFields();
@@ -706,6 +755,7 @@ class DB
         return false;
     }
 
+    // получить значение строки
     private function getValuesString($isInsert, $isInsertId = false)
     {
         $result = array();
@@ -719,6 +769,7 @@ class DB
         return implode(", ", $result);
     }
 
+    // установить значение поля
     private function setValueField($field, $value)
     {
         $type = $field["Type"];
@@ -728,6 +779,7 @@ class DB
     }
 
     /* @var $stmt \PDOStatement */
+    // значения привязки
     private function bindValues($stmt)
     {
         $values = array_merge($this->dataValues, $this->whereValues);
@@ -741,11 +793,13 @@ class DB
         }
     }
 
+    // присоединить
     private function join($type, $tableName, $condition = null)
     {
         $this->joins[] = array("type" => $type, "name" => $tableName, "condition" => $condition);
     }
 
+    // получить псевдоним по имени таблицы
     static public function getAliasByTableName($tableName)
     {
         $result = null;
@@ -756,6 +810,7 @@ class DB
         return $result;
     }
 
+    // преобразование поля в модель
     public function convertFieldToModel($name)
     {
         if (!$this->isCamelCaseMode)
@@ -764,6 +819,7 @@ class DB
         return self::strToCamelCase($name);
     }
 
+    // конвертировать модель в поле
     public function convertModelToField($name)
     {
         if (!$this->isCamelCaseMode)

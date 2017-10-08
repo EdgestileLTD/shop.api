@@ -8,6 +8,7 @@ use SE\DB as DB;
 
 class Dump extends Base
 {
+    // информация - создать дамп базы данных
     public function info($id = NULL)
     {
         $filePath = DOCUMENT_ROOT . "/files";
@@ -31,6 +32,7 @@ class Dump extends Base
         }
     }
 
+    // после - развернуть дамп базы данных
     public function post()
     {
         $this->error = "Не удаётся развернуть дамп базы данных для вашего проекта!";

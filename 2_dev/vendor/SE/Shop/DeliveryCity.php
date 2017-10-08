@@ -5,8 +5,10 @@ namespace SE\Shop;
 use SE\DB as DB;
 use SE\Exception;
 
+// города доставки
 class DeliveryCity extends Base
 {
+    // получить
     public function fetch()
     {
         $this->result['items'] = array();

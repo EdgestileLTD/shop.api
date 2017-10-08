@@ -5,12 +5,14 @@ namespace SE\Shop;
 use SE\DB;
 use SE\Exception;
 
+// особенность?
 class Feature extends Base
 {
     protected $tableName = "shop_feature";
     protected $sortBy = "sort";
     protected $sortOrder = "asc";
 
+    // получить настройки
     protected function getSettingsFetch()
     {
         return array(
@@ -35,23 +37,27 @@ class Feature extends Base
         );
     }
 
+    // получить информацию по настройкам
     protected function getSettingsInfo()
     {
         return $this->getSettingsFetch();
     }
 
+    // получить значения
     private function getValues()
     {
         $featureValue = new FeatureValue();
         return $featureValue->fetchByIdFeature($this->input["id"]);
     }
 
+    // получить добавленную информацию
     protected function getAddInfo()
     {
         $result["values"] = $this->getValues();
         return $result;
     }
 
+    // сохранить значения
     private function saveValues()
     {
         if (!isset($this->input["values"]))
@@ -94,6 +100,7 @@ class Feature extends Base
         }
     }
 
+    // сохранить добавленную информацию
     public function saveAddInfo()
     {
         $this->saveValues();

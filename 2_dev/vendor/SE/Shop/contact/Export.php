@@ -1,5 +1,6 @@
 <?php
 
+// тип содержимого / конфидициальность / кодирование
 header('Content-Type: application/octet-stream');
 header('Content-Disposition: attachment; filename="contacts.zip"');
 header('Content-Transfer-Encoding: binary');
@@ -28,6 +29,7 @@ if (file_exists($dir))
     foreach (glob($dir . '/*') as $file)
         unlink($file);
 
+// Создать файл экспорта из запроса
 function createExportFileFromQuery($query, $objectsName, $objectName)
 {
     GLOBAL $dir, $dom, $rootDOM, $format;
