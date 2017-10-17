@@ -45,12 +45,30 @@ if ($contact["city"]) {
     $sheet->setCellValue("B$i", $contact["city"]);
     $i++;
 }
-$sheet->setCellValue("A$i", 'Адрес:');
-$sheet->setCellValue("B$i", $contact["address"]);
-$i++;
+if ($contact["address"]) {
+    $sheet->setCellValue("A$i", 'Адрес:');
+    $sheet->setCellValue("B$i", $contact["address"]);
+    $i++;
+}
 if ($contact["docSer"]) {
     $sheet->setCellValue("A$i", 'Документ:');
     $sheet->setCellValue("B$i", $contact["docSer"] . " " . $contact["docNum"] . " " . $contact["docRegistr"]);
+    $i++;
+}
+if ($contact["companyName"]) {
+    $sheet->setCellValue("A$i", 'Компания:');
+    $sheet->setCellValue("B$i", $contact["companyName"]);
+    $i++;
+}
+
+foreach ($contact["companyRequisites"] as $requisite) {
+    if ($requisite["code"] == 'inn') {
+        $sheet->setCellValue("A$i", 'ИНН:');
+        $sheet->setCellValue("B$i", $requisite["value"]);
+        $sheet->getStyle("B$i:B$i")->getNumberFormat()->setFormatCode('0');
+        $sheet->getStyle("B$i:B$i")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
+        $i++;
+    }
 }
 
 $sheet->getStyle('A1:B10')->getFont()->setSize(20);
