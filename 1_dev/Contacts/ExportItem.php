@@ -17,7 +17,12 @@ $xls = new PHPExcel();
 $xls->setActiveSheetIndex(0);
 $sheet = $xls->getActiveSheet();
 
-$sheet->setTitle('Контакт ' . $contact["fullName"] ? $contact["fullName"] : $contact["id"]);
+$sheetTitle = $contact["lastName"];
+
+if (strlen($contact["fullName"]) <= 30)
+    $sheetTitle = $contact["fullName"];
+
+$sheet->setTitle($sheetTitle);
 
 $sheet->setCellValue("A1", 'Ид. № ' . $contact["id"]);
 $sheet->getStyle('A1')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID);
@@ -45,6 +50,7 @@ if ($contact["city"]) {
     $sheet->setCellValue("B$i", $contact["city"]);
     $i++;
 }
+
 if ($contact["address"]) {
     $sheet->setCellValue("A$i", 'Адрес:');
     $sheet->setCellValue("B$i", $contact["address"]);
@@ -78,7 +84,7 @@ header("Last-Modified: " . gmdate("D,d M YH:i:s") . " GMT");
 header("Cache-Control: no-cache, must-revalidate");
 header("Pragma: no-cache");
 header("Content-type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-header("Content-Disposition: attachment; filename=order.xlsx");
+header("Content-Disposition: attachment; filename=contact#{$contact["id"]}.xlsx");
 
 $objWriter = new PHPExcel_Writer_Excel2007($xls);
 $objWriter->save('php://output');

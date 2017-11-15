@@ -35,6 +35,8 @@ if ($isNew || $u->id) {
         $u->image = $json->imageFile;
     if (isset($json->description))
         $u->text = $json->description;
+    if (isset($json->fullDescription))
+        $u->content = $json->fullDescription;
     if (isset($json->seoHeader))
         $u->title = $json->seoHeader;
     if (isset($json->seoKeywords))

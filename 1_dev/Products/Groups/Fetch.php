@@ -74,6 +74,7 @@ if (!empty($where))
 $u->orderby('position');
 
 $objects = $u->getList();
+writeLog($objects);
 foreach ($objects as $item) {
     if ($item['code_gr'] == 'parser')
         continue;
@@ -120,6 +121,7 @@ foreach ($objects as $item) {
 
 $data['count'] = sizeof($objects);
 $data['items'] = $items;
+
 
 $status = array();
 if (!se_db_error()) {

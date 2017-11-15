@@ -149,6 +149,9 @@ foreach ($fields as $key => $field)
 
 $row++;
 foreach ($products as $product) {
+
+    $product["note"] = str_replace(chr(0), ' ', $product["note"]);
+    $product["text"] = str_replace(chr(0), ' ', $product["text"]);
     $i = 0;
     if (CORE_VERSION == "5.3")
         $product["id_group"] = $product["id_group_t"];

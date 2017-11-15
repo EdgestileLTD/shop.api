@@ -1,4 +1,5 @@
 <?php
+
 if (empty($json->ids))
     $json->ids[] = $_GET['id'];
 $ids = implode(",", $json->ids);
@@ -16,6 +17,7 @@ foreach ($result as $item) {
     $brand['code'] = $item['code'];
     $brand['name'] = $item['name'];
     $brand['description'] = $item['text'];
+    $brand['fullDescription'] = $item['content'];
     $brand['imageFile'] = $item['image'];
     $brand['seoHeader'] = $item['title'];
     $brand['seoKeywords'] = $item['keywords'];

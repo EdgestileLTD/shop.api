@@ -72,7 +72,7 @@ function getSimilarGroups($id)
     $u->select('sg1.id id1, sg2.id id2, sg1.name name1, sg2.name name2');
     $u->innerJoin('shop_group sg1', 'sr.id_group = sg1.id');
     $u->innerJoin('shop_group sg2', 'sr.id_related = sg2.id');
-    $u->where('sr.id_group = ? OR sr.id_related = ?', $id);
+    $u->where('(sr.id_group = ? OR sr.id_related = ?) AND sr.type = 1', $id);
     $objects = $u->getList();
     foreach ($objects as $item) {
         $similar = null;
@@ -86,6 +86,17 @@ function getSimilarGroups($id)
 
     return $similarities;
 }
+
+function getAdditionalSubgroups($id)
+{
+    $u = new seTable('shop_group_related', 'sr');
+    $u->select('sg.id, sg.name');
+    $u->innerJoin('shop_group sg', 'sr.id_related = sg.id');
+    $u->where('sr.id_group = ? AND sr.type = 3', $id);
+
+    return  $u->getList();;
+}
+
 
 function translate($name)
 {
@@ -212,6 +223,7 @@ foreach ($result as $item) {
     $group['idModificationGroupDef'] = $item['id_modification_group_def'];
     $group['linksGroups'] = getLinksGroups($item['id']);
     $group['similarGroups'] = getSimilarGroups($item['id']);
+    $group['additionalSubgroups'] = getAdditionalSubgroups($item['id']);
     $group['parametersFilters'] = getFilterParams($item['id']);
     $group['discounts'] = getDiscounts($item['id']);
     if ($group['imageFile']) {

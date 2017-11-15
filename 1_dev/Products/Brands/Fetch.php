@@ -38,6 +38,7 @@ foreach ($objects as $item) {
     $brand['title'] = $item['name'];
     $brand['imageFile'] = $item['image'];
     $brand['description'] = $item['text'];
+    $brand['fullDescription'] = $item['content'];
     $brand['seoHeader'] = $item['title'];
     $brand['seoKeywords'] = $item['keywords'];
     $brand['seoDescription'] = $item['description'];

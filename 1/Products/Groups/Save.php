@@ -101,30 +101,34 @@ function saveLinksGroups($idsGroups, $links)
     }
 }
 
-function saveSimilarGroups($idsGroups, $similarities)
+function saveSimilarGroups($idsGroups, $similarities, $type = 1, $isCross = 1)
 {
     $idsExists = array();
     foreach ($idsGroups as $idGroup) {
         foreach ($similarities as $similar) {
             $u = new seTable('shop_group_related', 'sr');
             $u->select('sr.id');
-            $u->where("sr.id_group = {$idGroup} AND sr.id_related = {$similar->id}");
-            $u->orWhere("sr.id_group = {$similar->id} AND sr.id_related = {$idGroup}");
+            $u->where("sr.id_group = {$idGroup} AND sr.id_related = {$similar->id} AND sr.`type` = {$type}");
+            $u->orWhere("sr.id_group = {$similar->id} AND sr.id_related = {$idGroup} AND sr.`type` = {$type}");
             $result = $u->fetchOne();
             if (!empty($result))
                 $idsExists[] = $result["id"];
             else {
-                $u = new seTable('shop_group_related');
-                $u->id_group = $idGroup;
-                $u->id_related = $similar->id;
-                $idsExists[] = $u->save();
+                if ($idGroup != $similar->id) {
+                    $u = new seTable('shop_group_related');
+                    $u->id_group = $idGroup;
+                    $u->id_related = $similar->id;
+                    $u->type = $type;
+                    $u->is_cross = $isCross;
+                    $idsExists[] = $u->save();
+                }
             }
         }
         $idsExistsStr = implode(",", $idsExists);
         $u = new seTable('shop_group_related', 'sr');
         if ($idsExistsStr)
-            $u->where("(NOT id IN ({$idsExistsStr})) AND id_group = ?", $idGroup)->deleteList();
-        else $u->where('id_group = ?', $idGroup)->deleteList();
+            $u->where("(NOT id IN ({$idsExistsStr})) AND `type` = {$type} AND id_group = ?", $idGroup)->deleteList();
+        else $u->where("`type` = {$type} AND id_group = ?", $idGroup)->deleteList();
     }
 }
 
@@ -338,6 +342,8 @@ if ($isNew || !empty($ids)) {
         saveLinksGroups($ids, $json->linksGroups);
     if ($ids && isset($json->similarGroups))
         saveSimilarGroups($ids, $json->similarGroups);
+    if ($ids && isset($json->additionalSubgroups))
+        saveSimilarGroups($ids, $json->additionalSubgroups, 3, 0);
     if ($ids && $_SESSION['isIncPrices'])
         saveIncPrices($ids, $json);
 
@@ -350,12 +356,13 @@ if ($isNew || !empty($ids)) {
 
 $data['id'] = $ids[0];
 $status = array();
+
 if (!se_db_error()) {
     $status['status'] = 'ok';
     $status['data'] = $data;
 } else {
     $status['status'] = 'error';
-    $status['error'] = se_db_error();//'Не удаётся сохранить категорию для товаров!';
+    $status['error'] = 'Не удаётся сохранить категорию для товаров!';
 }
 
 outputData($status);
