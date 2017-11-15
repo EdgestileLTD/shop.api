@@ -22,11 +22,7 @@ $patterns = array('id' => 'sb.id',
     'name' => 'sb.name'
 );
 
-$sortBy = (isset($patterns[$json->sortBy])) ? $patterns[$json->sortBy] : 'id';
-
-if ($json->sortOrder == 'desc')
-    $u->orderby($sortBy, 1);
-else $u->orderby($sortBy, 0);
+$u->orderby("sb.sort");
 $u->groupby('sb.id');
 
 $objects = $u->getList();
