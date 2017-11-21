@@ -25,6 +25,14 @@ class Company extends Base
         );
     }
 
+    protected function correctValuesBeforeFetch($items = [])
+    {
+        foreach ($items as &$item)
+            $item['phone'] = Contact::correctPhone($item['phone']);
+
+        return $items;
+    }
+
     // получить информацию по настройкам
     protected function getSettingsInfo()
     {

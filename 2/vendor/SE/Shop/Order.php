@@ -5,16 +5,18 @@ namespace SE\Shop;
 use SE\DB as DB;
 use SE\Exception;
 
-class Order extends Base
+class Order extends Base // порядок
 {
     protected $tableName = "shop_order";
-    private $oldOrder = array();
 
+    // получить от компании
     public static function fetchByCompany($idCompany)
     {
-        return (new Order(array("filters" => array("field" => "idCompany", "value" => $idCompany))))->fetch();
+        $order = new Order(array("filters" => array("field" => "idCompany", "value" => $idCompany)));
+        return $order->fetch();
     }
 
+    // проверить статус заказа
     public static function checkStatusOrder($idOrder, $paymentType = null)
     {
         $u = new DB('shop_order', 'so');
@@ -43,20 +45,20 @@ class Order extends Base
             $data["id"] = $idOrder;
             $u->setValuesFields($data);
             $u->save();
-            return true;
         };
     }
 
+    // получить настройки
     protected function getSettingsFind()
     {
         return array('so.id', 'so.date_order', 'so.date_payee', 'so.serial', 'so.commentary');
     }
 
+    // получить настройки
     protected function getSettingsFetch()
     {
         return array(
-            "select" => 'so.*, IFNULL(c.name, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name)) customer,
-                CONCAT_WS(" ", pm.last_name, pm.first_name, pm.sec_name) manager,
+            "select" => 'so.*, IFNULL(c.name, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name)) customer, 
                 IFNULL(c.phone, p.phone) customer_phone, IFNULL(c.email, p.email) customer_email, 
                 (SUM((sto.price-IFNULL(sto.discount, 0))*sto.count)-IFNULL(so.discount, 0) + IFNULL(so.delivery_payee, 0)) amount, 
                 sp.name_payment name_payment_primary, spp.name_payment, sch.id_coupon id_coupon, sch.discount coupon_discount',
@@ -95,11 +97,6 @@ class Order extends Base
                     "type" => "left",
                     "table" => 'shop_coupons_history sch',
                     "condition" => 'sch.id_order = so.id'
-                ),
-                array(
-                    "type" => "left",
-                    "table" => 'person pm',
-                    "condition" => 'pm.id = so.manager_id'
                 )
             ),
             "aggregation" => array(
@@ -110,6 +107,17 @@ class Order extends Base
         );
     }
 
+    protected function correctValuesBeforeFetch($items = [])
+    {
+        foreach ($items as &$item) {
+            if (!empty($item['customerPhone']))
+                $item['customerPhone'] = Contact::correctPhone($item['customerPhone']);
+        }
+
+        return $items;
+    }
+
+    // получить информацию по настройкам
     protected function getSettingsInfo()
     {
         return array(
@@ -135,7 +143,7 @@ class Order extends Base
                 array(
                     "type" => "left",
                     "table" => 'person pm',
-                    "condition" => 'pm.id = so.manager_id'
+                    "condition" => 'pm.id = so.id_admin'
                 ),
                 array(
                     "type" => "inner",
@@ -166,9 +174,10 @@ class Order extends Base
         );
     }
 
+    // добавить полученную информацию
     protected function getAddInfo()
     {
-        $result = [];
+        $result = array();
         $this->result["amount"] = (real)$this->result["amount"];
         $result["items"] = $this->getOrderItems();
         $result['payments'] = $this->getPayments();
@@ -178,6 +187,7 @@ class Order extends Base
         return $result;
     }
 
+    // получить оплаченную сумму
     private function getPaidSum()
     {
         $idOrder = $this->result["id"];
@@ -188,6 +198,7 @@ class Order extends Base
         return (real)$result['amount'];
     }
 
+    // получить ордера
     private function getOrderItems()
     {
         $idOrder = $this->result["id"];
@@ -199,7 +210,7 @@ class Order extends Base
         $u->groupBy('sto.id');
         $result = $u->getList();
         unset($u);
-        $items = [];
+        $items = array();
         if (!empty($result)) {
             foreach ($result as $item) {
                 if ($item['picture']) $item['img'] = $item['picture'];
@@ -208,7 +219,6 @@ class Order extends Base
                 $product['code'] = $item['code'];
                 $product['name'] = $item['nameitem'];
                 $product['originalName'] = $item['priceName'];
-                //$product['modifications'] = getModifications($item);
                 $product['article'] = $item['article'];
                 $product['measurement'] = $item['measure'];
                 $product['idGroup'] = $item['id_group'];
@@ -225,18 +235,22 @@ class Order extends Base
 
     }
 
-    public function fetch()
+    // получить
+    public function fetch($isId = false)
     {
         if ($this->input['searchText'])
             $this->filters = null;
-        return parent::fetch();
+        return parent::fetch($isId);
     }
 
+    // получить плтежи
     private function getPayments()
     {
-        return (new Payment())->fetchByOrder($this->input["id"]);
+        $payment = new Payment();
+        return $payment->fetchByOrder($this->input["id"]);
     }
 
+    // получить пользовательские поля
     private function getCustomFields($idOrder)
     {
         $u = new DB('shop_userfields', 'su');
@@ -250,10 +264,10 @@ class Order extends Base
         $u->addOrderBy('su.sort');
         $result = $u->getList();
 
-        $groups = [];
+        $groups = array();
         foreach ($result as $item) {
             $key = (int)$item["idGroup"];
-            $group = key_exists($key, $groups) ? $groups[$key] : [];
+            $group = key_exists($key, $groups) ? $groups[$key] : array();
             $group["id"] = $item["idGroup"];
             $group["name"] = empty($item["nameGroup"]) ? "Без категории" : $item["nameGroup"];
             if ($item['type'] == "date")
@@ -265,6 +279,7 @@ class Order extends Base
         return array_values($groups);
     }
 
+    // правильные значения перед сохранением
     protected function correctValuesBeforeSave()
     {
         if (empty($this->input["id"]))
@@ -272,29 +287,17 @@ class Order extends Base
         return true;
     }
 
+    // сохранить добавленную информацию
     protected function saveAddInfo()
     {
         $this->saveItems();
         $this->saveDelivery();
-        $this->savePayments();
+        //$this->savePayments();
         $this->saveCustomFields();
         return true;
     }
 
-    public function save()
-    {
-
-        if (!empty($this->input["id"])) {
-            $idOrder = $this->input["id"];
-            // Получим данные статусов
-            $o = new DB('shop_order', 'so');
-            $o->select('so.status, so.delivery_status');
-            $o->where('id=?', $idOrder);
-            $this->oldOrder = $o->fetchOne();
-        }
-        parent::save();
-    }
-
+    // сохранить элементы
     private function saveItems()
     {
         //$o = new DB('shop_order', 'sto');
@@ -312,7 +315,7 @@ class Order extends Base
         $o = new DB('shop_order', 'so');
         $o->add_field('nk', 'tinyint(1)', 0, 1);
         if ($this->input["status"] == 'N') {
-            $o->setValuesFields(array('id'=>$idOrder, 'nk'=>0));
+            $o->setValuesFields(array('id' => $idOrder, 'nk' => 0));
             $o->save();
             $ua = new DB('se_user_account', 'sua');
             $ua->where('order_id = ?', $idOrder);
@@ -370,29 +373,9 @@ class Order extends Base
                 $u->setValuesFields($p);
                 $u->save();
             }
-        if (!$idsUpdate) {
-            $codeMail = 'orderuser';
-        } else {
-            $codeMail = false;
-        }
-        $codeMailD = false;
-        if (isset($this->input['deliveryStatus']) && $this->oldOrder['deliveryStatus'] != $this->input['deliveryStatus'] ){
-            switch ($this->input['deliveryStatus']) {
-                case "P": $codeMailD = 'orderdelivP'; break;
-                case "M": $codeMailD = 'orderdelivM'; break;
-                case "Y": $codeMailD = 'orderdelivY'; break;
-            }
-            $this->sendMail($codeMailD);
-        }
-        if($this->oldOrder['status'] != $this->input['status']){
-            $codeMail = 'orduserch';
-        }
-
-        if ($codeMailD) sleep(1);
-        if ($codeMail)
-            $this->sendMail($codeMail);
     }
 
+    // сохранить пользовательские поля
     private function saveCustomFields()
     {
         if (!isset($this->input["customFields"]))
@@ -401,7 +384,7 @@ class Order extends Base
         try {
             $idOrder = $this->input["id"];
             $groups = $this->input["customFields"];
-            $customFields = [];
+            $customFields = array();
             foreach ($groups as $group)
                 foreach ($group["items"] as $item)
                     $customFields[] = $item;
@@ -418,6 +401,7 @@ class Order extends Base
         }
     }
 
+    // сохранить доставку
     private function saveDelivery()
     {
         $input = $this->input;
@@ -434,12 +418,7 @@ class Order extends Base
         $u->save();
     }
 
-    private function savePayments()
-    {
-        $payments = $this->input["payments"];
-
-    }
-
+    // удалить
     public function delete()
     {
         try {

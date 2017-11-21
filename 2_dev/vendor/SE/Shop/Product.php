@@ -4,69 +4,29 @@ namespace SE\Shop;
 
 use SE\DB;
 use SE\Exception;
-use SE\Import; // удалять?
-use \PHPExcel as PHPExcel;
-use \PHPExcel_Writer_Excel2007 as PHPExcel_Writer_Excel2007;
-use \PHPExcel_Style_Fill as PHPExcel_Style_Fill;
-
-// отладка
-function debugging($group,$funct,$act) {    // группа_логов/функция/комент
-    // значение:  True/False (печатать/не_печатать в логи)
-
-    $print = array(
-        'funct'                     => False,   // безымянные
-        'экспортируемые данные'     => False,
-    );
-
-    if($print[$group] == True) {
-        $wrLog          = __FILE__;
-        $Indentation    = str_repeat(" ", (100 - strlen($wrLog)));
-        $wrLog          = "{$wrLog} {$Indentation}| Start function: {$funct}";
-        $Indentation    = str_repeat(" ", (150 - strlen($wrLog)));
-        writeLog("{$wrLog}{$Indentation} | Act: {$act}");
-    }
-}
+use SE\Import;
 
 class Product extends Base
 {
     protected $tableName = "shop_price";
     private $newImages;
-    // руссификация заголовков столбцов
-    private $rusCols = array(
-        "id" => "Ид.", "article" => "Артикул", "code" => "Код (URL)", "name" => "Наименование",
-        "price" => "Цена пр.", "pricePurchase" => "Цена закуп.", "priceOpt" => "Цена опт.", "priceOptCorp" => "Цена корп.", "bonus" => "Цена бал.",
-        "count" => "Остаток",
-        "category" => "Категория", "codeGroup" => "Код категории", "shopIdGroup" => "Ид. категории",
-        "weight" => "Вес", "volume" => "Объем", "measurement" => "Ед.Изм.", "measuresWeight" => "Меры веса", "measuresVolume" => "Меры объема",
-        "description" => "Краткое описание", "fullDescription" => "Полное описание", "stepCount" => "Шаг количества",
+    private $rusCols = array("id" => "Ид.", "article" => "Артикул", "code" => "Код", "name" => "Наименование",
+        "price" => "Цена", "count" => "Кол-во", "category" => "Категория", "weight" => "Вес", "volume" => "Объем",
+        "measurement" => "Ед.Изм.", "description" => "Краткое описание", "fullDescription" => "Полное описание",
         "features" => "Характеристики", "images" => 'Изображения', "codeCurrency" => "КодВалюты",
-        "metaHeader" => "MetaHeader", "metaKeywords" => "MetaKeywords", "metaDescription" => "MetaDescription",
-        "flagNew" => "Новинки", "flagHit" => "Хиты", "enabled" => "Видимость", "isMarket" => "Маркет",
-        "minCount" => "Мин.кол-во", "nameBrand" => "Бренд"
-    );
+        "metaHeader" => "MetaHeader", "metaKeywords" => "MetaKeywords", "metaDescription" => "MetaDescription");
 
-    // @@@@@@ @@@@@@    @@    @@  @@ @@  @@     @@  @@    @@    @@@@@@ @@@@@@@@ @@@@@@ @@@@@@ @@    @@ @@  @@ @@    @@
-    // @@  @@ @@  @@   @@@@   @@  @@ @@  @@     @@  @@   @@@@   @@        @@    @@  @@ @@  @@ @@   @@@ @@ @@  @@   @@@
-    // @@  @@ @@  @@  @@  @@   @@@@  @@@@@@     @@@@@@  @@  @@  @@        @@    @@@@@@ @@  @@ @@  @@@@ @@@@   @@  @@@@
-    // @@  @@ @@  @@ @@    @@   @@       @@     @@  @@ @@@@@@@@ @@        @@    @@     @@  @@ @@@@  @@ @@ @@  @@@@  @@
-    // @@  @@ @@@@@@ @@    @@   @@       @@     @@  @@ @@    @@ @@@@@@    @@    @@     @@@@@@ @@@   @@ @@  @@ @@@   @@
-
-    // Получить настройки
     protected function getSettingsFetch()
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         if (CORE_VERSION == "5.3") {
-            // получаем данные из таблиц БД
-            $select = 'sp.id, sp.id_group shop_id_group, sp.code, sp.article, sp.name,
-                sp.price, sp.price_opt, sp.price_opt_corp,
-                sp.img_alt, sp.curr, sp.presence, sp.bonus, sp.min_count,
-                sp.presence_count presence_count, sp.flag_hit, sp.enabled, sp.flag_new, sp.is_market, sp.note, sp.text,
+            $select = 'sp.id, sp.id_group shop_id_group, sp.code, sp.article, sp.name, sp.price, sp.price_opt, sp.price_opt_corp, 
+                sp.img_alt, sp.curr, sp.presence, sp.bonus, sp.bread_crumb,
+                sp.presence_count presence_count, sp.flag_hit, sp.enabled, sp.flag_new, sp.note, sp.text, 
                 sp.price_purchase price_purchase, sp.measure, sp.step_count, sp.max_discount, sp.discount,
-                sp.title, sp.keywords, sp.description, sp.weight, sp.volume, spg.is_main,
-                spg.id_group id_group, sg.name name_group, sg.id_modification_group_def id_modification_group_def,
+                sp.title, sp.keywords, sp.description, sp.weight, sp.volume, spg.is_main, sp.is_market,
+                spg.id_group id_group, sg.name name_group, sg.id_modification_group_def id_modification_group_def, 
                 (SELECT picture FROM shop_img WHERE id_price=sp.id LIMIT 1) img,
-                sb.name name_brand,
-                spm.id_weight_view, spm.id_weight_edit, spm.id_volume_view, spm.id_volume_edit';
+                sb.name name_brand';
 //                (SELECT picture FROM shop_img WHERE id_price=sp.id LIMIT 1) img,
 
 
@@ -81,13 +41,8 @@ class Product extends Base
                 "table" => 'shop_group sg',
                 "condition" => 'sg.id = sp.id_group'
             );
-            $joins[] = array(
-                "type" => "left",
-                "table" => 'shop_price_measure spm',
-                "condition" => 'sp.id = spm.id_price'
-            );
         } else {
-            $select = 'sp.*, sg.name name_group, sg.id_modification_group_def id_modification_group_def,
+            $select = 'sp.*, sg.name name_group, sg.id_modification_group_def id_modification_group_def, 
                 sb.name name_brand';
             $joins[] = array(
                 "type" => "left",
@@ -110,10 +65,13 @@ class Product extends Base
         return $result;
     }
 
-    // Получить
     public function fetch($isId = false)
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+
+        $u = new DB('shop_price');
+        $u->addField('min_count', 'double(10,3)', '1');
+        $u->addField('sort', 'int(11)', 0, 1);
+
         parent::fetch($isId);
         if (!$isId) {
             $list = $this->result['items'];
@@ -131,73 +89,65 @@ class Product extends Base
         return $this->result["items"];
     }
 
-    // Добавить изменения
     public function addModifications($ids)
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $array = $result = array();
         $searchBase = array(
             'values' => array(),
             'group' => array(),
             'items' => array()
         );
-        foreach ($ids as $id) {
+        foreach ($ids as $id){
 
             $array[$id] = $this->getModifications($id);
             // Если у товара нет модификаций то отправляем пустое значение
-            if (empty($array[$id])) return $this->result['modifications'] = array();
+            if(empty($array[$id])) return $this->result['modifications'] = array();
 
             // Собираем информацию о схожих группах
-            foreach ($array[$id] as $group) {
+            foreach ($array[$id] as $group){
                 $searchBase['group'][$id][] = $group['id'];
                 foreach ($group['items'] as $item)
-                    $searchBase['items'][$id][$group['id']][] = $this->diffArray($item['values'], true);
+                    $searchBase['items'][$id][$group['id']][] = $this->diffArray($item['values'],true);
             }
         }
         // Проверка групп
         $tmp = array_shift($searchBase['group']);
-        foreach ($searchBase['group'] as $gr) {
-            $tmp = array_intersect($tmp, $gr);
+        foreach ($searchBase['group'] as $gr){
+            $tmp = array_intersect($tmp,$gr);
         }
         $searchBase['group'] = $tmp;
 
         $i = 0;
         // Проверка элементов групп
-        foreach ($searchBase['group'] as $gid) {
-            foreach ($searchBase['items'] as $arrayItem) {
-                if (!is_array($searchBase['values'][$gid])) {
-                    $searchBase['values'][$gid] = array();
-                    $i = $gid;
-                }
+        foreach($searchBase['group'] as $gid){
+            foreach ($searchBase['items'] as $arrayItem){
+                if(!is_array($searchBase['values'][$gid])){$searchBase['values'][$gid] = array(); $i = $gid;}
                 $searchBase['values'][$gid][] = $arrayItem[$gid];
             }
         }
 
-        foreach ($searchBase['group'] as $gid) {
+        foreach($searchBase['group'] as $gid){
             $tmp = false;
             $first = true;
-            foreach ($searchBase['values'][$gid] as $val) {
-                if (!is_array($tmp)) {
-                    if ($first == false) {
-                        $tmp = array();
-                        break 2;
-                    }
+            foreach ($searchBase['values'][$gid] as $val){
+                if(!is_array($tmp)){
+                    if($first == false){ $tmp = array(); break 2;}
                     $tmp = $val;
                     $first = false;
                 } else {
-                    $tmp = array_intersect($tmp, $val);
+                    $tmp = array_intersect($tmp,$val);
                 }
             }
             $searchBase['values'][$gid] = $tmp;
         }
 
-        if (!empty($searchBase['values'])) {
+        if(!empty($searchBase['values'])){
             $result = array_shift($array);
-            foreach ($result as $indexG => $group) {
-                if (in_array($group['id'], $searchBase['group'])) {
-                    foreach ($group['items'] as $indexI => $item) {
-                        $needle = $this->diffArray($item['values'], true);
-                        if (!in_array($needle, $searchBase['values'][$group['id']])) unset($result[$indexG]['items'][$indexI]);
+            foreach ($result as $indexG => $group){
+                if(in_array($group['id'],$searchBase['group'])){
+                    foreach ($group['items'] as $indexI => $item){
+                        $needle = $this->diffArray($item['values'],true);
+                        if(!in_array($needle,$searchBase['values'][$group['id']])) unset($result[$indexG]['items'][$indexI]);
                     }
                 } else unset($result[$indexG]);
             }
@@ -207,77 +157,43 @@ class Product extends Base
     }
 
 
-    // @@    @@ @@  @@ @@@@@@@@@ @@@@@@
-    // @@   @@@ @@  @@ @@  @  @@ @@  @@
-    // @@  @@@@ @@@@@@ @@  @  @@ @@  @@
-    // @@@@  @@ @@  @@ @@@ @ @@@ @@  @@
-    // @@@   @@ @@  @@     @     @@@@@@
-
-    // Инфо
     public function info($id = NULL)
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
-        // исправить все
         $this->correctAll();
-        if (isset($this->input['action']) and $this->input['action'] == 'addModifications') {
+        if(isset($this->input['action']) and $this->input['action'] == 'addModifications'){
             return $this->addModifications($this->input['ids']);
         }
-        if (isset($this->input['set']) and is_array($this->input['id']) and count($this->input['id']) > 1) {
+        if(isset($this->input['set']) and is_array($this->input['id']) and count($this->input['id']) > 1){
             $id_array = $this->input['id'];
-            foreach ($id_array as $id) {
-                if (!is_numeric($id)) {
+            foreach ($id_array as $id){
+                if(!is_numeric($id)){
                     return false;
                 }
             }
 
-            return $this->result = $this->getDiffFeatures($id_array, true);
+            return $this->result = $this->getDiffFeatures($id_array,true);
         }
         parent::info(array_shift($this->input['id']));
-        $meas = new Measure();
-        $measure = $meas->info();
-        $this->result['weightEdit'] = $this->result['weight'];
-        $this->result['volumeEdit'] = $this->result['volume'];
-        foreach($measure->weights as $w){
-            if ($this->result['idWeightEdit'] == $w['id']) {
-                $this->result['weightEdit'] = $this->result['weight'] * $w['value'];
-                break;
-            }
-        }
-        foreach($measure->volumes as $v){
-            if ($this->result['idVolumeEdit'] == $v['id']) {
-                $this->result['volumeEdit'] = $this->result['volume'] * $v['value'];
-                break;
-            }
-        }
-
     }
 
-    private function calkMeasure($table, $id)
-    {
-        $u = new DB('shop_measure');
-    }
-
-    // Получить функции Diff
-    private function getDiffFeatures($id_array, $retard = FALSE)
-    {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
-        if (count($id_array) < 2) {
+    private function getDiffFeatures($id_array, $retard = FALSE){
+        if(count($id_array) < 2){
             return array();
         }
         $id = array_shift($id_array);
-        $ids = implode(',', $id_array);
+        $ids = implode(',',$id_array);
         $sql = 'SELECT `id` FROM `shop_modifications_feature` WHERE `id_price` = %d AND `id_value` IN (SELECT `id_value` FROM `shop_modifications_feature` WHERE `id_price` IN (%s))';
-        $sql = sprintf($sql, $id, $ids);
+        $sql = sprintf($sql,$id,$ids);
         $result = DB::query($sql)->fetchAll(\PDO::FETCH_ASSOC);
         $return = array();
-        foreach ($this->getSpecifications($id) as $items) {
-            foreach ($result as $item) {
-                if ($retard) {
-                    if ($item['id'] == $items['id']) {
+        foreach ($this->getSpecifications($id) as $items){
+            foreach($result as $item){
+                if($retard){
+                    if($item['id'] == $items['id']){
                         $return[] = $items;
                     }
                 } else {
-                    if ($item['id'] == $items['id']) {
+                    if($item['id'] == $items['id']){
                         $return[] = array(
                             'id_feature' => $items['idFeature'],
                             'id_value' => $items['idValue']
@@ -289,17 +205,13 @@ class Product extends Base
         return $return;
     }
 
-    // Получить настройки
     protected function getSettingsInfo()
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         return $this->getSettingsFetch();
     }
 
-    // Получить изображения
     public function getImages($idProduct = null)
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $result = [];
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
@@ -335,17 +247,15 @@ class Product extends Base
         return $result;
     }
 
-    // Получить файлы
     public function getFiles($idProduct = null)
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $result = [];
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
             return $result;
 
         $u = new DB('shop_files', 'si');
-        $u->addField('sort', 'int(11)', '0', 1);
+        $u->addField('sort','int(11)', '0', 1);
         $u->where('si.id_price = ?', $id);
         $u->orderBy("sort");
         $objects = $u->getList();
@@ -356,7 +266,7 @@ class Product extends Base
             $file['fileURL'] = $item['file'];
             $file['fileText'] = $item['name'];
             $file['fileName'] = basename($item['file']);
-            $file['fileExt'] = strtoupper(substr(strrchr($item['file'], '.'), 1));
+            $file['fileExt'] = strtoupper(substr(strrchr($item['file'],'.'), 1));
             $file['sortIndex'] = $item['sort'];
             if ($file['fileUrl']) {
                 if (strpos($file['fileUrl'], "://") === false) {
@@ -368,10 +278,8 @@ class Product extends Base
         return $result;
     }
 
-    // Добавить цену
     public function addPrice()
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $this->correctAll();
         try {
             $idsProducts = $this->input["ids"];
@@ -392,10 +300,8 @@ class Product extends Base
         }
     }
 
-    // Получить характеристики товара
     public function getSpecifications($idProduct = null)
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $result = [];
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
@@ -428,10 +334,40 @@ class Product extends Base
         }
     }
 
-    // Получить похожие продукты
+    public function getOptions($idProduct = null)
+    {
+        $result = [];
+        $id = $idProduct ? $idProduct : $this->input["id"];
+        if (!$id)
+            return $result;
+
+        try {
+            $u = new DB('shop_option', 'so');
+            $u->select('so.*');
+            $u->innerJoin('shop_option_value sov', 'sov.id_option = so.id');
+            $u->innerJoin('shop_product_option spo', 'sov.id = spo.id_option_value');
+            $u->where('spo.id_product = ?', $id);
+            $u->orderBy('so.sort');
+            $u->groupby('so.id');
+            $result = $u->getList();
+            foreach($result as &$item) {
+                $u = new DB('shop_product_option', 'spo');
+                $u->select('spo.*, sov.name, spo.price as priceValue');
+                $u->innerJoin('shop_option_value sov', 'sov.id = spo.id_option_value');
+                $u->where('spo.id_product = ?', $id);
+                $u->andwhere('sov.id_option = ?', $item['id']);
+                $u->orderBy('spo.sort');
+                $item['columns'] = array(array('id'=>$item['id'], 'name'=>$item['name']));
+                $item['items'] = $u->getList();
+            }
+            return $result;
+        } catch (Exception $e) {
+            $this->error = "Не удаётся получить опции товара!";
+        }
+    }
+
     public function getSimilarProducts($idProduct = null)
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $result = [];
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
@@ -459,10 +395,8 @@ class Product extends Base
         return $result;
     }
 
-    // Получить сопроводительные продукты
     public function getAccompanyingProducts($idProduct = null)
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $result = [];
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
@@ -485,28 +419,22 @@ class Product extends Base
         return $result;
     }
 
-    // Получить комментарии
     public function getComments($idProduct = null)
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $id = $idProduct ? $idProduct : $this->input["id"];
         $comment = new Comment();
         return $comment->fetchByIdProduct($id);
     }
 
-    // Получить обзоры
     public function getReviews($idProduct = null)
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $id = $idProduct ? $idProduct : $this->input["id"];
         $review = new Review();
         return $review->fetchByIdProduct($id);
     }
 
-    // Получить перекрестные группы
     public function getCrossGroups($idProduct = null)
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $result = [];
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
@@ -526,10 +454,8 @@ class Product extends Base
         return $u->getList();
     }
 
-    // Получить изменения (отображение товаров в разделе "товары")
     public function getModifications($idProduct = null)
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $result = [];
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
@@ -610,17 +536,15 @@ class Product extends Base
                 $modification = null;
                 $modification['id'] = $item['id'];
                 $modification['article'] = $item['code'];
-                if ($item['count'] != null)
+
+                if ($item['count'] !== null)
                     $modification['count'] = (real)$item['count'];
                 else $modification['count'] = -1;
+
                 if (!$modification['article'])
                     $modification['article'] = $product["article"];
                 if (!$modification['measurement'])
                     $modification['measurement'] = $product['measurement'];
-                if (!$modification['measuresWeight'])
-                    $modification['measuresWeight'] = $product['measuresWeight'];
-                if (!$modification['measuresVolume'])
-                    $modification['measuresVolume'] = $product['measuresVolume'];
                 $modification['priceRetail'] = (real)$item['value'];
                 $modification['priceSmallOpt'] = (real)$item['valueOpt'];
                 $modification['priceOpt'] = (real)$item['valueOptCorp'];
@@ -668,18 +592,24 @@ class Product extends Base
         }
         return $groups;
     }
+    /*
+    private function getModicationImages($id)
+    {
+        $images = array();
+        $u = new DB('shop_img', 'si');
+        $u->select('smi.id, smi.id_img, si.pucture, smi.sort, smi.id_modification');
+        $u->innerJoin('shop_modifications_img smi', 'sm.id=smi.id_img');
+        $u->where('si.id_price = ?', $id);
+        $u->sortBy('smi.sort');
+        foreach($u->getList() as $img) {
+            $images[$img['idModification']][] = $img;
+        }
+        return $images;
+    }
+    */
 
-
-    // @@@@@@ @@@@@@    @@    @@  @@ @@  @@     @@@@@@ @@  @@ @@    @@ @@@@@@  @@  @@ @@    @@
-    // @@  @@ @@  @@   @@@@   @@  @@ @@  @@     @@     @@ @@  @@   @@@ @@   @@ @@ @@  @@   @@@
-    // @@  @@ @@  @@  @@  @@   @@@@  @@@@@@     @@     @@@@   @@  @@@@ @@   @@ @@@@   @@  @@@@
-    // @@  @@ @@  @@ @@    @@   @@       @@     @@     @@ @@  @@@@  @@ @@   @@ @@ @@  @@@@  @@
-    // @@  @@ @@@@@@ @@    @@   @@       @@     @@@@@@ @@  @@ @@@   @@ @@@@@@  @@  @@ @@@   @@
-
-    // Получить скидки
     public function getDiscounts($idProduct = null)
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $result = [];
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
@@ -693,16 +623,8 @@ class Product extends Base
         return $u->getList();
     }
 
-    // @@@@@@     @@@@@@  @@@@@@ @@@@@@     @@    @@ @@  @@ @@@@@@@@@ @@  @@
-    // @@  @@     @@   @@ @@  @@ @@  @@     @@   @@@ @@  @@ @@  @  @@ @@  @@
-    // @@  @@     @@   @@ @@  @@ @@  @@     @@  @@@@ @@@@@@ @@  @  @@  @@@@
-    // @@  @@     @@   @@ @@  @@ @@  @@     @@@@  @@ @@  @@ @@@ @ @@@   @@
-    // @@  @@     @@@@@@  @@@@@@ @@  @@     @@@   @@ @@  @@     @       @@
-
-    // Получить дополнительную информацию
     protected function getAddInfo()
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $result["images"] = $this->getImages();
         $result["files"] = $this->getFiles();
 
@@ -715,14 +637,13 @@ class Product extends Base
         $result["crossGroups"] = $this->getCrossGroups();
         $result["modifications"] = $this->getModifications();
         $result["customFields"] = $this->getCustomFields();
+        $result["options"] = $this->getOptions();
         if (empty($result["customFields"])) $result["customFields"] = false;
         return $result;
     }
 
-    // Получить url
     private function getUrl($code, $id, $existCodes = [])
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $code_n = $code;
         $id = (int)$id;
         $u = new DB('shop_price', 'sp');
@@ -737,23 +658,16 @@ class Product extends Base
         return uniqid();
     }
 
-
-    // @@@@@@ @@@@@@ @@    @@ @@@@@@
-    // @@     @@     @@    @@ @@
-    // @@@@@@ @@@@@@  @@  @@  @@@@@@
-    //     @@ @@       @@@@   @@
-    // @@@@@@ @@@@@@    @@    @@@@@@
-
-    // Сохранить
     public function save()
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
 
         # All Mode
-        // исправить все
         $this->correctAll();
 
-        // формирование артикля // при создании товара (если отличен от нуля и пуст)
+        if(isset($this->input['isAddSpecifications'],$this->input['ids']) && !empty($this->input['specifications'])){
+            $this->saveSpecifications();
+            return isset($this->error);
+        }
         if (empty($this->input['article']) && count($this->input['ids']) < 2) { // isset($this->input['article']) &&
             if (empty($this->input['ids'])) {
                 $u = new DB('shop_price');
@@ -767,60 +681,33 @@ class Product extends Base
         }
 
 
-        if (isset($this->input['brand'], $this->input['ids'])) {
-            $brand = (int)$this->input['brand']['id'];
+
+        if(isset($this->input['brand'],$this->input['ids'])){
+            $brand = (int) $this->input['brand']['id'];
             $idsStr = implode(",", $this->input['ids']);
 
-            DB::exec("UPDATE `shop_price` SET `id_brand` = '" . $brand . "' WHERE `shop_price`.`id` IN (" . $idsStr . ");");
+
+            DB::exec("UPDATE `shop_price` SET `id_brand` = '".$brand."' WHERE `shop_price`.`id` IN (".$idsStr.");");
 
             return true;
         }
 
-        //$u = new DB('shop_price');
-        //$u->add_field('min_count', )
+        $u = new DB('shop_price');
+        $u->addField('min_count', 'double(10,3)', '1');
+        $u->addField('sort', 'int(11)', 0, 1);
+        if (isset($this->input['currency']))
+            $this->input['curr'] = $this->input['currency'];
 
         DB::exec("ALTER TABLE `shop_price` CHANGE `code` `code` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL;");
         if (isset($this->input["code"]) && empty($this->input["code"]))
             $this->input["code"] = strtolower(se_translite_url($this->input["code"]));
         parent::save();
 
+        file_get_contents('http://' . HOSTNAME . "/lib/shoppreorder_checkCount.php?id={$this->input['id']}");
     }
 
-    // сохранить все меры (объемы и веса)
-    public function saveMeasure()
-    {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
-
-        try {
-            $u = new DB('shop_price_measure');
-            $u->select('id');
-            $u->where('id_price=?', $this->input["id"]); // добавить ID если нет
-            $res = $u->fetchOne();                              // получить одну
-
-
-        $data = array();
-            if ($res['id'])
-                $data["id"]       = $res['id'];
-            $data["idPrice"]      = $this->input["id"];
-            $data["idWeightView"] = $this->input["idWeightView"];
-            $data["idWeightEdit"] = $this->input["idWeightEdit"];
-            $data["idVolumeView"] = $this->input["idVolumeView"];
-            $data["idVolumeEdit"] = $this->input["idVolumeEdit"];
-
-            $u = new DB('shop_price_measure');
-            $u->setValuesFields($data);
-            $u->save();
-            return true;
-        } catch (Exception $e) {
-            $this->error = "Не удаётся сохранить меры!";
-            throw new Exception($this->error);
-        }
-    }
-
-    // Правильные значения перед сохранением
     protected function correctValuesBeforeSave()
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         if (!$this->input["id"] && !$this->input["ids"] || isset($this->input["code"])) {
             if (empty($this->input["code"]))
                 $this->input["code"] = strtolower(se_translite_url($this->input["name"]));
@@ -830,10 +717,8 @@ class Product extends Base
             $this->input["presence"] = null;
     }
 
-    // Сохранить изображения
     private function saveImages()
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         if (!isset($this->input["images"]))
             return true;
 
@@ -891,10 +776,8 @@ class Product extends Base
         }
     }
 
-    // Сохранить файлы
     private function saveFiles()
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         if (!isset($this->input["files"]))
             return true;
 
@@ -953,10 +836,8 @@ class Product extends Base
         }
     }
 
-    // Получить группу спецификаций идентификаторов
     private function getIdSpecificationGroup($name)
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         if (empty($name))
             return null;
 
@@ -972,10 +853,8 @@ class Product extends Base
         return $u->save();
     }
 
-    // Получить идентификатор
     private function getIdFeature($idGroup, $name)
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $u = new DB('shop_feature', 'sf');
         $u->select('id');
         $u->where('name = "?"', $name);
@@ -994,23 +873,19 @@ class Product extends Base
         return $u->save();
     }
 
-    // Получить спецификацию по имени
     public function getSpecificationByName($specification)
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $idGroup = $this->getIdSpecificationGroup($specification->nameGroup);
         $specification->idFeature = $this->getIdFeature($idGroup, $specification->name);
         return $specification;
     }
 
-    // Получить пользовательские поля
     private function getCustomFields()
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         $idPrice = $this->input["id"];
         try {
             $u = new DB('shop_userfields', 'su');
-            $u->select("cu.id, cu.id_price, cu.value, su.id id_userfield,
+            $u->select("cu.id, cu.id_price, cu.value, su.id id_userfield, 
                       su.name, su.required, su.enabled, su.type, su.placeholder, su.description, su.values, sug.id id_group, sug.name name_group");
             $u->leftJoin('shop_price_userfields cu', "cu.id_userfield = su.id AND cu.id_price = {$idPrice}");
             $u->leftJoin('shop_userfield_groups sug', 'su.id_group = sug.id');
@@ -1038,10 +913,53 @@ class Product extends Base
         }
     }
 
-    // Сохранить Технические характеристики
+
+    private function saveOptions()
+    {
+        if (!isset($this->input["options"]))
+            return true;
+
+        try {
+            $idsProducts = $this->input["ids"];
+            $options = $this->input["options"];
+            $idsStr = implode(",", $idsProducts);
+            $idsExists = [];
+            foreach ($options as $option)
+                foreach ($option['items'] as $items) {
+                    if ($items["id"])
+                        $idsExists[] = $items["id"];
+                }
+            $idsExists = implode(",", $idsExists);
+            $u = new DB('shop_product_option');
+            if (!$idsExists)
+                $u->where('id_product IN (?)', $idsStr)->deleteList();
+            else $u->where("NOT id IN ({$idsExists}) AND id_product IN (?)", $idsStr)->deleteList();
+            foreach ($options as $option) {
+                foreach ($option['items'] as $items) {
+                    foreach ($idsProducts as $idProduct) {
+                        $items["idProduct"] = $idProduct;
+                        $items["price"] = $items["priceValue"];
+                        $u = new DB('shop_product_option');
+                        $u->setValuesFields($items);
+                        writeLog($items);
+                        $u->save();
+                    }
+                }
+            }
+            return true;
+        } catch (Exception $e) {
+            $this->error = "Не удаётся сохранить опции товара!";
+            throw new Exception($this->error);
+        }
+    }
+
+
+
+
+
+
     private function saveSpecifications()
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         if (!isset($this->input["specifications"]))
             return true;
 
@@ -1053,11 +971,11 @@ class Product extends Base
             $idsStr = implode(",", $idsProducts);
 
             if (!$isAddSpecifications) {
-                if (count($idsProducts) > 1) {
+                if(count($idsProducts) > 1){
                     $delIdsArray = $this->getDiffFeatures($idsProducts);
 
                     $u = new DB('shop_modifications_feature', 'smf');
-                    foreach ($delIdsArray as $die) {
+                    foreach($delIdsArray as $die){
                         $u->where("id_modification IS NULL AND id_price IN (?) AND id_feature = {$die['id_feature']} AND id_value = {$die['id_value']}", $idsStr)->deleteList();
                     }
                 } else {
@@ -1072,19 +990,19 @@ class Product extends Base
                 foreach ($idsProducts as $idProduct) {
                     if ($isAddSpecifications) {
                         if (is_string($specification["valueString"]) && $specification["type"] == "string")
-                            $m->where("id_price = {$idProduct} AND id_feature = {$specification["idFeature"]} AND
+                            $m->where("id_price = {$idProduct} AND id_feature = {$specification["idFeature"]} AND 
 							           value_string = '{$specification["value"]}'");
 
                         if (is_bool($specification["valueBool"]) && $specification["type"] == "bool")
-                            $m->where("id_price = {$idProduct} AND id_feature = {$specification["idFeature"]} AND
+                            $m->where("id_price = {$idProduct} AND id_feature = {$specification["idFeature"]} AND 
 							           value_bool = '{$specification["value"]}'");
 
                         if (is_numeric($specification["valueNumber"]) && $specification["type"] == "number")
-                            $m->where("id_price = {$idProduct} AND id_feature = {$specification["idFeature"]} AND
+                            $m->where("id_price = {$idProduct} AND id_feature = {$specification["idFeature"]} AND 
 							           value_number = '{$specification["valueNumber"]}'");
 
                         if (is_numeric($specification["idValue"]))
-                            $m->where("id_price = {$idProduct} AND id_feature = {$specification["idFeature"]} AND
+                            $m->where("id_price = {$idProduct} AND id_feature = {$specification["idFeature"]} AND 
 									   id_value = {$specification["idValue"]}");
 
                         $result = $m->fetchOne();
@@ -1109,7 +1027,7 @@ class Product extends Base
                 }
             }
             if (!empty($data))
-                DB::insertList('shop_modifications_feature', $data, true);
+                DB::insertList('shop_modifications_feature', $data,true);
             return true;
         } catch (Exception $e) {
             $this->error = "Не удаётся сохранить спецификации товара!";
@@ -1117,10 +1035,8 @@ class Product extends Base
         }
     }
 
-    // Сохранить похожие продукты
     private function saveSimilarProducts()
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         if (!isset($this->input["similarProducts"]))
             return true;
 
@@ -1136,13 +1052,13 @@ class Product extends Base
             $idsStr = implode(",", $idsProducts);
             $u = new DB('shop_sameprice', 'ss');
             if ($idsExistsStr)
-                $u->where("((NOT id_acc IN ({$idsExistsStr})) AND id_price IN (?)) OR
+                $u->where("((NOT id_acc IN ({$idsExistsStr})) AND id_price IN (?)) OR 
                            ((NOT id_price IN ({$idsExistsStr})) AND id_acc IN (?))", $idsStr)->deleteList();
             else $u->where('id_price IN (?) OR id_acc IN (?)', $idsStr)->deleteList();
             $idsExists = [];
             if ($idsExistsStr) {
                 $u->select("id_price, id_acc");
-                $u->where("((id_acc IN ({$idsExistsStr})) AND id_price IN (?)) OR
+                $u->where("((id_acc IN ({$idsExistsStr})) AND id_price IN (?)) OR 
                             ((id_price IN ({$idsExistsStr})) AND id_acc IN (?))", $idsStr);
                 $objects = $u->getList();
                 foreach ($objects as $item) {
@@ -1164,10 +1080,8 @@ class Product extends Base
         }
     }
 
-    // Сохранить сопутствующие товары
     private function saveAccompanyingProducts()
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         if (!isset($this->input["accompanyingProducts"]))
             return true;
 
@@ -1182,10 +1096,8 @@ class Product extends Base
         }
     }
 
-    // Сохранить коментарии
     private function saveComments()
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         if (!isset($this->input["comments"]))
             return true;
 
@@ -1216,10 +1128,8 @@ class Product extends Base
         }
     }
 
-    // Сохранить отзывы по товару
     private function saveReviews()
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         if (!isset($this->input["reviews"]))
             return true;
 
@@ -1251,10 +1161,8 @@ class Product extends Base
         }
     }
 
-    // Сохранить перекрестные группы
     private function saveCrossGroups()
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         if (!isset($this->input["crossGroups"]))
             return true;
 
@@ -1288,22 +1196,11 @@ class Product extends Base
         }
     }
 
-    // @@@@@@ @@@@@@ @@  @@ @@@@@@   @@@@@@ @@  @@ @@    @@ @@@@@@  @@  @@ @@    @@
-    // @@     @@  @@  @@@@  @@  @@   @@     @@ @@  @@   @@@ @@   @@ @@ @@  @@   @@@
-    // @@     @@  @@   @@   @@@@@@   @@     @@@@   @@  @@@@ @@   @@ @@@@   @@  @@@@
-    // @@     @@  @@  @@@@  @@       @@     @@ @@  @@@@  @@ @@   @@ @@ @@  @@@@  @@
-    // @@@@@@ @@@@@@ @@  @@ @@       @@@@@@ @@  @@ @@@   @@ @@@@@@  @@  @@ @@@   @@
-
-    // Сохранить скидки
     private function saveDiscounts()
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
-
-        // если данные отсутствую, передаем просто Истину
         if (!isset($this->input["discounts"]))
             return true;
 
-        // сохранения по id (к столбцу id_price) скидок в таблицу shop_discount_links
         try {
             foreach ($this->input["ids"] as $id)
                 DB::saveManyToMany($id, $this->input["discounts"],
@@ -1315,19 +1212,16 @@ class Product extends Base
         }
     }
 
-    // Разница массива
-    private function diffArray($values, $stringMode = false)
-    {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+    private function diffArray($values,$stringMode = false){
         $newValues = array();
-        foreach ($values as $value) {
-            array_push($newValues, array(
-                'id' => $value['id'],
-                'idFeature' => $value['idFeature']
+        foreach($values as $value){
+            array_push($newValues,array(
+                'id'=> $value['id'],
+                'idFeature'=> $value['idFeature']
             ));
         }
         sort($newValues);
-        if ($stringMode) {
+        if($stringMode){
             $newValues = json_encode($newValues);
         }
         return $newValues;
@@ -1337,22 +1231,19 @@ class Product extends Base
      *
      *
      */
-    // Правильные изменения перед сохранением
-    private function correctModificationsBeforeSave($tabs)
-    {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+    private function correctModificationsBeforeSave($tabs) {
         $newMod = array();
-        foreach ($tabs as $tabIndex => $tab) {
+        foreach ($tabs as $tabIndex => $tab){
             $newMod[$tabIndex] = $tab;
             $newMod[$tabIndex]['items'] = array();
             $searchBase = array();
-            foreach ($tab['items'] as $itemIndex => $item) {
-                if ($itemIndex == 0) {
+            foreach ($tab['items'] as $itemIndex => $item){
+                if($itemIndex == 0){
                     $newMod[$tabIndex]['items'][] = $item;
                     $searchBase[] = $this->diffArray($item['values']);
                 } else {
                     foreach ($searchBase as $example) {
-                        if ($example == $this->diffArray($item['values'])) {
+                        if($example == $this->diffArray($item['values'])){
                             continue 2;
                         }
                     }
@@ -1364,10 +1255,8 @@ class Product extends Base
         return $newMod;
     }
 
-    // Сохранить модификации товара
     private function saveModifications()
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         if (!isset($this->input["modifications"]))
             return true;
 
@@ -1473,20 +1362,20 @@ class Product extends Base
                                     'sort' => $img["sortIndex"]);
                             }
 
-                            if (isset($tems) || $ifAdd) {
-                                foreach ($tems as $it) {
-                                    if ($it['idPrice'] == $newDataM['id_price']/* and $it['idValue'] == $newDataF['id_value']*/) {
+                            if(isset($tems) || $ifAdd){
+                                foreach ($tems as $it){
+                                    if($it['idPrice'] == $newDataM['id_price']/* and $it['idValue'] == $newDataF['id_value']*/){
                                         $notAdd = true;
                                     }
                                 }
                             }
 
-                            if (!$notAdd) {
-                                if (!empty($newDataM))
+                            if(!$notAdd){
+                                if(!empty($newDataM))
                                     $dataM[] = $newDataM;
-                                if (!empty($newDataF))
+                                if(!empty($newDataF))
                                     $dataF[] = $newDataF;
-                                if (!empty($newDataI))
+                                if(!empty($newDataI))
                                     $dataI[] = $newDataI;
                                 $i++;
                             }
@@ -1499,7 +1388,7 @@ class Product extends Base
 
                 if (!empty($dataM)) {
                     DB::insertList('shop_modifications', $dataM);
-                    if (!empty($dataF)) {
+                    if (!empty($dataF)){
                         DB::insertList('shop_modifications_feature', $dataF);
                     }
                     if (!empty($dataI)) {
@@ -1508,8 +1397,8 @@ class Product extends Base
                     $dataI = null;
                 }
 
-            } catch (Exception $e) {
-                //writeLog(DB::$lastQuery);
+            } catch (Exception $e){
+                writeLog(DB::$lastQuery);
                 throw new Exception();
             }
             // обновление модификаций
@@ -1549,10 +1438,9 @@ class Product extends Base
         }
     }
 
-    // Сохранить категорию товара
+
     private function saveIdGroup()
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         if (CORE_VERSION != "5.3" || !isset($this->input["idGroup"]))
             return true;
 
@@ -1590,10 +1478,8 @@ class Product extends Base
         }
     }
 
-    // Сохранить доп. информацию о товаре
     private function saveCustomFields()
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         if (!isset($this->input["customFields"]) && !$this->input["customFields"])
             return true;
 
@@ -1617,210 +1503,89 @@ class Product extends Base
         }
     }
 
-    // Сохранить добавленную инфу
     protected function saveAddInfo()
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         if (!isset($this->input["ids"]))
             return false;
 
         return $this->saveImages() && $this->saveSpecifications() && $this->saveSimilarProducts() &&
             $this->saveAccompanyingProducts() && $this->saveComments() && $this->saveReviews() &&
-            $this->saveCrossGroups() && $this->saveDiscounts() && $this->saveMeasure() &&
-            $this->saveModifications() && $this->saveIdGroup() &&
-            $this->saveCustomFields() && $this->saveFiles();
+            $this->saveCrossGroups() && $this->saveDiscounts() && $this->saveModifications() && $this->saveIdGroup() &&
+            $this->saveCustomFields() && $this->saveFiles() && $this->saveOptions();
     }
 
-    // Получить группЫ
     private function getGroup($groups, $idGroup)
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         if (!$idGroup)
             return null;
 
-        // разложение строки на элементы
-        $groupsLine = explode(",", $idGroup);
-
-        // прогонка всех элементов через цикл
-        $nameGroups = null;
-        foreach ($groupsLine as $groupLine) {
-            foreach ($groups as $group) {
-                if ($group["id"] == $groupLine) {
-                    if ($group['upid'])
-                        $nameGroups .= $this->getGroup($groups, $group['upid']) . "/" . $group["name"].',';
-                    else
-                        $nameGroups .= $group["name"].',';
-                }
+        foreach ($groups as $group) {
+            if ($group["id"] == $idGroup) {
+                if ($group['upid'])
+                    return $this->getGroup($groups, $group['upid']) . "/" . $group["name"];
+                else return $group["name"];
             }
         }
-        $nameGroups = chop($nameGroups, ','); // удаление поседней запятой
-
-        return $nameGroups;
+        return null;
     }
 
-    // Получить группЫ 53
     private function getGroup53($groups, $idGroup)
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         if (!$idGroup)
             return null;
 
-        // разложение строки на элементы
-        $groupsLine = explode(",", $idGroup);
-
-        // прогонка всех элементов через цикл
-        $nameGroups = null;
-        foreach ($groupsLine as $groupLine) {
-            foreach ($groups as $group) {
-                if ($group["id"] == $groupLine)
-                    $nameGroups .= $group["name"].',';
-            }
+        foreach ($groups as $group) {
+            if ($group["id"] == $idGroup)
+                return $group["name"];
         }
-        $nameGroups = chop($nameGroups, ','); // удаление поседней запятой
-
-        return $nameGroups;
+        return null;
     }
 
-    // Экспорт
-    public function export() {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
-
-        // определяем параметры файла
-        $fileName = "export_products.xlsx";
+    public function export()
+    {
+        $fileName = "export_products.csv";
         $filePath = DOCUMENT_ROOT . "/files";
         if (!file_exists($filePath) || !is_dir($filePath))
             mkdir($filePath);
         $filePath .= "/{$fileName}";
         $urlFile = 'http://' . HOSTNAME . "/files/{$fileName}";
 
-        // инициализация файла
-        $xls = new PHPExcel();
-        $xls->setActiveSheetIndex(0);
-        $sheet = $xls->getActiveSheet(); // инициализация листа
-        $sheet->setTitle($fileName); // определяем заголовок страницы
-        $sheet->setCellValue("A1", 'Ид.');
-        $sheet->setCellValue("A1", 'тест1');
-
-        // объявление параметров для экспорта
         $limit = 1000;
         $offset = 0;
-        $line = 1;
 
         try {
-            // получаем данные из БД
             $u = new DB('shop_price', 'sp');
             $u->select('COUNT(*) `count`');
             $result = $u->getList();
             $count = $result[0]["count"];
             $pages = ceil($count / $limit);
 
-            // подключение к shop_price
             $u = new DB('shop_price', 'sp');
-
-            // НАЧАЛО ЗАПРОСА
-            $select = '
-                sp.id id,
-                NULL category';
-
+            $select = 'sp.id id, NULL category, sp.code code, sp.article article,
+					sp.name name, sp.price price, sp.curr codeCurrency, sp.measure measurement, sp.presence_count count,
+					sp.presence presence,
+					sp.weight weight, sp.volume volume,
+					GROUP_CONCAT(si.picture SEPARATOR \';\') images,
+					sp.title metaHeader, sp.keywords metaKeywords, sp.description metaDescription,
+					sp.note description, sp.text fullDescription, sm.id idModification,
+					(SELECT GROUP_CONCAT(CONCAT_WS(\'#\', sf.name,
+						IF(smf.id_value IS NOT NULL, sfvl.value, CONCAT(IFNULL(smf.value_number, \'\'),
+						  IFNULL(smf.value_bool, \'\'), IFNULL(smf.value_string, \'\')))) SEPARATOR \';\') features
+						FROM shop_modifications_feature smf
+						INNER JOIN shop_feature sf ON smf.id_feature = sf.id AND smf.id_modification IS NULL
+						LEFT JOIN shop_feature_value_list sfvl ON smf.id_value = sfvl.id
+						WHERE smf.id_price = sp.id
+						GROUP BY smf.id_price) features';
             if (CORE_VERSION == "5.3") {
-                // получение дополнительных категорий
-                $select .= ',
-
-                    GROUP_CONCAT(DISTINCT
-                        spg.id_group
-                        ORDER BY spg.is_main DESC
-                        SEPARATOR ","
-                    ) AS shop_id_group,
-
-                    GROUP_CONCAT(DISTINCT
-                        spg.id_group
-                        ORDER BY spg.is_main DESC
-                        SEPARATOR ","
-                    ) AS idGroup,
-
-                    GROUP_CONCAT(DISTINCT
-                        sg.code_gr
-                        ORDER BY spg.is_main DESC
-                        SEPARATOR ","
-                    ) AS code_group
-
-                ';
+                $select .= ', spg.id_group idGroup';
+                $u->select($select);
+                $u->leftJoin("shop_price_group spg", "spg.id_price = sp.id AND spg.is_main");
             } else {
-                $select .= ',
-                    sp.id_group shop_id_group,
-                    sp.id_group IdGroup,
-                    sg.code_gr code_group
-                ';
+                $select .= ', sp.id_group IdGroup';
+                $u->select($select);
             }
-            $select .= ',
-
-                sp.code code, sp.article article,
-                sp.name name, sp.price price,sp.price_purchase price_purchase, sp.price_opt price_opt, sp.price_opt_corp price_opt_corp, sp.bonus bonus,
-                sb.name name_brand, sp.curr codeCurrency, sp.measure measurement,
-                sp.presence_count count, sp.step_count step_count,
-                sp.presence presence, sp.flag_new, sp.flag_hit, sp.enabled, sp.is_market,
-                sp.weight weight, sp.volume volume,
-
-                CONCAT(
-                    IFNULL(smw1.name, \'\'),\',\',
-                    IFNULL(smw2.name, \'\')
-                ) measuresWeight,
-
-                CONCAT(
-                    IFNULL(smv1.name, \'\'),\',\',
-                    IFNULL(smv2.name, \'\')
-                ) measuresVolume,
-
-                sp.min_count,
-
-                GROUP_CONCAT(
-                    si.picture SEPARATOR \',\'
-                ) images,
-
-                sp.title metaHeader, sp.keywords metaKeywords, sp.description metaDescription,
-                sp.note description, sp.text fullDescription, sm.id idModification,
-
-                (
-                    SELECT GROUP_CONCAT(
-                        CONCAT_WS(\'#\', sf.name,
-                            IF(
-                                smf.id_value IS NOT NULL, sfvl.value, CONCAT(
-                                    IFNULL(smf.value_number, \'\'),
-                                    IFNULL(smf.value_bool, \'\'),
-                                    IFNULL(smf.value_string, \'\')
-                                )
-                            )
-                        ) SEPARATOR \';\'
-                    ) features
-
-                    FROM shop_modifications_feature smf
-                    INNER JOIN shop_feature sf ON smf.id_feature = sf.id AND smf.id_modification IS NULL
-                    LEFT JOIN shop_feature_value_list sfvl ON smf.id_value = sfvl.id
-                    WHERE smf.id_price = sp.id
-                    GROUP BY smf.id_price
-                ) features
-            ';
-
-            if (CORE_VERSION == "5.3") {
-                $u->select($select);
-                $u->leftJoin("shop_price_group spg", "spg.id_price = sp.id");
-                $u->leftJoin('shop_group sg', 'sg.id = spg.id_group');
-            } else {
-                $u->select($select);
-                $u->leftJoin('shop_group sg', 'sg.id = sp.id_group');
-            };
-
-
             $u->leftJoin('shop_modifications sm', 'sm.id_price = sp.id');
             $u->leftJoin('shop_img si', 'si.id_price = sp.id');
-            $u->leftJoin('shop_brand sb', 'sb.id = sp.id_brand');
-
-            $u->leftJoin('shop_price_measure spm', 'spm.id_price = sp.id');
-            $u->leftJoin('shop_measure_weight smw1', 'smw1.id = spm.id_weight_view');
-            $u->leftJoin('shop_measure_weight smw2', 'smw2.id = spm.id_weight_edit');
-            $u->leftJoin('shop_measure_volume smv1', 'smv1.id = spm.id_volume_view');
-            $u->leftJoin('shop_measure_volume smv2', 'smv2.id = spm.id_volume_edit');
-
             $u->orderBy('sp.id');
             $u->groupBy('sp.id');
 
@@ -1830,26 +1595,11 @@ class Product extends Base
                 $goodsL = array_merge($goodsL, $u->getList($offset, $limit));
                 $offset += $limit;
             }
-
-            // фильтрация значений
-            $goodsLFilter = [];
-            foreach($goodsL as $i) {
-                if($i[stepCount] == 1) {
-                    $i[stepCount] = '';
-                }
-                array_push($goodsLFilter, $i);
-            }
-            $goodsL = $goodsLFilter;
-
-            unset($u); // удаление переменной
-
-            debugging('экспортируемые данные',__FUNCTION__.' '.__LINE__); // отладка
-            //writeLog($goodsL);
+            unset($u);
 
             if (!$goodsL)
                 throw new Exception();
 
-            // особенности
             $u = new DB('shop_feature', 'sf');
             $u->select('sf.id Id, CONCAT_WS(\'#\', smg.name, sf.name) name');
             $u->innerJoin('shop_group_feature sgf', 'sgf.id_feature = sf.id');
@@ -1857,13 +1607,12 @@ class Product extends Base
             $u->groupBy('sgf.id');
             $u->orderBy('sgf.sort');
             $modsCols = $u->getList();
-            unset($u); // удаление переменной
+            unset($u);
 
-            // гуруппы товаров
             $u = new DB('shop_group', 'sg');
             if (CORE_VERSION == "5.3") {
                 $u->select('sg.id, GROUP_CONCAT(sgp.name ORDER BY sgt.level SEPARATOR "/") name');
-                $u->innerJoin("shop_group_tree sgt", "sg.id = sgt.id_child"); // присоединение столбца из другой таблицы
+                $u->innerJoin("shop_group_tree sgt", "sg.id = sgt.id_child");
                 $u->innerJoin("shop_group sgp", "sgp.id = sgt.id_parent");
                 $u->orderBy('sgt.level');
             } else {
@@ -1877,7 +1626,7 @@ class Product extends Base
                     $good["category"] = $this->getGroup53($groups, $good["idGroup"]);
                 else $good["category"] = $this->getGroup($groups, $good["idGroup"]);
             }
-            unset($u); // удаление переменной
+            unset($u);
 
             foreach ($goodsL as &$item) {
                 foreach ($modsCols as $col)
@@ -1885,7 +1634,6 @@ class Product extends Base
                 $goodsIndex[$item["id"]] = &$item;
             }
 
-            // модификации товара
             $u = new DB('shop_modifications', 'sm');
             $u->select('sm.id id, sm.id_mod_group idGroup, sm.id_price idProduct, sm.code article, sm.value price, sm.count,
 				smg.name nameGroup, smg.vtype typeGroup,
@@ -1900,38 +1648,20 @@ class Product extends Base
             $u->orderBy('sm.id_price');
             $u->groupBy('sm.id');
             $modifications = $u->getList();
-            unset($u); // удаление переменной
+            unset($u);
 
             $excludingKeys = array("idGroup", "presence", "idModification");
             $rusCols = $this->rusCols;
 
+            $fp = fopen($filePath, 'w');
             $header = array_keys($goodsL[0]);
             $headerCSV = [];
             foreach ($header as $col)
                 if (!in_array($col, $excludingKeys)) {
-                    $col = iconv('utf-8', 'utf-8', $rusCols[$col] ? $rusCols[$col] : $col); // CP1251
+                    $col = iconv('utf-8', 'CP1251', $rusCols[$col] ? $rusCols[$col] : $col);
                     $headerCSV[] = $col;
                 }
-
-            // определяем колво заголовков и генерируем список столбцов по длине
-            $column = array();
-            $last_column = count($headerCSV);
-            $column_number = 0;
-            do {
-                $column_name = (($t = floor($column_number / 26)) == 0 ? '' : chr(ord('A')+$t-1)).
-                    chr(ord('A')+floor($column_number % 26));
-                array_push($column, "{$column_name}");
-                $column_number++;
-            } while ($column_number != $last_column);
-            // writeLog($column);
-
-            // записываем заголовки
-            $column_num = 0;
-            foreach($headerCSV as $head) {
-                $sheet->setCellValue("{$column[$column_num]}{$line}", $head);
-                $column_num++;
-            }
-            $line++;
+            fputcsv($fp, $headerCSV, ";");
 
             $i = 0;
             $header = null;
@@ -1950,16 +1680,10 @@ class Product extends Base
                                 $r = preg_replace('/\\\\+/', '', $r);
                                 $r = preg_replace('/\r\n+/', '', $r);
                             }
-                            $out[] = iconv('utf-8', 'utf-8', $r); // CP1251
+                            $out[] = iconv('utf-8', 'CP1251', $r);
                         }
                     }
-                    // записываем данные по товарам
-                    $column_num = 0;
-                    foreach($out as $ou) {
-                        $sheet->setCellValue("{$column[$column_num]}{$line}", $ou);
-                        $column_num++;
-                    }
-                    $line++;
+                    fputcsv($fp, $out, ";");
                 }
             }
 
@@ -2002,60 +1726,40 @@ class Product extends Base
                                 $r = preg_replace('/\\\\+/', '', $r);
                                 $r = preg_replace('/\r\n+/', '', $r);
                             }
-                            $out[] = iconv('utf-8', 'utf-8', $r); // CP1251
+                            $out[] = iconv('utf-8', 'CP1251', $r);
                         }
                     }
-                    // записываем данные по модификациям товаров
-                    $column_num = 0;
-                    foreach($out as $ou) {
-                        $sheet->setCellValue("{$column[$column_num]}{$line}", $ou);
-                        $column_num++;
-                    }
-                    $line++;
+                    fputcsv($fp, $out, ";");
                 }
             }
-
-            // записываем в файл
-            $objWriter = new PHPExcel_Writer_Excel2007($xls);
-            $objWriter->save($filePath);
-
+            fclose($fp);
             if (file_exists($filePath) && filesize($filePath)) {
                 $this->result['url'] = $urlFile;
                 $this->result['name'] = $fileName;
-            } else $this->result = "Не удаётся экспортировать данные контакта!";
-
+            } else throw new Exception();
         } catch (Exception $e) {
-            // ошибка экспорта
             $this->error = "Не удаётся экспортировать товары!";
             throw new Exception($this->error);
         }
     }
 
-    // После
     public function post()
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         if ($items = parent::post())
             $this->import($items[0]["url"], $items[0]["name"]);
     }
 
-    // Импорт
     public function import($url = null, $fileName = null)
     {
-
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
-        if (is_null($fileName)) {
+        if(is_null($fileName)){
             $import = new Import($this->input);
-            $this->result = $import->startImport($this->input['filename'], false);
+            $this->result = $import->startImport($this->input['filename'],false);
             return true;
         }
         return $this->productsImport($url, $fileName);
     }
 
-    // Импорт продуктов
-    private function productsImport($url, $fileName)
-    {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+    private function productsImport($url, $fileName){
         $import = new Import($this->input);
         return $this->result = $import->startImport($fileName, true);
     }
@@ -2490,11 +2194,8 @@ class Product extends Base
            }
        }
    */
-
-    // Создать группу
     function createGroup(&$groups, $idParent, $name)
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         foreach ($groups as $group) {
             if ($group['upid'] == $idParent && trim($group['name']) == trim($name))
                 return $group['id'];
@@ -2518,10 +2219,8 @@ class Product extends Base
         return $id;
     }
 
-    // Создать группу 53
     private function createGroup53(&$groups, $idParent, $name)
     {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         foreach ($groups as $group) {
             if ($group['upid'] == $idParent && $group['name'] == $name)
                 return $group['id'];

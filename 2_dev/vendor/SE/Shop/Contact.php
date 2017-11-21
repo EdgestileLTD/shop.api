@@ -68,6 +68,14 @@ class Contact extends Base
         );
     }
 
+    protected function correctValuesBeforeFetch($items = [])
+    {
+        foreach ($items as &$item)
+            $item['phone'] = $this->correctPhone($item['phone']);
+
+        return $items;
+    }
+
     // @@@@@@   @@@@@@ @@@@@@    @@    @@     @@@@@@   @@@@@@ @@@@@@    @@    @@@@@@
     // @@  @@   @@  @@ @@  @@   @@@@   @@         @@   @@  @@ @@  @@   @@@@   @@  @@
     // @@  @@   @@  @@ @@  @@  @@  @@  @@@@@@ @@@@@    @@  @@ @@  @@  @@  @@  @@@@@@
@@ -666,7 +674,7 @@ class Contact extends Base
         $u = new DB('person', 'p');
         // отбираем
         //$u->select('p.reg_date regDateTime, su.username, p.last_name, p.first_name Name, p.sec_name patronymic,
-            //p.sex gender, p.birth_date, p.email, p.phone, p.note');
+        //p.sex gender, p.birth_date, p.email, p.phone, p.note');
 //        $u->select('p.reg_date regDateTime, su.username, p.last_name, p.first_name, p.sec_name,
 //            p.sex gender, p.birth_date, p.email, p.phone, p.note');
 
@@ -848,6 +856,30 @@ class Contact extends Base
             // сохранение в БД
             $this->save($headerDB);
         }
+    }
+
+    static public function correctPhone($phone)
+    {
+        $phoneIn = $phone;
+        $phone = preg_replace('/[^0-9]/', '', $phone);
+        if (strlen($phone) < 10)
+            return $phoneIn;
+
+        if (strlen($phone) == 10)
+            $phone = '7' . $phone;
+        if ((strlen($phone) == 11) && ($phone[0] == '8'))
+            $phone[0] = 7;
+        $result = null;
+        for ($i = 0; $i < strlen($phone); $i++) {
+            $result .= $phone[$i];
+            if ($i == 0)
+                $result .= ' (';
+            if ($i == 3)
+                $result .= ') ';
+            if ($i == 6 || $i == 8)
+                $result .= '-';
+        }
+        return '+' . $result;
     }
 
 }

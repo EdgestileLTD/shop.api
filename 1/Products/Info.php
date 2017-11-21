@@ -503,6 +503,7 @@ if ($u->id) {
     $product['seoHeader'] = $u->title;
     $product['seoKeywords'] = $u->keywords;
     $product['seoDescription'] = $u->description;
+    $product['breadCrumb'] = $u->bread_crumb;
     $product['idModificationGroupDef'] = $u->id_modification_group_def;
     $product['idYAMarketCategory'] = $u->market_category;
 

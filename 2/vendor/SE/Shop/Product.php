@@ -20,7 +20,7 @@ class Product extends Base
     {
         if (CORE_VERSION == "5.3") {
             $select = 'sp.id, sp.id_group shop_id_group, sp.code, sp.article, sp.name, sp.price, sp.price_opt, sp.price_opt_corp, 
-                sp.img_alt, sp.curr, sp.presence, sp.bonus,
+                sp.img_alt, sp.curr, sp.presence, sp.bonus, sp.bread_crumb,
                 sp.presence_count presence_count, sp.flag_hit, sp.enabled, sp.flag_new, sp.note, sp.text, 
                 sp.price_purchase price_purchase, sp.measure, sp.step_count, sp.max_discount, sp.discount,
                 sp.title, sp.keywords, sp.description, sp.weight, sp.volume, spg.is_main, sp.is_market,

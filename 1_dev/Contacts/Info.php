@@ -129,7 +129,7 @@ foreach ($result as $item) {
     $contact['isRead'] = $item['is_read'];
     $contact['imageFile'] = $item['avatar'];
     $contact['emailValid'] = (isset($item['email_valid'])) ? $item['email_valid'] : 'C';
-    $contact['companyName'] = $item['company'];
+    $contact['companyName'] = html_entity_decode($item['company']);
     $contact['companyDirector'] = $item['director'];
     $contact['companyPhone'] = $item['tel'];
     $contact['companyFax'] = $item['fax'];

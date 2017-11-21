@@ -5,7 +5,7 @@ namespace SE\Shop;
 use SE\DB as DB;
 use SE\Exception;
 
-    class Order extends Base // порядок
+class Order extends Base // порядок
 {
     protected $tableName = "shop_order";
 
@@ -105,6 +105,16 @@ use SE\Exception;
                 "name" => "totalAmount"
             )
         );
+    }
+
+    protected function correctValuesBeforeFetch($items = [])
+    {
+        foreach ($items as &$item) {
+            if (!empty($item['customerPhone']))
+                $item['customerPhone'] = Contact::correctPhone($item['customerPhone']);
+        }
+
+        return $items;
     }
 
     // получить информацию по настройкам
@@ -305,7 +315,7 @@ use SE\Exception;
         $o = new DB('shop_order', 'so');
         $o->add_field('nk', 'tinyint(1)', 0, 1);
         if ($this->input["status"] == 'N') {
-            $o->setValuesFields(array('id'=>$idOrder, 'nk'=>0));
+            $o->setValuesFields(array('id' => $idOrder, 'nk' => 0));
             $o->save();
             $ua = new DB('se_user_account', 'sua');
             $ua->where('order_id = ?', $idOrder);

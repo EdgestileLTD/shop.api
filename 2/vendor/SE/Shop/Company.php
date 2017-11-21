@@ -5,10 +5,12 @@ namespace SE\Shop;
 use SE\DB as DB;
 use SE\Exception;
 
+// компания
 class Company extends Base
 {
     protected $tableName = "company";
 
+    // получить настройки
     protected function getSettingsFetch()
     {
         return array(
@@ -23,6 +25,15 @@ class Company extends Base
         );
     }
 
+    protected function correctValuesBeforeFetch($items = [])
+    {
+        foreach ($items as &$item)
+            $item['phone'] = Contact::correctPhone($item['phone']);
+
+        return $items;
+    }
+
+    // получить информацию по настройкам
     protected function getSettingsInfo()
     {
         return array(
@@ -42,6 +53,7 @@ class Company extends Base
         );
     }
 
+    // получить контакты
     public function getContacts($idCompany)
     {
         $u = new DB('company_person', 'cp');
@@ -52,16 +64,18 @@ class Company extends Base
         return $u->getList();
     }
 
+    // получить заказы
     public function getOrders($idCompany)
     {
         return (new Order())->fetchByCompany($idCompany);
     }
 
+    // получить пользовательские поля
     private function getCustomFields($idCompany)
     {
         $u = new DB('shop_userfields', 'su');
         $u->select("cu.id, cu.id_company, cu.value, su.id id_userfield, 
-                    su.name, su.type, su.values, sug.id id_group, sug.name name_group");
+                  su.name, su.required, su.enabled, su.type, su.placeholder, su.description, su.values, sug.id id_group, sug.name name_group");
         $u->leftJoin('company_userfields cu', "cu.id_userfield = su.id AND id_company = {$idCompany}");
         $u->leftJoin('shop_userfield_groups sug', 'su.id_group = sug.id');
         $u->where('su.data = "company"');
@@ -70,10 +84,10 @@ class Company extends Base
         $u->addOrderBy('su.sort');
         $result = $u->getList();
 
-        $groups = [];
+        $groups = array();
         foreach ($result as $item) {
             $isNew = true;
-            $newGroup = [];
+            $newGroup = array();
             $newGroup["id"] = $item["idGroup"];
             $newGroup["name"] = empty($item["nameGroup"]) ? "Без категории": $item["nameGroup"];
             foreach ($groups as $group)
@@ -91,6 +105,7 @@ class Company extends Base
         return $groups;
     }
 
+    // получить добавленную информацию
     protected function getAddInfo()
     {
         $result["contacts"] = $this->getContacts($this->result["id"]);
@@ -99,6 +114,7 @@ class Company extends Base
         return $result;
     }
 
+    // сохранить пользовательские поля
     private function saveCustomFields()
     {
         if (!isset($this->input["customFields"]))
@@ -107,7 +123,7 @@ class Company extends Base
         try {
             $idCompany = $this->input["id"];
             $groups = $this->input["customFields"];
-            $customFields = [];
+            $customFields = array();
             foreach ($groups as $group)
                 foreach ($group["items"] as $item)
                     $customFields[] = $item;
@@ -124,6 +140,7 @@ class Company extends Base
         }
     }
 
+    // сохранить контакты
     private function saveContacts()
     {
         if (!isset($this->input["contacts"]))
@@ -140,6 +157,7 @@ class Company extends Base
         }
     }
 
+    // сохранить логин
     private function saveLogin()
     {
         if (!isset($this->input["username"]))
@@ -174,6 +192,7 @@ class Company extends Base
         }
     }
 
+    // сохранить добавленную информацию
     protected function saveAddInfo()
     {
         return $this->saveLogin() && $this->saveContacts() && $this->saveCustomFields();
