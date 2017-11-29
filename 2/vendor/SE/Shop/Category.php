@@ -731,7 +731,6 @@ class Category extends Base
         unset($list);
         $data = $this->addInTree($tree);
         DB::query("TRUNCATE TABLE `shop_group_tree`");
-        writeLog($data);
         DB::insertList('shop_group_tree', $data);
 
     }

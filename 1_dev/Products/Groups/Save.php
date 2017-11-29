@@ -313,7 +313,7 @@ if ($isNew || !empty($ids)) {
     $isUpdated |= setField($isNew, $u, $json->seoHeader, 'title');
     $isUpdated |= setField($isNew, $u, $json->seoKeywords, 'keywords');
     $isUpdated |= setField($isNew, $u, $json->seoDescription, 'description');
-    $isUpdated |= setField($isNew, $u, $json->breadCrumb, 'bread_crumb');
+    $isUpdated |= setField($isNew, $u, $json->pageTitle, 'page_title');
     $isUpdated |= setField($isNew, $u, $json->sortIndex, 'position');
     $isUpdated |= setField($isNew, $u, $json->idModificationGroupDef, 'id_modification_group_def');
 

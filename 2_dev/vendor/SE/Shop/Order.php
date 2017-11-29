@@ -179,6 +179,8 @@ class Order extends Base // порядок
     {
         $result = array();
         $this->result["amount"] = (real)$this->result["amount"];
+        $result["oldStatus"] = $this->result["status"];
+        $result["oldDeliveryStatus"] = $this->result["deliveryStatus"];
         $result["items"] = $this->getOrderItems();
         $result['payments'] = $this->getPayments();
         $result['customFields'] = $this->getCustomFields($this->input["id"]);
@@ -294,6 +296,29 @@ class Order extends Base // порядок
         $this->saveDelivery();
         //$this->savePayments();
         $this->saveCustomFields();
+
+        if ($this->isNew)
+            $codeMail = 'orderuser';
+        else {
+            $codeMail = 'orduserch';
+            if ($this->input["deliveryStatus"] != $this->input["oldDeliveryStatus"]) {
+                // отправлен
+                if ($this->input["deliveryStatus"] == "P")
+                    $codeMail = 'orderdelivP';
+                // в работе
+                if ($this->input["deliveryStatus"] == "M")
+                    $codeMail = 'orderdelivM';
+                // доставлен
+                if ($this->input["deliveryStatus"] == "Y")
+                    $codeMail = 'orderdelivY';
+            }
+            if ($this->input["status"] != $this->input["oldStatus"]) {
+                if ($this->input["status"] == "Y")
+                    $codeMail = 'payuser';
+            }
+            $this->sendMail($codeMail, $this->input["id"]);
+        }
+
         return true;
     }
 

@@ -45,26 +45,17 @@ class Dump extends Base
 
             $fp = gzopen($fileName, "r");
             $query = null;
-            $flagSplash = null;
-            $flagStartString = false;
-            DB::beginTransaction();
+
             while (!feof($fp)) {
                 $ch = fread($fp, 1);
                 $query .= $ch;
-                $flagStartString = ($ch == "'") && !$flagSplash ? !$flagStartString : $flagStartString;
-                if (($ch == ';') && !$flagStartString) {
-                    DB::query($query);
-                    $query = null;
-                }
-                $flagSplash = $ch == '\\';
             }
             if ($query)
-                DB::query($query);
-            DB::commit();
+                DB::exec($query);
+
             fclose($fp);
             $this->error = null;
         } catch (Exception $e) {
-            DB::rollBack();
             throw new Exception($this->error);
         }
     }

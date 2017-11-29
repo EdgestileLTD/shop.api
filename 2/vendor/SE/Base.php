@@ -26,6 +26,8 @@ class Base
     {
         try {
             DB::initConnection($connection);
+            if ($_SESSION['isAuth'])
+                $this->updateDB();
             return true;
         } catch (Exception $e) {
             $this->error = 'Не удаётся подключиться к базе данных!';
@@ -52,6 +54,53 @@ class Base
                 echo $this->error;
                 exit;
             }
+        }
+    }
+
+
+    public function getMySQLVersion()
+    {
+        $r = DB::query("select version()");
+        $answer = $r->fetchAll();
+        if ($answer) {
+            $version = explode(".", $answer[0]);
+            if (count($version) > 1) {
+                return (int)$version[0] . $version[1];
+            }
+        }
+        return 50;
+    }
+
+    public function correctFileUpdateForMySQL56($fileName)
+    {
+        file_put_contents($fileName, str_replace(" ON UPDATE CURRENT_TIMESTAMP", "", file_get_contents($fileName)));
+    }
+
+    public function updateDB()
+    {
+        $settings = new DB('se_settings', 'ss');
+        $settings->select("db_version");
+        $result = $settings->fetchOne();
+        if (empty($result["dbVersion"]))
+            DB::query("INSERT INTO se_settings (`version`, `db_version`) VALUE (1, 1)");
+        if ($result["dbVersion"] < DB_VERSION) {
+            $pathRoot =  $_SERVER['DOCUMENT_ROOT'] . '/api/update/sql/';
+            DB::setErrorMode(\PDO::ERRMODE_SILENT);
+            for ($i = $result["dbVersion"] + 1; $i <= DB_VERSION; $i++) {
+                $fileUpdate = $pathRoot . $i . '.sql';
+                if (file_exists($fileUpdate)) {
+                    if ($this->getMySQLVersion() < 56)
+                        $this->correctFileUpdateForMySQL56($fileUpdate);
+                    $query = file_get_contents($fileUpdate);
+                    try {
+                        DB::query($query);
+                        DB::query("UPDATE se_settings SET db_version=$i");
+                    } catch (\PDOException $e) {
+                        writeLog("Exception ERROR UPDATE {$i}.sql: ".$query);
+                    }
+                }
+            }
+            DB::setErrorMode(\PDO::ERRMODE_EXCEPTION);
         }
     }
 

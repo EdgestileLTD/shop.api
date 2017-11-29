@@ -219,7 +219,7 @@ foreach ($result as $item) {
     $group['seoHeader'] = $item['title'];
     $group['seoKeywords'] = $item['keywords'];
     $group['seoDescription'] = $item['description'];
-    $group['breadCrumb'] = $item['bread_crumb'];
+    $group['pageTitle'] = $item['page_title'];
     $group['sortIndex'] = (int)$item['position'];
     $group['idModificationGroupDef'] = $item['id_modification_group_def'];
     $group['linksGroups'] = getLinksGroups($item['id']);

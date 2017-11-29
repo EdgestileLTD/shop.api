@@ -258,15 +258,17 @@ class News extends Base
 
     private function saveImages()
     {
-        if (!$this->input["id"] || !($images = $this->input["images"]))
+
+        if (!$this->input["id"] || !isset($this->input["images"]))
             return;
 
         $u = new DB('news_img');
         $u->where('id_news = (?)', $this->input["id"])->deleteList();
-        foreach ($images as $image)
+        foreach ($this->input["images"] as $image)
             $data[] = array('id_news' => $this->input["id"], 'picture' => $image["imageFile"],
                 'sort' => (int)$image["sortIndex"], 'picture_alt' => $image["imageAlt"]);
-        DB::insertList('news_img', $data);
+        if ($data)
+            DB::insertList('news_img', $data);
     }
 
     private function saveSubscribersGroups()

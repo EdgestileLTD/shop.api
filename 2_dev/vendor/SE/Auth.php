@@ -5,24 +5,6 @@ namespace SE;
 class Auth extends Base
 {
 
-    private function getMySQLVersion()
-    {
-        $r = DB::query("select version()");
-        $answer = $r->fetchAll();
-        if ($answer) {
-            $version = explode(".", $answer[0]);
-            if (count($version) > 1) {
-                return (int)$version[0] . $version[1];
-            }
-        }
-        return 50;
-    }
-
-    private function correctFileUpdateForMySQL56($fileName)
-    {
-        file_put_contents($fileName, str_replace(" ON UPDATE CURRENT_TIMESTAMP", "", file_get_contents($fileName)));
-    }
-
     public function getPermission($idUser)
     {
         if (!$idUser)
@@ -92,8 +74,6 @@ class Auth extends Base
                 }
             }
 
-            $authData['seFolder'] = 'www';
-
             if (!empty($this->error))
                 return $this;
 
@@ -102,42 +82,16 @@ class Auth extends Base
             $u->orderBy("id");
 
             $data['hostname'] = $this->hostname;
-            $settings = new DB('se_settings', 'ss');
-            $settings->select("db_version");
-            $result = $settings->fetchOne();
-            if (empty($result["dbVersion"]))
-                DB::query("INSERT INTO se_settings (`version`, `db_version`) VALUE (1, 1)");
-            if ($result["dbVersion"] < DB_VERSION) {
-                $pathRoot =  $_SERVER['DOCUMENT_ROOT'] . '/api/update/sql/';
-                DB::setErrorMode(\PDO::ERRMODE_SILENT);
-                for ($i = $result["dbVersion"] + 1; $i <= DB_VERSION; $i++) {
-                    $fileUpdate = $pathRoot . $i . '.sql';
-                    if (file_exists($fileUpdate)) {
-                        if ($this->getMySQLVersion() < 56)
-                            $this->correctFileUpdateForMySQL56($fileUpdate);
-                        $query = file_get_contents($fileUpdate);
-                        try {
-                            DB::query($query);
-                            DB::query("UPDATE se_settings SET db_version=$i");
-                        } catch (\PDOException $e) {
-                            writeLog("Exception ERROR UPDATE {$i}.sql: ".$query);
-                        }
-                    }
-                }
-                DB::setErrorMode(\PDO::ERRMODE_EXCEPTION);
-            }
 
             $authData["login"] = $this->input["login"];
             $authData["hash"] = $this->input["hash"];
             $authData["idUser"] = $data['idUser'];
             $data['config'] = $authData;
             $data['permissions'] = $this->getPermission($data['idUser']);
-            $data['countSites'] = $authData['countSites'];
 
             $_SESSION["login"] = $this->input["login"];
             $_SESSION["hash"] = $this->input["hash"];
             $_SESSION['idUser'] = $data['idUser'];
-            $_SESSION['countSites'] = $authData['countSites'];
             $_SESSION['isAuth'] = true;
             $_SESSION['hostname'] = HOSTNAME;
 

@@ -8,8 +8,7 @@ use SE\DB as DB;
 
 class Dump extends Base
 {
-    // информация - создать дамп базы данных
-    public function info($id = NULL)
+    public function info()
     {
         $filePath = DOCUMENT_ROOT . "/files";
         if (!file_exists($filePath) || !is_dir($filePath))
@@ -32,7 +31,6 @@ class Dump extends Base
         }
     }
 
-    // после - развернуть дамп базы данных
     public function post()
     {
         $this->error = "Не удаётся развернуть дамп базы данных для вашего проекта!";
@@ -47,26 +45,17 @@ class Dump extends Base
 
             $fp = gzopen($fileName, "r");
             $query = null;
-            $flagSplash = null;
-            $flagStartString = false;
-            DB::beginTransaction();
+
             while (!feof($fp)) {
                 $ch = fread($fp, 1);
                 $query .= $ch;
-                $flagStartString = ($ch == "'") && !$flagSplash ? !$flagStartString : $flagStartString;
-                if (($ch == ';') && !$flagStartString) {
-                    DB::query($query);
-                    $query = null;
-                }
-                $flagSplash = $ch == '\\';
             }
             if ($query)
-                DB::query($query);
-            DB::commit();
+                DB::exec($query);
+
             fclose($fp);
             $this->error = null;
         } catch (Exception $e) {
-            DB::rollBack();
             throw new Exception($this->error);
         }
     }

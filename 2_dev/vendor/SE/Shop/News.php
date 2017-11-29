@@ -5,12 +5,10 @@ namespace SE\Shop;
 use SE\DB as DB;
 use SE\Exception;
 
-// новости
 class News extends Base
 {
     protected $tableName = "news";
 
-    // конвертировать поля
     private function convertFields($str)
     {
         $str = str_replace('id ', 'n.id ', $str);
@@ -27,7 +25,6 @@ class News extends Base
         return $str;
     }
 
-    // получить
     public function fetch()
     {
         try {
@@ -106,7 +103,6 @@ class News extends Base
         return $this;
     }
 
-    // создать БД
     private function createDb()
     {
         DB::query("CREATE TABLE IF NOT EXISTS `news_gcontacts` (
@@ -123,7 +119,6 @@ class News extends Base
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
     }
 
-    // создать пользовательскую БД
     private function createDbCustom()
     {
         DB::query("CREATE TABLE IF NOT EXISTS `news_userfields` (
@@ -141,7 +136,6 @@ class News extends Base
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
     }
 
-    // получить изображения
     private function getImages($id)
     {
         $u = new DB('news_img', 'ni');
@@ -169,7 +163,6 @@ class News extends Base
         return $result;
     }
 
-    // получить группы подписчиков
     private function getSubscribersGroups($id)
     {
         $u = new DB('news_subscriber_se_group', 's');
@@ -179,7 +172,6 @@ class News extends Base
         return $u->getList();
     }
 
-    // получить геолокацию грода
     private function getGeoCity($id)
     {
         $u = new DB('news_gcontacts', 'ng');
@@ -189,7 +181,6 @@ class News extends Base
         return $u->getList();
     }
 
-    // получить пользовательские (костомизированные) поля
     private function getCustomFields()
     {
         try {
@@ -225,7 +216,6 @@ class News extends Base
         }
     }
 
-    // информация
     public function info($id = NULL)
     {
         try {
@@ -266,21 +256,21 @@ class News extends Base
         return $this;
     }
 
-    // сохранить изображения
     private function saveImages()
     {
-        if (!$this->input["id"] || !($images = $this->input["images"]))
+
+        if (!$this->input["id"] || !isset($this->input["images"]))
             return;
 
         $u = new DB('news_img');
         $u->where('id_news = (?)', $this->input["id"])->deleteList();
-        foreach ($images as $image)
+        foreach ($this->input["images"] as $image)
             $data[] = array('id_news' => $this->input["id"], 'picture' => $image["imageFile"],
                 'sort' => (int)$image["sortIndex"], 'picture_alt' => $image["imageAlt"]);
-        DB::insertList('news_img', $data);
+        if ($data)
+            DB::insertList('news_img', $data);
     }
 
-    // сохранить группы подписчиков
     private function saveSubscribersGroups()
     {
         if (!$this->input["id"] || !isset($this->input["subscribersGroups"]))
@@ -289,7 +279,6 @@ class News extends Base
             array("table" => "news_subscriber_se_group", "key" => "id_news", "link" => "id_group"));
     }
 
-    // создать компанию для писем
     private function createCampaignForMails()
     {
         $idsGroups = array();
@@ -303,7 +292,6 @@ class News extends Base
         }
     }
 
-    // сохранить геолокацию города
     private function saveGeoCity()
     {
         try {
@@ -348,7 +336,6 @@ class News extends Base
         }
     }
 
-    // сохранить пользовательские поля
     private function saveCustomFields()
     {
         if (!isset($this->input["customFields"]) && !$this->input["customFields"])
@@ -378,13 +365,11 @@ class News extends Base
         }
     }
 
-    // удалить компанию для писем
     private function deleteCampaignForMails()
     {
 
     }
 
-    // сохранить
     public function save()
     {
         try {

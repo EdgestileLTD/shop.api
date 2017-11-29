@@ -5,28 +5,6 @@ namespace SE;
 // авторизаця по токену
 class TokenAuth extends Base
 {
-
-    // получить версию MySQL
-    private function getMySQLVersion()
-    {
-        // получение версиии MySQL
-        $r = DB::query("select version()");
-        $answer = $r->fetchAll();
-        if ($answer) {
-            $version = explode(".", $answer[0]);
-            if (count($version) > 1) {
-                return (int)$version[0] . $version[1];
-            }
-        }
-        return 50;
-    }
-
-    // обновить файл для MySQL56
-    private function correctFileUpdateForMySQL56($fileName)
-    {
-        // в содержимом файла заменить
-        file_put_contents($fileName, str_replace(" ON UPDATE CURRENT_TIMESTAMP", "", file_get_contents($fileName)));
-    }
     // получать разрешение
     public function getPermission($idUser)
     {
