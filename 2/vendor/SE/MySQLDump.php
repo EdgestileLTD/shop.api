@@ -120,6 +120,7 @@ class MySQLDump
             $res = DB::query("SELECT * FROM {$delTable}");
 
             while ($row = $res->fetch(PDO::FETCH_ASSOC)) {
+                writeLog("111");
                 $s = '(';
                 foreach ($row as $key => $value) {
                     if ($value === NULL) {
@@ -127,7 +128,7 @@ class MySQLDump
                     } elseif ($numeric[$key]) {
                         $s .= $value . ",\t";
                     } else {
-                        $s .= DB::quote($value) . ",\t";
+                        $s .= "'" . DB::quote($value) . "',\t";
                     }
                 }
 
@@ -156,7 +157,7 @@ class MySQLDump
 
         if ($mode & self::TRIGGERS) {
             $res = DB::query("SHOW TRIGGERS LIKE '{$table}'");
-            if ($res->rowCount()) {
+            if ($res->num_rows) {
                 fwrite($handle, "DELIMITER ;;\n\n");
                 while ($row = $res->fetch(PDO::FETCH_ASSOC)) {
                     fwrite($handle, "CREATE TRIGGER {$this->delimite($row['Trigger'])} $row[Timing] $row[Event] ON $delTable FOR EACH ROW\n$row[Statement];;\n\n");

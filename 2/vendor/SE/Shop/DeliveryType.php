@@ -5,8 +5,10 @@ namespace SE\Shop;
 use SE\DB as DB;
 use SE\Exception;
 
+// тип доставки
 class DeliveryType extends Base
 {
+    // получить
     public function fetch()
     {
         $type['id'] = "simple";
@@ -72,7 +74,8 @@ class DeliveryType extends Base
 
         return $types;
     }
-    public function info()
+    // информация
+    public function info($id = NULL)
     {
         switch($this->input['type']){
             case 'city':
@@ -111,6 +114,7 @@ class DeliveryType extends Base
         $this->error = 'Неправильный запрос';
     }
 
+    //сортировка
     public function sort()
     {
         try {

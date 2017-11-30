@@ -20,6 +20,7 @@ define('API_ROOT', $_SERVER['DOCUMENT_ROOT'] . '/api/' . API_VERSION . '/');
 define('API_ROOT_URL', "http://" . $_SERVER['SERVER_NAME'] . "/api/" . API_VERSION);
 define('AUTH_SERVER', "https://api.siteedit.ru");
 
+// запись в журнал
 function writeLog($data)
 {
     if (!is_string($data))
@@ -68,14 +69,19 @@ if (!empty($origin)) {
 if (strpos($apiClass, "/Auth"))
     $apiClass = "Auth";
 
-if ($apiClass == "Auth" && strtolower($apiMethod) == "logout") {
+if (strpos($apiClass, "/TokenAuth"))
+    $apiClass = "TokenAuth";
+
+// сессия сломана
+if (($apiClass == "Auth" || $apiClass == "TokenAuth") && strtolower($apiMethod) == "logout") {
     $_SESSION = array();
     session_destroy();
     echo "Session destroy!";
     exit;
 }
 
-if ($apiClass == "Auth" && strtolower($apiMethod) == "get") {
+// проверка авторизации
+if (($apiClass == "Auth" || $apiClass == "TokenAuth") && strtolower($apiMethod) == "get") {
     if (empty($_SESSION['isAuth'])) {
         header("HTTP/1.1 401 Unauthorized");
         echo 'Сессия истекла! Необходима авторизация!';
@@ -86,7 +92,7 @@ if ($apiClass == "Auth" && strtolower($apiMethod) == "get") {
 $phpInput = file_get_contents('php://input');
 $hostname = $_SESSION['hostname'];
 
-if ($apiClass == "Auth" && strtolower($apiMethod) == "info")
+if (($apiClass == "Auth" || $apiClass == "TokenAuth") && strtolower($apiMethod) == "info")
     $hostname = (strpos($headers["Project"], '.') !== false) ? $headers["Project"] : $headers["Project"] . '.e-stile.ru';
 
 define("HOSTNAME", $hostname);
@@ -102,8 +108,6 @@ else {
 $coreVersion = "5.1";
 $verFile = DOCUMENT_ROOT . "/lib/version";
 
-//writeLog($_SESSION['countSites']);
-//define("SE_FOLDER", $_SESSION['seFolder']);
 
 if (file_exists($verFile)) {
     $coreVersion = trim(file_get_contents($verFile));
@@ -112,7 +116,8 @@ if (file_exists($verFile)) {
 }
 define('CORE_VERSION', $coreVersion);
 
-if ($apiClass != "Auth" && empty($_SESSION['isAuth']) && !in_array($_SERVER["REMOTE_ADDR"], $allowableServers)) {
+// проверка авторизации
+if (($apiClass != "Auth" && $apiClass != "TokenAuth") && empty($_SESSION['isAuth']) && !in_array($_SERVER["REMOTE_ADDR"], $allowableServers)) {
     header("HTTP/1.1 401 Unauthorized");
     echo 'Необходима авторизация!';
     exit;
@@ -129,6 +134,7 @@ if (!method_exists($apiClass, $apiMethod)) {
     echo "Метод'{$apiMethod}' не поддерживается!";
     exit;
 }
+
 
 $apiObject = new $apiClass($phpInput);
 if ($apiObject->initConnection($CONFIG))

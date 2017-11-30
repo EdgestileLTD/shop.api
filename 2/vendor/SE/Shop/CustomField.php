@@ -5,12 +5,14 @@ namespace SE\Shop;
 use SE\DB as DB;
 use SE\Exception;
 
+// пользовательское поле
 class CustomField extends Base
 {
     protected $tableName = "shop_userfields";
     protected $sortBy = "sort";
     protected $sortOrder = "asc";
 
+    // правильные значения перед сохранением
     public function correctValuesBeforeSave()
     {
         $u = new DB($this->tableName);

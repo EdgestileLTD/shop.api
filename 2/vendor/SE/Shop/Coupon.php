@@ -9,6 +9,7 @@ class Coupon extends Base
 {
     protected $tableName = "shop_coupons";
 
+    // получить настройки
     protected function getSettingsFetch()
     {
         return array(
@@ -23,11 +24,13 @@ class Coupon extends Base
         );
     }
 
+    // получить инофромацию по настройкам
     protected function getSettingsInfo()
     {
         return $this->getSettingsFetch();
     }
 
+    // получить продукты
     public function getProducts($idCoupon = null)
     {
         $id = $idCoupon ? $idCoupon : $this->input["id"];
@@ -42,6 +45,7 @@ class Coupon extends Base
         return $u->getList();
     }
 
+    // получить группы
     public function getGroups($idCoupon = null)
     {
         $id = $idCoupon ? $idCoupon : $this->input["id"];
@@ -55,17 +59,18 @@ class Coupon extends Base
         $u->groupBy("sg.id");
         return $u->getList();
     }
-    
+
+    // получить заказы
     public function getOrders($idCoupon = null)
     {
         $id = $idCoupon ? $idCoupon : $this->input["id"];
         if (!$id)
             return array();
 
-        $order = new Order(array("filters" => array("field" => "idCoupon", "value" => $id)));
-        return $order->fetch();
+        return (new Order(array("filters" => array("field" => "idCoupon", "value" => $id))))->fetch();
     }
 
+    // получить добавленную информацию
     protected function getAddInfo()
     {
         $result["products"] = $this->getProducts();
@@ -73,7 +78,7 @@ class Coupon extends Base
         $result["orders"] = $this->getOrders();
         return $result;
     }
-
+    // сохранить группы
     public function saveGroups()
     {
         try {            
@@ -85,6 +90,7 @@ class Coupon extends Base
         }
     }
 
+    // сохранить продукты
     public function saveProducts()
     {
         try {            
@@ -96,6 +102,7 @@ class Coupon extends Base
         }
     }
 
+    // сохранить добавленную информацию
     protected function saveAddInfo()
     {
         $this->saveGroups();

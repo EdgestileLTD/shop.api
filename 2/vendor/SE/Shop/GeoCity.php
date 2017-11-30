@@ -2,20 +2,21 @@
 
 namespace SE\Shop;
 
+// геолокация-город
 class GeoCity extends Base
 {
-
+    // получить
     public function fetch()
     {
         $idCountry = $this->input["idCountry"] ? $this->input["idCountry"] : $_GET['idCountry'];
         $idRegion = $this->input["idRegion"] ? $this->input["idRegion"] : $_GET['idRegion'];
         $search = ($this->input["searchText"]) ? $this->input["searchText"] : $_GET['search'];
-        $ids = [];
+        $ids = array();
         if (empty($this->input["ids"]) && !empty($this->input["id"]))
             $ids[] = $this->input["id"];
         else $ids = $this->input["ids"];
         if (!$idCountry && !$idRegion && !$search && !$ids) {
-            $this->result["items"] = [];
+            $this->result["items"] = array();
             $this->result["count"] = 0;
             return;
         }

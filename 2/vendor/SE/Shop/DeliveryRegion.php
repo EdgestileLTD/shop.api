@@ -5,10 +5,12 @@ namespace SE\Shop;
 use SE\DB as seTable;
 use SE\Exception;
 
+// регионы доставки
 class DeliveryRegion extends Base
 {
     protected $tableName = "shop_delivery_region";
 
+    // получить
     public function fetch()
     {
         try {
@@ -24,7 +26,7 @@ class DeliveryRegion extends Base
             foreach ($objects as $item) {
                 $delivery = null;
                 $delivery['id'] = $item['id'];
-                $delivery['regions'] = [];
+                $delivery['regions'] = array();
                 $delivery['regions']['idCountry'] = explode(',', $item['id_country']);
                 $delivery['regions']['idRegion'] = explode(',', $item['id_region']);
                 $delivery['regions']['idCity'] = explode(',', $item['id_city']);
@@ -44,7 +46,8 @@ class DeliveryRegion extends Base
         }
     }
 
-    public function info()
+    // информация о регионе доставки
+    public function info($id = NULL)
     {
         try {
             $u = new seTable('shop_deliverytype', 'sdt');
@@ -58,7 +61,7 @@ class DeliveryRegion extends Base
             foreach ($objects as $item) {
                 $delivery = null;
                 $delivery['id'] = $item['id'];
-                $delivery['regions'] = [];
+                $delivery['regions'] = array();
                 $delivery['regions']['idCountry'] = explode(',', $item['id_country']);
                 $delivery['regions']['idRegion'] = explode(',', $item['id_region']);
                 $delivery['regions']['idCity'] = explode(',', $item['id_city']);

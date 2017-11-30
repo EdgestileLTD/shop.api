@@ -219,27 +219,57 @@ function getLevel($id)
 
 function saveIdParent($id, $idParent)
 {
-    global $DBH;
 
-    $levelIdOld = getLevel($id);
-    $level = 0;
-
-    $DBH->query("DELETE FROM shop_group_tree WHERE id_child = {$id}");
-
-    $sqlGroupTree = "INSERT INTO shop_group_tree (id_parent, id_child, `level`)
-                            SELECT id_parent, :id, :level FROM shop_group_tree
-                            WHERE id_child = :id_parent
-                            UNION ALL
-                            SELECT :id, :id, :level";
-    $sthGroupTree = $DBH->prepare($sqlGroupTree);
-    if (!empty($idParent)) {
-        $level = getLevel($idParent);
-        $level++;
+    $idParent = intval($idParent);
+    $u = new seTable('shop_group_tree');
+    $u->select('id');
+    $u->where('id_child = ?', $id);
+    if ($idParent) {
+        $u->andWhere('id_parent = ?', $idParent);
+    } else {
+        $u->andWhere('level = 0');
     }
-    $sthGroupTree->execute(array('id_parent' => $idParent, 'id' => $id, 'level' => $level));
-    $levelIdNew = getLevel($id);
-    $diffLevel = $levelIdNew - $levelIdOld;
-    $DBH->query("UPDATE shop_group_tree SET `level` = `level` + {$diffLevel}  WHERE id_parent = {$id} AND id_child <> {$id}");
+    $answer = $u->fetchOne();
+    if (empty($answer))
+        updateGroupTable();
+}
+
+function updateGroupTable()
+{
+    $tree = array();
+
+    $tbl = new seTable('shop_group', 'sg');
+    $tbl->select('upid, id');
+    $list = $tbl->getList();
+    foreach ($list as $it) {
+        $tree[intval($it['upid'])][] = $it['id'];
+    }
+
+    unset($list);
+    $data = addInTree([], $tree);
+    se_db_query("TRUNCATE TABLE `shop_group_tree`");
+    se_db_InsertList('shop_group_tree', $data);
+
+}
+
+function addInTree($treePath, $tree, $parent = 0, $level = 0)
+{
+    if ($level == 0) {
+        $treePath = array();
+    } else
+        $treePath[$level] = $parent;
+
+    foreach ($tree[$parent] as $id) {
+        $data[] = array('id_parent' => $id, 'id_child' => $id, 'level' => $level);
+        if ($level > 0)
+            for ($l = 1; $l <= $level; $l++) {
+                $data[] = array('id_parent' => $treePath[$l], 'id_child' => $id, 'level' => $level);
+            }
+        if (!empty($tree[$id])) {
+            $data = array_merge($data, addInTree($treePath, $tree, $id, $level + 1));
+        }
+    }
+    return $data;
 }
 
 function saveIncPrices($ids, $data)

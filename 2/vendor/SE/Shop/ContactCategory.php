@@ -9,12 +9,18 @@ class ContactCategory extends Base
 {
     protected $tableName = "se_group";
 
+
+    // @@    @@ @@@@@@  @@@@@@ @@  @@ @@@@@@@@ @@    @@ @@@@@@@@@
+    // @@   @@@ @@   @@ @@     @@  @@    @@    @@   @@@ @@  @  @@
+    // @@  @@@@ @@   @@ @@@@@@ @@@@@@    @@    @@  @@@@ @@  @  @@
+    // @@@@  @@ @@   @@ @@     @@  @@    @@    @@@@  @@ @@@ @ @@@
+    // @@@   @@ @@@@@@  @@@@@@ @@  @@    @@    @@@   @@     @
+    // Получить идентификаторы книг по группам идентификаторов
     static public function getIdsBooksByIdGroups($idsGroups)
     {
         $idsBooks = array();
         if (!empty($idsGroups)) {
             $u = new DB('se_group', 'sg');
-            $u->addField('email_settings', 'varchar(255)');
             $u->select("email_settings");
             $u->where('id IN (?)', implode(",", $idsGroups));
             $list = $u->getList();
@@ -27,7 +33,13 @@ class ContactCategory extends Base
         return $idsBooks;
     }
 
-    public function fetch($isId = false)
+    // @@@@@@ @@@@@@    @@    @@  @@ @@  @@ @@    @@ @@@@@@@@ @@
+    // @@  @@ @@  @@   @@@@   @@  @@ @@  @@ @@   @@@    @@    @@
+    // @@  @@ @@  @@  @@  @@   @@@@  @@@@@@ @@  @@@@    @@    @@@@@@
+    // @@  @@ @@  @@ @@    @@   @@       @@ @@@@  @@    @@    @@  @@
+    // @@  @@ @@@@@@ @@    @@   @@       @@ @@@   @@    @@    @@@@@@
+    // получить
+    public function fetch()
     {
         try {
             $u = new DB('se_group', 'sg');
@@ -40,11 +52,24 @@ class ContactCategory extends Base
         }
     }
 
+
+    // @@@@@@@@ @@@@@@ @@@@@@@@ @@     @@@@@@
+    //    @@      @@      @@    @@     @@
+    //    @@      @@      @@    @@     @@@@@@
+    //    @@      @@      @@    @@     @@
+    //    @@    @@@@@@    @@    @@@@@@ @@@@@@
+    // Правильные заглавия перед сохранением
     public function correctValuesBeforeSave()
     {
         $this->input["title"] = $this->input["name"];
     }
 
+
+    // @@@@@@    @@    @@    @@ @@@@@@
+    // @@       @@@@   @@    @@ @@
+    // @@@@@@  @@  @@   @@  @@  @@@@@@
+    //     @@ @@@@@@@@   @@@@   @@
+    // @@@@@@ @@    @@    @@    @@@@@@
     public function save()
     {
         $result = parent::save();
@@ -63,6 +88,11 @@ class ContactCategory extends Base
         return $result;
     }
 
+    // @@@@@@  @@@@@@ @@     @@@@@@ @@@@@@@@ @@@@@@
+    // @@   @@ @@     @@     @@        @@    @@
+    // @@   @@ @@@@@@ @@     @@@@@@    @@    @@@@@@
+    // @@   @@ @@     @@     @@        @@    @@
+    // @@@@@@  @@@@@@ @@@@@@ @@@@@@    @@    @@@@@@
     public function delete()
     {
         $group = null;
@@ -78,6 +108,13 @@ class ContactCategory extends Base
         }
     }
 
+    // @@@@@       @@    @@@@@@  @@@@@@ @@@@@@ @@@@@@   @@  @@ @@  @@ @@    @@ @@@@@@
+    // @@  @@     @@@@   @@   @@ @@  @@ @@     @@       @@ @@  @@  @@ @@   @@@ @@
+    // @@@@@     @@  @@  @@   @@ @@@@@@ @@@@@@ @@       @@@@   @@@@@@ @@  @@@@ @@
+    // @@  @@   @@@@@@@@ @@   @@ @@     @@     @@       @@ @@  @@  @@ @@@@  @@ @@
+    // @@@@@    @@    @@ @@@@@@  @@     @@@@@@ @@@@@@   @@  @@ @@  @@ @@@   @@ @@
+
+    // Добавить Контакты в адресную книгу
     private function addContactsInAddressBook($id_group)
     {
         $u1 = new DB('se_group', 'sg');
@@ -98,16 +135,14 @@ class ContactCategory extends Base
             $list = $u->getList();
             $emails = array();
             foreach($list as $email) {
-               if (se_CheckMail($email['email'])) {
+                if (se_CheckMail($email['email']))
                     $emails[] = array(
-                        'email' => $email['email'],
-                        'variables' => array('name' => $email['name'])
+                        'email' =>$email['email'],
+                        'variables'=>array('name'=>$email['name'])
                     );
-               }
             }
             $emailService = new EmailProvider();
             $emailService->addEmails(array($emailSettings['idBook']), $emails);
         }
-
     }
 }

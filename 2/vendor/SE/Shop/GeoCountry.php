@@ -2,13 +2,14 @@
 
 namespace SE\Shop;
 
+// геолокация-страна
 class GeoCountry extends Base
 {
-
+    // получить
     public function fetch()
     {
         $search = $this->input["searchText"];
-        $ids = [];
+        $ids = array();
         if (empty($this->input["ids"]) && !empty($this->input["id"]))
             $ids[] = $this->input["id"];
         else $ids = $this->input["ids"];

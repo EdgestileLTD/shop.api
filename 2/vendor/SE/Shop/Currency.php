@@ -14,10 +14,12 @@ if ($isCurrLib = file_exists($scriptCurrency))
     require_once $scriptCurrency;
 define("IS_CURR_LIB", $isCurrLib);
 
+// валюты
 class Currency extends Base
 {
     protected $tableName = "money_title";
 
+    // формат валюты
     private function formatCurrency($nameFront, $nameFlank, $value)
     {
         if ($nameFront)
@@ -25,6 +27,7 @@ class Currency extends Base
         return $value . ' ' . $nameFlank;
     }
 
+    // получить список валют
     public function fetch()
     {
         try {
@@ -93,7 +96,7 @@ class Currency extends Base
             $data['count'] = $count;
             $data['items'] = $items;
             $this->result = $data;
-            return $items;
+            return $curr;
         } catch (Exception $e) {
             $this->result = "Не удаётся получить список валют!";
         }

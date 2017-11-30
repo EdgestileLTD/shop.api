@@ -2,9 +2,10 @@
 
 namespace SE\Shop;
 
+// геолокация
 class Geo extends Base
 {
-
+    // получить
     public function fetch()
     {
         $idCountry = $this->input["idCountry"];
@@ -12,7 +13,7 @@ class Geo extends Base
         $idCity = $this->input["idCity"];
         $search = $this->input["searchText"];
         if (!$idCountry && !$idRegion && !$idCity && !$search) {
-            $this->result["items"] = [];
+            $this->result["items"] = array();
             $this->result["count"] = 0;
             return;
         }

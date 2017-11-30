@@ -9,6 +9,7 @@ class Page extends Base
     private $fileSource;
     private $fileEdit;
 
+    // соборка
     function __construct($input) {
         parent::__construct($input);
         $this->pathPages = $this->projectFolder . "/pages/";
@@ -23,6 +24,7 @@ class Page extends Base
         }
     }
 
+    // получить
     public function fetch()
     {
         $fileSource = $this->projectFolder . "/pages.xml";
@@ -33,11 +35,13 @@ class Page extends Base
         $this->result = $this->getTree($pages);
     }
 
+    // информация
     public function info()
     {
         $this->result = simplexml_load_file($this->fileEdit);
     }
 
+    // сохранить
     public function save()
     {
         $xml = simplexml_load_file($this->fileEdit);
@@ -49,6 +53,7 @@ class Page extends Base
         $this->info();
     }
 
+    // получить структуру
     private function getTree($pages)
     {
         $oldLevel = 1;

@@ -9,6 +9,7 @@ class Delivery extends Base
 {
     protected $tableName = "shop_deliverytype";
 
+    // получить
     public function fetch()
     {
         try {
@@ -39,6 +40,7 @@ class Delivery extends Base
         }
     }
 
+    // получить параметры
     private function getConditionsParams($id)
     {
         $u = new DB('shop_delivery_param');
@@ -46,6 +48,7 @@ class Delivery extends Base
         return $u->getList();
     }
 
+    // получить регионы
     private function getConditionsRegions($id, $currency)
     {
         $u = new DB('shop_deliverytype', 'sd');
@@ -67,6 +70,7 @@ class Delivery extends Base
         return $regions;
     }
 
+    // получить географические регионы
     private function getGeoLocationsRegions($id)
     {
         $u = new DB('shop_delivery_region', 'sdr');
@@ -86,6 +90,7 @@ class Delivery extends Base
         return $regions;
     }
 
+    // информация
     public function info()
     {
         try {
@@ -134,6 +139,7 @@ class Delivery extends Base
         }
     }
 
+    // получить индекс сортировки
     private function getSortIndex()
     {
         $u = new DB('shop_deliverytype', 'sdt');
@@ -142,6 +148,7 @@ class Delivery extends Base
         return $u->sort + 1;
     }
 
+    // сохранить систему оплаты
     private function savePaySystem()
     {
         try {
@@ -174,6 +181,7 @@ class Delivery extends Base
         }
     }
 
+    // сохранить группы
     private function saveGroups()
     {
         $idsGroups = $this->input["idsGroups"];
@@ -190,6 +198,7 @@ class Delivery extends Base
             DB::insertList('shop_deliverygroup', $data);
     }
 
+    // сохранить параметры
     private function saveConditionsParams()
     {
         $idDelivery = $this->input["id"];
@@ -211,6 +220,7 @@ class Delivery extends Base
         }
     }
 
+    // сохранить регионы
     private function saveConditionsRegions()
     {
         $idDelivery = $this->input["id"];
@@ -304,6 +314,7 @@ class Delivery extends Base
         }
     }
 
+    // сохранить геолокацию реионов
     private function saveGeoLocationsRegions()
     {
         $regions = $this->input["geoLocationsRegions"];
@@ -365,6 +376,7 @@ class Delivery extends Base
         }
     }
 
+    // правильные значения перед сохранением
     protected function correctValuesBeforeSave()
     {
         $isNew = empty($this->input["id"]);
@@ -384,6 +396,7 @@ class Delivery extends Base
             $this->input["forone"] = $this->input["onePosition"] ? "Y" : "N";
     }
 
+    // сохранить добавленную информацию
     protected function saveAddInfo()
     {
         $this->saveGroups();

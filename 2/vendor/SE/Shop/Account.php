@@ -5,14 +5,16 @@ namespace SE\Shop;
 use SE\DB;
 use SE\Exception;
 
+// аккаунт
 class Account extends Base
 {
     protected $tableName = "accounts";
     protected $sortOrder = "asc";
 
+    // получить
     public function fetch()
     {
-        $items = [];
+        $items = array();
         $project = str_replace(".e-stile.ru", "", HOSTNAME);
         $items[] = array("alias" => $project, "project" => $project, "login" => $_SESSION["login"],
             "hash" => $_SESSION["hash"], "isMain" => true);
@@ -33,6 +35,7 @@ class Account extends Base
         }
     }
 
+    // сохрнить
     public function save()
     {
         $isNew = empty($this->input["id"]);

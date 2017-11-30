@@ -5,6 +5,7 @@ namespace SE\Shop;
 use SE\DB as DB;
 use SE\Exception;
 
+// платежная система
 class PaySystem extends Base
 {
     protected $tableName = "shop_payment";
@@ -72,13 +73,13 @@ class PaySystem extends Base
             if (empty($this->input["ids"]) && $this->input["id"])
                 $this->input["ids"] = array($this->input["id"]);
             if ($this->input["id"]) {
-                $this->saveParams();
+                $this->info();
                 DB::commit();
                 if (!empty($this->input["identifier"])) {
                     $scriptPlugin = 'http://' . HOSTNAME . "/lib/merchant/result.php?payment=" . $this->input["identifier"];
                     file_get_contents($scriptPlugin);
                 }
-                $this->info();
+                $this->saveParams();
                 return $this;
             } else throw new Exception();
         } catch (Exception $e) {

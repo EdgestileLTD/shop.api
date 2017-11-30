@@ -38,10 +38,10 @@ class PendingOrder extends Base
             $u->leftJoin("shop_stat_viewgoods ssv", "ssc.id_session = ssv.id_session");
             $u->orderBy("created_at", true);
             $u->groupBy("id_session");
-            $items = [];
+            $items = array();
             $rows = $u->getList($this->limit, $this->offset);
             foreach ($rows as $row) {
-                $item = [];
+                $item = array();
                 $item["id"] = $row["idSession"];
                 $item["idSession"] = $row["idSession"];
                 $item["createdAt"] = $row["createdAt"];
@@ -58,7 +58,7 @@ class PendingOrder extends Base
         }
     }
 
-    public function info()
+    public function info($id = NULL)
     {
         try {
 
@@ -68,10 +68,10 @@ class PendingOrder extends Base
             $u->orderBy("created_at", true);
             $u->groupBy("id_session");
             $u->where("ssc.id_session = ?", $this->input["id"]);
-            $items = [];
+            $items = array();
             $rows = $u->getList();
             foreach ($rows as $row) {
-                $item = [];
+                $item = array();
                 $item["idSession"] = $row["idSession"];
                 $item["createdAt"] = $row["createdAt"];
                 $item["events"] = $this->getEvents($this->input["id"]);
@@ -90,7 +90,7 @@ class PendingOrder extends Base
     private function parseData($dataIn, $item)
     {
         $dataList = explode("\t", $dataIn);
-        $values = [];
+        $values = array();
         foreach ($dataList as $data) {
             $valuesTemp = explode("##", $data);
             if (!key_exists($valuesTemp[0], $values)) {
@@ -99,7 +99,7 @@ class PendingOrder extends Base
             } elseif (strtotime($values[$valuesTemp[0]][2]) < strtotime($valuesTemp[2]))
                 $values[$valuesTemp[0]] = $valuesTemp;
         }
-        $data = [];
+        $data = array();
         foreach ($values as $key => $value) {
             if (key_exists($key, $this->contactFields))
                 $item[$this->contactFields[$key]] = $value[1];
@@ -127,7 +127,7 @@ class PendingOrder extends Base
             $u->leftJoin('shop_deliverytype sdt', 'sse.content = sdt.id AND sse.event LIKE "%delivery%"');
             $u->where("sse.id_session = ?", $id);
             $u->orderBy("sse.created_at");
-            $items = [];
+            $items = array();
             $rows = $u->getList();
             foreach ($rows as $row) {
                 $row["eventDisplay"] = key_exists($row["event"], $this->eventsDisplay) ?

@@ -124,7 +124,13 @@ class Files extends Base
 
     private function convertName($name) {
         $chars = array(" ", "#", ":", "!", "+", "?", "&", "@", "~", "%");
-        return str_replace($chars, "_", $name);
+        $ext = explode('.', $name);
+        $ext = end($ext);
+        $name = str_replace('.' . $ext, '', $name);
+        $name = se_translite_url(str_replace($chars, "_", $name));
+        if ($ext)
+            $name .= '.' . $ext;
+        return $name;
     }
 
     private function getNewName($dir, $name) {

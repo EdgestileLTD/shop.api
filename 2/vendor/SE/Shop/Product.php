@@ -801,7 +801,7 @@ class Product extends Base
             $res = $u->fetchOne();                              // получить одну
 
 
-        $data = array();
+            $data = array();
             if ($res['id'])
                 $data["id"]       = $res['id'];
             $data["idPrice"]      = $this->input["id"];

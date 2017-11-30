@@ -2,10 +2,12 @@
 
 namespace SE\Shop;
 
+// коментарий
 class Comment extends Base
 {
     protected $tableName = "shop_comm";
 
+    // получить настройки
     protected function getSettingsFetch()
     {
         return array(
@@ -18,11 +20,13 @@ class Comment extends Base
         );
     }
 
+    // получить информацию по настройкам
     protected function getSettingsInfo()
     {
         return $this->getSettingsFetch();
     }
 
+    // выбор продукта по id
     public function fetchByIdProduct($idProduct)
     {
         if (!$idProduct)

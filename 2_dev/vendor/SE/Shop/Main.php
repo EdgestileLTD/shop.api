@@ -7,6 +7,7 @@ class Main extends Base
 {
     protected $tableName = "main";
 
+
     // добавить полученную информацию
     protected function getAddInfo()
     {
