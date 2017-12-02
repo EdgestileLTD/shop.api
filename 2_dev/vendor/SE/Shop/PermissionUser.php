@@ -14,7 +14,7 @@ class PermissionUser extends Base
     {
         try {
             $u = new DB('se_user', 'su');
-            $u->select('su.id, p.reg_date, p.first_name, p.sec_name, p.last_name, 
+            $u->select('su.id, p.reg_date, p.first_name, p.sec_name, p.last_name,                 
                 su.username, su.is_active, su.is_super_admin,
                 GROUP_CONCAT(pru.id_role SEPARATOR ",") idsRoles,
                 GROUP_CONCAT(pr.name ORDER BY pr.name SEPARATOR ", ") roles');

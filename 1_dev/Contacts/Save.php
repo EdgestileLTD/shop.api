@@ -203,6 +203,7 @@ if ($isNew || !empty($ids)) {
 
     $isUpdated = false;
     $isUpdated |= setField($isNew, $u, $json->idReferContact, 'id_up');
+    $isUpdated |= setField($isNew, $u, $json->idManager, 'manager_id');
     $isUpdated |= setField($isNew, $u, $json->lastName, 'last_name');
     $isUpdated |= setField($isNew, $u, $json->firstName, 'first_name');
     $isUpdated |= setField($isNew, $u, $json->secondName, 'sec_name');

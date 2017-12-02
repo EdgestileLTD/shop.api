@@ -17,6 +17,7 @@ function convertFields($str)
     $str = str_replace('display', 'last_name', $str);
     $str = str_replace('login', 'su.username', $str);
     $str = str_replace('company', 'c.name', $str);
+    $str = str_replace('idManager', 'p.manager_id', $str);
     return $str;
 }
 
@@ -92,7 +93,7 @@ foreach ($result as $item) {
     $contact['company'] = $item['company'];
     $contact['title'] = $item['last_name'] . ' ' . $item['first_name'] . ' ' . $item['sec_name'];
     $contact['email'] = $item['email'];
-    $contact['phone'] = $item['phone'];
+    $contact['phone'] = correctInfoPhone($item['phone']);
     $contact['countOrders'] = $item['countorders'];
     $contact['note'] = $item['note'];
     $contact['country'] = $item['country'];

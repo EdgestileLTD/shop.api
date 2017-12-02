@@ -58,9 +58,12 @@ class Order extends Base // порядок
     protected function getSettingsFetch()
     {
         return array(
-            "select" => 'so.*, IFNULL(c.name, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name)) customer, 
+            "select" => 'so.*,
+                DATE_FORMAT(so.date_order, "%d.%m.%Y") date_order_display,  
+                IFNULL(c.name, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name)) customer, 
                 IFNULL(c.phone, p.phone) customer_phone, IFNULL(c.email, p.email) customer_email, 
                 (SUM((sto.price-IFNULL(sto.discount, 0))*sto.count)-IFNULL(so.discount, 0) + IFNULL(so.delivery_payee, 0)) amount, 
+                CONCAT_WS(" ",  pm.last_name, pm.first_name, pm.sec_name) manager,
                 sp.name_payment name_payment_primary, spp.name_payment, sch.id_coupon id_coupon, sch.discount coupon_discount',
             "joins" => array(
                 array(
@@ -72,6 +75,11 @@ class Order extends Base // порядок
                     "type" => "left",
                     "table" => 'company c',
                     "condition" => 'c.id = so.id_company'
+                ),
+                array(
+                    "type" => "left",
+                    "table" => 'person pm',
+                    "condition" => 'pm.id = so.id_admin'
                 ),
                 array(
                     "type" => "inner",
@@ -112,6 +120,7 @@ class Order extends Base // порядок
         foreach ($items as &$item) {
             if (!empty($item['customerPhone']))
                 $item['customerPhone'] = Contact::correctPhone($item['customerPhone']);
+            $item["amount"] = number_format($item["amount"], 2, '.', ' ');
         }
 
         return $items;

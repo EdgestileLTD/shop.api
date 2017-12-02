@@ -87,7 +87,7 @@ foreach ($result as $item) {
     $company['kpp'] = $item['kpp'];
     $company['name'] = $item['name'];
     $company['email'] = $item['email'];
-    $company['phone'] = $item['phone'];
+    $company['phone'] =  correctInfoPhone($item['phone']);
     $company['note'] = $item['note'];
     $company['address'] = $item['address'];
     $company['login'] = $item['username'];

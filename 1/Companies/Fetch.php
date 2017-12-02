@@ -65,7 +65,7 @@ foreach ($result as $item) {
     $company['kpp'] = $item['kpp'];
     $company['name'] = $item['name'];
     $company['email'] = $item['email'];
-    $company['phone'] = $item['phone'];
+    $company['phone'] = correctInfoPhone($item['phone']);
     $company['idContact'] = $item['id_contact'];
     $company['contact'] = $item['contact'];
     $company['countOrders'] = $item['count_orders'];

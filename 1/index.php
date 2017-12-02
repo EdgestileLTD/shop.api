@@ -229,12 +229,35 @@ function setField($isNew, &$table, $jsonField, $fieldName, $fieldType = 'string'
     return false;
 }
 
-
 if ($apiObject != "Auth" && empty($_SESSION['isAuth'])) {
     $status['status'] = 'error';
     $status['error'] = 'Необходима авторизация!';
     outputData($status);
     exit;
+}
+
+function correctInfoPhone($phone)
+{
+    $phoneIn = $phone;
+    $phone = preg_replace('/[^0-9]/', '', $phone);
+    if ((strlen($phone) < 10) || (strlen($phone) > 11))
+        return $phoneIn;
+
+    if (strlen($phone) == 10)
+        $phone = '7' . $phone;
+    if ((strlen($phone) == 11) && ($phone[0] == '8'))
+        $phone[0] = 7;
+    $result = null;
+    for ($i = 0; $i < strlen($phone); $i++) {
+        $result .= $phone[$i];
+        if ($i == 0)
+            $result .= ' (';
+        if ($i == 3)
+            $result .= ') ';
+        if ($i == 6 || $i == 8)
+            $result .= '-';
+    }
+    return '+' . $result;
 }
 
 $uri = $_SERVER["DOCUMENT_ROOT"] . substr($uri, 0, strpos($uri, ".api")) . ".php";

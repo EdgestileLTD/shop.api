@@ -2,7 +2,8 @@
 
 require_once "Payments/functions.php";
 
-function saveProducts($idsOrders, $products) {
+function saveProducts($idsOrders, $products)
+{
 
     $idsUpdate = '';
     foreach ($products as $p)
@@ -23,7 +24,7 @@ function saveProducts($idsOrders, $products) {
             SET sm.count = sm.count + st.count
             WHERE st.id_order IN ({$idsStr}) AND sm.count IS NOT NULL AND sm.count >= 0");
 
-    $u = new seTable('shop_tovarorder','st');
+    $u = new seTable('shop_tovarorder', 'st');
     if (!empty($idsUpdate))
         $u->where('NOT `id` IN (' . $idsUpdate . ') AND id_order in (?)', $idsStr)->deletelist();
     else $u->where('id_order in (?)', $idsStr)->deletelist();
@@ -32,7 +33,7 @@ function saveProducts($idsOrders, $products) {
     foreach ($products as $p) {
         if (!$p->id) {
             foreach ($idsOrders as $idOrder) {
-                $u = new seTable('shop_tovarorder','st');
+                $u = new seTable('shop_tovarorder', 'st');
                 setField(true, $u, $idOrder, 'id_order');
                 setField(true, $u, $p->idPrice, 'id_price');
                 setField(true, $u, $p->article, 'article');
@@ -46,26 +47,26 @@ function saveProducts($idsOrders, $products) {
                 setField(true, $u, $p->action, 'action');
                 $idItem = $u->save();
                 foreach ($p->options as $option) {
-                   foreach ($option->optionValues as $value) {
-                       if (!$value->isChecked)
-                           continue;
+                    foreach ($option->optionValues as $value) {
+                        if (!$value->isChecked)
+                            continue;
 
-                       $u = new seTable('shop_tovarorder_option','sto');
-                       setField(true, $u, $idItem, 'id_tovarorder');
-                       setField(true, $u, $value->id, 'id_option_value');
-                       setField(true, $u, $value->price, 'base_price');
-                       if ($option->typePrice == 1)
-                           $value->price = $p->price * $value->price / 100;
-                       setField(true, $u, $value->price, 'price');
-                       if (!$value->count)
-                           $value->count = 1;
-                       setField(true, $u, $value->count, 'count');
-                       $u->save();
-                   }
+                        $u = new seTable('shop_tovarorder_option', 'sto');
+                        setField(true, $u, $idItem, 'id_tovarorder');
+                        setField(true, $u, $value->id, 'id_option_value');
+                        setField(true, $u, $value->price, 'base_price');
+                        if ($option->typePrice == 1)
+                            $value->price = $p->price * $value->price / 100;
+                        setField(true, $u, $value->price, 'price');
+                        if (!$value->count)
+                            $value->count = 1;
+                        setField(true, $u, $value->count, 'count');
+                        $u->save();
+                    }
                 }
             }
         } else {
-            $u = new seTable('shop_tovarorder','sto');
+            $u = new seTable('shop_tovarorder', 'sto');
             $u->select("modifications");
             $u->where("id=?", $p->id);
             $u->fetchOne();
@@ -89,7 +90,7 @@ function saveProducts($idsOrders, $products) {
     // обновление товаров/услугов заказа
     foreach ($products as $p)
         if ($p->id) {
-            $u = new seTable('shop_tovarorder','st');
+            $u = new seTable('shop_tovarorder', 'st');
             $isUpdated = false;
             $isUpdated |= setField(false, $u, $p->article, 'article');
             $isUpdated |= setField(false, $u, $p->name, 'nameitem');
@@ -106,7 +107,8 @@ function saveProducts($idsOrders, $products) {
         }
 }
 
-function savePayments($payments) {
+function savePayments($payments)
+{
     global $json;
     $token = $json->token;
     $idsPayments = array();
@@ -134,21 +136,22 @@ function savePayments($payments) {
             }
         }
     }
-    $p = new seTable('shop_order_payee','sop');
+    $p = new seTable('shop_order_payee', 'sop');
     $p->select("id");
     $p->where('id_order IN (?)', implode(",", $idsOrders));
     $p->andwhere('NOT id IN (?)', implode(",", $idsPayments));
     $p->deleteList();
 }
 
-function saveDelivery($idsOrders, $json) {
+function saveDelivery($idsOrders, $json)
+{
 
-    $p = new seTable('shop_delivery','sd');
+    $p = new seTable('shop_delivery', 'sd');
     $p->select("id");
     $p->where('id_order=?', $idsOrders[0]);
     $p->fetchOne();
     if ($p->id) {
-        $u = new seTable('shop_delivery','sd');
+        $u = new seTable('shop_delivery', 'sd');
         $isUpdated = false;
         $isUpdated |= setField(false, $u, $idsOrders[0], 'id_order');
         $isUpdated |= setField(false, $u, $json->nameRecipien, 'name_recipient');
@@ -161,16 +164,17 @@ function saveDelivery($idsOrders, $json) {
         if ($isUpdated)
             $u->save();
     } else {
-        foreach($idsOrders as $idOrder)
+        foreach ($idsOrders as $idOrder)
             $data[] = array('id_order' => $idOrder, 'name_recipient' => $json->nameRecipient, 'telnumber' => $json->deliveryPhone,
-                'email' =>  $json->deliveryEmail, 'calltime' => $json->deliveryCallTime, 'address' => $json->deliveryAddress,
+                'email' => $json->deliveryEmail, 'calltime' => $json->deliveryCallTime, 'address' => $json->deliveryAddress,
                 'postindex' => $json->deliveryPostIndex);
         if (!empty($data))
             se_db_InsertList('shop_delivery', $data);
     }
 }
 
-function saveDynFields($idsOrders, $dynFields) {
+function saveDynFields($idsOrders, $dynFields)
+{
     foreach ($dynFields as $field) {
         if ($field->id) {
             $u = new seTable('shop_order_userfields', 'sou');
@@ -183,7 +187,7 @@ function saveDynFields($idsOrders, $dynFields) {
         }
     }
     $data = array();
-    foreach($idsOrders as $idOrder) {
+    foreach ($idsOrders as $idOrder) {
         foreach ($dynFields as $field)
             if (empty($field->id) && ($field->value != ""))
                 $data[] = array('id_order' => $idOrder, 'id_userfield' => $field->idMain, 'value' => $field->value);
@@ -242,7 +246,7 @@ if ($isNew || !empty($ids)) {
     $isUpdated |= setField($isNew, $u, $json->deliveryId, 'delivery_type', 'varchar(20) default NULL', 1);
     $isUpdated |= setField($isNew, $u, $json->idUserAccountOut, 'id_user_account_out', 'int(10) default NULL', 1);
 
-    if ($isUpdated){
+    if ($isUpdated) {
         if (!empty($idsStr))
             $u->where('id in (?)', $idsStr);
         $idv = $u->save();

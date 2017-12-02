@@ -46,18 +46,20 @@ function getPermission($idUser) {
 if (trim($json->token) == trim($userToken)) {
     $data['userDisplay'] = 'Администратор';
     $data['idUser'] = "admin";
+    $data["isUserAdmin"] = true;
 }
 else {
     $u = new seTable("se_user", "su");
-    $u->select('su.id,
+    $u->select('su.id, su.is_super_admin,
                 CONCAT_WS(" ", p.last_name, CONCAT_WS(".", SUBSTR(p.first_name, 1, 1), SUBSTR(p.sec_name, 1, 1))) displayName');
     $u->innerjoin('person p', 'p.id=su.id');
     $u->where('is_active="Y" AND username="?"', $json->login);
     $u->andWhere('password="?"', strtolower($json->password));
     $result = $u->fetchOne();
     if (!empty($result)) {
-        $data['userDisplay'] = $u->displayName;
-        $data['idUser'] = $u->id;
+        $data['userDisplay'] = $result["displayName"];
+        $_SESSION['idUser'] = $data['idUser'] = $result["id"];
+        $_SESSION['isUserAdmin'] = $data["isUserAdmin"] = $result["is_super_admin"] == "Y";
     } else $error = 'Неправильное имя пользователя или пароль!';
 }
 
@@ -124,7 +126,6 @@ if (!IS_EXT) {
 
 $data['permission'] = getPermission($data['idUser']);
 $data['tables'] = $tables;
-$_SESSION['idUser'] = $data['idUser'];
 
 if (empty($error)) {
     $_SESSION['isAuth'] = true;

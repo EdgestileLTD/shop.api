@@ -85,11 +85,13 @@ $u->select('p.*, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) fullName,
             GROUP_CONCAT(DISTINCT(sug.group_id) SEPARATOR ";") AS idsGroups,
             su.username AS login, su.password, su.is_active, uu.company, uu.director,
             uu.tel, uu.fax, uu.uradres, uu.fizadres,
+            CONCAT_WS(" ", pm.last_name, pm.first_name, pm.sec_name) manager,
             CONCAT_WS(" ", pr.last_name, pr.first_name, pr.sec_name) referContact');
-$u->leftjoin('se_user_group sug', 'p.id=sug.user_id');
-$u->leftjoin('se_user su', 'p.id=su.id');
-$u->leftjoin('user_urid uu', 'uu.id=su.id');
-$u->leftjoin('person pr', 'pr.id=p.id_up');
+$u->leftjoin('se_user_group sug', 'p.id = sug.user_id');
+$u->leftjoin('se_user su', 'p.id = su.id');
+$u->leftjoin('user_urid uu', 'uu.id = su.id');
+$u->leftjoin('person pr', 'pr.id = p.id_up');
+$u->leftjoin('person pm', 'pm.id = p.manager_id');
 $u->where("p.id in ($ids)");
 $result = $u->getList();
 
@@ -110,6 +112,8 @@ foreach ($result as $item) {
     $contact['firstName'] = $item['first_name'];
     $contact['secondName'] = $item['sec_name'];
     $contact['lastName'] = $item['last_name'];
+    $contact['idManager'] = $item['manager_id'];
+    $contact['manager'] = $item['manager'];
     $contact['loyalty'] = (int)$item['loyalty'];
     $contact['gender'] = $item['sex'];
     $contact['email'] = $item['email'];
@@ -140,6 +144,19 @@ foreach ($result as $item) {
     $contact['priceType'] = (int) $item['price_type'];
     $contact['groups'] = getGroups($contact['id']);
     $contact['companyRequisites'] = getCompanyRequisites($contact['id']);
+
+    if (strpos($contact['firstName'], " ") && empty($contact["lastName"])) {
+        if (substr_count($contact['firstName'], ' ') == 2)
+            list($lastName, $name, $patronymic) = explode(" ", $contact['firstName']);
+        elseif (substr_count($contact['firstName'], ' ') == 1)
+            list($lastName, $name) = explode(" ", $contact['firstName']);
+        if (empty($contact["lastName"]) && $lastName)
+            $contact["lastName"] = $lastName;
+        if (empty($contact["secondName"]) && $patronymic)
+            $contact["secondName"] = $patronymic;
+        if ($name)
+            $contact["firstName"] = $name;
+    }
 
     $idsGroups = explode(';', $item['idsGroups']);
     foreach ($idsGroups as $idGroup) {

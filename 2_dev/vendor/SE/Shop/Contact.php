@@ -21,7 +21,9 @@ class Contact extends Base
     protected function getSettingsFetch()
     {
         return array(
-            "select" => 'p.*, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) display_name, 
+            "select" => 'p.*, 
+                
+                CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) display_name, 
                 c.name company, sug.group_id id_group,
                 COUNT(so.id) count_orders, SUM(so.amount) amount_orders,                
                 SUM(sop.amount) paid_orders,     
