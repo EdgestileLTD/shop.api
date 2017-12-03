@@ -224,6 +224,13 @@ if ($isNew || !empty($ids)) {
     $isUpdated |= setField($isNew, $u, $json->datePayee, 'date_payee');
     $isUpdated |= setField($isNew, $u, $json->deliveryDate, 'delivery_date');
     $isUpdated |= setField($isNew, $u, $json->dateCredit, 'date_credit');
+
+    if ($_SESSION['isShowDocDelivery']) {
+        $isUpdated |= setField($isNew, $u, $json->deliveryDocNum, 'delivery_doc_num');
+        $isUpdated |= setField($isNew, $u, $json->deliveryDocDate, 'delivery_doc_date');
+        $isUpdated |= setField($isNew, $u, $json->deliveryServiceName, 'delivery_service_name');
+    }
+
     $isUpdated |= setField($isNew, $u, $json->inPayee, 'inpayee', "enum('N', 'Y') default 'N'", 1);
     if (isset($json->isCanceled)) {
         if ($json->isCanceled)

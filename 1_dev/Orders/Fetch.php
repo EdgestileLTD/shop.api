@@ -111,6 +111,9 @@ if ($count > 0) {
         $order['idCompany'] = $item['id_company'];
         $order['idManager'] = $item['id_admin'];
         $order['manager'] = $item['manager'];
+        $order['deliveryDocNum'] = $item['delivery_doc_num'];
+        $order['deliveryDocDate'] = $item['delivery_doc_date'];
+        $order['deliveryServiceName'] = $item['delivery_service_name'];
         $order['customer'] = htmlspecialchars_decode($item['company'] ? trim($item['company']) : trim($item['customer']));
         $order['currency'] = $item['curr'];
         $order['customerPhone'] = correctInfoPhone($item['companyPhone'] ? $item['companyPhone'] : $item['customerPhone']);
@@ -122,6 +125,14 @@ if ($count > 0) {
             $order['paymentTypePrimary'] = $item['paymentType'];
         $order['statusOrder'] = $item['status'];
         $order['statusDelivery'] = $item['delivery_status'];
+
+        if (!empty($order['deliveryDocNum'])) {
+            $order["deliveryDocInfo"] = '№ ' . $order['deliveryDocNum'];
+            $order["deliveryDocInfo"] .= ' от ' . date("d.m.Y", strtotime($order['deliveryDocDate']));
+            if (!empty($order['deliveryServiceName']))
+             $order["deliveryDocInfo"] .= ' (' . $order['deliveryServiceName'] . ')';
+        }
+
         $items[] = $order;
     }
 }

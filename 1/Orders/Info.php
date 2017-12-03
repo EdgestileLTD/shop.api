@@ -281,6 +281,10 @@ if (!empty($result)) {
         $order['deliveryPostIndex'] = $item['postindex'];
         $order['deliveryCityId'] = $item['id_city'];
 
+        $order['deliveryDocNum'] = $item['delivery_doc_num'];
+        $order['deliveryDocDate'] = $item['delivery_doc_date'];
+        $order['deliveryServiceName'] = $item['delivery_service_name'];
+
         // информация об оплате
         $order['payeeDoc'] = $item['payee_doc'];
         $order['account'] = $item['account'];
