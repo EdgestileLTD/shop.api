@@ -21,9 +21,7 @@ class Contact extends Base
     protected function getSettingsFetch()
     {
         return array(
-            "select" => 'p.*, 
-                
-                CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) display_name, 
+            "select" => 'p.*, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) display_name, 
                 c.name company, sug.group_id id_group,
                 COUNT(so.id) count_orders, SUM(so.amount) amount_orders,                
                 SUM(sop.amount) paid_orders,     
@@ -72,8 +70,10 @@ class Contact extends Base
 
     protected function correctValuesBeforeFetch($items = [])
     {
-        foreach ($items as &$item)
+        foreach ($items as &$item) {
             $item['phone'] = $this->correctPhone($item['phone']);
+            $item['regDate'] = date("d.m.Y", strtotime($item['regDate']));
+        }
 
         return $items;
     }
@@ -174,6 +174,9 @@ class Contact extends Base
                     $emailProvider = new EmailProvider();
                     $emailProvider->removeEmailFromAllBooks($email);
                 }
+            $u = new DB('se_user');
+            $u->where('id IN (?)', implode(",", $this->input["ids"]));
+            $u->deleteList();
             return true;
         }
         return false;

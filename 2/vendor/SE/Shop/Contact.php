@@ -70,8 +70,10 @@ class Contact extends Base
 
     protected function correctValuesBeforeFetch($items = [])
     {
-        foreach ($items as &$item)
+        foreach ($items as &$item) {
             $item['phone'] = $this->correctPhone($item['phone']);
+            $item['regDate'] = date("d.m.Y", strtotime($item['regDate']));
+        }
 
         return $items;
     }
@@ -172,6 +174,9 @@ class Contact extends Base
                     $emailProvider = new EmailProvider();
                     $emailProvider->removeEmailFromAllBooks($email);
                 }
+            $u = new DB('se_user');
+            $u->where('id IN (?)', implode(",", $this->input["ids"]));
+            $u->deleteList();
             return true;
         }
         return false;
