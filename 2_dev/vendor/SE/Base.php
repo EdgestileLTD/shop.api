@@ -41,6 +41,7 @@ class Base
             $this->statusAnswer = 500;
         switch ($this->statusAnswer) {
             case 200: {
+                header('Content-Type: application/json');
                 echo json_encode($this->result);
                 exit;
             }

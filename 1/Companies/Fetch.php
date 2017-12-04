@@ -12,10 +12,12 @@ function convertFields($str)
 }
 
 $u = new seTable('company', 'c');
-$u->select('c.*, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) contact, p.id id_contact,
+$u->select('c.*, count(so.id) as count_orders, 
+            CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) contact, p.id id_contact,
             GROUP_CONCAT(sug.group_id SEPARATOR ";") idsGroups');
 $u->leftJoin('se_user_group sug', 'c.id = sug.company_id');
 $u->leftJoin('company_person cp', 'cp.id_company = c.id');
+$u->leftjoin('shop_order so', 'so.id_author = cp.id_person AND is_delete="N"');
 $u->leftJoin('person p', 'p.id = cp.id_person');
 
 if (!empty($json->filter))

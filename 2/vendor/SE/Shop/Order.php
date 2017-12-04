@@ -295,6 +295,8 @@ class Order extends Base // порядок
     {
         if (empty($this->input["id"]))
             $this->input["dateOrder"] = date("Y-m-d");
+        if (isset($this->input["idAdmin"]) && empty($this->input["idAdmin"]))
+            $this->input["idAdmin"] = null;
         return true;
     }
 
@@ -310,7 +312,6 @@ class Order extends Base // порядок
 
     protected function afterSave()
     {
-        writeLog($this->input);
         if (!$this->input['send'])
             return;
 

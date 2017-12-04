@@ -191,6 +191,7 @@ class Base extends CustomBase
             if ($this->input["id"] && $this->saveAddInfo()) {
                 $this->info();
                 DB::commit();
+                $this->afterSave();
                 return $this;
             } else throw new Exception();
         } catch (Exception $e) {

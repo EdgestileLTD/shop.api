@@ -50,16 +50,17 @@ if (trim($json->token) == trim($userToken)) {
 }
 else {
     $u = new seTable("se_user", "su");
-    $u->select('su.id, su.is_super_admin,
+    $u->select('su.id, su.is_super_admin, sug.group_id, 
                 CONCAT_WS(" ", p.last_name, CONCAT_WS(".", SUBSTR(p.first_name, 1, 1), SUBSTR(p.sec_name, 1, 1))) displayName');
-    $u->innerjoin('person p', 'p.id=su.id');
+    $u->innerjoin('person p', 'p.id = su.id');
+    $u->leftjoin('se_user_group sug', 'sug.user_id = su.id AND sug.group_id = 3');
     $u->where('is_active="Y" AND username="?"', $json->login);
     $u->andWhere('password="?"', strtolower($json->password));
     $result = $u->fetchOne();
     if (!empty($result)) {
         $data['userDisplay'] = $result["displayName"];
         $_SESSION['idUser'] = $data['idUser'] = $result["id"];
-        $_SESSION['isUserAdmin'] = $data["isUserAdmin"] = $result["is_super_admin"] == "Y";
+        $_SESSION['isUserAdmin'] = $data["isUserAdmin"] = $result["group_id"] == 3;
     } else $error = 'Неправильное имя пользователя или пароль!';
 }
 
