@@ -135,6 +135,8 @@ class Contact extends Base
             $u->leftJoin('person pr', 'pr.id=p.id_up');
             $u->leftJoin('person pm', 'pm.id=p.manager_id');
             $contact = $u->getInfo($id);
+            $contact["birthDate"] = date("d.m.Y", strtotime($contact["birthDate"]));
+            $contact["regDate"] = date("d.m.Y", strtotime($contact["regDate"]));
             $contact['groups'] = $this->getGroups($contact['id']);
             $contact['companyRequisites'] = $this->getCompanyRequisites($contact['id']);
             $contact['personalAccount'] = $this->getPersonalAccount($contact['id']);
@@ -341,12 +343,9 @@ class Contact extends Base
             $objects = $u->getList();
 
             $idsExists = array();
-            //$idsGroupsNewEmail = array();
-            foreach ($objects as $object) {
+            foreach ($objects as $object)
                 $idsExists[$object["userId"]][] = $object["groupId"];
-            }
-            //writeLog($idsExists);
-            //$idsExists[] = $object["groupId"];
+
             if (!empty($newIdsGroups)) {
                 $data = array();
                 foreach ($newIdsGroups as $id) {
@@ -362,7 +361,6 @@ class Contact extends Base
                     if (!empty($idsContactsNewEmail))
                         $this->addInAddressBookEmail($idsContactsNewEmail, array($id), array());
                 }
-                //writeLog($data);
                 if (!empty($data)) {
                     DB::insertList('se_user_group', $data);
                 }
@@ -534,12 +532,6 @@ class Contact extends Base
             // начать транзакцию БД
             DB::beginTransaction();
 
-            // инициализируем новую БД
-            $u = new DB('person', 'p');
-            $u->add_Field('price_type', 'int(10)',  '0', 1);
-
-
-            // масив индетефикаторов
             $ids = array();
             // если ids пустой и id определен: добавляем в ids
             if (empty($this->input["ids"]) && !empty($this->input["id"]))
@@ -549,6 +541,10 @@ class Contact extends Base
             $isNew = empty($ids);
             // если присутствует логин, то выдаем логин, иначе ноль
             $userName = isset($this->input["login"]) ? $this->input["login"] : null;
+            if (!empty($this->input["birthDate"]))
+                $this->input["birthDate"] = date("Y-m-d", strtotime($this->input["birthDate"]));
+            if (!empty($this->input["regDate"]))
+                $this->input["regDate"] = date("Y-m-d", strtotime($this->input["regDate"]));
             // создаем новый контакт
             if ($isNew) {
                 // разбиваем ФИО на фамилию, имя, отчество
