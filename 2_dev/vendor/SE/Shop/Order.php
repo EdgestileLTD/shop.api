@@ -9,6 +9,7 @@ class Order extends Base // порядок
 {
     protected $tableName = "shop_order";
 
+
     // получить от компании
     public static function fetchByCompany($idCompany)
     {

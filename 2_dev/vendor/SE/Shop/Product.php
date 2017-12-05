@@ -47,6 +47,7 @@ class Product extends Base
         "minCount" => "Мин.кол-во", "nameBrand" => "Бренд",
         "idAcc" => "Сопутствующие товары"
     );
+    protected $allowedSearchFields = ["code", "name", "article"];
 
     // @@@@@@ @@@@@@    @@    @@  @@ @@  @@     @@  @@    @@    @@@@@@ @@@@@@@@ @@@@@@ @@@@@@ @@    @@ @@  @@ @@    @@
     // @@  @@ @@  @@   @@@@   @@  @@ @@  @@     @@  @@   @@@@   @@        @@    @@  @@ @@  @@ @@   @@@ @@ @@  @@   @@@
@@ -801,7 +802,7 @@ class Product extends Base
             $res = $u->fetchOne();                              // получить одну
 
 
-        $data = array();
+            $data = array();
             if ($res['id'])
                 $data["id"]       = $res['id'];
             $data["idPrice"]      = $this->input["id"];

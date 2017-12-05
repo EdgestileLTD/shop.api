@@ -17,6 +17,7 @@ class Base extends CustomBase
     protected $filterFields;
     protected $search;
     protected $filters = [];
+    protected $allowedSearchFields = [];
     protected $tableName;
     protected $tableAlias;
     protected $allowedSearch = true;
@@ -78,19 +79,24 @@ class Base extends CustomBase
         $settingsFetch["select"] = $settingsFetch["select"] ? $settingsFetch["select"] : "*";
         $this->patterns = $this->getPattensBySelect($settingsFetch["select"]);
         try {
+            $searchFields = [];
             $u = $this->createTableForInfo($settingsFetch);
-            $searchFields = $u->getFields();
+            $fields = $u->getFields();
+            foreach ($fields as $key => $field)
+                if (empty($this->allowedSearchFields) || in_array($key, $this->allowedSearchFields))
+                    $searchFields[$key] = $field;
             if (!empty($this->patterns)) {
                 $this->sortBy = key_exists($this->sortBy, $this->patterns) ?
                     $this->patterns[$this->sortBy] : $this->sortBy;
-                foreach ($this->patterns as $key => $field)
-                    $searchFields[$key] = array("Field" => $field, "Type" => "text");
+                foreach ($this->patterns as $key => $field) {
+                    if (empty($this->allowedSearchFields) || in_array($key, $this->allowedSearchFields))
+                        $searchFields[$key] = array("Field" => $field, "Type" => "text");
+                }
             }
             if (!empty($this->search) || !empty($this->filters))
                 $u->where($this->getWhereQuery($searchFields));
             $u->groupBy();
             $u->orderBy($this->sortBy, $this->sortOrder == 'desc');
-            //writeLog($u->getSql());
 
             $this->result["items"] = $this->correctValuesBeforeFetch($u->getList($this->limit, $this->offset));
             $this->result["count"] = $u->getListCount();
