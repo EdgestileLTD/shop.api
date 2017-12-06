@@ -137,7 +137,6 @@ if ($count > 0) {
     }
 }
 
-writeLog(se_db_error());
 
 if (!se_db_error()) {
     $status['status'] = 'ok';

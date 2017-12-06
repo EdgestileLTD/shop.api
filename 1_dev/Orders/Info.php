@@ -163,6 +163,7 @@ function getOrderItems($idOrder, $currency)
             $product['code'] = $item['code'];
             $product['name'] = $item['nameitem'];
             $product['originalName'] = $item['price_name'];
+            $product['idsModifications'] = $item['modifications'];
             $product['modifications'] = getModifications($item);
             $product['article'] = $item['article'];
             $product['measurement'] = $item['measure'];

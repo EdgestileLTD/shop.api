@@ -74,7 +74,7 @@ if (!empty($where))
 $u->orderby('position');
 
 $objects = $u->getList();
-writeLog($objects);
+
 foreach ($objects as $item) {
     if ($item['code_gr'] == 'parser')
         continue;

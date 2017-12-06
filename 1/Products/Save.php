@@ -896,7 +896,7 @@ if ($isNew || !empty($ids)) {
     $isUpdated |= setField($isNew, $u, $json->seoHeader, 'title');
     $isUpdated |= setField($isNew, $u, $json->seoKeywords, 'keywords');
     $isUpdated |= setField($isNew, $u, $json->seoDescription, 'description');
-    $isUpdated |= setField($isNew, $u, $json->pageTitle, 'page_title');
+    $isUpdated |= setField($isNew, $u, $json->breadCrumb, 'bread_crumb');
     $isUpdated |= setField($isNew, $u, $json->idYAMarketCategory, 'market_category');
 
     if ($isUpdated) {
@@ -1013,7 +1013,7 @@ if (!se_db_error()) {
     file_get_contents('http://' . $json->hostname . "/lib/shoppreorder_checkCount.php?id={$data["id"]}");
 } else {
     $status['status'] = 'error';
-    $status['error'] = 'Не удаётся сохранить данные о товаре!';
+    $status['error'] =  'Не удаётся сохранить данные о товаре!';
 }
 
 outputData($status);

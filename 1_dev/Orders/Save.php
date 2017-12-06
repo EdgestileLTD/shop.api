@@ -45,6 +45,7 @@ function saveProducts($idsOrders, $products)
                 setField(true, $u, $p->license, 'license');
                 setField(true, $u, $p->note, 'commentary');
                 setField(true, $u, $p->action, 'action');
+                setField(true, $u, $p->idsModifications, 'modifications');
                 $idItem = $u->save();
                 foreach ($p->options as $option) {
                     foreach ($option->optionValues as $value) {
@@ -101,6 +102,7 @@ function saveProducts($idsOrders, $products)
             $isUpdated |= setField(false, $u, $p->license, 'license');
             $isUpdated |= setField(false, $u, $p->note, 'commentary');
             $isUpdated |= setField(false, $u, $p->action, 'action');
+            $isUpdated |= setField(false, $u, $p->idsModifications, 'modifications');
             $u->where('id=?', $p->id);
             if ($isUpdated)
                 $u->save();
