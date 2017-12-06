@@ -9,6 +9,7 @@ class Order extends Base // порядок
 {
     protected $tableName = "shop_order";
 
+
     // получить от компании
     public static function fetchByCompany($idCompany)
     {
@@ -188,6 +189,8 @@ class Order extends Base // порядок
     {
         $result = array();
         $this->result["amount"] = (real)$this->result["amount"];
+        $this->result["dateOrder"] = date("d.m.Y", strtotime($this->result["dateOrder"]));
+
         $result["oldStatus"] = $this->result["status"];
         $result["oldDeliveryStatus"] = $this->result["deliveryStatus"];
         $result["items"] = $this->getOrderItems();
@@ -295,6 +298,8 @@ class Order extends Base // порядок
     {
         if (empty($this->input["id"]))
             $this->input["dateOrder"] = date("Y-m-d");
+        if (isset($this->input["dateOrder"]))
+            $this->input["dateOrder"] = date("Y-m-d", strtotime($this->input["dateOrder"]));
         if (isset($this->input["idAdmin"]) && empty($this->input["idAdmin"]))
             $this->input["idAdmin"] = null;
         return true;
@@ -303,8 +308,11 @@ class Order extends Base // порядок
     // сохранить добавленную информацию
     protected function saveAddInfo()
     {
-        return $this->saveItems() && $this->saveDelivery() && $this->saveCustomFields();
+        $this->saveItems();
+        $this->saveDelivery();
+        $this->saveCustomFields();
 
+        return true;
     }
 
     protected function afterSave()
@@ -338,8 +346,6 @@ class Order extends Base // порядок
     // сохранить элементы
     private function saveItems()
     {
-        //$o = new DB('shop_order', 'sto');
-        //$o->add_field('nk', 'tinyint(4)', 0, 1);
 
         $idOrder = $this->input["id"];
         $products = $this->input["items"];
@@ -411,8 +417,6 @@ class Order extends Base // порядок
                 $u->setValuesFields($p);
                 $u->save();
             }
-
-        return true;
     }
 
     // сохранить пользовательские поля
@@ -444,29 +448,18 @@ class Order extends Base // порядок
     // сохранить доставку
     private function saveDelivery()
     {
-        try {
-            $input = $this->input;
-            $idOrder = $input["id"];
-            unset($input["id"]);
-            unset($input["ids"]);
-            $p = new DB('shop_delivery', 'sd');
-            $p->select("id");
-            $p->where('id_order = ?', $idOrder);
-            $result = $p->fetchOne();
-            if ($result["id"])
-                $input["id"] = $result["id"];
-            $input["idOrder"] = $idOrder;
-            if (empty($input["nameRecipient"]))
-                $input["nameRecipient"] = "";
-            $u = new DB('shop_delivery');
-            $u->setValuesFields($input);
-            $u->save();
-
-            return true;
-        } catch (Exception $e) {
-            $this->error = "Не удаётся сохранить информацию о доставке!";
-            throw new Exception($this->error);
-        }
+        $input = $this->input;
+        unset($input["ids"]);
+        $idOrder = $input["id"];
+        $p = new DB('shop_delivery', 'sd');
+        $p->select("id");
+        $p->where('id_order = ?', $idOrder);
+        $result = $p->fetchOne();
+        if ($result["id"])
+            $input["id"] = $result["id"];
+        $u = new DB('shop_delivery', 'sd');
+        $u->setValuesFields($input);
+        $u->save();
     }
 
     // удалить

@@ -189,6 +189,8 @@ class Order extends Base // порядок
     {
         $result = array();
         $this->result["amount"] = (real)$this->result["amount"];
+        $this->result["dateOrder"] = date("d.m.Y", strtotime($this->result["dateOrder"]));
+
         $result["oldStatus"] = $this->result["status"];
         $result["oldDeliveryStatus"] = $this->result["deliveryStatus"];
         $result["items"] = $this->getOrderItems();
@@ -296,6 +298,8 @@ class Order extends Base // порядок
     {
         if (empty($this->input["id"]))
             $this->input["dateOrder"] = date("Y-m-d");
+        if (isset($this->input["dateOrder"]))
+            $this->input["dateOrder"] = date("Y-m-d", strtotime($this->input["dateOrder"]));
         if (isset($this->input["idAdmin"]) && empty($this->input["idAdmin"]))
             $this->input["idAdmin"] = null;
         return true;
@@ -313,7 +317,6 @@ class Order extends Base // порядок
 
     protected function afterSave()
     {
-        writeLog($this->input);
         if (!$this->input['send'])
             return;
 
@@ -343,8 +346,6 @@ class Order extends Base // порядок
     // сохранить элементы
     private function saveItems()
     {
-        //$o = new DB('shop_order', 'sto');
-        //$o->add_field('nk', 'tinyint(4)', 0, 1);
 
         $idOrder = $this->input["id"];
         $products = $this->input["items"];
