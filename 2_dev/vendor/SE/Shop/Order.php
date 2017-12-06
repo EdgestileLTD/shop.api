@@ -415,6 +415,7 @@ class Order extends Base // порядок
         foreach ($products as $p)
             if ($p["id"]) {
                 $p["nameitem"] = $p["name"];
+                $p["modifications"] = $p["idsModifications"];
                 $u = new DB('shop_tovarorder', 'st');
                 $u->setValuesFields($p);
                 $u->save();

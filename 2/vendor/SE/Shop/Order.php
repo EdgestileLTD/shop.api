@@ -411,10 +411,11 @@ class Order extends Base // порядок
         if (!empty($data))
             DB::insertList('shop_tovarorder', $data);
 
-        // обновление товаров/услугов заказа
+        // обновление товаров/услугов заказа        
         foreach ($products as $p)
             if ($p["id"]) {
                 $p["nameitem"] = $p["name"];
+                $p["modifications"] = $p["idsModifications"];
                 $u = new DB('shop_tovarorder', 'st');
                 $u->setValuesFields($p);
                 $u->save();
