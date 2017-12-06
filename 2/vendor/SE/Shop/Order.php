@@ -235,6 +235,7 @@ class Order extends Base // порядок
                 $product['originalName'] = $item['priceName'];
                 $product['article'] = $item['article'];
                 $product['measurement'] = $item['measure'];
+                $product['idsModifications'] = $item["modifications"];
                 $product['idGroup'] = $item['id_group'];
                 $product['price'] = (real)$item['price'];
                 $product['count'] = (real)$item['count'];
@@ -413,6 +414,7 @@ class Order extends Base // порядок
         // обновление товаров/услугов заказа
         foreach ($products as $p)
             if ($p["id"]) {
+                $p["nameitem"] = $p["name"];
                 $u = new DB('shop_tovarorder', 'st');
                 $u->setValuesFields($p);
                 $u->save();
