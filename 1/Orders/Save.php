@@ -66,13 +66,6 @@ function saveProducts($idsOrders, $products)
                     }
                 }
             }
-        } else {
-            $u = new seTable('shop_tovarorder', 'sto');
-            $u->select("modifications");
-            $u->where("id=?", $p->id);
-            $u->fetchOne();
-            if ($u->modifications)
-                $p->idsModifications = $u->modifications;
         }
         if ($p->idPrice && $p->count > 0) {
             se_db_query("UPDATE shop_price SET presence_count = presence_count - '{$p->count}'
@@ -87,6 +80,8 @@ function saveProducts($idsOrders, $products)
     }
     if (!empty($data))
         se_db_InsertList('shop_tovarorder', $data);
+
+    writeLog($products);
 
     // обновление товаров/услугов заказа
     foreach ($products as $p)
