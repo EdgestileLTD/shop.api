@@ -6,24 +6,6 @@ use \PHPExcel as PHPExcel;
 use \PHPExcel_Writer_Excel2007 as PHPExcel_Writer_Excel2007;
 use \PHPExcel_Style_Fill as PHPExcel_Style_Fill;
 
-// отладка
-function debugging($group,$funct,$act) {    // группа_логов/функция/комент
-
-    // значение:  True/False (печатать/не_печатать в логи)
-    $print = array(
-        'funct'                  => False,        // безымянные
-        'экспортируемые данные'  => False,
-    );
-
-    if($print[$group] == True) {
-        $wrLog          = __FILE__;
-        $Indentation    = str_repeat(" ", (100 - strlen($wrLog)));
-        $wrLog          = "{$wrLog} {$Indentation}| Start function: {$funct}";
-        $Indentation    = str_repeat(" ", (150 - strlen($wrLog)));
-        writeLog("{$wrLog}{$Indentation} | Act: {$act}");
-    }
-
-}
 
 class ProductExport extends Product
 {
@@ -36,7 +18,7 @@ class ProductExport extends Product
 
     // превью экспорта
     public function previewExport($limit, $offset) {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         // получаем данные из БД
         $u = new DB('shop_price', 'sp');
         $u->select('COUNT(*) `count`');
@@ -181,7 +163,7 @@ class ProductExport extends Product
 
         unset($u); // удаление переменной
 
-        debugging('экспортируемые данные',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('экспортируемые данные',__FUNCTION__.' '.__LINE__); // отладка
         //writeLog($goodsL);
 
         if (!$goodsL)
@@ -274,7 +256,7 @@ class ProductExport extends Product
         $excludingKeys, $headerCSV, $filePath, $urlFile, $fileName,
         $formData
     ) {
-        debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
         // определяем колво заголовков и генерируем список столбцов по длине
 
         // замена значений на пользовательские
