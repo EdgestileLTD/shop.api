@@ -9,7 +9,7 @@ use SE\Exception;
 class Measure extends Base {
 
     // получить веса/объемы
-    public function info()
+    public function info($id = null)
     {
         $this->result['weights'] = $this->getWeights();
         $this->result['volumes'] = $this->getVolumes();

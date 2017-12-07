@@ -1504,7 +1504,6 @@ class Product extends Base
                 }
 
             } catch (Exception $e) {
-                //writeLog(DB::$lastQuery);
                 throw new Exception();
             }
             // обновление модификаций

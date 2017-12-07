@@ -118,20 +118,23 @@ class Base
     }
 
     // отладка
-    function debugging($group, $funct = null, $act = null)
+    protected function debugging($group, $funct = null, $act = null)
     {    // группа_логов/функция/комент
         // значение:  True/False (печатать/не_печатать в логи)
+        if (API_STATUS == "dev") {
 
-        $print = array(
-            'funct' => False,   // безымянные
-        );
+            $print = array(
+                'funct' => False,   // безымянные
+            );
 
-        if ($print[$group] == True) {
-            $wrLog = __CLASS__;
-            $Indentation = str_repeat(" ", (100 - strlen($wrLog)));
-            $wrLog = "{$wrLog} {$Indentation}| Start function: {$funct}";
-            $Indentation = str_repeat(" ", (150 - strlen($wrLog)));
-            writeLog("{$wrLog}{$Indentation} | Act: {$act}");
+            if ($print[$group] == True) {
+                $wrLog = get_class($this);
+                $Indentation = str_repeat(" ", (100 - strlen($wrLog)));
+                $wrLog = "{$wrLog} {$Indentation}| Start function: {$funct}";
+                $Indentation = str_repeat(" ", (150 - strlen($wrLog)));
+                writeLog("{$wrLog}{$Indentation} | Act: {$act}");
+            }
+
         }
     }
 
