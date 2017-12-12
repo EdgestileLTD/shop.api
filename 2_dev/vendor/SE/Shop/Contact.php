@@ -20,6 +20,7 @@ class Contact extends Base
     // получить настройки
     protected function getSettingsFetch()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         return array(
             "select" => 'p.*, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) display_name, 
                 c.name company, sug.group_id id_group,
@@ -70,6 +71,7 @@ class Contact extends Base
 
     protected function correctValuesBeforeFetch($items = [])
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         foreach ($items as &$item) {
             $item['phone'] = $this->correctPhone($item['phone']);
             $item['regDate'] = date("d.m.Y", strtotime($item['regDate']));
@@ -86,6 +88,7 @@ class Contact extends Base
     // получить пользовательские поля
     private function getCustomFields($idContact)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $u = new DB('shop_userfields', 'su');
         $u->select("cu.id, cu.id_person, cu.value, su.id id_userfield, 
                     su.name, su.required, su.enabled, su.type, su.placeholder, su.description, su.values, sug.id id_group, sug.name name_group");
@@ -121,6 +124,7 @@ class Contact extends Base
     // информация
     public function info($id = null)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $id = empty($id) ? $this->input["id"] : $id;
         try {
             $u = new DB('person', 'p');
@@ -161,6 +165,7 @@ class Contact extends Base
     // удаление
     public function delete()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, 'удаление'); // отладка
         $emails = array();
         $u = new DB('person');
         $u->select('email');
@@ -176,6 +181,7 @@ class Contact extends Base
                     $emailProvider = new EmailProvider();
                     $emailProvider->removeEmailFromAllBooks($email);
                 }
+            writeLog('contact');
             $u = new DB('se_user');
             $u->where('id IN (?)', implode(",", $this->input["ids"]));
             $u->deleteList();
@@ -192,6 +198,7 @@ class Contact extends Base
     // получить личную учетную запись
     private function getPersonalAccount($id)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $u = new DB('se_user_account');
         $u->where('user_id = ?', $id);
         $u->orderBy("date_payee");
@@ -214,6 +221,7 @@ class Contact extends Base
     // получить реквизиты компании
     private function getCompanyRequisites($id)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $u = new DB('user_rekv_type', 'urt');
         $u->select('ur.id, ur.value, urt.code rekv_code, urt.size, urt.title');
         $u->leftJoin('user_rekv ur', "ur.rekv_code = urt.code AND ur.id_author = {$id}");
@@ -230,6 +238,7 @@ class Contact extends Base
     // получить группы
     private function getGroups($id)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $u = new DB('se_group', 'sg');
         $u->select('sg.id, sg.title name');
         $u->innerjoin('se_user_group sug', 'sg.id = sug.group_id');
@@ -246,6 +255,7 @@ class Contact extends Base
     // транслит (перевод знаков в латинский алфавит)
     private function getUserName($lastName, $userName, $id = 0)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         // преобразование $userName в транслит
         if (empty($userName))
             $userName = strtolower(rus2translit($lastName));
@@ -273,6 +283,7 @@ class Contact extends Base
     // Добавить адрес электронной почты в адресную книгу
     private function addInAddressBookEmail($idsContacts, $idsNewsGroups, $idsDelGroups)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $emails = array();
         $u = new DB('person');
         $u->select("email, concat_ws(' ', first_name, sec_name) as name");
@@ -308,6 +319,7 @@ class Contact extends Base
     // сохранеие группы
     private function saveGroups($groups, $idsContact, $addGroup = false)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         try {
             $newIdsGroups = array();
             foreach ($groups as $group)
@@ -382,6 +394,7 @@ class Contact extends Base
     // Сохранить реквизиты компании
     private function saveCompanyRequisites($id, $input)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         try {
             foreach ($input["companyRequisites"] as $requisite) {
                 $u = new DB("user_rekv");
@@ -404,6 +417,7 @@ class Contact extends Base
     // Сохранить личные аккаунты
     private function savePersonalAccounts($id, $accounts)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         try {
             $idsUpdate = null;
             foreach ($accounts as $account)
@@ -438,6 +452,7 @@ class Contact extends Base
     // задать группу пользователя
     private function setUserGroup($idUser)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         try {
             $u = new DB('se_group', 'sg');
             $u->select("id");
@@ -478,6 +493,7 @@ class Contact extends Base
     // сохранить пользовательские поля
     private function saveCustomFields()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         // если присутствуют нстраиваемые поля - передать правду
         if (!isset($this->input["customFields"]))
             return true;
@@ -513,6 +529,7 @@ class Contact extends Base
     // сохранить
     public function save($contact = null)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         try {
             // добавляем группу (привязка по ids)
             if ($contact)
@@ -642,6 +659,7 @@ class Contact extends Base
     // экспорт
     public function export()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         // проверяем на наличие записей в id
         if (!empty($this->input["id"])) {
             $this->exportItem();
@@ -724,6 +742,7 @@ class Contact extends Base
     // экспорт контактА
     private function exportItem()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         // проверка параметров / библиотек
         $idContact = $this->input["id"];
         if (!$idContact) {
@@ -804,6 +823,7 @@ class Contact extends Base
     // пост
     public function post()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         if ($items = parent::post())
             $this->import($items[0]["name"]);
     }
@@ -816,6 +836,7 @@ class Contact extends Base
     // импорт (обновление!!)
     public function import($fileName)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         // адрес эксель файла
         $dir = DOCUMENT_ROOT . "/files";
         $filePath = $dir . "/{$fileName}";

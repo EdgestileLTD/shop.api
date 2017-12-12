@@ -60,8 +60,11 @@ class EmailProvider extends Base
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         if (empty($this->settingsProvider)) return false;
         if (!$this->sendPulseApi)
-            $this->sendPulseApi = new SendpulseApi($this->settingsProvider["ID"]["value"],
-                $this->settingsProvider["SECRET"]["value"], "session");
+            $this->sendPulseApi = new SendpulseApi(
+                $this->settingsProvider["ID"]["value"],
+                $this->settingsProvider["SECRET"]["value"],
+                "session"
+            );
         return $this->sendPulseApi;
     }
 
@@ -141,7 +144,10 @@ class EmailProvider extends Base
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $this->initProvider();
         if (!empty($this->settingsProvider) && $this->providerName == "sendpulse")
-            $this->getInstanceSendPulseApi()->removeEmailFromAllBooks($email);
+            if (
+                !empty($this->settingsProvider["ID"]["value"]) &&
+                !empty($this->settingsProvider["SECRET"]["value"])
+            ) $this->getInstanceSendPulseApi()->removeEmailFromAllBooks($email);
     }
 
     // @@  @@ @@@@@@ @@     @@ @@@@@@    @@    @@  @@
