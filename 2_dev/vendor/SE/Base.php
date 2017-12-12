@@ -122,19 +122,17 @@ class Base
     {    // группа_логов/функция/комент
         // значение:  True/False (печатать/не_печатать в логи)
         if (API_STATUS == "dev") {
-
             $print = array(
-                'funct' => False,   // безымянные
+                'funct' => True,   // безымянные
             );
-
             if ($print[$group] == True) {
-                $wrLog = get_class($this);
-                $Indentation = str_repeat(" ", (100 - strlen($wrLog)));
-                $wrLog = "{$wrLog} {$Indentation}| Start function: {$funct}";
-                $Indentation = str_repeat(" ", (150 - strlen($wrLog)));
-                writeLog("{$wrLog}{$Indentation} | Act: {$act}");
+                $wrLog = "Act: {$act}";
+                $Indentation = str_repeat(" ", (40 - mb_strlen($wrLog)));
+                $wrLog = "{$wrLog}{$Indentation} | Function: {$funct}";
+                $Indentation = str_repeat(" ", (80 - mb_strlen($wrLog)));
+                $class = get_class($this);
+                writeLog("{$wrLog}{$Indentation} | File: {$class}");
             }
-
         }
     }
 

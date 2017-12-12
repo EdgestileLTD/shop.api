@@ -19,6 +19,7 @@ class EmailProvider extends Base
     // сохранить
     public function save()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         DB::query("UPDATE email_providers SET is_active = FALSE");
         return parent::save();
     }
@@ -26,12 +27,14 @@ class EmailProvider extends Base
     // включить поставщика
     public function providerEnable()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         return ($this->providerName == "sendpulse" && !empty($this->settingsProvider["SECRET"]["value"]));
     }
 
     // информация
     public function info()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         parent::info();
         $this->result["balance"] = $this->getBalance();
         return $this->result;
@@ -40,6 +43,7 @@ class EmailProvider extends Base
     // инициализация поставщика
     public function initProvider()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, 'Иниц провайдера'); // отладка
         $u = new DB("email_providers");
         $u->where("is_active");
         $result = $u->fetchOne();
@@ -53,6 +57,7 @@ class EmailProvider extends Base
     // отправить импульс API
     public function getInstanceSendPulseApi()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         if (empty($this->settingsProvider)) return false;
         if (!$this->sendPulseApi)
             $this->sendPulseApi = new SendpulseApi($this->settingsProvider["ID"]["value"],
@@ -63,6 +68,7 @@ class EmailProvider extends Base
     // создать адресную книгу
     public function createAddressBook($bookName)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $this->initProvider();
         if (!empty($this->settingsProvider) && $this->providerName == "sendpulse") {
             return $this->getInstanceSendPulseApi()->createAddressBook($bookName)->id;
@@ -72,6 +78,7 @@ class EmailProvider extends Base
     // удалить адресную книгу
     public function removeAddressBook($idBook)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $this->initProvider();
         if (!empty($this->settingsProvider) && $this->providerName == "sendpulse")
             $this->getInstanceSendPulseApi()->removeAddressBook($idBook);
@@ -80,6 +87,7 @@ class EmailProvider extends Base
     // добавить сообщения электронной почты
     public function addEmails($idsBooks = array(), $emails = array())
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $this->initProvider();
         if (!empty($this->settingsProvider) && $this->providerName == "sendpulse") {
             foreach ($idsBooks as $idBook)
@@ -90,6 +98,7 @@ class EmailProvider extends Base
     // удалить сообщения эллектронной почты
     public function removeEmails($idsBooks = array(), $emails = array())
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $this->initProvider();
         if (!empty($this->settingsProvider) && $this->providerName == "sendpulse") {
             foreach ($idsBooks as $idBook)
@@ -105,6 +114,7 @@ class EmailProvider extends Base
     // получить
     public function fetch()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         parent::fetch();
         foreach($this->result['items'] as &$item) {
             if ($item['name'] == 'sendpulse') {
@@ -128,6 +138,7 @@ class EmailProvider extends Base
     // Удалить электронную почту из всех книг
     public function removeEmailFromAllBooks($email)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $this->initProvider();
         if (!empty($this->settingsProvider) && $this->providerName == "sendpulse")
             $this->getInstanceSendPulseApi()->removeEmailFromAllBooks($email);
@@ -141,6 +152,7 @@ class EmailProvider extends Base
     // Создать кампанию
     public function createCampaign($subject, $body, $idBook, $sendDate)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $this->initProvider();
         $m = new Main();
         $info = $m->info();
@@ -168,12 +180,14 @@ class EmailProvider extends Base
     // получить баланс
     private function getBalance()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         return (float)$this->requestSmsProviderInfo($this->result["name"], "balance");
     }
 
     // запросить информацию смс-провайдера
     private function requestSmsProviderInfo($provider, $action, $parameters = null)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $url = "http://" . HOSTNAME . "/lib/esp.php";
         $ch = curl_init($url);
         $data["serial"] = DB::$dbSerial;
