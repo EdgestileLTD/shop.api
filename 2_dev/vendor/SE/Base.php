@@ -123,7 +123,7 @@ class Base
         // значение:  True/False (печатать/не_печатать в логи)
         if (API_STATUS == "dev") {
             $print = array(
-                'funct' => True,   // безымянные
+                'funct' => False,   // безымянные
             );
             if ($print[$group] == True) {
                 $wrLog = "Act: {$act}";
