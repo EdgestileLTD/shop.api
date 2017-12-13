@@ -1,7 +1,7 @@
 <?php
 
 $allowedMethods = array('FETCH', 'POST', 'DELETE', 'SAVE', 'INFO', 'GET', 'ADDPRICE', 'TRANSLIT', 'UPLOAD',
-    'CHECKNAMES', 'SORT', 'EXPORT', 'IMPORT', 'LOGOUT', 'ITEMS');
+    'CHECKNAMES', 'SORT', 'EXPORT', 'IMPORT', 'LOGOUT', 'ITEMS', 'STORE');
 $allowedMethods = implode(",", $allowedMethods);
 
 $headers = getallheaders();
@@ -107,14 +107,18 @@ else {
 }
 $coreVersion = "5.1";
 $verFile = DOCUMENT_ROOT . "/lib/version";
-
-
 if (file_exists($verFile)) {
     $coreVersion = trim(file_get_contents($verFile));
     $coreVersion = explode(':', $coreVersion);
     $coreVersion = $coreVersion[1];
 }
 define('CORE_VERSION', $coreVersion);
+
+$dirSettings = DOCUMENT_ROOT . '/manager';
+if (!file_exists($dirSettings))
+    mkdir($dirSettings);
+
+define("DIR_SETTINGS", $dirSettings);
 
 // проверка авторизации
 if (($apiClass != "Auth" && $apiClass != "TokenAuth") && empty($_SESSION['isAuth']) && !in_array($_SERVER["REMOTE_ADDR"], $allowableServers)) {

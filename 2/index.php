@@ -1,7 +1,7 @@
 <?php
 
 $allowedMethods = array('FETCH', 'POST', 'DELETE', 'SAVE', 'INFO', 'GET', 'ADDPRICE', 'TRANSLIT', 'UPLOAD',
-    'CHECKNAMES', 'SORT', 'EXPORT', 'IMPORT', 'ITEMS', 'LOGOUT');
+    'CHECKNAMES', 'SORT', 'EXPORT', 'IMPORT', 'ITEMS', 'LOGOUT', 'STORE');
 $allowedMethods = implode(",", $allowedMethods);
 
 $headers = getallheaders();
@@ -109,6 +109,13 @@ if (file_exists($verFile)) {
     $coreVersion = $coreVersion[1];
 }
 define('CORE_VERSION', $coreVersion);
+
+
+$dirSettings = DOCUMENT_ROOT . '/manager';
+if (!file_exists($dirSettings))
+    mkdir($dirSettings);
+
+define("DIR_SETTINGS", $dirSettings);
 
 if ($apiClass != "Auth" && empty($_SESSION['isAuth']) && !in_array($_SERVER["REMOTE_ADDR"], $allowableServers)) {
     header("HTTP/1.1 401 Unauthorized");

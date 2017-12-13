@@ -17,17 +17,23 @@ class Base extends CustomBase
     protected $filterFields;
     protected $search;
     protected $filters = [];
-    protected $allowedSearchFields = [];
+    protected $searchFields = [];
     protected $tableName;
     protected $tableAlias;
     protected $allowedSearch = true;
     protected $availableSigns = array("=", "<=", "<", ">", ">=", "IN", "<>");
     protected $isNew;
+    protected $allMode = false;
+
     private $patterns = [];
+    private $fileSettings;
+    private $uiSettings;
+
 
     function __construct($input = null)
     {
         parent::__construct($input);
+        $this->fileSettings = strtolower(DIR_SETTINGS . "/" . end(explode('\\', get_class($this)))) . ".json";
         $input = $this->input;
         $this->limit = $input["limit"] && $this->limit ? (int)$input["limit"] : $this->limit;
         $this->offset = $input["offset"] ? (int)$input["offset"] : $this->offset;
@@ -43,6 +49,12 @@ class Base extends CustomBase
             $worlds = explode("_", $this->tableName);
             foreach ($worlds as $world)
                 $this->tableAlias .= $world[0];
+        }
+        if (file_exists($this->fileSettings)) {
+            $data = file_get_contents($this->fileSettings);
+            $uiSettings = json_decode($data, true);
+            if (!empty($uiSettings["searchFields"]))
+                $this->searchFields = $uiSettings["searchFields"];
         }
     }
 
@@ -83,13 +95,13 @@ class Base extends CustomBase
             $u = $this->createTableForInfo($settingsFetch);
             $fields = $u->getFields();
             foreach ($fields as $key => $field)
-                if (empty($this->allowedSearchFields) || in_array($key, $this->allowedSearchFields))
+                if (empty($this->searchFields) || $this->isSearchField($key))
                     $searchFields[$key] = $field;
             if (!empty($this->patterns)) {
                 $this->sortBy = key_exists($this->sortBy, $this->patterns) ?
                     $this->patterns[$this->sortBy] : $this->sortBy;
                 foreach ($this->patterns as $key => $field) {
-                    if (empty($this->allowedSearchFields) || in_array($key, $this->allowedSearchFields))
+                    if (empty($this->searchFields) || in_array($key, $this->searchFields))
                         $searchFields[$key] = array("Field" => $field, "Type" => "text");
                 }
             }
@@ -98,6 +110,7 @@ class Base extends CustomBase
             $u->groupBy();
             $u->orderBy($this->sortBy, $this->sortOrder == 'desc');
 
+            $this->result["searchFields"] = $this->searchFields;
             $this->result["items"] = $this->correctValuesBeforeFetch($u->getList($this->limit, $this->offset));
             $this->result["count"] = $u->getListCount();
             if (!empty($settingsFetch["aggregation"])) {
@@ -115,24 +128,20 @@ class Base extends CustomBase
         return $this->result["items"];
     }
 
-    public function correctAll($action = null){
+    public function correctAll(){
         if(!empty($this->input['allMode'])){
             $this->allMode = true;
-            // Сбрасываем лимиты
             $this->limit = 10000;
-            // Устанавливаем фильтры
             $this->setFilters($this->input['allModeLastParams']['filters']);
             $this->search = $this->input['allModeLastParams']['searchText'];
 
-            $filter = $this->getFilterQuery();
-            $result = $this->fetch(true);
+            $result = $this->fetch();
             if($result){
                 $ids = array();
                 foreach ($result as $item){
                     array_push($ids,$item['id']);
                 }
                 if(!empty($ids)){unset($result);}
-                //$input['ids'] = $ids;
                 $this->input['ids'] = $ids;
             } else
                 return $this->error = "Не выбрано ни одной записи!";
@@ -244,11 +253,6 @@ class Base extends CustomBase
         return [];
     }
 
-    protected function getSettingsFind()
-    {
-        return array();
-    }
-
     protected function getSettingsInfo()
     {
         return [];
@@ -283,7 +287,6 @@ class Base extends CustomBase
             if (is_string($searchItem))
                 $searchItem = trim(DB::quote($searchItem), "'");
 
-            $finds = $this->getSettingsFind();
             $time = 0;
             if (strpos($searchItem, "-") !== false) {
                 $time = strtotime($searchItem);
@@ -292,7 +295,6 @@ class Base extends CustomBase
             foreach ($searchFields as $field) {
                 if (strpos($field["Field"], ".") === false)
                     $field["Field"] = $this->tableAlias . "." . $field["Field"];
-                if (!empty($finds) && !in_array($field["Field"], $finds)) continue;
 
                 // текст
                 if ((strpos($field["Type"], "char") !== false) || (strpos($field["Type"], "text") !== false)) {
@@ -336,68 +338,7 @@ class Base extends CustomBase
         }
         return implode(" AND ", $where);
     }
-    /*
-        protected function getSearchQuery($searchFields = [])
-        {
-            $result = [];
-            $searchItem = trim($this->search);
-            if (empty($searchItem))
-                return $result;
-            if (is_string($searchItem))
-                $searchItem = trim(DB::quote($searchItem), "'");
 
-            $finds = $this->getSettingsFind();
-            $time = 0;
-            if (strpos($searchItem, "-") !== false) {
-                $time = strtotime($searchItem);
-            }
-
-            foreach ($searchFields as $field) {
-                if (strpos($field["Field"], ".") === false)
-                    $field["Field"] = $this->tableAlias . "." . $field["Field"];
-
-                if (!empty($finds) && !in_array($field["Field"], $finds)) continue;
-
-                // текст
-                if ((strpos($field["Type"], "char") !== false) || (strpos($field["Type"], "text") !== false)) {
-                    $result[] = "{$field["Field"]} LIKE '%{$searchItem}%'";
-                    continue;
-                }
-                // дата
-                if ($field["Type"] == "date") {
-                    if ($time) {
-                        $searchItem = date("Y-m-d", $time);
-                        $result[] = "{$field["Field"]} = '$searchItem'";
-                    }
-                    continue;
-                }
-                // время
-                if ($field["Type"] == "time") {
-                    if ($time) {
-                        $searchItem = date("H:i:s", $time);
-                        $result[] = "{$field["Field"]} = '$searchItem'";
-                    }
-                    continue;
-                }
-                // дата и время
-                if ($field["Type"] == "datetime") {
-                    if ($time) {
-                        $searchItem = date("Y-m-d H:i:s", $time);
-                        $result[] = "{$field["Field"]} = '$searchItem'";
-                    }
-                    continue;
-                }
-                // число
-                if (strpos($field["Type"], "int") !== false) {
-                    if (intval($searchItem)) {
-                        $result[] = "{$field["Field"]} = {$searchItem}";
-                        continue;
-                    }
-                }
-            }
-            return implode(" OR ", $result);
-        }
-    */
     protected function getFilterQuery()
     {
         $where = [];
@@ -429,7 +370,6 @@ class Base extends CustomBase
                 continue;
             $where[] = "{$field} {$sign} {$value}";
         }
-        //writeLog(implode(" AND ", $where));
 
         return implode(" AND ", $where);
     }
@@ -555,6 +495,24 @@ class Base extends CustomBase
     protected function afterSave()
     {
 
+    }
+
+    public function store()
+    {
+        if ($this->input["searchFields"])
+            $this->uiSettings["searchFields"] = $this->input["searchFields"] ;
+
+        $data = json_encode($this->uiSettings);
+        file_put_contents($this->fileSettings, $data);
+    }
+
+    private function isSearchField($key)
+    {
+        foreach ($this->searchFields as $field) {
+            if ($field["active"] && $field["field"] == $key)
+                return true;
+        }
+        return false;
     }
 
 }

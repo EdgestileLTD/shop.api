@@ -9,7 +9,6 @@ class Order extends Base // порядок
 {
     protected $tableName = "shop_order";
 
-
     // получить от компании
     public static function fetchByCompany($idCompany)
     {
@@ -47,12 +46,6 @@ class Order extends Base // порядок
             $u->setValuesFields($data);
             $u->save();
         };
-    }
-
-    // получить настройки
-    protected function getSettingsFind()
-    {
-        return array('so.id', 'so.date_order', 'so.date_payee', 'so.serial', 'so.commentary');
     }
 
     // получить настройки
@@ -411,7 +404,7 @@ class Order extends Base // порядок
         if (!empty($data))
             DB::insertList('shop_tovarorder', $data);
 
-        // обновление товаров/услугов заказа        
+        // обновление товаров/услугов заказа
         foreach ($products as $p)
             if ($p["id"]) {
                 $p["nameitem"] = $p["name"];

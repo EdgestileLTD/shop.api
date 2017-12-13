@@ -30,7 +30,13 @@ class Product extends Base
         "minCount" => "Мин.кол-во", "nameBrand" => "Бренд",
         "idAcc" => "Сопутствующие товары"
     );
-    protected $allowedSearchFields = ["code", "name", "article"];
+    protected $searchFields = [
+        ["title" => "Код", "field" => "code"],
+        ["title" => "Наименование", "field" => "name", "active" => true],
+        ["title" =>"Артикул", "field" => "article", "active" => true],
+        ["title" =>"Группа", "field" => "nameGroup"],
+        ["title" =>"Бренд", "field" => "nameBrand"]
+    ];
 
     // @@@@@@ @@@@@@    @@    @@  @@ @@  @@     @@  @@    @@    @@@@@@ @@@@@@@@ @@@@@@ @@@@@@ @@    @@ @@  @@ @@    @@
     // @@  @@ @@  @@   @@@@   @@  @@ @@  @@     @@  @@   @@@@   @@        @@    @@  @@ @@  @@ @@   @@@ @@ @@  @@   @@@
@@ -123,7 +129,7 @@ class Product extends Base
         return $this->result["items"];
     }
 
-    // Добавить изменения
+      // Добавить изменения
     public function addModifications($ids)
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка

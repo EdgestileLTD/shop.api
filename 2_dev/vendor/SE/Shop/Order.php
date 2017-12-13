@@ -9,7 +9,6 @@ class Order extends Base // порядок
 {
     protected $tableName = "shop_order";
 
-
     // получить от компании
     public static function fetchByCompany($idCompany)
     {
@@ -49,13 +48,7 @@ class Order extends Base // порядок
         };
     }
 
-    // получить настройки
-    protected function getSettingsFind()
-    {
-        return array('so.id', 'so.date_order', 'so.date_payee', 'so.serial', 'so.commentary');
-    }
-
-    // получить настройки
+       // получить настройки
     protected function getSettingsFetch()
     {
         return array(
