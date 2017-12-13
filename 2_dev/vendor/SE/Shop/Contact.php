@@ -169,7 +169,8 @@ class Contact extends Base
         $emails = array();
         $u = new DB('person');
         $u->select('email');
-        $u->where('id IN (?)', implode(",", $this->input["ids"]));
+        if(!empty($this->input["ids"]))
+            $u->where('id IN (?)', implode(",", $this->input["ids"]));
         $u->andWhere('email IS NOT NULL');
         $u->andWhere('email <> ""');
         $list = $u->getList();
