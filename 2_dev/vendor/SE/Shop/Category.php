@@ -125,6 +125,17 @@ class Category extends Base
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $result = parent::info();
+
+        // получаем список детей
+        $u = new DB('shop_group_tree', 'sgt');
+        $u->where('sgt.id_parent = ?', $result['id']);
+        $u->andWhere('sgt.id_child != ?', $result['id']);
+        $u->select('sg.name, sg.position, sg.id');
+        $u->leftJoin('shop_group sg', 'sg.id = sgt.id_child');
+        $u->orderBy('sg.upid');
+        $result['childs'] = $u->getList();
+        unset($u);
+
         if (CORE_VERSION == "5.3") {
             $arr = $this->setIdMainParent(array($result));
             $this->result = $arr[0];
