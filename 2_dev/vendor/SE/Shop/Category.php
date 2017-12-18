@@ -16,6 +16,7 @@ class Category extends Base
     // получить родительский пункт
     private function getParentItem($item, $items)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         foreach ($items as $it)
             if ($it["id"] == $item["upid"])
                 return $it;
@@ -24,6 +25,7 @@ class Category extends Base
     // получить имя пути
     private function getPathName($item, $items)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         if (!$item["upid"])
             return $item["name"];
 
@@ -36,6 +38,7 @@ class Category extends Base
     // получить патчи
     public function getPatches($items)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $result = array();
         $search = strtolower($this->input["searchText"]);
         foreach ($items as $item) {
@@ -51,6 +54,7 @@ class Category extends Base
     // просмотреть полученную структуру
     private function getTreeView($items, $idParent = null)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $result = array();
         foreach ($items as $item) {
             if ($item["upid"] == $idParent) {
@@ -64,6 +68,7 @@ class Category extends Base
     // установить id основного родителя
     private function setIdMainParent($items)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $result = array();
         foreach ($items as $item) {
             if ($item['idsParents']) {
@@ -87,6 +92,7 @@ class Category extends Base
     // получить настройки
     protected function getSettingsFetch()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         if (CORE_VERSION == "5.3") {
             $result["select"] = "sg.*, GROUP_CONCAT(CONCAT_WS(':', sgtp.level, sgt.id_parent) SEPARATOR ';') ids_parents,
                 sgt.level level";
@@ -110,12 +116,14 @@ class Category extends Base
     // получить информацию по настройкам
     protected function getSettingsInfo()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         return $this->getSettingsFetch();
     }
 
     // информация
     public function info($id = null)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $result = parent::info();
         if (CORE_VERSION == "5.3") {
             $arr = $this->setIdMainParent(array($result));
@@ -128,6 +136,7 @@ class Category extends Base
     // получить правильные значения
     protected function correctValuesBeforeFetch($items = array())
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         if (CORE_VERSION == "5.3")
             $items = $this->setIdMainParent($items);
         if ($this->input["isTree"] && empty($this->input["searchText"]))
@@ -139,6 +148,7 @@ class Category extends Base
     // получить скидки
     public function getDiscounts($idCategory = null)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $result = array();
         $id = $idCategory ? $idCategory : $this->input["id"];
         if (!$id)
@@ -155,6 +165,7 @@ class Category extends Base
     // получить изображения
     public function getImages($idCategory = null)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $result = array();
         $id = $idCategory ? $idCategory : $this->input["id"];
         if (!$id)
@@ -192,6 +203,7 @@ class Category extends Base
     // получить поставки
     public function getDeliveries($idCategory = null)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $result = array();
         $id = $idCategory ? $idCategory : $this->input["id"];
         if (!$id)
@@ -203,6 +215,7 @@ class Category extends Base
     // получить ссылки групп
     public function getLinksGroups($idCategory = null)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $result = array();
         $id = $idCategory ? $idCategory : $this->input["id"];
         if (!$id)
@@ -228,6 +241,7 @@ class Category extends Base
     // перевод
     private function translate($name)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         if (strcmp($name, "price") === 0)
             return "Цена";
         if (strcmp($name, "brand") === 0)
@@ -242,6 +256,7 @@ class Category extends Base
     // получить отфильтрованные параметры
     public function getFilterParams($idCategory = null)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $result = array();
         $id = $idCategory ? $idCategory : $this->input["id"];
         if (!$id)
@@ -272,6 +287,7 @@ class Category extends Base
     // получить детей
     protected function getChilds()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $idParent = $this->input["id"];
         if (CORE_VERSION == "5.3") {
             $filter = array(
@@ -290,6 +306,7 @@ class Category extends Base
     // получить имя родителя
     private function getNameParent()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         if (!$this->result["upid"])
             return null;
 
@@ -302,6 +319,7 @@ class Category extends Base
     // добавить полученную информацию
     protected function getAddInfo()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $result["discounts"] = $this->getDiscounts();
         $result["images"] = $this->getImages();
         $result["deliveries"] = $this->getDeliveries();
@@ -318,6 +336,7 @@ class Category extends Base
     // получить пользовательские поля
     private function getCustomFields()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         try {
             $idGroup = intval($this->input["id"]);
             $u = new DB('shop_userfields', 'su');
@@ -352,6 +371,7 @@ class Category extends Base
     // сохранить
     public function save()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         if (isset($this->input["codeGr"])) {
             $this->input["codeGr"] = strtolower(se_translite_url($this->input["codeGr"]));
         }
@@ -362,6 +382,7 @@ class Category extends Base
     // сохранить скидки
     private function saveDiscounts()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         try {
             foreach ($this->input["ids"] as $id)
                 DB::saveManyToMany($id, $this->input["discounts"],
@@ -375,6 +396,7 @@ class Category extends Base
     // сохранить изображения
     private function saveImages()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         try {
             $idsGroups = $this->input["ids"];
             $images = $this->input["images"];
@@ -425,6 +447,7 @@ class Category extends Base
     // сохранить ссылки групп
     private function saveLinksGroups()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         try {
             $idsGroups = $this->input["ids"];
             $links = $this->input["linksGroups"];
@@ -471,6 +494,7 @@ class Category extends Base
     // сохранить параметры фильтров
     private function saveParametersFilters()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         try {
             $idsGroups = $this->input["ids"];
             $filters = $this->input["parametersFilters"];
@@ -499,6 +523,7 @@ class Category extends Base
     // сохранить пользовательские поля
     private function saveCustomFields()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         if (!isset($this->input["customFields"]) && !$this->input["customFields"])
             return true;
 
@@ -564,6 +589,7 @@ class Category extends Base
     // сохранить id родителя
     public function saveIdParent($id, $idParent)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         try {
             $levelIdOld = self::getLevel($id);
             $level = 0;
@@ -591,6 +617,7 @@ class Category extends Base
     // правильные значения перед сохранением
     protected function correctValuesBeforeSave()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         if (!$this->input["id"] && !$this->input["ids"] || isset($this->input["codeGr"])) {
             if (empty($this->input["codeGr"])) {
                 $this->input["codeGr"] = strtolower(se_translite_url($this->input["name"]));
@@ -607,6 +634,7 @@ class Category extends Base
     // сохранить добавленную информацию
     protected function saveAddInfo()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $this->input["ids"] = empty($this->input["ids"]) ? array($this->input["id"]) : $this->input["ids"];
         if (!$this->input["ids"])
             return false;
@@ -615,7 +643,14 @@ class Category extends Base
         $this->saveImages();
         $this->saveLinksGroups();
         $this->saveParametersFilters();
-        $this->saveIdParent($this->input["id"], $this->input["upid"]);
+        if(!empty($this->input["childs"]))
+        {
+            // если присутствуют дети - разворачиваем данные для обработчика
+            foreach ($this->input["childs"] as $num=>$child)
+                $this->saveIdParent($child['id'], $this->input["id"]);
+        } else {
+            $this->saveIdParent($this->input["id"], $this->input["upid"]);
+        }
         $this->saveCustomFields();
         return true;
     }
