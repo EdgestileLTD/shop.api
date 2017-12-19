@@ -126,14 +126,23 @@ class Category extends Base
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $result = parent::info();
 
-        // получаем список детей
-        $u = new DB('shop_group_tree', 'sgt');
-        $u->where('sgt.id_parent = ?', $result['id']);
-        $u->andWhere('sgt.id_child != ?', $result['id']);
+        // получаем список похожих категорий
+        $u = new DB('shop_group_related', 'sgr');
+        $u->where('sgr.id_group = ?', $result['id']);
+        $u->andWhere('sgr.id_related != ?', $result['id']);
         $u->select('sg.name, sg.position, sg.id');
-        $u->leftJoin('shop_group sg', 'sg.id = sgt.id_child');
+        $u->leftJoin('shop_group sg', 'sg.id = sgr.id_related');
         $u->orderBy('sg.upid');
-        $result['childs'] = $u->getList();
+        $result['similar'] = $u->getList();
+        unset($u);
+        $u = new DB('shop_group_related', 'sgr');
+        $u->where('sgr.id_group != ?', $result['id']);
+        $u->andWhere('sgr.id_related = ?', $result['id']);
+        $u->andWhere('sgr.is_cross = ?', 1);
+        $u->select('sg.name, sg.position, sg.id');
+        $u->leftJoin('shop_group sg', 'sg.id = sgr.id_group');
+        $u->orderBy('sg.upid');
+        $result['similar'] = array_merge($result['similar'], $u->getList());
         unset($u);
 
         if (CORE_VERSION == "5.3") {
@@ -625,6 +634,25 @@ class Category extends Base
         }
     }
 
+    // сохранить id похожей категории
+    public function saveIdSimilar($id, $idRelated)
+    {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        try {
+            DB::query("DELETE FROM shop_group_related WHERE id_group = {$id} AND id_related = {$idRelated}");
+            DB::query("DELETE FROM shop_group_related WHERE id_group = {$idRelated} AND id_related = {$id}");
+            $sqlGroupRelated = "INSERT INTO shop_group_related (id_group, id_related)
+                                SELECT id_group, :id_related FROM shop_group_related
+                                UNION
+                                SELECT :id_group, :id_related";
+            $sthGroupTree = DB::prepare($sqlGroupRelated);
+            $sthGroupTree->execute(array('id_group' => $id, 'id_related' => $idRelated));
+            unset($sqlGroupRelated);
+        } catch (Exception $e) {
+            throw new Exception("Не удаётся сохранить похожие категории!");
+        }
+    }
+
     // правильные значения перед сохранением
     protected function correctValuesBeforeSave()
     {
@@ -654,14 +682,11 @@ class Category extends Base
         $this->saveImages();
         $this->saveLinksGroups();
         $this->saveParametersFilters();
-        if(!empty($this->input["childs"]))
-        {
-            // если присутствуют дети - разворачиваем данные для обработчика
-            foreach ($this->input["childs"] as $num=>$child)
-                $this->saveIdParent($child['id'], $this->input["id"]);
-        } else {
-            $this->saveIdParent($this->input["id"], $this->input["upid"]);
-        }
+        // если присутствуют похожие - запускаем метод записи
+        if(!empty($this->input["similar"]))
+            foreach ($this->input["similar"] as $num => $similar)
+                $this->saveIdSimilar($this->input["id"], $similar['id']);
+        $this->saveIdParent($this->input["id"], $this->input["upid"]);
         $this->saveCustomFields();
         return true;
     }
