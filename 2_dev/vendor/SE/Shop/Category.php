@@ -127,22 +127,22 @@ class Category extends Base
         $result = parent::info();
 
         // получаем список похожих категорий
-        $u = new DB('shop_group_related', 'sgr');
-        $u->where('sgr.id_group = ?', $result['id']);
-        $u->andWhere('sgr.id_related != ?', $result['id']);
+        $u = new DB('shop_group', 'sg');
         $u->select('sg.name, sg.position, sg.id');
-        $u->leftJoin('shop_group sg', 'sg.id = sgr.id_related');
+        $u->innerJoin("(
+            SELECT id_related AS id
+            FROM shop_group_related
+            WHERE id_group = {$result['id']}
+            AND type = 1
+            UNION
+            SELECT id_group AS id
+            FROM shop_group_related
+            WHERE id_related = {$result['id']}
+            AND type = 1
+            AND is_cross
+        ) sgr", 'sg.id = sgr.id');
         $u->orderBy('sg.upid');
         $result['similar'] = $u->getList();
-        unset($u);
-        $u = new DB('shop_group_related', 'sgr');
-        $u->where('sgr.id_group != ?', $result['id']);
-        $u->andWhere('sgr.id_related = ?', $result['id']);
-        $u->andWhere('sgr.is_cross = ?', 1);
-        $u->select('sg.name, sg.position, sg.id');
-        $u->leftJoin('shop_group sg', 'sg.id = sgr.id_group');
-        $u->orderBy('sg.upid');
-        $result['similar'] = array_merge($result['similar'], $u->getList());
         unset($u);
 
         if (CORE_VERSION == "5.3") {
