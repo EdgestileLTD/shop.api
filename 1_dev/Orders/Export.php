@@ -100,6 +100,7 @@ $u->leftjoin('shop_deliverytype sdt', 'sdt.id=so.delivery_type');
 $u->leftjoin('shop_delivery sd', 'sd.id_order=so.id');
 if (!empty($filter))
     $u->where($filter);
+else $u->where('so.is_delete = "N"');
 $u->groupby('so.id');
 $u->orderby('so.id');
 createExportFileFromQuery($u->getSql(), "orders", "order");

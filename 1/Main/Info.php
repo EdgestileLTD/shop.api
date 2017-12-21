@@ -62,6 +62,13 @@ function getIsShowOptions()
     return $_SESSION['isShowOptions'];
 }
 
+function getIsShowRequestCredit()
+{
+    $result = se_db_fetch_row(se_db_query("SHOW TABLES LIKE 'shop_credit'"));
+    $_SESSION['isShowRequestCredit'] = !empty($result);
+    return $_SESSION['isShowRequestCredit'];
+}
+
 function getIsShowDocDelivery()
 {
     $result = se_db_fetch_row(se_db_query("SHOW COLUMNS FROM shop_order WHERE `Field` = 'delivery_doc_num'"));
@@ -111,6 +118,7 @@ if ($u->id) {
     $main['shopFolder'] = $u->folder;
     $main['isShowSESections'] = getIsShowSESections($json->hostname);
     $main['isShowDocDelivery'] = getIsShowDocDelivery();
+    $main['isShowRequestCredit'] = getIsShowRequestCredit();
     if (!IS_EXT) {
         $main['isShowIncPrices'] = getIsShowIncPrices();
         $main['isShowOptions'] = getIsShowOptions();

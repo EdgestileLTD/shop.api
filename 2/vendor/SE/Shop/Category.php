@@ -82,7 +82,7 @@ class Category extends Base
 
     protected function getSettingsFetch()
     {
-        if (CORE_VERSION == "5.3") {
+        if (CORE_VERSION != "5.2") {
             $result["select"] = "sg.*, GROUP_CONCAT(CONCAT_WS(':', sgtp.level, sgt.id_parent) SEPARATOR ';') ids_parents,
                 sgt.level level";
             $joins[] = array(
@@ -110,7 +110,7 @@ class Category extends Base
     public function info($id = null)
     {
         $result = parent::info();
-        if (CORE_VERSION == "5.3") {
+        if (CORE_VERSION != "5.2") {
             $arr = $this->setIdMainParent(array($result));
             $this->result = $arr[0];
         }
@@ -285,7 +285,7 @@ class Category extends Base
     protected function getChilds()
     {
         $idParent = $this->input["id"];
-        if (CORE_VERSION == "5.3") {
+        if (CORE_VERSION != "5.2") {
             $filter = array(
                 array("field" => "upid", "value" => $idParent),
                 array("field" => "level", "value" => ++$this->result["level"]));

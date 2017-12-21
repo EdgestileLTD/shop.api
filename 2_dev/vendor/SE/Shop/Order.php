@@ -9,6 +9,15 @@ class Order extends Base // порядок
 {
     protected $tableName = "shop_order";
 
+    // поля для поиска
+    protected $searchFields = [
+        ["title" => "№ заказа", "field" => "id", "active" => true],
+        ["title" => "Заказчик", "field" => "customer", "active" => true, "query" => ["p.last_name", "p.first_name", "p.sec_name"]],
+        ["title" => "Телефон заказчика", "field" => "customer_phone", "active" => true],
+        ["title" => "Примечание", "field" => "note"],
+        ["title" => "Менеджер", "field" => "manager"]
+    ];
+
     // получить от компании
     public static function fetchByCompany($idCompany)
     {

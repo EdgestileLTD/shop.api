@@ -127,6 +127,7 @@ if (!IS_EXT) {
 
 $data['permission'] = getPermission($data['idUser']);
 $data['tables'] = $tables;
+$data['coreVersion'] = CORE_VERSION;
 
 if (empty($error)) {
     $_SESSION['isAuth'] = true;

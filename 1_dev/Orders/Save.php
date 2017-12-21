@@ -81,8 +81,6 @@ function saveProducts($idsOrders, $products)
     if (!empty($data))
         se_db_InsertList('shop_tovarorder', $data);
 
-    writeLog($products);
-
     // обновление товаров/услугов заказа
     foreach ($products as $p)
         if ($p->id) {

@@ -14,6 +14,7 @@ class Product extends Base
 {
     protected $tableName = "shop_price";
     private $newImages;
+
     // руссификация заголовков столбцов
     protected $rusCols = array(
         "id" => "Ид.", "article" => "Артикул", "code" => "Код (URL)", "name" => "Наименование",
@@ -30,6 +31,8 @@ class Product extends Base
         "minCount" => "Мин.кол-во", "nameBrand" => "Бренд",
         "idAcc" => "Сопутствующие товары"
     );
+
+    // поля для поиска
     protected $searchFields = [
         ["title" => "Код", "field" => "code"],
         ["title" => "Наименование", "field" => "name", "active" => true],
