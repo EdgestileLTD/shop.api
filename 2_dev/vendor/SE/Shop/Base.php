@@ -360,6 +360,8 @@ class Base extends CustomBase
             $filters[] = $this->filters;
         else $filters = $this->filters;
         foreach ($filters as $filter) {
+            if (preg_match('/(0[1-9]|[12][0-9]|3[01])[.](0[1-9]|1[012])[.](19|20)\d\d/', $filter["value"]))
+                $filter["value"] = date("Y-m-d", strtotime($filter["value"]));
             if (key_exists($filter["field"], $this->patterns))
                 $field = $this->patterns[$filter["field"]];
             else {
