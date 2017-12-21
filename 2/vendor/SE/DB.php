@@ -656,19 +656,11 @@ class DB
         return implode(" ", $result);
     }
 
-    // ОБНОВИТЬ значение полей (id обязательно)
-    // принимает id + прочие значения в ассоциативном массиве (например)
-    // записывает изменения в случае совпадения id с базой данных
-    // возращает id
-
-    // $pr_gr = new DB('shop_price_group');
-    // $pr_gr->setValuesFields($category_unit);
-    // $pr_gr->save();
-
+    // установить значение полей
     public function setValuesFields($values)
     {
         $this->inputData = $values;
-        $fields = $this->getFields(); // получить поля
+        $fields = $this->getFields();
         $this->whereDefinitions = null;
         foreach ($values as $key => $value) {
             if (($key == "id" && empty($value)) || (is_array($value) && $key != "ids") || is_object($value))

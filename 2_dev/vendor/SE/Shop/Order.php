@@ -4,6 +4,8 @@ namespace SE\Shop;
 
 use SE\DB as DB;
 use SE\Exception;
+use \PHPExcel as PHPExcel;
+use \PHPExcel_Writer_Excel2007 as PHPExcel_Writer_Excel2007;
 
 class Order extends Base // порядок
 {
@@ -17,6 +19,25 @@ class Order extends Base // порядок
         ["title" => "Примечание", "field" => "note"],
         ["title" => "Менеджер", "field" => "manager"]
     ];
+
+    private $orderStatuses =
+        [
+            'Y' => 'Оплачен',
+            'N' => 'Не оплачен',
+            'K' => 'Кредит',
+            'P' => 'Подарок',
+            'W' => 'В ожидании',
+            'C' => 'Возврат',
+            'T' => 'Тест'
+        ];
+
+    private $deliveryStatuses =
+        [
+            'Y' => 'Доставлен',
+            'N' => 'Не доставлен',
+            'M' => 'В работе',
+            'P' => 'Отправлен'
+        ];
 
     // получить от компании
     public static function fetchByCompany($idCompany)
@@ -57,7 +78,7 @@ class Order extends Base // порядок
         };
     }
 
-       // получить настройки
+    // получить настройки
     protected function getSettingsFetch()
     {
         return array(
@@ -479,6 +500,170 @@ class Order extends Base // порядок
         } catch (Exception $e) {
             $this->error = "Не удаётся отменить заказ!";
         }
+    }
+
+    public function export()
+    {
+        if ($this->input["id"]) {
+            $this->exportItem();
+            return;
+        }
+    }
+
+    private function exportItem()
+    {
+        $fileName = "export_order_{$this->input["id"]}.xlsx";
+        $filePath = DOCUMENT_ROOT . "/files";
+        if (!file_exists($filePath) || !is_dir($filePath))
+            mkdir($filePath, 0777, true);
+        $filePath .= "/{$fileName}";
+        $urlFile = 'http://' . HOSTNAME . "/files/{$fileName}";
+
+
+        $order = $this->info();
+        writeLog($order);
+
+        $xls = new PHPExcel();
+        $xls->setActiveSheetIndex(0);
+        $sheet = $xls->getActiveSheet();
+        $sheet->setTitle('Заказ № ' . $order["id"]);
+
+        $sheet->setCellValue("A1", 'Заказ № ' . $order["id"] . " от " . date("d.m.Y", strtotime($order["dateOrder"])));
+        $sheet->getStyle('A1')->getFill()->setFillType(\PHPExcel_Style_Fill::FILL_SOLID);
+        $sheet->getStyle('A1')->getFill()->getStartColor()->setRGB('EEEEEE');
+        $sheet->getStyle('A1')->getFont()->setSize(14);
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $sheet->mergeCells('A1:F1');
+        $sheet->getColumnDimension('A')->setWidth(16);
+        $sheet->getColumnDimension('B')->setWidth(30);
+        $sheet->getColumnDimension('C')->setWidth(14);
+        $sheet->getColumnDimension('D')->setWidth(9);
+        $sheet->getColumnDimension('E')->setWidth(9);
+        $sheet->getColumnDimension('F')->setWidth(9);
+
+        $sheet->setCellValue("A3", '№ счёта:');
+        if ($order["payments"])
+            $sheet->setCellValue("B3", $order["payments"][0]["docNum"]);
+        $sheet->setCellValue("A4", 'Дата заказа:');
+        $sheet->setCellValue("B4", date("d.m.Y", strtotime($order["dateOrder"])));
+        $sheet->setCellValue("C4", 'Статус заказа:');
+        $sheet->setCellValue("D4", $this->orderStatuses[$order["status"]]);
+        $sheet->mergeCells('D4:F4');
+        $sheet->setCellValue("A5", 'Заказчик:');
+        $sheet->setCellValue("B5", $order["customer"]);
+        $sheet->setCellValue("A6", 'Телефон:');
+        $sheet->setCellValue("B6", $order["customerPhone"]);
+        $sheet->setCellValue("C6", 'Email:');
+        $sheet->setCellValue("D6", $order["customerEmail"]);
+        $sheet->mergeCells('D6:F6');
+        $sheet->setCellValue("A7", 'Доставка:');
+        $sheet->setCellValue("B7", $order["deliveryName"]);
+        $sheet->setCellValue("C7", 'Сумма:');
+        $sheet->setCellValue("D7", number_format($order["deliveryPayee"], 2, ',', ' '));
+        $sheet->mergeCells('D7:F7');
+        $sheet->setCellValue("A8", 'Статус:');
+        $sheet->setCellValue("B8", $this->deliveryStatuses[$order["deliveryStatus"]]);
+        $sheet->setCellValue("C8", 'Дата доставки:');
+        if (!empty($order["deliveryDate"]))
+            $sheet->setCellValue("D8", date("d.m.Y", strtotime($order["deliveryDate"])));
+        $sheet->mergeCells('D8:F8');
+        $sheet->setCellValue("A9", 'Адрес доставки:');
+        $sheet->setCellValue("B9", $order["address"]);
+        $sheet->getStyle('B9')->getAlignment()->setWrapText(true);
+        $sheet->setCellValue("C9", 'Индекс:');
+        $sheet->setCellValue("D9", $order["postindex"]);
+        $sheet->mergeCells('D9:F9');
+        $sheet->setCellValue("A10", 'Телефон:');
+        $sheet->setCellValue("B10", $order["telnumber"]);
+        $sheet->setCellValue("C10", 'Время звонка:');
+        $sheet->setCellValue("D10", $order["calltime"]);
+        $sheet->mergeCells('D10:F10');
+        $sheet->setCellValue("A11", 'Примечание:');
+        $sheet->setCellValue("B11", $order["deliveryNoteAdd"]);
+        $sheet->mergeCells('B11:F11');
+        $sheet->setCellValue("C12", 'Сумма товаров и услуг:');
+        $sheet->mergeCells('C12:D12');
+        $sheet->setCellValue("E12", number_format($order["amount"] + $order["discount"] - $order["deliveryPayee"], 2, ',', ' '));
+        $sheet->mergeCells('E12:F12');
+        $sheet->setCellValue("C13", 'Сумма скидки:');
+        $sheet->mergeCells('C13:D13');
+        $sheet->setCellValue("E13", number_format($order["discount"], 2, ',', ' '));
+        $sheet->mergeCells('E13:F13');
+        $sheet->setCellValue("C14", 'ИТОГО:');
+        $sheet->mergeCells('C14:D14');
+        $sheet->setCellValue("E14",  number_format($order["amount"], 2, ',', ' '));
+        $sheet->mergeCells('E14:F14');
+        $sheet->getStyle('D7')->getNumberFormat()->setFormatCode('#,##0.00');
+        $sheet->getStyle('E12')->getNumberFormat()->setFormatCode('#,##0.00');
+        $sheet->getStyle('E13')->getNumberFormat()->setFormatCode('#,##0.00');
+        $sheet->getStyle('E14')->getNumberFormat()->setFormatCode('#,##0.00');
+        $sheet->getStyle('A5:F5')->getBorders()->getTop()->setBorderStyle(\PHPExcel_Style_Border::BORDER_THICK);
+        $sheet->getStyle('A7:F7')->getBorders()->getTop()->setBorderStyle(\PHPExcel_Style_Border::BORDER_THICK);
+        $sheet->getStyle('A12:F12')->getBorders()->getTop()->setBorderStyle(\PHPExcel_Style_Border::BORDER_THICK);
+        $sheet->getStyle('A9:F9')->getAlignment()->setVertical(\PHPExcel_Style_Alignment::VERTICAL_TOP);
+        $sheet->getStyle('A3:A15')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+        $sheet->getStyle('C3:C15')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+        $sheet->getStyle('B3:B15')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
+        $sheet->getStyle('D3:D15')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
+        $sheet->getStyle('E3:E15')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
+        $sheet->getStyle('A3:A11')->getFont()->setBold(true);
+        $sheet->getStyle('C3:C11')->getFont()->setBold(true);
+        $sheet->getStyle('C14:F14')->getFont()->setBold(true);
+        $sheet->getStyle('C12:F14')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+
+
+        $sheet->setCellValue("A17", 'Артикул');
+        $sheet->setCellValue("B17", 'Наименование товара');
+        $sheet->mergeCells('B17:C17');
+        $startSym = "D";
+        $codeSym = ord($startSym);
+        if ($order["items"]) {
+            $product = $order["items"][0];
+            foreach ($product["modifications"] as $modification)
+                $sheet->setCellValue(chr($codeSym++) . "17", $modification["name"]);
+        }
+
+        $startSymCount = $codeSym;
+        $sheet->setCellValue(chr($codeSym++) . "17", 'Кол-во');
+        $sheet->setCellValue(chr($codeSym++) . "17", 'Цена');
+        $sheet->setCellValue(chr($codeSym) . "17", 'Сумма');
+        $sheet->setCellValue("A16", 'Товары и услуги заказа');
+        $endSym = chr($codeSym);
+        $sheet->mergeCells('A16:' . $endSym . '16');
+        $sheet->getStyle('A16:' . $endSym . '16')->getBorders()->getBottom()->setBorderStyle(\PHPExcel_Style_Border::BORDER_THIN);
+        $sheet->getStyle('A16:' . $endSym . '16')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A17:' . $endSym . '17')->getBorders()->getAllBorders()->setBorderStyle(\PHPExcel_Style_Border::BORDER_THIN);
+        $sheet->getStyle('A17:' . $endSym . '17')->getFont()->setBold(true);
+        $i = 18;
+        foreach ($order["items"] as $product) {
+            $codeSym = ord($startSym);
+            $sheet->getStyle("E$i:" . $endSym . $i)->getNumberFormat()->setFormatCode('#,##0.00');
+            $sheet->getStyle("A$i:" . $endSym . $i)->getBorders()->getAllBorders()->setBorderStyle(\PHPExcel_Style_Border::BORDER_THIN);
+            $sheet->getStyle("A$i:" . $endSym . $i)->getAlignment()->setVertical(\PHPExcel_Style_Alignment::VERTICAL_TOP);
+            $sheet->mergeCells("B$i:C$i");
+            $sheet->getStyle("B$i")->getAlignment()->setWrapText(true);
+            $sheet->setCellValue("A$i", $product["article"]);
+            if (strlen($product["originalName"]) > 50)
+                $sheet->getRowDimension("$i")->setRowHeight(30);
+            $sheet->setCellValue("B$i", $product["originalName"]);
+            foreach ($product["modifications"] as $modification) {
+                $sheet->setCellValue(chr($codeSym++) . $i, (string)$modification["value"]);
+                $sheet->getStyle(chr($codeSym) . $i . ':' . chr($codeSym) . $i)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
+            }
+            $codeSym = $startSymCount;
+            $sheet->setCellValue(chr($codeSym++) . "$i", $product["count"]);
+            $sheet->setCellValue(chr($codeSym++) . "$i", number_format($product["price"] - $product["discount"], 2, ',', ' '));
+            $sheet->setCellValue(chr($codeSym++) . "$i", number_format($product["price"] - $product["discount"]) * $product["count"], 2, ',', ' ');
+            $i++;
+        }
+        foreach (range('A', $endSym) as $columnID)
+            $sheet->getColumnDimension($columnID)->setAutoSize(true);
+
+        $objWriter = new PHPExcel_Writer_Excel2007($xls);
+        $objWriter->save($filePath);
+
+        $this->result["url"] = $urlFile;
+
     }
 
 }

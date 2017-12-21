@@ -17,6 +17,9 @@ $result = file_get_contents($urlSend, false, stream_context_create(array(
 
 if ($result == "ok")
     $status['status'] = 'ok';
-else $status['status'] = 'error';
+else {
+    $status['status'] = 'error';
+    $status['error'] = 'Не удаётся отправить заявку в банк!';
+}
 
 outputData($status);

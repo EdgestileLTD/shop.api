@@ -16,93 +16,156 @@ class EmailProvider extends Base
     /* @var $sendPulseApi SendPulseApi */
     private $sendPulseApi;
 
+    // сохранить
     public function save()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         DB::query("UPDATE email_providers SET is_active = FALSE");
         return parent::save();
     }
 
+    // включить поставщика
     public function providerEnable()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         return ($this->providerName == "sendpulse" && !empty($this->settingsProvider["SECRET"]["value"]));
     }
 
+    // информация
     public function info()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         parent::info();
         $this->result["balance"] = $this->getBalance();
         return $this->result;
     }
 
+    // инициализация поставщика
     public function initProvider()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, 'Иниц провайдера'); // отладка
         $u = new DB("email_providers");
         $u->where("is_active");
         $result = $u->fetchOne();
         if ($result) {
             $this->providerName = strtolower($result["name"]);
             $this->settingsProvider = json_decode($result["settings"], 1);
-            if (empty($this->settingsProvider['ID']['value']) || empty($this->settingsProvider['SECRET']['value'])) {
-                $this->providerName = '';
-            }
         }
     }
 
     /* @return SendpulseApi */
+    // отправить импульс API
     public function getInstanceSendPulseApi()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        if (empty($this->settingsProvider)) return false;
         if (!$this->sendPulseApi)
-            $this->sendPulseApi = new SendpulseApi($this->settingsProvider["ID"]["value"],
-                $this->settingsProvider["SECRET"]["value"], "session");
+            $this->sendPulseApi = new SendpulseApi(
+                $this->settingsProvider["ID"]["value"],
+                $this->settingsProvider["SECRET"]["value"],
+                "session"
+            );
         return $this->sendPulseApi;
     }
 
+    // создать адресную книгу
     public function createAddressBook($bookName)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $this->initProvider();
-        if ($this->providerName == "sendpulse")
+        if (!empty($this->settingsProvider) && $this->providerName == "sendpulse") {
             return $this->getInstanceSendPulseApi()->createAddressBook($bookName)->id;
+        }
     }
 
+    // удалить адресную книгу
     public function removeAddressBook($idBook)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $this->initProvider();
-        if ($this->providerName == "sendpulse")
+        if (!empty($this->settingsProvider) && $this->providerName == "sendpulse")
             $this->getInstanceSendPulseApi()->removeAddressBook($idBook);
     }
 
-    public function addEmails($idsBooks = [], $emails = [])
+    // добавить сообщения электронной почты
+    public function addEmails($idsBooks = array(), $emails = array())
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $this->initProvider();
-        if ($this->providerName == "sendpulse") {
+        if (!empty($this->settingsProvider) && $this->providerName == "sendpulse") {
             foreach ($idsBooks as $idBook)
                 $this->getInstanceSendPulseApi()->addEmails($idBook, $emails);
         }
     }
 
-    public function removeEmails($idsBooks = [], $emails = [])
+    // удалить сообщения эллектронной почты
+    public function removeEmails($idsBooks = array(), $emails = array())
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $this->initProvider();
-        if ($this->providerName == "sendpulse") {
+        if (!empty($this->settingsProvider) && $this->providerName == "sendpulse") {
             foreach ($idsBooks as $idBook)
                 $this->getInstanceSendPulseApi()->removeEmails($idBook, $emails);
         }
     }
 
-    public function removeEmailFromAllBooks($email)
+    // @@@@@@ @@@@@@    @@    @@  @@ @@  @@ @@    @@ @@@@@@@@ @@
+    // @@  @@ @@  @@   @@@@   @@  @@ @@  @@ @@   @@@    @@    @@
+    // @@  @@ @@  @@  @@  @@   @@@@  @@@@@@ @@  @@@@    @@    @@@@@@
+    // @@  @@ @@  @@ @@    @@   @@       @@ @@@@  @@    @@    @@  @@
+    // @@  @@ @@@@@@ @@    @@   @@       @@ @@@   @@    @@    @@@@@@
+    // получить
+    public function fetch()
     {
-        $this->initProvider();
-        if ($this->providerName == "sendpulse")
-            $this->getInstanceSendPulseApi()->removeEmailFromAllBooks($email);
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        parent::fetch();
+        foreach($this->result['items'] as &$item) {
+            if ($item['name'] == 'sendpulse') {
+                $settings = $item['settings'];
+                if (!empty($item['settings'])) {
+                    $settings = json_decode($item['settings'], true);
+                } else {
+                    $settings = array();
+                }
+                if (empty($settings['SECRET']['value']))
+                    $item['url'] = "https://sendpulse.com/ru/?ref=700621";
+            }
+        }
     }
 
+    // @@  @@ @@@@@@     @@       @@      @@@@@@ @@@@@@ @@  @@ @@@@@@@@
+    // @@  @@ @@   @@   @@@@     @@@@     @@  @@ @@  @@ @@  @@    @@
+    //  @@@@  @@   @@  @@  @@   @@  @@    @@  @@ @@  @@ @@@@@@    @@
+    //   @@   @@   @@ @@@@@@@@ @@    @@   @@  @@ @@  @@     @@    @@
+    //   @@   @@@@@@  @@    @@ @@    @@   @@  @@ @@@@@@     @@    @@
+    // Удалить электронную почту из всех книг
+    public function removeEmailFromAllBooks($email)
+    {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->initProvider();
+        if (!empty($this->settingsProvider) && $this->providerName == "sendpulse")
+            if (
+                !empty($this->settingsProvider["ID"]["value"]) &&
+                !empty($this->settingsProvider["SECRET"]["value"])
+            ) $this->getInstanceSendPulseApi()->removeEmailFromAllBooks($email);
+    }
+
+    // @@  @@ @@@@@@ @@     @@ @@@@@@    @@    @@  @@
+    // @@ @@  @@  @@ @@@   @@@ @@  @@   @@@@   @@  @@
+    // @@@@   @@  @@ @@ @@@ @@ @@  @@  @@  @@  @@@@@@
+    // @@ @@  @@  @@ @@  @  @@ @@  @@ @@@@@@@@ @@  @@
+    // @@  @@ @@@@@@ @@     @@ @@  @@ @@    @@ @@  @@
+    // Создать кампанию
     public function createCampaign($subject, $body, $idBook, $sendDate)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $this->initProvider();
-        $info = (new Main())->info();
+        $m = new Main();
+        $info = $m->info();
+
         $senderName = $info["shopname"];
         $senderEmail = $info["esales"];
-        if ($this->providerName == "sendpulse") {
+        if (!empty($this->settingsProvider) && $this->providerName == "sendpulse") {
             $senders = $this->getInstanceSendPulseApi()->listSenders();
             $isExist = false;
             $senderEmailDef = null;
@@ -120,13 +183,17 @@ class EmailProvider extends Base
         }
     }
 
+    // получить баланс
     private function getBalance()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         return (float)$this->requestSmsProviderInfo($this->result["name"], "balance");
     }
 
+    // запросить информацию смс-провайдера
     private function requestSmsProviderInfo($provider, $action, $parameters = null)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $url = "http://" . HOSTNAME . "/lib/esp.php";
         $ch = curl_init($url);
         $data["serial"] = DB::$dbSerial;

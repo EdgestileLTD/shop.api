@@ -4,7 +4,7 @@
 
         $parameters = array();
 
-        $types = array("string" => "S", "bool" => "B", "select" => "L");
+        $types = array("string" => "S", "bool" => "B", "select" => "L", "password" => "P");
 
         $u = new seTable("shop_settings", "ss");
         $u->select("ss.*, ssv.id id_value, ssv.value");

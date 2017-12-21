@@ -84,6 +84,7 @@ class Base extends CustomBase
         return $u;
     }
 
+    // получить
     public function fetch()
     {
         $settingsFetch = $this->getSettingsFetch();
@@ -101,7 +102,7 @@ class Base extends CustomBase
                 $this->sortBy = key_exists($this->sortBy, $this->patterns) ?
                     $this->patterns[$this->sortBy] : $this->sortBy;
                 foreach ($this->patterns as $key => $field) {
-                    if (empty($this->searchFields) || $this->isSearchField($key))
+                    if (empty($this->searchFields) || in_array($key, $this->searchFields))
                         $searchFields[$key] = array("Field" => $field, "Type" => "text");
                 }
             }
@@ -128,23 +129,20 @@ class Base extends CustomBase
         return $this->result["items"];
     }
 
-    public function correctAll()
-    {
-        if (!empty($this->input['allMode'])) {
+     public function correctAll(){
+        if(!empty($this->input['allMode'])){
             $this->allMode = true;
             $this->limit = 10000;
             $this->setFilters($this->input['allModeLastParams']['filters']);
             $this->search = $this->input['allModeLastParams']['searchText'];
 
             $result = $this->fetch();
-            if ($result) {
+            if($result){
                 $ids = array();
-                foreach ($result as $item) {
-                    array_push($ids, $item['id']);
+                foreach ($result as $item){
+                    array_push($ids,$item['id']);
                 }
-                if (!empty($ids)) {
-                    unset($result);
-                }
+                if(!empty($ids)){unset($result);}
                 $this->input['ids'] = $ids;
             } else
                 return $this->error = "Не выбрано ни одной записи!";
@@ -183,7 +181,7 @@ class Base extends CustomBase
     {
         try {
             $this->correctAll('del');
-            $u = new DB($this->tableName, $this->tableAlias);
+            $u = new DB($this->tableName,$this->tableAlias);
             if ($this->input["ids"] && !empty($this->tableName)) {
                 $ids = implode(",", $this->input["ids"]);
                 $u->where('id IN (?)', $ids)->deleteList();
@@ -256,7 +254,7 @@ class Base extends CustomBase
         return [];
     }
 
-    protected function getSettingsInfo()
+     protected function getSettingsInfo()
     {
         return [];
     }
@@ -274,12 +272,6 @@ class Base extends CustomBase
                 }
             }
         }
-
-        foreach ($this->searchFields as $searchField) {
-            if ($searchField["active"] && !empty($searchField["query"]))
-                $result[$searchField["field"]] = $searchField["query"];
-        }
-
         return $result;
     }
 
@@ -290,7 +282,7 @@ class Base extends CustomBase
             return array();
         $where = array();
         $searchWords = explode(' ', $searchItem);
-        foreach ($searchWords as $searchItem) {
+        foreach($searchWords as $searchItem) {
             $result = array();
             if (!trim($searchItem)) continue;
             if (is_string($searchItem))
@@ -302,16 +294,12 @@ class Base extends CustomBase
             }
 
             foreach ($searchFields as $field) {
-
                 if (strpos($field["Field"], ".") === false)
                     $field["Field"] = $this->tableAlias . "." . $field["Field"];
 
                 // текст
                 if ((strpos($field["Type"], "char") !== false) || (strpos($field["Type"], "text") !== false)) {
-                    if (!is_array($field["Field"]))
-                        $field["Field"] = [$field["Field"]];
-                    foreach ($field["Field"] as $fieldName)
-                        $result[] = "{$fieldName} LIKE '%{$searchItem}%'";
+                    $result[] = "{$field["Field"]} LIKE '%{$searchItem}%'";
                     continue;
                 }
                 // дата
@@ -399,7 +387,6 @@ class Base extends CustomBase
                 $query = "({$query}) AND ";
             $query .= $filterQuery;
         }
-
         return $query;
     }
 
@@ -474,7 +461,7 @@ class Base extends CustomBase
         if ($this->input['send']) {
             if ($codeMail) {
                 try {
-                    $urlSendEmail = 'http://' . HOSTNAME . '/upload/sendmailorder.php';
+                    $urlSendEmail = 'http://' .  HOSTNAME . '/upload/sendmailorder.php';
                     $params = array(
                         'lang' => 'rus',
                         'idorder' => (!$idOrder) ? $this->input['id'] : $idOrder,
@@ -514,7 +501,7 @@ class Base extends CustomBase
     public function store()
     {
         if ($this->input["searchFields"])
-            $this->uiSettings["searchFields"] = $this->input["searchFields"];
+            $this->uiSettings["searchFields"] = $this->input["searchFields"] ;
 
         $data = json_encode($this->uiSettings);
         file_put_contents($this->fileSettings, $data);

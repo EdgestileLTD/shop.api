@@ -129,7 +129,7 @@ class Product extends Base
         return $this->result["items"];
     }
 
-    // Добавить изменения
+      // Добавить изменения
     public function addModifications($ids)
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка

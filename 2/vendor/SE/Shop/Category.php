@@ -12,17 +12,20 @@ class Category extends Base
     protected $sortBy = "position";
     protected $limit = null;
     protected $allowedSearch = false;
-    protected $treepath = array();
 
+    // получить родительский пункт
     private function getParentItem($item, $items)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         foreach ($items as $it)
             if ($it["id"] == $item["upid"])
                 return $it;
     }
 
+    // получить имя пути
     private function getPathName($item, $items)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         if (!$item["upid"])
             return $item["name"];
 
@@ -32,8 +35,10 @@ class Category extends Base
         return $this->getPathName($parent, $items) . " / " . $item["name"];
     }
 
+    // получить патчи
     public function getPatches($items)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $result = array();
         $search = strtolower($this->input["searchText"]);
         foreach ($items as $item) {
@@ -46,8 +51,10 @@ class Category extends Base
         return $result;
     }
 
+    // просмотреть полученную структуру
     private function getTreeView($items, $idParent = null)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $result = array();
         foreach ($items as $item) {
             if ($item["upid"] == $idParent) {
@@ -58,8 +65,10 @@ class Category extends Base
         return $result;
     }
 
+    // установить id основного родителя
     private function setIdMainParent($items)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $result = array();
         foreach ($items as $item) {
             if ($item['idsParents']) {
@@ -80,9 +89,12 @@ class Category extends Base
         return $result;
     }
 
+    // получить настройки
     protected function getSettingsFetch()
     {
-        if (CORE_VERSION != "5.2") {
+        //writeLog($this);
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        if (CORE_VERSION == "5.3") {
             $result["select"] = "sg.*, GROUP_CONCAT(CONCAT_WS(':', sgtp.level, sgt.id_parent) SEPARATOR ';') ids_parents,
                 sgt.level level";
             $joins[] = array(
@@ -102,15 +114,39 @@ class Category extends Base
         return $result;
     }
 
+    // получить информацию по настройкам
     protected function getSettingsInfo()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         return $this->getSettingsFetch();
     }
 
+    // информация
     public function info($id = null)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $result = parent::info();
-        if (CORE_VERSION != "5.2") {
+
+        // получаем список похожих категорий
+        $u = new DB('shop_group', 'sg');
+        $u->select('sg.name, sg.position, sg.id');
+        $u->innerJoin("(
+            SELECT id_related AS id
+            FROM shop_group_related
+            WHERE id_group = {$result['id']}
+            AND type = 1
+            UNION
+            SELECT id_group AS id
+            FROM shop_group_related
+            WHERE id_related = {$result['id']}
+            AND type = 1
+            AND is_cross
+        ) sgr", 'sg.id = sgr.id');
+        $u->orderBy('sg.upid');
+        $result['similar'] = $u->getList();
+        unset($u);
+
+        if (CORE_VERSION == "5.3") {
             $arr = $this->setIdMainParent(array($result));
             $this->result = $arr[0];
         }
@@ -118,18 +154,28 @@ class Category extends Base
         return $this->result;
     }
 
+    // получить правильные значения
     protected function correctValuesBeforeFetch($items = array())
     {
+//        writeLog($items);
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         if (CORE_VERSION == "5.3")
             $items = $this->setIdMainParent($items);
         if ($this->input["isTree"] && empty($this->input["searchText"]))
             $result = $this->getTreeView($items);
         else $result = $this->getPatches($items);
+//        foreach($result as $key=>&$value)
+//            if($value['codeGr'] == N)
+//                unset($value);
+//        sort($result);
+//        writeLog($result);
         return $result;
     }
 
+    // получить скидки
     public function getDiscounts($idCategory = null)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $result = array();
         $id = $idCategory ? $idCategory : $this->input["id"];
         if (!$id)
@@ -143,8 +189,10 @@ class Category extends Base
         return $u->getList();
     }
 
+    // получить изображения
     public function getImages($idCategory = null)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $result = array();
         $id = $idCategory ? $idCategory : $this->input["id"];
         if (!$id)
@@ -179,8 +227,10 @@ class Category extends Base
         return $result;
     }
 
+    // получить поставки
     public function getDeliveries($idCategory = null)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $result = array();
         $id = $idCategory ? $idCategory : $this->input["id"];
         if (!$id)
@@ -189,35 +239,10 @@ class Category extends Base
         return $result;
     }
 
-    public function getRelatedGroups($idCategory = null)
-    {
-        $result = array();
-        $id = $idCategory ? $idCategory : $this->input["id"];
-        if (!$id)
-            return $result;
-
-        $u = new DB('shop_group_related', 'sr');
-        $u->select('sg1.id id, sg1.name name');
-        //$u->select('sg1.id id1, sg2.id id2, sg1.name name1, sg2.name name2');
-        //$u->innerJoin('shop_group sg1', 'sr.id_group = sg1.id');
-        $u->innerJoin('shop_group sg1', 'sr.id_related = sg1.id');
-        $u->where('sr.id_group = ?', $id);
-        $objects = $u->getList();
-        foreach ($objects as $item) {
-            //$similar = null;
-            //$i = 1;
-            //if ($item['id1'] == $id)
-            //    $i = 2;
-            //$similar['id'] = $item['id1' . $i];
-            //$similar['name'] = $item['name1' . $i];
-            $result[] = $item;
-        }
-
-        return $result;
-    }
-
+    // получить ссылки групп
     public function getLinksGroups($idCategory = null)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $result = array();
         $id = $idCategory ? $idCategory : $this->input["id"];
         if (!$id)
@@ -240,8 +265,10 @@ class Category extends Base
         return $result;
     }
 
+    // перевод
     private function translate($name)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         if (strcmp($name, "price") === 0)
             return "Цена";
         if (strcmp($name, "brand") === 0)
@@ -253,8 +280,10 @@ class Category extends Base
         return $name;
     }
 
+    // получить отфильтрованные параметры
     public function getFilterParams($idCategory = null)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $result = array();
         $id = $idCategory ? $idCategory : $this->input["id"];
         if (!$id)
@@ -282,10 +311,12 @@ class Category extends Base
     }
 
 
+    // получить детей
     protected function getChilds()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $idParent = $this->input["id"];
-        if (CORE_VERSION != "5.2") {
+        if (CORE_VERSION == "5.3") {
             $filter = array(
                 array("field" => "upid", "value" => $idParent),
                 array("field" => "level", "value" => ++$this->result["level"]));
@@ -299,8 +330,10 @@ class Category extends Base
         return $result;
     }
 
+    // получить имя родителя
     private function getNameParent()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         if (!$this->result["upid"])
             return null;
 
@@ -310,14 +343,15 @@ class Category extends Base
         return $result["name"];
     }
 
+    // добавить полученную информацию
     protected function getAddInfo()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $result["discounts"] = $this->getDiscounts();
         $result["images"] = $this->getImages();
         $result["deliveries"] = $this->getDeliveries();
         $result['linksGroups'] = $this->getLinksGroups();
         $result['parametersFilters'] = $this->getFilterParams();
-        $result['relatedGroups'] = $this->getRelatedGroups();
         $result["childs"] = $this->getChilds();
         $modf = new Modification();
         $result["modificationsGroups"] = $modf->fetch();
@@ -326,10 +360,11 @@ class Category extends Base
         return $result;
     }
 
+    // получить пользовательские поля
     private function getCustomFields()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         try {
-            $this->createDbUserFields();
             $idGroup = intval($this->input["id"]);
             $u = new DB('shop_userfields', 'su');
             $u->select("cu.id, cu.id_shopgroup, cu.value, su.id id_userfield, 
@@ -360,25 +395,10 @@ class Category extends Base
         }
     }
 
-    private function createDbUserFields()
-    {
-        DB::query("CREATE TABLE IF NOT EXISTS `shop_group_userfields` (
-          `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-          `id_shopgroup` int(10) UNSIGNED NOT NULL,
-          `id_userfield` int(10) UNSIGNED NOT NULL,
-          `value` text,
-          `updated_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
-          `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-          PRIMARY KEY (`id`),
-          KEY `FK_shop_group_userfields_id_shopgroup` (`id_shopgroup`),
-          KEY `FK_shop_group_userfields_sid_userfield` (`id_userfield`),
-          CONSTRAINT `shop_group_userfields_ibfk_1` FOREIGN KEY (`id_shopgroup`) REFERENCES `shop_group` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-          CONSTRAINT `shop_group_userfields_ibfk_2` FOREIGN KEY (`id_userfield`) REFERENCES `shop_userfields` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
-    }
-
+    // сохранить
     public function save()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         if (isset($this->input["codeGr"])) {
             $this->input["codeGr"] = strtolower(se_translite_url($this->input["codeGr"]));
         }
@@ -386,8 +406,10 @@ class Category extends Base
     }
 
 
+    // сохранить скидки
     private function saveDiscounts()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         try {
             foreach ($this->input["ids"] as $id)
                 DB::saveManyToMany($id, $this->input["discounts"],
@@ -398,8 +420,10 @@ class Category extends Base
         }
     }
 
+    // сохранить изображения
     private function saveImages()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         try {
             $idsGroups = $this->input["ids"];
             $images = $this->input["images"];
@@ -447,63 +471,10 @@ class Category extends Base
         }
     }
 
-    private function saveRelatedGroups()
-    {
-        try {
-            $idsGroups = $this->input["ids"];
-            $links = $this->input["relatedGroups"];
-            $idsExists = array();
-            foreach ($links as $group)
-                if ($group["id"])
-                    $idsExists[] = $group["id"];
-            if (CORE_VERSION != "5.3")
-                $idsExists = array_diff($idsExists, $idsGroups);
-            $idsExistsStr = implode(",", $idsExists);
-            $idsStr = implode(",", $idsGroups);
-
-            $u = new DB('shop_group_related');
-            $u->where("`id_group` = `id_related`");
-            $u->deleteList();
-
-            if ($idsExistsStr) {
-                //$u->where("((NOT id_related IN ({$idsExistsStr})) AND id_group IN (?)) OR
-                //           ((NOT id_group IN ({$idsExistsStr})) AND id_related IN (?))", $idsStr)->deleteList();
-
-                $u->where("(NOT id_related IN ({$idsExistsStr})) AND id_group IN (?)", $idsStr);
-                $u->deleteList();
-            } else {
-                //else $u->where('id_group IN (?) OR id_acc IN (?)', $idsStr)->deleteList();
-                $u->where('id_group IN (?)', $idsStr);
-                $u->deleteList();
-            }
-            $idsExists = array();
-            if ($idsExistsStr) {
-                $u->select("id_related, id_group");
-                $u->where("(id_related IN ({$idsExistsStr})) AND id_group IN (?)", $idsStr);
-                $objects = $u->getList();
-                foreach ($objects as $item) {
-                    //$idsExists[] = $item["idGroup"];
-                    $idsExists[] = $item["idRelated"];
-                }
-            };
-            $data = array();
-            foreach ($links as $group)
-                if (empty($idsExists) || !in_array($group["id"], $idsExists))
-                    foreach ($idsGroups as $idGroup) {
-                        if ($idGroup !== $group['id'])
-                            $data[] = array('id_group' => $idGroup, 'id_related' => $group['id']);
-                    }
-            if (!empty($data)) {
-                DB::insertList('shop_group_related', $data);
-            }
-        } catch (Exception $e) {
-            $this->error = "Не удаётся сохранить похожие категории!";
-            throw new Exception($this->error);
-        }
-    }
-
+    // сохранить ссылки групп
     private function saveLinksGroups()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         try {
             $idsGroups = $this->input["ids"];
             $links = $this->input["linksGroups"];
@@ -547,8 +518,10 @@ class Category extends Base
         }
     }
 
+    // сохранить параметры фильтров
     private function saveParametersFilters()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         try {
             $idsGroups = $this->input["ids"];
             $filters = $this->input["parametersFilters"];
@@ -574,15 +547,17 @@ class Category extends Base
         }
     }
 
+    // сохранить пользовательские поля
     private function saveCustomFields()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         if (!isset($this->input["customFields"]) && !$this->input["customFields"])
             return true;
 
         try {
             $idCategory = $this->input["id"];
             $groups = $this->input["customFields"];
-            $customFields = [];
+            $customFields = array();
             foreach ($groups as $group)
                 foreach ($group["items"] as $item)
                     $customFields[] = $item;
@@ -604,6 +579,7 @@ class Category extends Base
     }
 
 
+    // получить url
     static public function getUrl($code, $id = null)
     {
         $code_n = $code;
@@ -621,6 +597,7 @@ class Category extends Base
         return uniqid();
     }
 
+    // получить уровень
     static public function getLevel($id)
     {
         $level = 0;
@@ -636,32 +613,57 @@ class Category extends Base
         return $level;
     }
 
+    // сохранить id родителя
     public function saveIdParent($id, $idParent)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         try {
-            $idParent = intval($idParent);
-            $u = new DB('shop_group_tree');
-            $u->select('id');
-            $u->where('id_child = ?', $id);
-            if ($idParent) {
-                $u->andWhere('id_parent = ?', $idParent);
-            } else {
-                $u->andWhere('level = 0');
+            $levelIdOld = self::getLevel($id);
+            $level = 0;
+            DB::query("DELETE FROM shop_group_tree WHERE id_child = {$id}");
+
+            $sqlGroupTree = "INSERT INTO shop_group_tree (id_parent, id_child, `level`)
+                                SELECT id_parent, :id, :level FROM shop_group_tree
+                                WHERE id_child = :id_parent
+                                UNION ALL
+                                SELECT :id, :id, :level";
+            $sthGroupTree = DB::prepare($sqlGroupTree);
+            if (!empty($idParent)) {
+                $level = self::getLevel($idParent);
+                $level++;
             }
-            $answer = $u->fetchOne();
-            //if ($idParent) {
-            //    DB::query("DELETE FROM shop_group_tree WHERE id_child = {$id} AND id_parent<>{$idParent}");
-            //}
-            if (empty($answer)) {
-               $this->updateGroupTable();
-            }
+            $sthGroupTree->execute(array('id_parent' => $idParent, 'id' => $id, 'level' => $level));
+            $levelIdNew = self::getLevel($id);
+            $diffLevel = $levelIdNew - $levelIdOld;
+            DB::query("UPDATE shop_group_tree SET `level` = `level` + {$diffLevel}  WHERE id_parent = {$id} AND id_child <> {$id}");
         } catch (Exception $e) {
             throw new Exception("Не удаётся сохранить родителя группы!");
         }
     }
 
+    // сохранить id похожей категории
+    public function saveIdSimilar($id, $idRelated)
+    {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        try {
+            DB::query("DELETE FROM shop_group_related WHERE id_group = {$id} AND id_related = {$idRelated}");
+            DB::query("DELETE FROM shop_group_related WHERE id_group = {$idRelated} AND id_related = {$id}");
+            $sqlGroupRelated = "INSERT INTO shop_group_related (id_group, id_related)
+                                SELECT id_group, :id_related FROM shop_group_related
+                                UNION
+                                SELECT :id_group, :id_related";
+            $sthGroupTree = DB::prepare($sqlGroupRelated);
+            $sthGroupTree->execute(array('id_group' => $id, 'id_related' => $idRelated));
+            unset($sqlGroupRelated);
+        } catch (Exception $e) {
+            throw new Exception("Не удаётся сохранить похожие категории!");
+        }
+    }
+
+    // правильные значения перед сохранением
     protected function correctValuesBeforeSave()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         if (!$this->input["id"] && !$this->input["ids"] || isset($this->input["codeGr"])) {
             if (empty($this->input["codeGr"])) {
                 $this->input["codeGr"] = strtolower(se_translite_url($this->input["name"]));
@@ -675,8 +677,10 @@ class Category extends Base
             $this->input["active"] = $this->input["active"] ? "Y" : "N";
     }
 
+    // сохранить добавленную информацию
     protected function saveAddInfo()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $this->input["ids"] = empty($this->input["ids"]) ? array($this->input["id"]) : $this->input["ids"];
         if (!$this->input["ids"])
             return false;
@@ -685,73 +689,13 @@ class Category extends Base
         $this->saveImages();
         $this->saveLinksGroups();
         $this->saveParametersFilters();
-        $this->saveRelatedGroups();
-        if (CORE_VERSION == "5.3") {
-            //$tgroup = new Category($this->input);
-            //$group = $tgroup->info();
-            $this->saveIdParent($this->input["id"], $this->input["upid"]);
-        }
+        // если присутствуют похожие - запускаем метод записи
+        if(!empty($this->input["similar"]))
+            foreach ($this->input["similar"] as $num => $similar)
+                $this->saveIdSimilar($this->input["id"], $similar['id']);
+        $this->saveIdParent($this->input["id"], $this->input["upid"]);
         $this->saveCustomFields();
         return true;
-    }
-
-    // Обновляем структуру баз
-    public function updateGroupTable() {
-        $sql = "CREATE TABLE IF NOT EXISTS shop_group_tree (
-            id int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-            id_parent int(10) UNSIGNED NOT NULL,
-            id_child int(10) UNSIGNED NOT NULL,
-            level tinyint(4) NOT NULL,
-            updated_at timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
-            created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            UNIQUE INDEX UK_shop_group_tree (id_parent, id_child),
-            CONSTRAINT FK_shop_group_tree_shop_group_id FOREIGN KEY (id_child)
-            REFERENCES shop_group (id) ON DELETE CASCADE ON UPDATE CASCADE,
-            CONSTRAINT FK_shop_group_tree_shop_group_tree_id_parent FOREIGN KEY (id_parent)
-            REFERENCES shop_group (id) ON DELETE CASCADE ON UPDATE RESTRICT
-            )
-            ENGINE = INNODB
-            CHARACTER SET utf8
-            COLLATE utf8_general_ci;";
-
-        DB::query($sql);
-
-        $this->treepath = array();
-        $tree = array();
-
-        $tbl = new DB('shop_group', 'sg');
-        $tbl->select('upid, id');
-        $list = $tbl->getList();
-        foreach($list as $it){
-            $tree[intval($it['upid'])][] = $it['id'];
-        }
-
-
-        unset($list);
-        $data = $this->addInTree($tree);
-        DB::query("TRUNCATE TABLE `shop_group_tree`");
-        DB::insertList('shop_group_tree', $data);
-
-    }
-
-    private function addInTree($tree , $parent = 0, $level = 0){
-        if ($level == 0) {
-            $this->treepath = array();
-        } else
-            $this->treepath[$level] = $parent;
-
-        foreach($tree[$parent] as $id) {
-            $data[] = array('id_parent'=>$id, 'id_child'=>$id, 'level'=>$level);
-            if ($level > 0)
-                for ($l=1; $l <= $level; $l++){
-                    $data[] = array('id_parent'=>$this->treepath[$l], 'id_child'=>$id, 'level'=>$level);
-                }
-            if (!empty($tree[$id])) {
-                $data = array_merge ($data, $this->addInTree($tree , $id, $level + 1));
-            }
-        }
-        return $data;
     }
 
 }
