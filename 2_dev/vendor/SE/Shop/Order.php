@@ -653,7 +653,7 @@ class Order extends Base // порядок
             $codeSym = $startSymCount;
             $sheet->setCellValue(chr($codeSym++) . "$i", $product["count"]);
             $sheet->setCellValue(chr($codeSym++) . "$i", number_format($product["price"] - $product["discount"], 2, ',', ' '));
-            $sheet->setCellValue(chr($codeSym++) . "$i", number_format($product["price"] - $product["discount"]) * $product["count"], 2, ',', ' ');
+            $sheet->setCellValue(chr($codeSym) . "$i", number_format(($product["price"] - $product["discount"]) * $product["count"], 2, ',', ' '));
             $i++;
         }
         foreach (range('A', $endSym) as $columnID)
