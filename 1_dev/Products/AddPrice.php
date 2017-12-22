@@ -73,7 +73,7 @@ if ($ids) {
             $tableName = $u->getTableName();
             $sql = "UPDATE shop_price ";
             $sql .= " LEFT JOIN shop_brand sb ON {$tableName}.id_brand = sb.id";
-            if (CORE_VERSION == "5.3") {
+            if (CORE_VERSION != "5.2") {
                 $sql .= " LEFT JOIN shop_price_group spg ON spg.id_price = {$tableName}.id";
                 $sql .= " LEFT JOIN shop_group sg ON spg.id_price = sg.id = spg.id_group";
             } else {

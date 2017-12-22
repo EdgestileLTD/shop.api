@@ -587,7 +587,7 @@ class Import {
                 $pr->setValuesFields($item);
                 $result = $pr->save();
 
-                if(CORE_VERSION == "5.3" and is_numeric($result) and isset($item['id_group'])){
+                if(CORE_VERSION != "5.2" and is_numeric($result) and isset($item['id_group'])){
                     // Удаляем старые записи
                     $spg->select('spg.*');
                     $spg->where('id_price = ?', $result);

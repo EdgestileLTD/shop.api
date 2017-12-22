@@ -357,7 +357,7 @@ try {
         if ($goodsInsert) {
             // добавление группы товаров
             $u = new seTable('shop_group', 'sg');
-            if (CORE_VERSION == "5.3") {
+            if (CORE_VERSION != "5.2") {
                 $u->select('sg.id, GROUP_CONCAT(sgp.name ORDER BY sgt.level SEPARATOR "/") name');
                 $u->innerjoin("shop_group_tree sgt", "sg.id = sgt.id_child");
                 $u->innerjoin("shop_group sgp", "sgp.id = sgt.id_parent");
@@ -369,7 +369,7 @@ try {
             $u->groupby('sg.id');
             $groups = $u->getList();
             foreach ($groups as $group) {
-                if (CORE_VERSION == "5.3")
+                if (CORE_VERSION != "5.2")
                     $path = getGroup53($groups, $group['id']);
                 else $path = getGroup($groups, $group['id']);
                 if ($path)
@@ -381,7 +381,7 @@ try {
                     $names = explode("/", $key);
                     $idParent = null;
                     foreach ($names as $name) {
-                        if (CORE_VERSION == "5.3")
+                        if (CORE_VERSION != "5.2")
                             $idParent = createGroup53($groups, $idParent, $name);
                         else $idParent = createGroup($groups, $idParent, $name);
                     }
@@ -580,7 +580,7 @@ try {
                 $metaKeywords = !empty($goodsItem['MetaKeywords']) ? $goodsItem['MetaKeywords'] : 'null';
                 $metaDescription = !empty($goodsItem['MetaDescription']) ? $goodsItem['MetaDescription'] : 'null';
                 $isMarket = (int) !empty($goodsItem['IsMarket']) ? 1 : 0;
-                if (CORE_VERSION == "5.3" && $goodsItem['IdGroup'])
+                if (CORE_VERSION != "5.2" && $goodsItem['IdGroup'])
                     $dataGoodsGroups[] = array("id_group" => $goodsItem['IdGroup'], "id_price" => $idProduct, "is_main" => 1);
                 $dataGoods[] = array("id" => $idProduct, "code" => $goodsItem['Code'], "article" => $goodsItem['Article'],
                     "id_group" => $IdGroup, "name" => $goodsItem['Name'], 'price' => $price, 'presence_count' => $count,

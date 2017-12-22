@@ -18,7 +18,7 @@ function convertFields($str)
     $str = str_replace('idGroup ', 'sg.id ', $str);
     $str = str_replace('[id]', 'sp.id ', $str);
     $str = str_replace('[idGroup]', 'sg.id ', $str);
-    if (CORE_VERSION == "5.3")
+    if (CORE_VERSION != "5.2")
         $str = str_replace('[idCrossGroup]', 'spg_.id_group ', $str);
     else $str = str_replace('[idCrossGroup]', 'spg.group_id ', $str);
     $str = str_replace('[idLinkGroup]', 'scg.id ', $str);
@@ -43,7 +43,7 @@ function convertFields($str)
     return $str;
 }
 
-if (CORE_VERSION == "5.3")
+if (CORE_VERSION != "5.2")
     se_db_query("UPDATE shop_group sg SET sg.scount = 
       (SELECT COUNT(*) FROM shop_price_group spg INNER JOIN shop_price sp ON sp.id = spg.id_price WHERE spg.id_group = sg.id AND sp.enabled = 'Y')");
 else
@@ -51,7 +51,7 @@ else
                  (SELECT COUNT(*) FROM shop_price sp WHERE sp.id_group = sg.id AND sp.enabled = 'Y')");
 
 $crossGroup = 'spg.id isCrossGroup';
-if (CORE_VERSION == "5.3")
+if (CORE_VERSION != "5.2")
     $crossGroup = '0 isCrossGroup';
 
 $select = "sp.*, sg.name namegroup, sdl.discount_id is_discount, 
@@ -62,7 +62,7 @@ if ($_SESSION['isShowOptions'])
 
 $u = new seTable('shop_price', 'sp');
 $u->select("{$select}");
-if (CORE_VERSION == "5.3") {
+if (CORE_VERSION != "5.2") {
     $u->leftjoin("shop_price_group spg", "spg.id_price = sp.id AND spg.is_main");
     $u->leftjoin('shop_group sg', 'sg.id = spg.id_group');
     $u->leftjoin("shop_price_group spg_", "spg_.id_price = sp.id AND spg_.is_main <> 1");

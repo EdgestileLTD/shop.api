@@ -31,7 +31,7 @@ function calcCountGoods(&$items, $idParent = null)
 }
 
 $u = new seTable('shop_group', 'sg');
-if (CORE_VERSION == "5.3") {
+if (CORE_VERSION != "5.2") {
     $u->select("sg.*,  GROUP_CONCAT(CONCAT_WS(':', sgtp.level, sgt.id_parent) SEPARATOR ';') ids_parents");
     $u->leftjoin("shop_group_tree sgt", "sgt.id_child = sg.id AND sg.id <> sgt.id_parent");
     $u->leftjoin("shop_group_tree sgtp", "sgtp.id_child = sgt.id_parent");
@@ -81,7 +81,7 @@ foreach ($objects as $item) {
 
     $group = null;
     $group['id'] = $item['id'];
-    if (CORE_VERSION == "5.3") {
+    if (CORE_VERSION != "5.2") {
         if ($item['ids_parents']) {
             $idsLevels = explode(";", $item['ids_parents']);
             $idParent = 0;

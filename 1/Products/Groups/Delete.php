@@ -22,7 +22,7 @@ function deleteGroups($ids)
 
 if ($json->ids) {
     $ids = implode(",", $json->ids);
-    if (CORE_VERSION == "5.3") {
+    if (CORE_VERSION != "5.2") {
         foreach ($json->ids as $id) {
             se_db_query("DELETE FROM shop_price sp INNER JOIN shop_price_group spg ON sp.id = spg.id_price WHERE spg.id_group = {$id}");
             $u = new seTable('shop_group_tree', 'sgt');

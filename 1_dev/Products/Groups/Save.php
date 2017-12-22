@@ -56,7 +56,7 @@ function saveLinksGroups($idsGroups, $links)
     $idsExistsStr = implode(",", $idsExists);
     $idsStr = implode(",", $idsGroups);
 
-    if (CORE_VERSION == "5.3") {
+    if (CORE_VERSION != "5.2") {
         $u = new seTable('shop_price_group', 'spg');
         if ($idsExistsStr)
             $u->where("(NOT id_price IN ({$idsExistsStr})) AND id_group IN (?)", $idsStr)->deleteList();

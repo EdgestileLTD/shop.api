@@ -22,7 +22,7 @@ function deleteGroups($ids)
 
 if ($json->ids) {
     $ids = implode(",", $json->ids);
-    if (CORE_VERSION == "5.3") {
+    if (CORE_VERSION != "5.2") {
         $u = new seTable('shop_price_group', 'spg');
         $u->where('id_group in (?)', $ids)->deletelist();
         $u = new seTable('shop_group_tree', 'sgt');

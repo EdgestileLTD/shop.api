@@ -323,7 +323,7 @@ if ($step == 1) {
         $t->where("id = ?", $idGroup);
         $t->save();
 
-        if (CORE_VERSION == "5.3")
+        if (CORE_VERSION != "5.2")
             saveIdParent($idGroup, $idParent);
 
     }

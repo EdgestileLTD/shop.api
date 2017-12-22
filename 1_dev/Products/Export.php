@@ -91,7 +91,7 @@ $select = 'sp.*, GROUP_CONCAT(si.picture SEPARATOR ";") photos, sb.name brand,
                     LEFT JOIN shop_feature_value_list sfvl ON smf.id_value = sfvl.id
                     WHERE smf.id_price = sp.id
                     GROUP BY smf.id_price) features';
-if (CORE_VERSION == "5.3") {
+if (CORE_VERSION != "5.2") {
     $select .= ', spg.id_group id_group_t';
     $u->select($select);
     $u->leftJoin("shop_price_group spg", "spg.id_price = sp.id AND spg.is_main");
@@ -105,7 +105,7 @@ $u->groupBy('sp.id');
 $products = $u->getList();
 
 $u = new seTable('shop_group', 'sg');
-if (CORE_VERSION == "5.3") {
+if (CORE_VERSION != "5.2") {
     $u->select('sg.id, sg.code_gr, GROUP_CONCAT(sgp.name ORDER BY sgt.level SEPARATOR "/") name');
     $u->innerJoin("shop_group_tree sgt", "sg.id = sgt.id_child");
     $u->innerJoin("shop_group sgp", "sgp.id = sgt.id_parent");
@@ -153,10 +153,10 @@ foreach ($products as $product) {
     $product["note"] = str_replace(chr(0), ' ', $product["note"]);
     $product["text"] = str_replace(chr(0), ' ', $product["text"]);
     $i = 0;
-    if (CORE_VERSION == "5.3")
+    if (CORE_VERSION != "5.2")
         $product["id_group"] = $product["id_group_t"];
 
-    if (CORE_VERSION == "5.3")
+    if (CORE_VERSION != "5.2")
         $product["path_group"] = getGroup53($groups, $product["id_group"]);
     else $product["path_group"] = getGroup($groups, $product["id_group"]);
     $product["code_group"] = $groups[$product["id_group"]]["code_gr"];

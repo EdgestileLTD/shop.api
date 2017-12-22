@@ -355,7 +355,7 @@ if ($step == 1) {
     $fieldsGroups = ["id_group", "code_group", "catalog0", "path_group"];
 
     $u = new seTable('shop_group', 'sg');
-    if (CORE_VERSION == "5.3") {
+    if (CORE_VERSION != "5.2") {
         $u->select('sg.id, sg.code_gr, GROUP_CONCAT(sgp.name ORDER BY sgt.level SEPARATOR "/") name');
         $u->innerJoin("shop_group_tree sgt", "sg.id = sgt.id_child");
         $u->innerJoin("shop_group sgp", "sgp.id = sgt.id_parent");
@@ -436,7 +436,7 @@ if ($step == 1) {
                             $names = explode("/", $path);
                             $idGroup = null;
                             foreach ($names as $name) {
-                                if (CORE_VERSION == "5.3")
+                                if (CORE_VERSION != "5.2")
                                     $idGroup = createGroup53($groups, $idGroup, $name);
                                 else $idGroup = createGroup($groups, $idGroup, $name);
                             }

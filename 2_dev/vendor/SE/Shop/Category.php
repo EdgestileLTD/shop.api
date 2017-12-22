@@ -93,7 +93,7 @@ class Category extends Base
     protected function getSettingsFetch()
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
-        if (CORE_VERSION == "5.3") {
+        if (CORE_VERSION != "5.2") {
             $result["select"] = "sg.*, GROUP_CONCAT(CONCAT_WS(':', sgtp.level, sgt.id_parent) SEPARATOR ';') ids_parents,
                 sgt.level level";
             $joins[] = array(
@@ -145,7 +145,7 @@ class Category extends Base
         $result['similar'] = $u->getList();
         unset($u);
 
-        if (CORE_VERSION == "5.3") {
+        if (CORE_VERSION != "5.2") {
             $arr = $this->setIdMainParent(array($result));
             $this->result = $arr[0];
         }
@@ -157,7 +157,7 @@ class Category extends Base
     protected function correctValuesBeforeFetch($items = array())
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
-        if (CORE_VERSION == "5.3")
+        if (CORE_VERSION != "5.2")
             $items = $this->setIdMainParent($items);
         if ($this->input["isTree"] && empty($this->input["searchText"]))
             $result = $this->getTreeView($items);
@@ -309,7 +309,7 @@ class Category extends Base
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $idParent = $this->input["id"];
-        if (CORE_VERSION == "5.3") {
+        if (CORE_VERSION != "5.2") {
             $filter = array(
                 array("field" => "upid", "value" => $idParent),
                 array("field" => "level", "value" => ++$this->result["level"]));

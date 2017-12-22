@@ -458,7 +458,7 @@ function saveCrossGroups($idsProducts, $groups, $filter, $search)
 
     $idsStr = implode(",", $idsProducts);
 
-    if (CORE_VERSION == "5.3") {
+    if (CORE_VERSION != "5.2") {
 
         if ($idsProducts[0] == '*') {
 
@@ -910,7 +910,7 @@ if ($isNew || !empty($ids)) {
                     $fields = $u->getUpdate();
                     $tableName = $u->getTableName();
                     $sql = "UPDATE shop_price ";
-                    if (CORE_VERSION == "5.3") {
+                    if (CORE_VERSION != "5.2") {
                         $sql .= " LEFT JOIN shop_price_group spg ON spg.id_price = {$tableName}.id";
                         $sql .= " LEFT JOIN shop_group sg ON spg.id_price = sg.id = spg.id_group";
                     } else {

@@ -374,7 +374,7 @@ function getComments($id, &$product)
 
 function getCrossGroups($id, &$product)
 {
-    if (CORE_VERSION == "5.3") {
+    if (CORE_VERSION != "5.2") {
         $u = new seTable('shop_price_group', 'spg');
         $u->select('sg.id, sg.name');
         $u->innerjoin('shop_group sg', 'sg.id = spg.id_group');
@@ -443,7 +443,7 @@ $u = new seTable('shop_price', 'sp');
 $u->select('sp.*, sg.id idGroup, sb.name AS nameBrand, sg.name AS nameGroup, sg.id_modification_group_def,
     spm.id_weight_view, spm.id_weight_edit, spm.id_volume_view, spm.id_volume_edit');
 $u->leftjoin('shop_brand sb', 'sb.id = sp.id_brand');
-if (CORE_VERSION == "5.3") {
+if (CORE_VERSION != "5.2") {
     $u->leftjoin("shop_price_group spg", "spg.id_price = sp.id AND spg.is_main");
     $u->leftjoin('shop_group sg', 'sg.id = spg.id_group');
 } else {
