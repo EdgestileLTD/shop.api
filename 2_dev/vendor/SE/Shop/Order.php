@@ -88,6 +88,9 @@ class Order extends Base // порядок
                 IFNULL(c.phone, p.phone) customer_phone, IFNULL(c.email, p.email) customer_email, 
                 (SUM((sto.price-IFNULL(sto.discount, 0))*sto.count)-IFNULL(so.discount, 0) + IFNULL(so.delivery_payee, 0)) amount, 
                 CONCAT_WS(" ",  pm.last_name, pm.first_name, pm.sec_name) manager,
+                sdt.name delivery_name,
+                sd.telnumber delivery_phone, sd.email delivery_email, sd.calltime delivery_call_time, 
+                sd.address delivery_address, sd.postindex delivery_post_index,
                 sp.name_payment name_payment_primary, spp.name_payment, sch.id_coupon id_coupon, sch.discount coupon_discount',
             "joins" => array(
                 array(
@@ -129,6 +132,16 @@ class Order extends Base // порядок
                     "type" => "left",
                     "table" => 'shop_coupons_history sch',
                     "condition" => 'sch.id_order = so.id'
+                ),
+                array(
+                    "type" => "left",
+                    "table" => 'shop_delivery sd',
+                    "condition" => 'sd.id_order = so.id'
+                ),
+                array(
+                    "type" => "left",
+                    "table" => 'shop_deliverytype sdt',
+                    "condition" => 'sdt.id = so.delivery_type'
                 )
             ),
             "aggregation" => array(
@@ -508,6 +521,72 @@ class Order extends Base // порядок
             $this->exportItem();
             return;
         }
+
+        $fileName = "export_orders.xlsx";
+        $filePath = DOCUMENT_ROOT . "/files";
+        if (!file_exists($filePath) || !is_dir($filePath))
+            mkdir($filePath, 0777, true);
+        $filePath .= "/{$fileName}";
+        $urlFile = 'http://' . HOSTNAME . "/files/{$fileName}";
+
+        $xls = new PHPExcel();
+        $xls->setActiveSheetIndex(0);
+        $sheet = $xls->getActiveSheet();
+        $sheet->setTitle("Заказы");
+
+        $sheet->setCellValue("A1", "№");
+        $sheet->setCellValue("B1", "Дата");
+        $sheet->setCellValue("C1", "Закачзик");
+        $sheet->setCellValue("D1", "Телефон");
+        $sheet->setCellValue("E1", "Сумма");
+        $sheet->setCellValue("F1", "Доставка");
+        $sheet->setCellValue("G1", "Индекс");
+        $sheet->setCellValue("H1", "Адрес");
+        $sheet->setCellValue("I1", "Телефон дост.");
+        $sheet->setCellValue("K1", "Время звонка");
+        $sheet->setCellValue("L1", "Примечание");
+
+
+        $sheet->getColumnDimension('A')->setWidth(5);
+        $sheet->getColumnDimension('B')->setWidth(15);
+        $sheet->getColumnDimension('C')->setWidth(35);
+        $sheet->getColumnDimension('D')->setWidth(20);
+        $sheet->getColumnDimension('E')->setWidth(15);
+        $sheet->getColumnDimension('F')->setWidth(20);
+        $sheet->getColumnDimension('G')->setWidth(12);
+        $sheet->getColumnDimension('H')->setWidth(35);
+        $sheet->getColumnDimension('I')->setWidth(20);
+        $sheet->getColumnDimension('K')->setWidth(30);
+        $sheet->getColumnDimension('L')->setWidth(40);
+
+        $this->limit = null;
+        $this->sortOrder = "asc";
+        $orders = $this->fetch();
+        $i = 2;
+        foreach ($orders as $order) {
+            $sheet->setCellValue("A$i", $order["id"]);
+            $sheet->setCellValue("B$i", $order["dateOrderDisplay"]);
+            $sheet->setCellValue("C$i", $order["customer"]);
+            $sheet->setCellValue("D$i", $order["customerPhone"]);
+            $sheet->setCellValue("E$i", $order["amount"]);
+            $sheet->setCellValue("F$i", $order["deliveryName"]);
+            $sheet->setCellValue("G$i", $order["deliveryIndex"]);
+            $sheet->setCellValue("H$i", $order["deliveryAddress"]);
+            $sheet->setCellValue("I$i", $order["deliveryPhone"]);
+            $sheet->setCellValue("K$i", $order["deliverCallTime"]);
+            $sheet->setCellValue("L$i", $order["deliverNote"]);
+
+            $sheet->getStyle("E$i")->getNumberFormat()->setFormatCode('#,##0.00');
+
+            $i++;
+        }
+
+        $objWriter = new PHPExcel_Writer_Excel2007($xls);
+        $objWriter->save($filePath);
+
+        $this->result["url"] = $urlFile;
+        $this->result["name"] = $fileName;
+
     }
 
     private function exportItem()
@@ -521,7 +600,6 @@ class Order extends Base // порядок
 
 
         $order = $this->info();
-        writeLog($order);
 
         $xls = new PHPExcel();
         $xls->setActiveSheetIndex(0);
@@ -663,6 +741,7 @@ class Order extends Base // порядок
         $objWriter->save($filePath);
 
         $this->result["url"] = $urlFile;
+        $this->result["name"] = $fileName;
 
     }
 
