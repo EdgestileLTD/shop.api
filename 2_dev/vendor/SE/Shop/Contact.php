@@ -182,7 +182,6 @@ class Contact extends Base
                     $emailProvider = new EmailProvider();
                     $emailProvider->removeEmailFromAllBooks($email);
                 }
-            writeLog('contact');
             $u = new DB('se_user');
             $u->where('id IN (?)', implode(",", $this->input["ids"]));
             $u->deleteList();
