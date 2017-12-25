@@ -42,11 +42,13 @@ class Category extends Base
         $result = array();
         $search = strtolower($this->input["searchText"]);
         foreach ($items as $item) {
-            if (empty($search) || mb_strpos(strtolower($item["name"]), $search) !== false) {
+            $searchName = mb_strtolower($item["name"]);
+            if (empty($search) || mb_strpos($searchName, mb_strtolower($search)) !== false) {
                 $item["name"] = $this->getPathName($item, $items);
                 $item["level"] = substr_count($item["name"], "/");
                 $result[] = $item;
             }
+            unset($searchName);
         }
         return $result;
     }
