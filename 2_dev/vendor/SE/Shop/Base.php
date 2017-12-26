@@ -258,7 +258,7 @@ class Base extends CustomBase
 
     protected function getSettingsInfo()
     {
-        return [];
+        return $this->getSettingsFetch();
     }
 
     protected function getPattensBySelect($selectQuery)
