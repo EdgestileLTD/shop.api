@@ -56,7 +56,7 @@ class Product extends Base
             $select = 'sp.id, sp.id_group shop_id_group, sp.code, sp.article, sp.name,
                 sp.price, sp.price_opt, sp.price_opt_corp,
                 sp.img_alt, sp.curr, sp.presence, sp.bonus, sp.min_count,
-                sp.presence_count presence_count, sp.flag_hit, sp.enabled, sp.flag_new, sp.is_market, sp.note, sp.text,
+                sp.presence_count presence_count, sp.special_offer, sp.flag_hit, sp.enabled, sp.flag_new, sp.is_market, sp.note, sp.text,
                 sp.price_purchase price_purchase, sp.measure, sp.step_count, sp.max_discount, sp.discount,
                 sp.title, sp.keywords, sp.description, sp.weight, sp.volume, spg.is_main,
                 spg.id_group id_group, sg.name name_group, sg.id_modification_group_def id_modification_group_def,
