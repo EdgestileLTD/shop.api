@@ -12,6 +12,25 @@ function getPlainTree($items, $idParent = null)
     return $result;
 }
 
+function getParentItem($item, $items)
+{
+    foreach ($items as $it)
+        if ($it["id"] == $item["idParent"])
+            return $it;
+}
+
+function getPathName($item, $items)
+{
+    if (!$item["idParent"])
+        return $item["name"];
+
+    $parent = getParentItem($item, $items);
+    if (!$parent)
+        return $item["name"];
+
+    return getPathName($parent, $items) . " / " . $item["name"];
+}
+
 function convertFields($str)
 {
     $str = str_replace('[idParent]', 'sgt.id_parent ', $str);
@@ -81,6 +100,7 @@ foreach ($objects as $item) {
 
     $group = null;
     $group['id'] = $item['id'];
+    $group['idParent'] = null;
     if (CORE_VERSION != "5.2") {
         if ($item['ids_parents']) {
             $idsLevels = explode(";", $item['ids_parents']);
@@ -116,12 +136,16 @@ foreach ($objects as $item) {
     $group['grCount'] = $item['gcount'];
     $group['countGoods'] = $item['countGoods'];
     $group['idModificationGroupDef'] = $item['id_modification_group_def'];
+    $groups[] = $group;
+}
+
+foreach ($groups as $group) {
+    $group['pathGroup'] = getPathName($group, $groups);
     $items[] = $group;
 }
 
 $data['count'] = sizeof($objects);
 $data['items'] = $items;
-
 
 $status = array();
 if (!se_db_error()) {

@@ -14,7 +14,7 @@ class Category extends Base
     protected $allowedSearch = false;
 
     // получить родительский пункт
-    private function getParentItem($item, $items)
+    private function getParentItem($item, $items) 
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         foreach ($items as $it)

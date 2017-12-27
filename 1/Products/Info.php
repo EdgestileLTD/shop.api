@@ -412,7 +412,8 @@ function getOptions($id, &$product)
     $u->innerJoin('shop_option_value sov', 'spo.id_option_value = sov.id');
     $u->innerJoin('shop_option so', 'sov.id_option = so.id');
     $u->where('spo.id_product = ?', $id);
-    $u->orderBy('so.sort, spo.sort');
+    $u->orderBy('so.sort');
+    $u->addOrderBy('sov.sort');
     $u->groupBy("spo.id");
 
     $objects = $u->getList();
@@ -437,6 +438,25 @@ function getOptions($id, &$product)
 
     $product['countOptions'] = count($options);
     $product['options'] = $options;
+}
+
+function getPathGroup($idGroup)
+{
+    $t = new seTable("shop_group_tree", "sgt");
+    $t->select("sgt.id_parent, sg.name");
+    $t->innerJoin("shop_group sg", "sg.id = sgt.id_parent");
+    $t->where("sgt.id_child = ?", $idGroup);
+    $t->andWhere("sgt.id_child <> sgt.id_parent");
+    $t->orderBy("sgt.id");
+    $list = $t->getList();
+
+    $result = null;
+    foreach ($list as $value)
+        $result[] = $value["name"];
+    if ($result)
+        $result = implode(" / ", $result);
+
+    return $result;
 }
 
 $u = new seTable('shop_price', 'sp');
@@ -464,6 +484,10 @@ if ($u->id) {
     $product['idGroup'] = $u->idGroup;
     $product['idType'] = $u->id_type;
     $product['nameGroup'] = $u->nameGroup;
+    $product['pathGroup'] = getPathGroup($u->idGroup);
+    if ($product["pathGroup"])
+        $product["pathGroup"] .= " / " . $product['nameGroup'];
+    else $product["pathGroup"] = $product['nameGroup'];
     $product['price'] = (float)$u->price;
     $product['pricePurchase'] = (float)$u->price_purchase;
     $product['priceMiniWholesale'] = (float)$u->price_opt;
@@ -503,7 +527,7 @@ if ($u->id) {
     $product['seoHeader'] = $u->title;
     $product['seoKeywords'] = $u->keywords;
     $product['seoDescription'] = $u->description;
-    $product['pageTitle'] = $u->page_title;
+    $product['breadCrumb'] = $u->bread_crumb;
     $product['idModificationGroupDef'] = $u->id_modification_group_def;
     $product['idYAMarketCategory'] = $u->market_category;
 

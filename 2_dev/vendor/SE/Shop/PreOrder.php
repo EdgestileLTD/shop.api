@@ -9,7 +9,8 @@ class PreOrder extends Base
     protected function getSettingsFetch()
     {
         return array(
-            "select" => 'sp.*, pr.name product',
+            "select" => 'sp.*, pr.name product, 
+                DATE_FORMAT(sp.created_at, "%d.%m.%Y") `date`',
             "joins" => array(
                 array(
                     "type" => "inner",
@@ -18,5 +19,15 @@ class PreOrder extends Base
                 )
             )
         );
+    }
+
+    protected function correctValuesBeforeFetch($items = [])
+    {
+        foreach ($items as &$item) {
+            if (!empty($item['phone']))
+                $item['phone'] = Contact::correctPhone($item['phone']);
+        }
+
+        return $items;
     }
 }
