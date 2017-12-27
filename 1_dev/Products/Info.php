@@ -440,6 +440,25 @@ function getOptions($id, &$product)
     $product['options'] = $options;
 }
 
+function getPathGroup($idGroup)
+{
+    $t = new seTable("shop_group_tree", "sgt");
+    $t->select("sgt.id_parent, sg.name");
+    $t->innerJoin("shop_group sg", "sg.id = sgt.id_parent");
+    $t->where("sgt.id_child = ?", $idGroup);
+    $t->andWhere("sgt.id_child <> sgt.id_parent");
+    $t->orderBy("sgt.id");
+    $list = $t->getList();
+
+    $result = null;
+    foreach ($list as $value)
+        $result[] = $value["name"];
+    if ($result)
+        $result = implode(" / ", $result);
+
+    return $result;
+}
+
 $u = new seTable('shop_price', 'sp');
 $u->select('sp.*, sg.id idGroup, sb.name AS nameBrand, sg.name AS nameGroup, sg.id_modification_group_def,
     spm.id_weight_view, spm.id_weight_edit, spm.id_volume_view, spm.id_volume_edit');
@@ -465,6 +484,10 @@ if ($u->id) {
     $product['idGroup'] = $u->idGroup;
     $product['idType'] = $u->id_type;
     $product['nameGroup'] = $u->nameGroup;
+    $product['pathGroup'] = getPathGroup($u->idGroup);
+    if ($product["pathGroup"])
+        $product["pathGroup"] .= " / " . $product['nameGroup'];
+    else $product["pathGroup"] = $product['nameGroup'];
     $product['price'] = (float)$u->price;
     $product['pricePurchase'] = (float)$u->price_purchase;
     $product['priceMiniWholesale'] = (float)$u->price_opt;
