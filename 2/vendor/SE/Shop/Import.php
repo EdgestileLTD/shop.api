@@ -956,7 +956,7 @@ class Import {
                     $product_unit['id_group'] = array($product_unit['id_group']);
                 elseif(gettype($product_unit['id_group']) == 'array' and gettype($product_unit['id_group'][0]) == 'array')
                     $product_unit['id_group'] = $id_group;
-                if(CORE_VERSION == "5.3" and is_numeric($id_price) and isset($product_unit['id_group'])){
+                if(CORE_VERSION != "5.2" and is_numeric($id_price) and isset($product_unit['id_group'])){
                     // ОПРЕДЕЛЯЕМ ПОТРЕБНОСТЬ В ОЧИСТКЕ СВЯЗЕЙ И УДАЛЯЕМ НЕ АКТУАЛЬНЫЕ
                     // получаем данные из базы для определения изменений
                     $pr_gr = new DB('shop_price_group');

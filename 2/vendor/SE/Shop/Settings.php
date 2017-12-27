@@ -50,6 +50,7 @@ class Settings extends Base
                 $this->result['settings'][] = $setting;
             }
             return $this->result;
+
         } catch (Exception $e) {
             return $this->error = 'Не удалось получить настройки';
         }

@@ -4,12 +4,14 @@ namespace SE\Shop;
 
 use SE\DB;
 
+// файлы
 class Files extends Base
 {
     private $dir;
     private $section;
     private $lang;
 
+    // сборка
     function __construct($input = null)
     {
         parent::__construct($input);
@@ -20,6 +22,7 @@ class Files extends Base
             mkdir($this->dir, 0700, true);
     }
 
+    // получить
     public function fetch()
     {
         if (function_exists("mb_strtolower"))
@@ -55,6 +58,7 @@ class Files extends Base
         return $listFiles;
     }
 
+    // удалить файлы
     public function delete()
     {
         return FALSE;
@@ -88,6 +92,7 @@ class Files extends Base
         } else $this->error = "Не удаётся удалить файлы изображений!";
     }
 
+    // после
     public function post()
     {
         $countFiles = count($_FILES);
@@ -122,17 +127,13 @@ class Files extends Base
         return $items;
     }
 
+    // конвертировать имя
     private function convertName($name) {
         $chars = array(" ", "#", ":", "!", "+", "?", "&", "@", "~", "%");
-        $ext = explode('.', $name);
-        $ext = end($ext);
-        $name = str_replace('.' . $ext, '', $name);
-        $name = se_translite_url(str_replace($chars, "_", $name));
-        if ($ext)
-            $name .= '.' . $ext;
-        return $name;
+        return str_replace($chars, "_", $name);
     }
 
+    // получить имя
     private function getNewName($dir, $name) {
         $i = 0;
         $newName = $name = $this->convertName(trim($name));
@@ -143,6 +144,7 @@ class Files extends Base
         }
     }
 
+    // информация
     public function info($id = null)
     {
         $names = $this->input["listValues"];
@@ -155,6 +157,7 @@ class Files extends Base
         return $item;
     }
 
+    // проверить имена
     public function checkNames()
     {
         $items = [];

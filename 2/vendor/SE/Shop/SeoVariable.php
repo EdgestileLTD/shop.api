@@ -11,7 +11,7 @@ class SeoVariable extends Base
 
     public function fetch()
     {
-        $vars = [];
+        $vars = array();
 
         if ($this->input["type"] == 'goods') {
             $var['name'] = '{name}';
@@ -72,18 +72,7 @@ class SeoVariable extends Base
             $vars[] = $var;
         }
 
-        /*
-        ALTER TABLE `shop_variables` CHANGE `value` `value` TEXT CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;
-        */
         $u = new DB('shop_variables', 'sv');
-        $fld = $u->getField('value');
-        if ($fld['type'] !== 'text') {
-            DB::exec('ALTER TABLE `shop_variables` CHANGE `value` `value` TEXT CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;');
-        }
-
-
-        $u = new DB('shop_variables', 'sv');
-        $u->getField('value');
         $u->orderBy('name');
         $objects = $u->getList();
         foreach ($objects as $item) {

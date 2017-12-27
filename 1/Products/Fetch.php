@@ -30,6 +30,8 @@ function convertFields($str)
     $str = str_replace('[isNew]=false', 'sp.flag_new="N"', $str);
     $str = str_replace('[isHit]=true', 'sp.flag_hit="Y"', $str);
     $str = str_replace('[isHit]=false', 'sp.flag_hit="N"', $str);
+    $str = str_replace('[isSpecial]=false', 'sp.special_offer="N"', $str);
+    $str = str_replace('[isSpecial]=true', 'sp.special_offer="Y"', $str);
     $str = str_replace('[isActive]=true', 'sp.enabled="Y"', $str);
     $str = str_replace('[isActive]=false', 'sp.enabled<>"Y"', $str);
     $str = str_replace('[isDiscount]=true', 'sdl.id>0 AND sp.discount="Y"', $str);

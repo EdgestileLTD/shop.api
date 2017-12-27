@@ -14,6 +14,7 @@ class Product extends Base
 {
     protected $tableName = "shop_price";
     private $newImages;
+
     // руссификация заголовков столбцов
     protected $rusCols = array(
         "id" => "Ид.", "article" => "Артикул", "code" => "Код (URL)", "name" => "Наименование",
@@ -30,6 +31,8 @@ class Product extends Base
         "minCount" => "Мин.кол-во", "nameBrand" => "Бренд",
         "idAcc" => "Сопутствующие товары"
     );
+
+    // поля для поиска
     protected $searchFields = [
         ["title" => "Код", "field" => "code"],
         ["title" => "Наименование", "field" => "name", "active" => true],
@@ -48,12 +51,12 @@ class Product extends Base
     protected function getSettingsFetch()
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
-        if (CORE_VERSION == "5.3") {
+        if (CORE_VERSION != "5.2") {
             // получаем данные из таблиц БД
             $select = 'sp.id, sp.id_group shop_id_group, sp.code, sp.article, sp.name,
                 sp.price, sp.price_opt, sp.price_opt_corp,
                 sp.img_alt, sp.curr, sp.presence, sp.bonus, sp.min_count,
-                sp.presence_count presence_count, sp.flag_hit, sp.enabled, sp.flag_new, sp.is_market, sp.note, sp.text,
+                sp.presence_count presence_count, sp.special_offer, sp.flag_hit, sp.enabled, sp.flag_new, sp.is_market, sp.note, sp.text,
                 sp.price_purchase price_purchase, sp.measure, sp.step_count, sp.max_discount, sp.discount,
                 sp.title, sp.keywords, sp.description, sp.weight, sp.volume, spg.is_main,
                 spg.id_group id_group, sg.name name_group, sg.id_modification_group_def id_modification_group_def,
@@ -510,7 +513,7 @@ class Product extends Base
         if (!$id)
             return $result;
 
-        if (CORE_VERSION == "5.3") {
+        if (CORE_VERSION != "5.2") {
             $u = new DB('shop_price_group', 'spg');
             $u->select('sg.id, sg.name');
             $u->innerJoin('shop_group sg', 'sg.id = spg.id_group');
@@ -1263,7 +1266,7 @@ class Product extends Base
             $idsProducts = $this->input["ids"];
             $groups = $this->input["crossGroups"];
             $idsStr = implode(",", $idsProducts);
-            if (CORE_VERSION == "5.3") {
+            if (CORE_VERSION != "5.2") {
                 $u = new DB('shop_price_group', 'spg');
                 $u->where('NOT is_main AND id_price in (?)', $idsStr)->deleteList();
                 $chgr = array();
@@ -1954,7 +1957,7 @@ class Product extends Base
                if ($goodsInsert) {
                    // добавление группы товаров
                    $u = new DB('shop_group', 'sg');
-                   if (CORE_VERSION == "5.3") {
+                   if (CORE_VERSION != "5.2") {
                        $u->select('sg.id, GROUP_CONCAT(sgp.name ORDER BY sgt.level SEPARATOR "/") name');
                        $u->innerJoin("shop_group_tree sgt", "sg.id = sgt.id_child");
                        $u->innerJoin("shop_group sgp", "sgp.id = sgt.id_parent");
@@ -1966,7 +1969,7 @@ class Product extends Base
                    $u->groupBy('sg.id');
                    $groups = $u->getList();
                    foreach ($groups as $group) {
-                       if (CORE_VERSION == "5.3")
+                       if (CORE_VERSION != "5.2")
                            $path = $this->getGroup53($groups, $group['id']);
                        else $path = $this->getGroup($groups, $group['id']);
                        if ($path)
@@ -1978,7 +1981,7 @@ class Product extends Base
                            $names = explode("/", $key);
                            $idParent = null;
                            foreach ($names as $name) {
-                               if (CORE_VERSION == "5.3")
+                               if (CORE_VERSION != "5.2")
                                    $idParent = $this->createGroup53($groups, $idParent, $name);
                                else $idParent = $this->createGroup($groups, $idParent, $name);
                            }
@@ -2167,7 +2170,7 @@ class Product extends Base
                        $metaHeader = !empty($goodsItem['metaHeader']) ? $goodsItem['metaHeader'] : 'null';
                        $metaKeywords = !empty($goodsItem['metaKeywords']) ? $goodsItem['metaKeywords'] : 'null';
                        $metaDescription = !empty($goodsItem['metaDescription']) ? $goodsItem['metaDescription'] : 'null';
-                       if (CORE_VERSION == "5.3" && $goodsItem['idGroup'])
+                       if (CORE_VERSION != "5.2" && $goodsItem['idGroup'])
                            $dataGoodsGroups[] = array("id_group" => $goodsItem['idGroup'], "id_price" => $idProduct, "is_main" => 1);
                        $dataGoods[] = array("id" => $idProduct, "code" => $goodsItem['code'], "article" => $goodsItem['article'],
                            "id_group" => $IdGroup, "name" => $goodsItem['name'], 'price' => $price, 'presence_count' => $count,

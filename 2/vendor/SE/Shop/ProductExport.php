@@ -6,7 +6,6 @@ use \PHPExcel as PHPExcel;
 use \PHPExcel_Writer_Excel2007 as PHPExcel_Writer_Excel2007;
 use \PHPExcel_Style_Fill as PHPExcel_Style_Fill;
 
-
 class ProductExport extends Product
 {
 
@@ -34,7 +33,7 @@ class ProductExport extends Product
                 sp.id id,
                 NULL category';
 
-        if (CORE_VERSION == "5.3") {
+        if (CORE_VERSION != "5.2") {
             // получение дополнительных категорий
             $select .= ',
 
@@ -119,7 +118,7 @@ class ProductExport extends Product
                 ) features
             ';
 
-        if (CORE_VERSION == "5.3") {
+        if (CORE_VERSION != "5.2") {
             $u->select($select);
             $u->leftJoin("shop_price_group spg", "spg.id_price = sp.id");
             $u->leftJoin('shop_group sg', 'sg.id = spg.id_group');
@@ -181,7 +180,7 @@ class ProductExport extends Product
 
         // группы товаров
         $u = new DB('shop_group', 'sg');
-        if (CORE_VERSION == "5.3") {
+        if (CORE_VERSION != "5.2") {
             $u->select('sg.id, GROUP_CONCAT(sgp.name ORDER BY sgt.level SEPARATOR "/") name');
             $u->innerJoin("shop_group_tree sgt", "sg.id = sgt.id_child"); // присоединение столбца из другой таблицы
             $u->innerJoin("shop_group sgp", "sgp.id = sgt.id_parent");
@@ -193,7 +192,7 @@ class ProductExport extends Product
         $u->groupBy('sg.id');
         $groups = $u->getList();
         foreach ($goodsL as &$good) {
-            if (CORE_VERSION == "5.3")
+            if (CORE_VERSION != "5.2")
                 $good["category"] = parent::getGroup53($groups, $good["idGroup"]);
             else $good["category"] = parent::getGroup($groups, $good["idGroup"]);
         }

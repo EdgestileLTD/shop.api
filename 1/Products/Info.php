@@ -507,6 +507,7 @@ if ($u->id) {
     $product['presence'] = $u->presence;
     $product['isNew'] = (bool)($u->flag_new === 'Y');
     $product['isHit'] = (bool)($u->flag_hit === 'Y');
+    $product['isSpecial'] = (bool)($u->special_offer === 'Y');
     $product['isAction'] = (bool)($u->unsold === 'Y');
     $product['isYAMarket'] = (bool)$u->is_market;
     $product['manufacturer'] = $u->manufacturer;

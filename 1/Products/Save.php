@@ -849,6 +849,18 @@ if ($isNew || !empty($ids)) {
             else $u->addupdate('flag_hit', "'N'");
         }
     }
+    if (isset($json->isSpecial)) {
+        $isUpdated = true;
+        if ($json->isSpecial) {
+            if ($isNew)
+                $u->special_offer = 'Y';
+            else $u->addupdate('special_offer', "'Y'");
+        } else {
+            if ($isNew)
+                $u->special_offer = 'N';
+            else $u->addupdate('special_offer', "'N'");
+        }
+    }
     if (isset($json->isAction)) {
         $isUpdated = true;
         if ($json->isAction) {
@@ -1013,7 +1025,7 @@ if (!se_db_error()) {
     file_get_contents('http://' . $json->hostname . "/lib/shoppreorder_checkCount.php?id={$data["id"]}");
 } else {
     $status['status'] = 'error';
-    $status['error'] =  'Не удаётся сохранить данные о товаре!';
+    $status['error'] = 'Не удаётся сохранить данные о товаре!';
 }
 
 outputData($status);

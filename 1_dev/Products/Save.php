@@ -849,6 +849,18 @@ if ($isNew || !empty($ids)) {
             else $u->addupdate('flag_hit', "'N'");
         }
     }
+    if (isset($json->isSpecial)) {
+        $isUpdated = true;
+        if ($json->isSpecial) {
+            if ($isNew)
+                $u->special_offer = 'Y';
+            else $u->addupdate('special_offer', "'Y'");
+        } else {
+            if ($isNew)
+                $u->special_offer = 'N';
+            else $u->addupdate('special_offer', "'N'");
+        }
+    }
     if (isset($json->isAction)) {
         $isUpdated = true;
         if ($json->isAction) {

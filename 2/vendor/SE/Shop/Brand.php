@@ -9,11 +9,11 @@ class Brand extends Base
 {
     protected $tableName = "shop_brand";
 
-    public function fetch()
+    // получить
+    public function fetch($isId = false)
     {
         try {
             $u = new DB('shop_brand', 'sb');
-            $u->addField('sort', 'int(11)', '0', 1);
             $u->select('sb.*, COUNT(sp.id) countGoods');
             $u->leftjoin('shop_price sp', 'sb.id=sp.id_brand');
 
@@ -35,8 +35,11 @@ class Brand extends Base
                 'name' => 'sb.name'
             );
 
-            //$sortBy = (isset($patterns[$this->sortBy])) ? $patterns[$this->sortBy] : 'id';
-            $u->orderby('sort', 0);
+            $sortBy = (isset($patterns[$this->sortBy])) ? $patterns[$this->sortBy] : 'id';
+
+            if ($this->sortOrder == 'desc')
+                $u->orderby($sortBy, 1);
+            else $u->orderby($sortBy, 0);
             $u->groupby('sb.id');
 
             $objects = $u->getList();
@@ -55,7 +58,7 @@ class Brand extends Base
                 if ($brand['imageFile']) {
                     if (strpos($brand['imageFile'], "://") === false) {
                         $brand['imageUrl'] = 'http://' . $this->hostname . "/images/rus/shopbrand/" . $brand['imageFile'];
-                        $brand['imageUrlPreview'] = "http://{$this->hostname}/lib/image.php?size=200&img=images/rus/shopbrand/" . $brand['imageFile'];
+                        $brand['imageUrlPreview'] = "http://{$this->hostname}/lib/image.php?size=64&img=images/rus/shopbrand/" . $brand['imageFile'];
                     } else {
                         $brand['imageUrl'] = $brand['imageFile'];
                         $brand['imageUrlPreview'] = $brand['imageFile'];
@@ -74,11 +77,11 @@ class Brand extends Base
         return $this;
     }
 
-    public function info()
+    // информация
+    public function info($id = NULL)
     {
         try {
             $u = new DB('shop_brand', 'sb');
-
             $brand = $u->getInfo($this->input["id"]);
             $brand['imageFile'] = $brand['image'];
             $brand['seoHeader'] = $brand['title'];
@@ -101,6 +104,7 @@ class Brand extends Base
         return $this;
     }
 
+    // получить код
     private function getCode($id, $title, $code)
     {
         if (empty($code))
@@ -122,6 +126,7 @@ class Brand extends Base
     }
 
 
+    // сохранить
     public function save()
     {
         try {
@@ -138,7 +143,6 @@ class Brand extends Base
                 $this->input["description"] = $this->input["seoDescription"];
 
             $u = new DB('shop_brand', 'sb');
-            $u->addField('content', 'text');
             $u->setValuesFields($this->input);
             $this->input["id"] = $u->save();
             $this->info();
