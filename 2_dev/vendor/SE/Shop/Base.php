@@ -32,6 +32,7 @@ class Base extends CustomBase
 
     function __construct($input = null)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         parent::__construct($input);
         $this->fileSettings = strtolower(DIR_SETTINGS . "/" . end(explode('\\', get_class($this)))) . ".json";
         $input = $this->input;
@@ -60,11 +61,13 @@ class Base extends CustomBase
 
     public function setFilters($filters)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $this->filters = empty($filters) || !is_array($filters) ? [] : $filters;
     }
 
     private function createTableForInfo($settings)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $u = new DB($this->tableName, $this->tableAlias);
         $u->select($settings["select"]);
 
@@ -86,6 +89,7 @@ class Base extends CustomBase
 
     public function fetch()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $settingsFetch = $this->getSettingsFetch();
 
         $settingsFetch["select"] = $settingsFetch["select"] ? $settingsFetch["select"] : "*";
@@ -130,6 +134,7 @@ class Base extends CustomBase
 
     public function correctAll()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         if (!empty($this->input['allMode'])) {
             $this->allMode = true;
             $this->limit = 10000;
@@ -154,6 +159,7 @@ class Base extends CustomBase
 
     public function info($id = null)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $id = empty($id) ? $this->input["id"] : $id;
         $this->input["id"] = $id;
         $settingsInfo = $this->getSettingsInfo();
@@ -176,11 +182,13 @@ class Base extends CustomBase
 
     protected function getAddInfo()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         return [];
     }
 
     public function delete()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         try {
             $this->correctAll('del');
             $u = new DB($this->tableName, $this->tableAlias);
@@ -197,6 +205,7 @@ class Base extends CustomBase
 
     public function save()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         try {
             $this->correctValuesBeforeSave();
             $this->correctAll();
@@ -220,6 +229,7 @@ class Base extends CustomBase
 
     public function sort()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         if (empty($this->tableName))
             return;
 
@@ -238,31 +248,37 @@ class Base extends CustomBase
 
     protected function correctValuesBeforeSave()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         return true;
     }
 
     protected function correctValuesBeforeFetch($items = [])
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         return $items;
     }
 
     protected function saveAddInfo()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         return true;
     }
 
     protected function getSettingsFetch()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         return [];
     }
 
     protected function getSettingsInfo()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         return $this->getSettingsFetch();
     }
 
     protected function getPattensBySelect($selectQuery)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $result = [];
         preg_match_all('/\w+[.]+\w+\s\w+/', $selectQuery, $matches);
         if (count($matches) && count($matches[0])) {
@@ -285,6 +301,7 @@ class Base extends CustomBase
 
     protected function getSearchQuery($searchFields = array())
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $searchItem = trim($this->search);
         if (empty($searchItem))
             return array();
@@ -354,6 +371,7 @@ class Base extends CustomBase
 
     protected function getFilterQuery()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $where = [];
         $filters = [];
         if (!empty($this->filters["field"]))
@@ -391,6 +409,7 @@ class Base extends CustomBase
 
     protected function getWhereQuery($searchFields = [])
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $query = null;
         $searchQuery = $this->getSearchQuery($searchFields);
         $filterQuery = $this->getFilterQuery();
@@ -407,6 +426,7 @@ class Base extends CustomBase
 
     public function getArrayFromCsv($file, $csvSeparator = ";")
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         if (!file_exists($file))
             return null;
 
@@ -436,6 +456,7 @@ class Base extends CustomBase
 
     public function post()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $countFiles = count($_FILES);
         $ups = 0;
         $items = [];
@@ -473,6 +494,7 @@ class Base extends CustomBase
 
     public function sendMail($codeMail, $idOrder = false)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         if ($this->input['send']) {
             if ($codeMail) {
                 try {
@@ -499,6 +521,7 @@ class Base extends CustomBase
 
     public function postRequest($shorturl, $data)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $url = "http://" . HOSTNAME . "/" . $shorturl;
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
@@ -510,11 +533,12 @@ class Base extends CustomBase
 
     protected function afterSave()
     {
-
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
     }
 
     public function store()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         if ($this->input["searchFields"])
             $this->uiSettings["searchFields"] = $this->input["searchFields"];
 
@@ -524,6 +548,7 @@ class Base extends CustomBase
 
     private function isSearchField($key)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         foreach ($this->searchFields as $field) {
             if ($field["active"] && $field["field"] == $key)
                 return true;

@@ -15,6 +15,7 @@ class Feature extends Base
     // получить настройки
     protected function getSettingsFetch()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         return array(
             "select" => 'sf.*, sfg.name name_group',
             "joins" => array(
@@ -40,12 +41,14 @@ class Feature extends Base
     // получить информацию по настройкам
     protected function getSettingsInfo()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         return $this->getSettingsFetch();
     }
 
     // получить значения
     private function getValues()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $featureValue = new FeatureValue();
         return $featureValue->fetchByIdFeature($this->input["id"]);
     }
@@ -53,6 +56,7 @@ class Feature extends Base
     // получить добавленную информацию
     protected function getAddInfo()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $result["values"] = $this->getValues();
         return $result;
     }
@@ -60,6 +64,7 @@ class Feature extends Base
     // сохранить значения
     private function saveValues()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         if (!isset($this->input["values"]))
             return;
 
@@ -103,6 +108,7 @@ class Feature extends Base
     // сохранить добавленную информацию
     public function saveAddInfo()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $this->saveValues();
         return true;
     }
