@@ -118,20 +118,31 @@ class Base
     }
 
     // отладка
-    protected function debugging($group, $funct = null, $act = null)
-    {    // группа_логов/функция/комент
-        // значение:  True/False (печатать/не_печатать в логи)
+    protected function debugging($group, $funct = null, $class = null, $act = null)
+    {
+        // $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (API_STATUS == "dev") {
+
+            // [True | Print Log]  [False]
             $print = array(
                 'funct' => False,   // безымянные
             );
+
             if ($print[$group] == True) {
-                $wrLog = "Act: {$act}";
-                $Indentation = str_repeat(" ", (40 - mb_strlen($wrLog)));
-                $wrLog = "{$wrLog}{$Indentation} | Function: {$funct}";
-                $Indentation = str_repeat(" ", (80 - mb_strlen($wrLog)));
-                $class = get_class($this);
-                writeLog("{$wrLog}{$Indentation} | File: {$class}");
+
+                $thi = get_class($this);
+                $thisPrint  = "ThisClass: {$thi}";
+                $classPrint = "Class: {$class}";
+                $functPrint = "Function: {$funct}";
+                $actPrint   = "Act: {$act}";
+
+                $ind = 37;      $sy = " ";      $col = " | ";
+                $thisLen    = $thisPrint.str_repeat($sy,($ind - mb_strlen($thisPrint))).$col;
+                $classLen   = $classPrint.str_repeat($sy,($ind - mb_strlen($classPrint))).$col;
+                $functLen   = $functPrint.str_repeat($sy,($ind - mb_strlen($functPrint))).$col;
+                $actLen     = $actPrint.str_repeat($sy,($ind - mb_strlen($actPrint))).$col;
+
+                writeLog($actLen.$functLen.$classLen.$thisLen);
             }
         }
     }

@@ -41,6 +41,7 @@ class ContactCategory extends Base
     // получить
     public function fetch()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
             $u = new DB('se_group', 'sg');
             $u->select('sg.*, (SELECT COUNT(*) FROM se_user_group WHERE group_id=sg.id) user_count');
@@ -61,6 +62,7 @@ class ContactCategory extends Base
     // Правильные заглавия перед сохранением
     public function correctValuesBeforeSave()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $this->input["title"] = $this->input["name"];
     }
 
@@ -72,6 +74,7 @@ class ContactCategory extends Base
     // @@@@@@ @@    @@    @@    @@@@@@
     public function save()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result = parent::save();
         if ($this->input["addBook"]) {
             $emailService = new EmailProvider();
@@ -95,6 +98,7 @@ class ContactCategory extends Base
     // @@@@@@  @@@@@@ @@@@@@ @@@@@@    @@    @@@@@@
     public function delete()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $group = null;
         if ($this->input["ids"]) {
             $idGroup = $this->input["ids"][0];
@@ -117,6 +121,7 @@ class ContactCategory extends Base
     // Добавить Контакты в адресную книгу
     private function addContactsInAddressBook($id_group)
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $u1 = new DB('se_group', 'sg');
         $u1->select('sg.email_settings');
         $settings = $u1->find($id_group);
