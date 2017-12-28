@@ -94,7 +94,7 @@ class Payment extends Base
     }
 
     // правильные значения перед извлечением
-    protected function correctValuesBeforeFetch($items = array())
+    protected function correctItemsBeforeFetch($items = array())
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         foreach ($items as &$item)

@@ -85,10 +85,11 @@ class Order extends Base // порядок
             "select" => 'so.*,
                 DATE_FORMAT(so.date_order, "%d.%m.%Y") date_order_display,  
                 IFNULL(c.name, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name)) customer, 
-                IFNULL(c.phone, p.phone) customer_phone, IFNULL(c.email, p.email) customer_email, 
-                (SUM((sto.price-IFNULL(sto.discount, 0))*sto.count)-IFNULL(so.discount, 0) + IFNULL(so.delivery_payee, 0)) amount, 
+                IFNULL(c.phone, p.phone) customer_phone, IFNULL(c.email, p.email) customer_email,                 
                 CONCAT_WS(" ",  pm.last_name, pm.first_name, pm.sec_name) manager,
                 sdt.name delivery_name,
+                (SELECT (SUM((sto.price-IFNULL(sto.discount, 0))*sto.count)-IFNULL(so.discount, 0) + IFNULL(so.delivery_payee, 0)) 
+                    FROM shop_tovarorder sto WHERE sto.id_order = so.id) amount,
                 sd.telnumber delivery_phone, sd.email delivery_email, sd.calltime delivery_call_time, 
                 sd.address delivery_address, sd.postindex delivery_post_index,
                 sp.name_payment name_payment_primary, spp.name_payment, sch.id_coupon id_coupon, sch.discount coupon_discount',
@@ -107,11 +108,6 @@ class Order extends Base // порядок
                     "type" => "left",
                     "table" => 'person pm',
                     "condition" => 'pm.id = so.id_admin'
-                ),
-                array(
-                    "type" => "inner",
-                    "table" => 'shop_tovarorder sto',
-                    "condition" => 'sto.id_order = so.id'
                 ),
                 array(
                     "type" => "left",
@@ -152,7 +148,7 @@ class Order extends Base // порядок
         );
     }
 
-    protected function correctValuesBeforeFetch($items = [])
+    protected function correctItemsBeforeFetch($items = [])
     {
         foreach ($items as &$item) {
             if (!empty($item['customerPhone']))
@@ -160,7 +156,15 @@ class Order extends Base // порядок
             $item["amount"] = number_format($item["amount"], 2, '.', ' ');
         }
 
+
         return $items;
+    }
+
+    protected function correctResultBeforeFetch($result)
+    {
+        $result["totalAmount"] = number_format($result["totalAmount"], 2, '.', ' ');
+
+        return $result;
     }
 
     // получить информацию по настройкам

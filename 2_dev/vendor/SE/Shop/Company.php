@@ -25,7 +25,7 @@ class Company extends Base
         );
     }
 
-    protected function correctValuesBeforeFetch($items = [])
+    protected function correctItemsBeforeFetch($items = [])
     {
         foreach ($items as &$item)
             $item['phone'] = Contact::correctPhone($item['phone']);

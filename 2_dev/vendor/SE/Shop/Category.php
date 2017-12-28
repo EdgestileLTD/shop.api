@@ -156,7 +156,7 @@ class Category extends Base
     }
 
     // получить правильные значения
-    protected function correctValuesBeforeFetch($items = array())
+    protected function correctItemsBeforeFetch($items = array())
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         if (CORE_VERSION != "5.2")

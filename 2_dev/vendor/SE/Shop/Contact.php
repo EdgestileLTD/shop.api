@@ -69,7 +69,7 @@ class Contact extends Base
         );
     }
 
-    protected function correctValuesBeforeFetch($items = [])
+    protected function correctItemsBeforeFetch($items = [])
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         foreach ($items as &$item) {

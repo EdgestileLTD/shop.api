@@ -21,7 +21,7 @@ class PreOrder extends Base
         );
     }
 
-    protected function correctValuesBeforeFetch($items = [])
+    protected function correctItemsBeforeFetch($items = [])
     {
         foreach ($items as &$item) {
             if (!empty($item['phone']))

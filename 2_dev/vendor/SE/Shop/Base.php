@@ -115,16 +115,21 @@ class Base extends CustomBase
             $u->orderBy($this->sortBy, $this->sortOrder == 'desc');
 
             $this->result["searchFields"] = $this->searchFields;
-            $this->result["items"] = $this->correctValuesBeforeFetch($u->getList($this->limit, $this->offset));
-            $this->result["count"] = $u->getListCount();
-            if (!empty($settingsFetch["aggregation"])) {
-                if (!empty($settingsFetch["aggregation"]["type"]))
-                    $settingsFetch["aggregation"] = array($settingsFetch["aggregation"]);
-                foreach ($settingsFetch["aggregation"] as $aggregation) {
-                    $query = "{$aggregation["type"]}({$aggregation["field"]})";
-                    $this->result[$aggregation["name"]] = $u->getListAggregation($query);
-                }
+            $this->result["items"] = $this->correctItemsBeforeFetch($u->getList($this->limit, $this->offset));
+
+            if (!empty($settingsFetch["aggregation"]["type"]))
+                $settingsFetch["aggregation"] = array($settingsFetch["aggregation"]);
+            $settingsFetch["aggregation"][] = ["type" => "COUNT", "field" => "*", "name" => "count"];
+            $query = [];
+            foreach ($settingsFetch["aggregation"] as $aggregation)
+                $query[] = "{$aggregation["type"]}({$aggregation["field"]}) `{$aggregation["name"]}`";
+            if (!empty($query)) {
+                $query = implode(",", $query);
+                $aggregations = $u->getListAggregation($query);
+                foreach ($settingsFetch["aggregation"] as $aggregation)
+                    $this->result[$aggregation["name"]] = $aggregations[$aggregation["name"]];
             }
+            $this->result = $this->correctResultBeforeFetch($this->result);
         } catch (Exception $e) {
             $this->error = "Не удаётся получить список объектов!";
         }
@@ -252,7 +257,7 @@ class Base extends CustomBase
         return true;
     }
 
-    protected function correctValuesBeforeFetch($items = [])
+    protected function correctItemsBeforeFetch($items = [])
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         return $items;
@@ -554,6 +559,11 @@ class Base extends CustomBase
                 return true;
         }
         return false;
+    }
+
+    protected function correctResultBeforeFetch($result)
+    {
+        return $result;
     }
 
 }

@@ -248,7 +248,7 @@ class DB
             } else {
                 $default = ' default NULL ';
             }
-        //writeLog("ALTER TABLE `{$this->tableName}` ADD `{$field}` {$type}{$default}{$after};");
+            //writeLog("ALTER TABLE `{$this->tableName}` ADD `{$field}` {$type}{$default}{$after};");
             DB::exec("ALTER TABLE `{$this->tableName}` ADD `{$field}` {$type}{$default}{$after}");
         }
         if ($index){
@@ -460,9 +460,9 @@ class DB
             $stmt = self::$dbh->prepare($sql);
             $this->bindValues($stmt);
             $stmt->execute();
-            $stmt->setFetchMode(PDO::FETCH_NUM);
+            $stmt->setFetchMode(PDO::FETCH_ASSOC);
             $result = $stmt->fetch();
-            return $result[0];
+            return $result;
         } catch (\PDOException $e) {
             throw new Exception($e->getMessage());
         }

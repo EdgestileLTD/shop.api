@@ -460,9 +460,9 @@ class DB
             $stmt = self::$dbh->prepare($sql);
             $this->bindValues($stmt);
             $stmt->execute();
-            $stmt->setFetchMode(PDO::FETCH_NUM);
+            $stmt->setFetchMode(PDO::FETCH_ASSOC);
             $result = $stmt->fetch();
-            return $result[0];
+            return $result;
         } catch (\PDOException $e) {
             throw new Exception($e->getMessage());
         }
