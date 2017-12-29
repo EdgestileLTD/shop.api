@@ -12,7 +12,7 @@ class Payment extends Base
     // сохранить
     public function save()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result = parent::save();
         if (!empty($this->input["idOrder"]))
             Order::checkStatusOrder($this->input["idOrder"], $this->input["paymentType"]);
@@ -22,7 +22,7 @@ class Payment extends Base
     // получить настройки
     protected function getSettingsFetch()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         return array(
             "select" => 'sop.*, (SELECT name_payment FROM shop_payment WHERE id = sop.payment_type) name,
                 IFNULL(c.name,  CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name)) payer',
@@ -47,7 +47,7 @@ class Payment extends Base
     // получить информацию по настройкам
     protected function getSettingsInfo()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         return array(
             "select" => 'sop.*, (SELECT name_payment FROM shop_payment WHERE id = sop.payment_type) name,
                 IFNULL(c.name,  CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name)) payer',
@@ -74,7 +74,7 @@ class Payment extends Base
     // получить новый номер
     private function getNewNum()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $u = new DB("shop_order_payee");
         $u->select("MAX(num) num");
         $u->where("sop.year = YEAR(NOW())");
@@ -85,7 +85,7 @@ class Payment extends Base
     // правильные заначения перед сохранением
     protected function correctValuesBeforeSave()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (empty($this->input["id"])) {
             $this->input["num"] = $this->getNewNum();
             $this->input["year"] = date("Y");
@@ -96,7 +96,7 @@ class Payment extends Base
     // правильные значения перед извлечением
     protected function correctItemsBeforeFetch($items = array())
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         foreach ($items as &$item)
             $item["name"] = empty($item["name"]) ? "С лицевого счёта" : $item["name"];
         return $items;
@@ -105,7 +105,7 @@ class Payment extends Base
     // сохранить учетную запись заказа
     private function saveOrderAccount()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $orderId = $this->input["idOrder"];
         if ($this->input["idUserAccountOut"]) {
             $u = new DB('se_user_account', 'sua');
@@ -151,7 +151,7 @@ class Payment extends Base
     // добавить полученную информацию
     protected function getAddInfo()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result = array();
         if ($idAuthor = $this->result["idAuthor"]) {
             $contact = new Contact();
@@ -167,7 +167,7 @@ class Payment extends Base
     // выбор по заказу
     public function fetchByOrder($idOrder)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $this->setFilters(array("field" => "idOrder", "value" => $idOrder));
         return $this->fetch();
     }

@@ -8,7 +8,7 @@ class Review extends Base
 
     protected function getSettingsFetch()
     {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         return array(
             "select" => 'sr.*, (sr.active = "Y") is_active,
                  CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) name_user, sp.name name_product',
@@ -29,13 +29,13 @@ class Review extends Base
 
     protected function getSettingsInfo()
     {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         return $this->getSettingsFetch();
     }
 
     public function fetchByIdProduct($idProduct)
     {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (!$idProduct)
             return array();
 

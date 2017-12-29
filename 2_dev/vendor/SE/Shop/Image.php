@@ -14,7 +14,7 @@ class Image extends Base
     // сборка
     function __construct($input = null)
     {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         parent::__construct($input);
 
         $this->section = !empty($this->input["section"]) ? $this->input["section"] : $_GET['section'];
@@ -32,7 +32,7 @@ class Image extends Base
     // получить
     public function fetch()
     {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (function_exists("mb_strtolower"))
             $searchStr = mb_strtolower(trim($this->search));
         else $searchStr = strtolower(trim($this->search));
@@ -78,7 +78,7 @@ class Image extends Base
     // удалить
     public function delete()
     {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $files = $this->input["files"];
 
         $isUnused = (bool) $this->input["isUnused"];
@@ -155,7 +155,7 @@ class Image extends Base
     // после
     public function post()
     {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $countFiles = count($_FILES);
         $ups = 0;
         $files = [];
@@ -214,14 +214,14 @@ class Image extends Base
 
     // конвертировать имя
     private function convertName($name) {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $chars = array(" ", "#", ":", "!", "+", "?", "&", "@", "~", "%");
         return str_replace($chars, "_", $name);
     }
 
     // получить новое имя
     private function getNewName($dir, $name) {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $i = 0;
         $newName = $name = $this->convertName(trim($name));
         while (true) {
@@ -234,7 +234,7 @@ class Image extends Base
     // информация
     public function info($id = NULL)
     {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $names = $this->input["listValues"];
         $newNames = [];
         foreach ($names as $name)
@@ -248,7 +248,7 @@ class Image extends Base
     // проверить имена
     public function checkNames()
     {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $items = [];
         $names = $this->input["names"];
         foreach ($names as $name) {

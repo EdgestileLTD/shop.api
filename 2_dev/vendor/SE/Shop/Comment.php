@@ -10,7 +10,7 @@ class Comment extends Base
     // получить настройки
     protected function getSettingsFetch()
     {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         return array(
             "select" => 'sc.*, sp.id id_product, sp.name name_product',
             "joins" => array(
@@ -24,14 +24,14 @@ class Comment extends Base
     // получить информацию по настройкам
     protected function getSettingsInfo()
     {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         return $this->getSettingsFetch();
     }
 
     // выбор продукта по id
     public function fetchByIdProduct($idProduct)
     {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (!$idProduct)
             return array();
 

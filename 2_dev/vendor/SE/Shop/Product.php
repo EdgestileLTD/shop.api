@@ -50,7 +50,7 @@ class Product extends Base
     // Получить настройки
     protected function getSettingsFetch()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (CORE_VERSION != "5.2") {
             // получаем данные из таблиц БД
             $select = 'sp.id, sp.id_group shop_id_group, sp.code, sp.article, sp.name,
@@ -114,7 +114,7 @@ class Product extends Base
     // Получить
     public function fetch($isId = false)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         parent::fetch($isId);
         if (!$isId) {
             $list = $this->result['items'];
@@ -135,7 +135,7 @@ class Product extends Base
       // Добавить изменения
     public function addModifications($ids)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $array = $result = array();
         $searchBase = array(
             'values' => array(),
@@ -217,7 +217,7 @@ class Product extends Base
     // Инфо
     public function info($id = NULL)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         // исправить все
         $this->correctAll();
         if (isset($this->input['action']) and $this->input['action'] == 'addModifications') {
@@ -261,7 +261,7 @@ class Product extends Base
     // Получить функции Diff
     private function getDiffFeatures($id_array, $retard = FALSE)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (count($id_array) < 2) {
             return array();
         }
@@ -293,14 +293,14 @@ class Product extends Base
     // Получить настройки
     protected function getSettingsInfo()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         return $this->getSettingsFetch();
     }
 
     // Получить изображения
     public function getImages($idProduct = null)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result = [];
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
@@ -339,7 +339,7 @@ class Product extends Base
     // Получить файлы
     public function getFiles($idProduct = null)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result = [];
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
@@ -372,7 +372,7 @@ class Product extends Base
     // Добавить цену
     public function addPrice()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $this->correctAll();
         try {
             $idsProducts = $this->input["ids"];
@@ -396,7 +396,7 @@ class Product extends Base
     // Получить характеристики товара
     public function getSpecifications($idProduct = null)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result = [];
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
@@ -432,7 +432,7 @@ class Product extends Base
     // Получить похожие продукты
     public function getSimilarProducts($idProduct = null)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result = [];
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
@@ -463,7 +463,7 @@ class Product extends Base
     // Получить сопроводительные продукты
     public function getAccompanyingProducts($idProduct = null)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result = [];
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
@@ -489,7 +489,7 @@ class Product extends Base
     // Получить комментарии
     public function getComments($idProduct = null)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $id = $idProduct ? $idProduct : $this->input["id"];
         $comment = new Comment();
         return $comment->fetchByIdProduct($id);
@@ -498,7 +498,7 @@ class Product extends Base
     // Получить обзоры
     public function getReviews($idProduct = null)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $id = $idProduct ? $idProduct : $this->input["id"];
         $review = new Review();
         return $review->fetchByIdProduct($id);
@@ -507,7 +507,7 @@ class Product extends Base
     // Получить перекрестные группы
     public function getCrossGroups($idProduct = null)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result = [];
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
@@ -530,7 +530,7 @@ class Product extends Base
     // Получить изменения (отображение товаров в разделе "товары")
     public function getModifications($idProduct = null)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result = [];
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
@@ -680,7 +680,7 @@ class Product extends Base
     // Получить скидки
     public function getDiscounts($idProduct = null)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result = [];
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
@@ -703,7 +703,7 @@ class Product extends Base
     // Получить дополнительную информацию
     protected function getAddInfo()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result["images"] = $this->getImages();
         $result["files"] = $this->getFiles();
 
@@ -726,7 +726,7 @@ class Product extends Base
     // Получить url
     private function getUrl($code, $id, $existCodes = [])
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $code_n = $code;
         $id = (int)$id;
         $u = new DB('shop_price', 'sp');
@@ -751,7 +751,7 @@ class Product extends Base
     // Сохранить
     public function save()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         # All Mode
         // исправить все
@@ -793,7 +793,7 @@ class Product extends Base
     // сохранить все меры (объемы и веса)
     public function saveMeasure()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         try {
             $u = new DB('shop_price_measure');
@@ -824,7 +824,7 @@ class Product extends Base
     // Правильные значения перед сохранением
     protected function correctValuesBeforeSave()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (!$this->input["id"] && !$this->input["ids"] || isset($this->input["code"])) {
             if (empty($this->input["code"]))
                 $this->input["code"] = strtolower(se_translite_url($this->input["name"]));
@@ -837,7 +837,7 @@ class Product extends Base
     // Сохранить изображения
     private function saveImages()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (!isset($this->input["images"]))
             return true;
 
@@ -898,7 +898,7 @@ class Product extends Base
     // Сохранить файлы
     private function saveFiles()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (!isset($this->input["files"]))
             return true;
 
@@ -960,7 +960,7 @@ class Product extends Base
     // Получить группу спецификаций идентификаторов
     private function getIdSpecificationGroup($name)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (empty($name))
             return null;
 
@@ -979,7 +979,7 @@ class Product extends Base
     // Получить идентификатор
     private function getIdFeature($idGroup, $name)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $u = new DB('shop_feature', 'sf');
         $u->select('id');
         $u->where('name = "?"', $name);
@@ -1001,7 +1001,7 @@ class Product extends Base
     // Получить спецификацию по имени
     public function getSpecificationByName($specification)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $idGroup = $this->getIdSpecificationGroup($specification->nameGroup);
         $specification->idFeature = $this->getIdFeature($idGroup, $specification->name);
         return $specification;
@@ -1010,7 +1010,7 @@ class Product extends Base
     // Получить пользовательские поля
     private function getCustomFields()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $idPrice = $this->input["id"];
         try {
             $u = new DB('shop_userfields', 'su');
@@ -1045,7 +1045,7 @@ class Product extends Base
     // Сохранить Технические характеристики
     private function saveSpecifications()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (!isset($this->input["specifications"]))
             return true;
 
@@ -1124,7 +1124,7 @@ class Product extends Base
     // Сохранить похожие продукты
     private function saveSimilarProducts()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (!isset($this->input["similarProducts"]))
             return true;
 
@@ -1171,7 +1171,7 @@ class Product extends Base
     // Сохранить сопутствующие товары
     private function saveAccompanyingProducts()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (!isset($this->input["accompanyingProducts"]))
             return true;
 
@@ -1189,7 +1189,7 @@ class Product extends Base
     // Сохранить коментарии
     private function saveComments()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (!isset($this->input["comments"]))
             return true;
 
@@ -1223,7 +1223,7 @@ class Product extends Base
     // Сохранить отзывы по товару
     private function saveReviews()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (!isset($this->input["reviews"]))
             return true;
 
@@ -1258,7 +1258,7 @@ class Product extends Base
     // Сохранить перекрестные группы
     private function saveCrossGroups()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (!isset($this->input["crossGroups"]))
             return true;
 
@@ -1301,7 +1301,7 @@ class Product extends Base
     // Сохранить скидки
     private function saveDiscounts()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         // если данные отсутствую, передаем просто Истину
         if (!isset($this->input["discounts"]))
@@ -1322,7 +1322,7 @@ class Product extends Base
     // Разница массива
     private function diffArray($values, $stringMode = false)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $newValues = array();
         foreach ($values as $value) {
             array_push($newValues, array(
@@ -1344,7 +1344,7 @@ class Product extends Base
     // Правильные изменения перед сохранением
     private function correctModificationsBeforeSave($tabs)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $newMod = array();
         foreach ($tabs as $tabIndex => $tab) {
             $newMod[$tabIndex] = $tab;
@@ -1371,7 +1371,7 @@ class Product extends Base
     // Сохранить модификации товара
     private function saveModifications()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (!isset($this->input["modifications"]))
             return true;
 
@@ -1555,7 +1555,7 @@ class Product extends Base
     // Сохранить категорию товара
     private function saveIdGroup()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (CORE_VERSION != "5.3" || !isset($this->input["idGroup"]))
             return true;
 
@@ -1596,7 +1596,7 @@ class Product extends Base
     // Сохранить доп. информацию о товаре
     private function saveCustomFields()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (!isset($this->input["customFields"]) && !$this->input["customFields"])
             return true;
 
@@ -1623,7 +1623,7 @@ class Product extends Base
     // Сохранить добавленную инфу
     protected function saveAddInfo()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (!isset($this->input["ids"]))
             return false;
 
@@ -1644,7 +1644,7 @@ class Product extends Base
     // Получить группЫ
     protected function getGroup($groups, $idGroup)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (!$idGroup)
             return null;
 
@@ -1678,7 +1678,7 @@ class Product extends Base
     // Получить группЫ 53
     protected function getGroup53($groups, $idGroup)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (!$idGroup)
             return null;
 
@@ -1709,7 +1709,7 @@ class Product extends Base
     // Экспорт
     public function export()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         // прием данных из формы
         $formData = $this->input;
@@ -1778,7 +1778,7 @@ class Product extends Base
     // После
     public function post()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if ($items = parent::post()) {
             $this->import($items[0]["url"], $items[0]["name"]);
         }
@@ -1794,7 +1794,7 @@ class Product extends Base
     // Импорт
     public function import($url = null, $fileName = null)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         //writeLog($headerCSV);
         if (!empty($_POST)) $_SESSION["options"] = $_POST;
         if (is_null($fileName)) {
@@ -1821,7 +1821,7 @@ class Product extends Base
     // Импорт продуктов
     private function productsImport($url, $fileName)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $import = new Import($this->input);
         $options = $_SESSION["options"];
         return $this->result = $import->startImport(
@@ -2266,7 +2266,7 @@ class Product extends Base
     // Создать группу
     function createGroup(&$groups, $idParent, $name)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         foreach ($groups as $group) {
             if ($group['upid'] == $idParent && trim($group['name']) == trim($name))
                 return $group['id'];
@@ -2293,7 +2293,7 @@ class Product extends Base
     // Создать группу 53
     private function createGroup53(&$groups, $idParent, $name)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         foreach ($groups as $group) {
             if ($group['upid'] == $idParent && $group['name'] == $name)
                 return $group['id'];

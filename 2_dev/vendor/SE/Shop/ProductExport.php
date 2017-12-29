@@ -17,7 +17,7 @@ class ProductExport extends Product
 
     // превью экспорта
     public function previewExport($limit, $offset) {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         // получаем данные из БД
         $u = new DB('shop_price', 'sp');
         $u->select('COUNT(*) `count`');
@@ -162,7 +162,7 @@ class ProductExport extends Product
 
         unset($u); // удаление переменной
 
-        $this->debugging('экспортируемые данные',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('special', __FUNCTION__.' '.__LINE__, __CLASS__, 'экспортируемые данные');
         //writeLog($goodsL);
 
         if (!$goodsL)
@@ -255,7 +255,7 @@ class ProductExport extends Product
         $excludingKeys, $headerCSV, $filePath, $urlFile, $fileName,
         $formData
     ) {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         // определяем колво заголовков и генерируем список столбцов по длине
 
         // замена значений на пользовательские

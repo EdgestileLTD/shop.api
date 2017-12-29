@@ -100,7 +100,7 @@ class Import {
 
     // конвертация в JS
     public function convJS($nm){
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         $letters = array(
             '_a' => 'A', '_b' => 'B', '_c' => 'C', '_d' => 'D',
@@ -120,7 +120,7 @@ class Import {
     // сборка
     public function __construct($settings = null, $options)
     {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         //writeLog($settings);
         //writeLog($_POST);
@@ -136,7 +136,7 @@ class Import {
 
     // запуск импорта
     public function startImport($filename, $prepare = false, $options, $customEdition){
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         if($this->getDataFromFile($filename, $options)){
             if (!$prepare)
@@ -154,7 +154,7 @@ class Import {
 
     // добавить категорию / массив категорий
     private function addCategory($code_group, $path_group){
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
 
         // унификация (приводим к одному формату)
@@ -248,7 +248,7 @@ class Import {
 
     // проверить
     private function check($id, $type = 'category'){
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         foreach ($this->importData[$type] as $cat)
             if ($cat['id'] == $id) return TRUE;
         return FALSE;
@@ -256,7 +256,7 @@ class Import {
 
     // Получить данные из файла
     public function getDataFromFile($filename, $options){
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try{
             $file = DOCUMENT_ROOT . "/files/".$filename;
             if(file_exists($file) and is_readable($file)){
@@ -355,7 +355,7 @@ class Import {
      */
     // привязываем заголовки к номерам столбцов
     private function prepareData($userData, $options){
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         // если приходит пользовательская редакция - подставляем
         // иначе берем стандартно
@@ -382,7 +382,7 @@ class Import {
 
     // Данные итератора
     private function iteratorData($prepare = false, $options){
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         // номер строки файла
         $i=0;
         $skip=0;
@@ -430,7 +430,7 @@ class Import {
 
     // Получение ИД от Имени/Кода... (поддерживает переменные и списки,когда в ячейке эксель несколько значений)
     private function getId($key = 'id', $delimiter, $reconTable, $column, $item){ // ключ / разделитель / таблСверки / колонка / значение
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         if(isset($item[$this->fieldsMap[$key]]) and !empty($item[$this->fieldsMap[$key]])) {
             //writeLog(iconv('utf-8', 'windows-1251', $item[$this->fieldsMap[$key]]));
@@ -456,7 +456,7 @@ class Import {
             foreach ($listObj as $lObj) {
                 $code = NULL;
                 foreach ($objects as $object) {
-                    $this->debugging('name => id', __FUNCTION__ . ' ' . __LINE__, $object[id] . ' ' . $object[$this->convJS($column)]); // отладка
+                    $this->debugging('special', __FUNCTION__.' '.__LINE__, __CLASS__, $object[id] . ' ' . $object[$this->convJS($column)]);
 
                     // trim: удаление пробелов в начале и конце строки,
                     // mb_strtolower: к нижнему регистру
@@ -482,7 +482,7 @@ class Import {
 
     // получить
     private function get( $key = 'id', $delimiter, $item){
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
 
         // разложение строки на элементы
@@ -607,7 +607,7 @@ class Import {
 
     // Получить правильные данные
     private function getRightData($item, $options){
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         // $item - данные по КАЖДОМУ товару
 
 //        // Добавляем категории
@@ -727,7 +727,7 @@ class Import {
 
                 // преобразование информации по изображения под таблицу shop_img
                 foreach ($imgLL as $result) {
-                    $this->debugging('img', __FUNCTION__ . ' ' . __LINE__, $result); // отладка
+                    $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
                     if ($result != '') {
 
@@ -751,7 +751,7 @@ class Import {
 
     // Добавить данные
     private function addData(){
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try{
             //writeLog($this->mode,'MODE');
             $param = true;
@@ -809,7 +809,7 @@ class Import {
                 } else {
 
                     // передать импортируемые данные в БД таблица: 'shop_price'
-                    $this->debugging('передача продукта',__FUNCTION__.' '.__LINE__,'передать импортируемые данные в БД таблица: "shop_price"'); // отладка
+                    $this->debugging('special', __FUNCTION__.' '.__LINE__, __CLASS__, 'передать импортируемые данные в БД таблица: "shop_price"');
                     // writeLog($this->importData['products']); // прослушивание передачи продукта
 
                     // получаем главною группу для id_group
@@ -888,7 +888,7 @@ class Import {
 
     // удалить категорию
     private function deleteCategory($id_price,$id_group){
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $spg = new DB('shop_price_group','spg');
         $spg->select('spg.*');
         $spg->where('id_price = ?', $id_price);
@@ -899,7 +899,7 @@ class Import {
     // Список обновлений (добавление к существующим, например, товарам)
     public function updateList()
     {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         $product_list = $this->importData['products'];
 
