@@ -1255,7 +1255,17 @@ class Product extends Base
         }
     }
 
-    // Сохранить перекрестные группы
+    /*
+     * СОХРАНИТЬ ПЕРЕКРЕСТНЫЕ ГРУППЫ
+     * crossGroups приходят нумерованным массивом.
+     *      Группа - массив свойств, обязательные: id
+     * delCrosGroups либо отсутствует (по умолчанию в методе Trye), либо равен "False"
+     *
+     * если crossGroups отсутствуют - завершение сохранения
+     * проходим по id товаров и удаляем их Не главные группы (если не прописана отмена удаления в delCrosGroups)
+     * сохраняем новые в shop_price_group
+     * фильтруем повторяющиеся записи по id_price==id_price, id_group==id_group, is_main==is_main
+     */
     private function saveCrossGroups()
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
@@ -1265,26 +1275,56 @@ class Product extends Base
         try {
             $idsProducts = $this->input["ids"];
             $groups = $this->input["crossGroups"];
+
+            $del = "True";
+            if (!empty($this->input['delCrosGroups']))
+                $del = $this->input['delCrosGroups'];
             $idsStr = implode(",", $idsProducts);
             if (CORE_VERSION != "5.2") {
-                $u = new DB('shop_price_group', 'spg');
-                $u->where('NOT is_main AND id_price in (?)', $idsStr)->deleteList();
+                if ($del != "False") {
+                    $u = new DB('shop_price_group', 'spg');
+                    $u->where('NOT is_main AND id_price in (?)', $idsStr)->deleteList();
+                    unset($u);
+                };
                 $chgr = array();
                 foreach ($groups as $group) {
                     foreach ($idsProducts as $idProduct) {
                         if (empty($chgr[$idProduct][$group["id"]])) {
-                            $data[] = array('id_price' => $idProduct, 'id_group' => $group["id"], 'is_main' => 0);
+                            $data[] = array(
+                                'id_price'  => $idProduct,
+                                'id_group'  => $group["id"],
+                                'is_main'   => 0
+                            );
                             $chgr[$idProduct][$group["id"]] = true;
                         }
                     }
                 }
                 if (!empty($data)) {
-                    DB::insertList('shop_price_group', $data);
+                    DB::insertList('shop_price_group', $data, 'INSERT IGNORE INTO');
                 }
+
+                DB::query("
+                    DELETE a.* FROM shop_price_group a,
+                        (SELECT
+                            b.id_price, b.id_group, b.is_main, MIN(b.id) mid
+                            FROM shop_price_group b
+                            GROUP BY b.id_price, b.id_group, b.is_main
+                        ) c
+                    WHERE
+                        a.id_price = c.id_price
+                        AND a.id_group = c.id_group
+                        AND a.is_main = c.is_main
+                        AND a.id > c.mid
+                ");
             } else
                 foreach ($idsProducts as $id)
                     DB::saveManyToMany($id, $groups,
-                        array("table" => "shop_group_price", "key" => "price_id", "link" => "group_id"));
+                        array(
+                            "table" => "shop_group_price",
+                            "key"   => "price_id",
+                            "link"  => "group_id"
+                        )
+                    );
             return true;
         } catch (Exception $e) {
             $this->error = "Не удаётся сохранить дополнительные категории товара!";
