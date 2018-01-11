@@ -177,8 +177,9 @@ class DB
     }
 
     // добавить индекс
-    public function add_index($field_name, $index = 1){
-        if (!DB::is_index($field_name)){
+    public function add_index($field_name, $index = 1)
+    {
+        if (!DB::is_index($field_name)) {
             $index = ($index == 1) ? 'INDEX' : 'UNIQUE';
             DB::query("ALTER TABLE `{$this->tableName}` ADD {$index}(`{$field_name}`);");
         }
@@ -193,9 +194,10 @@ class DB
     }
 
     // индекс
-    public function is_index($field_name, $name_index = ''){
+    public function is_index($field_name, $name_index = '')
+    {
         $key_index = ($name_index) ? " AND `Key_name`='{$name_index}'" : '';
-        $sql = "SHOW INDEX FROM `{$this->tableName}` WHERE `Column_name` = '{$field_name}'".$key_index;
+        $sql = "SHOW INDEX FROM `{$this->tableName}` WHERE `Column_name` = '{$field_name}'" . $key_index;
         $flist = DB::query($sql)->fetchAll();
         return (count($flist) > 0);
 
@@ -215,13 +217,13 @@ class DB
     }
 
     // добавить поле
-    public function addField($field, $type = 'varchar(20)', $default = null, $index=0)
+    public function addField($field, $type = 'varchar(20)', $default = null, $index = 0)
     {
         $this->add_field($field, $type, $default, $index);
     }
 
     // добавить поле
-    public function add_field($field, $type = 'varchar(20)', $default = null, $index=0)
+    public function add_field($field, $type = 'varchar(20)', $default = null, $index = 0)
     {
         if (!$this->is_field($field)) {
             $type = str_replace(array('integer', 'string', 'integer(2)', 'integer(4)', 'bool', 'boolean'),
@@ -251,7 +253,7 @@ class DB
             //writeLog("ALTER TABLE `{$this->tableName}` ADD `{$field}` {$type}{$default}{$after};");
             DB::exec("ALTER TABLE `{$this->tableName}` ADD `{$field}` {$type}{$default}{$after}");
         }
-        if ($index){
+        if ($index) {
             $this->add_index($field, $index);
         }
     }
@@ -449,7 +451,8 @@ class DB
     // получить список
     public function getListCount()
     {
-        return $this->getListAggregation("COUNT(*)");
+        $result = $this->getListAggregation("COUNT(*) `count`");
+        return (int)$result['count'];
     }
 
     // Получить агрегацию списков

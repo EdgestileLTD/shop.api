@@ -7,6 +7,7 @@ $params = array(
 );
 
 $urlSend = 'http://' . $json->hostname . '/upload/homecredit.php?' . http_build_query($params);
+
 $result = file_get_contents($urlSend, false, stream_context_create(array(
     'http' => array(
         'method' => 'POST',

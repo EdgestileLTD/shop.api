@@ -67,7 +67,7 @@ class Company extends Base
     // получить заказы
     public function getOrders($idCompany)
     {
-        return (new Order())->fetchByCompany($idCompany);
+       return (new Order())->fetchByCompany($idCompany);
     }
 
     // получить пользовательские поля

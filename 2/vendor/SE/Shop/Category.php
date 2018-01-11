@@ -14,7 +14,7 @@ class Category extends Base
     protected $allowedSearch = false;
 
     // получить родительский пункт
-    private function getParentItem($item, $items) 
+    private function getParentItem($item, $items)
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         foreach ($items as $it)
@@ -42,11 +42,13 @@ class Category extends Base
         $result = array();
         $search = strtolower($this->input["searchText"]);
         foreach ($items as $item) {
-            if (empty($search) || mb_strpos(strtolower($item["name"]), $search) !== false) {
+            $searchName = mb_strtolower($item["name"]);
+            if (empty($search) || mb_strpos($searchName, mb_strtolower($search)) !== false) {
                 $item["name"] = $this->getPathName($item, $items);
                 $item["level"] = substr_count($item["name"], "/");
                 $result[] = $item;
             }
+            unset($searchName);
         }
         return $result;
     }
@@ -92,9 +94,8 @@ class Category extends Base
     // получить настройки
     protected function getSettingsFetch()
     {
-        //writeLog($this);
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
-        if (CORE_VERSION == "5.3") {
+        if (CORE_VERSION != "5.2") {
             $result["select"] = "sg.*, GROUP_CONCAT(CONCAT_WS(':', sgtp.level, sgt.id_parent) SEPARATOR ';') ids_parents,
                 sgt.level level";
             $joins[] = array(
@@ -146,7 +147,7 @@ class Category extends Base
         $result['similar'] = $u->getList();
         unset($u);
 
-        if (CORE_VERSION == "5.3") {
+        if (CORE_VERSION != "5.2") {
             $arr = $this->setIdMainParent(array($result));
             $this->result = $arr[0];
         }
@@ -155,20 +156,14 @@ class Category extends Base
     }
 
     // получить правильные значения
-    protected function correctValuesBeforeFetch($items = array())
+    protected function correctItemsBeforeFetch($items = array())
     {
-//        writeLog($items);
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
-        if (CORE_VERSION == "5.3")
+        if (CORE_VERSION != "5.2")
             $items = $this->setIdMainParent($items);
         if ($this->input["isTree"] && empty($this->input["searchText"]))
             $result = $this->getTreeView($items);
         else $result = $this->getPatches($items);
-//        foreach($result as $key=>&$value)
-//            if($value['codeGr'] == N)
-//                unset($value);
-//        sort($result);
-//        writeLog($result);
         return $result;
     }
 
@@ -316,7 +311,7 @@ class Category extends Base
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
         $idParent = $this->input["id"];
-        if (CORE_VERSION == "5.3") {
+        if (CORE_VERSION != "5.2") {
             $filter = array(
                 array("field" => "upid", "value" => $idParent),
                 array("field" => "level", "value" => ++$this->result["level"]));
@@ -399,6 +394,41 @@ class Category extends Base
     public function save()
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+
+        // получаем список похожих категорий
+        $u = new DB('shop_group', 'sg');
+        $u->select('sg.name, sg.position, sg.id');
+        $u->innerJoin("(
+            SELECT id_related AS id
+            FROM shop_group_related
+            WHERE id_group = {$this->input["id"]}
+            AND type = 1
+            UNION
+            SELECT id_group AS id
+            FROM shop_group_related
+            WHERE id_related = {$this->input["id"]}
+            AND type = 1
+            AND is_cross
+        ) sgr", 'sg.id = sgr.id');
+        $u->orderBy('sg.upid');
+        $similarOld = $u->getList();
+        unset($u);
+        // выявляем удаленные связи через сверку
+        foreach ($similarOld as $keyOld => $valueOld)
+            $similarOld[$keyOld]['delete'] = true;
+        foreach ($similarOld as $keyOld => $valueOld)
+            foreach ($this->input["similar"] as $keyN => $valueN)
+                if ($valueOld['id'] == $valueN['id'])
+                    $similarOld[$keyOld]['delete'] = false;
+        // по сформированносу временному масиву $similarOld удаляем из БД похожие к.
+        foreach ($similarOld as $keyOld => $valueOld) {
+            if ($valueOld['delete'] == true) {
+                DB::query("DELETE FROM shop_group_related WHERE id_group = {$valueOld['id']} AND id_related = {$this->input["id"]}");
+                DB::query("DELETE FROM shop_group_related WHERE id_group = {$this->input["id"]} AND id_related = {$valueOld['id']}");
+            }
+        }
+        unset($similarOld);
+
         if (isset($this->input["codeGr"])) {
             $this->input["codeGr"] = strtolower(se_translite_url($this->input["codeGr"]));
         }
