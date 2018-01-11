@@ -30,7 +30,7 @@ class Currency extends Base
     /* ПОЛУЧИТЬ СПИСОК ВАЛЮТ
      * отправляет нумерованный массив валют со значениями:
      *      id lang name title nameFront nameFlang cbrKod minsum updatedAt createdAt
-     * закоментированный код получает данные одной валюты (предположительно, базовой валюты сайта)
+     * $this->result используется в валюте товара
      */
     public function fetch()
     {
@@ -60,46 +60,46 @@ class Currency extends Base
                 $rates = $m->getList();
             }
 
-//            $count = 0;
-//            foreach ($objects as $item) {
-//                $count++;
-//                $curr = $item;
-//                if ($curr['name'] == $baseCurrency)
-//                    $curr['rate'] = 1;
-//                else {
-//                    $curr['rate'] = (float)$item['kurs'];
-//                    if (!$isManualMode && IS_CURR_LIB) {
-//                        $baseValues = getCurrencyValues($baseCurrency);
-//                        $currencyValues = getCurrencyValues($curr['name']);
-//                        $baserate = (float)str_replace(",", ".", $baseValues['Value']) / str_replace(",", ".", $baseValues['Nominal']);
-//                        if (empty($baserate)) $baserate = 1;
-//                        $currrate = (float)str_replace(",", ".", $currencyValues['Value']) / str_replace(",", ".", $currencyValues['Nominal']);
-//                        if (empty($currrate)) $currrate = 1;
-//                        if ($baserate > 0)
-//                            $curr['rate'] = ($currrate / $baserate);
-//                        else $curr['rate'] = null;
-//                        if ($curr['rate'] < 0)
-//                            $curr['rate'] = null;
-//                        $curr['dateReplace'] = date('Y-m-d');
-//                    } else {
-//                        foreach ($rates as $rate) {
-//                            if ($rate['name'] == $curr['name']) {
-//                                if (!empty($rate['kurs']))
-//                                    $curr['rate'] = (float)$rate['kurs'];
-//                                break;
-//                            }
-//                        }
-//                    }
-//                }
-//
-//                $curr['rateDisplay'] = $this->formatCurrency($curr['nameFront'], $curr['nameFlang'], 1) . ' = ' .
-//                    $this->formatCurrency($baseNameFront, $baseNameFlank, $curr['rate']);
-//                $items[] = $curr;
-//            }
-//
-//            $data['count'] = $count;
-//            $data['items'] = $items;
-//            $this->result = $data;
+            $count = 0;
+            foreach ($objects as $item) {
+                $count++;
+                $curr = $item;
+                if ($curr['name'] == $baseCurrency)
+                    $curr['rate'] = 1;
+                else {
+                    $curr['rate'] = (float)$item['kurs'];
+                    if (!$isManualMode && IS_CURR_LIB) {
+                        $baseValues = getCurrencyValues($baseCurrency);
+                        $currencyValues = getCurrencyValues($curr['name']);
+                        $baserate = (float)str_replace(",", ".", $baseValues['Value']) / str_replace(",", ".", $baseValues['Nominal']);
+                        if (empty($baserate)) $baserate = 1;
+                        $currrate = (float)str_replace(",", ".", $currencyValues['Value']) / str_replace(",", ".", $currencyValues['Nominal']);
+                        if (empty($currrate)) $currrate = 1;
+                        if ($baserate > 0)
+                            $curr['rate'] = ($currrate / $baserate);
+                        else $curr['rate'] = null;
+                        if ($curr['rate'] < 0)
+                            $curr['rate'] = null;
+                        $curr['dateReplace'] = date('Y-m-d');
+                    } else {
+                        foreach ($rates as $rate) {
+                            if ($rate['name'] == $curr['name']) {
+                                if (!empty($rate['kurs']))
+                                    $curr['rate'] = (float)$rate['kurs'];
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                $curr['rateDisplay'] = $this->formatCurrency($curr['nameFront'], $curr['nameFlang'], 1) . ' = ' .
+                    $this->formatCurrency($baseNameFront, $baseNameFlank, $curr['rate']);
+                $items[] = $curr;
+            }
+
+            $data['count'] = $count;
+            $data['items'] = $items;
+            $this->result = $data;
             return $objects;
         } catch (Exception $e) {
             $this->result = "Не удаётся получить список валют!";
