@@ -42,7 +42,6 @@ class Order extends Base // порядок
     // получить от компании
     public static function fetchByCompany($idCompany)
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $order = new Order(array("filters" => array("field" => "idCompany", "value" => $idCompany)));
         return $order->fetch();
     }
@@ -50,7 +49,6 @@ class Order extends Base // порядок
     // проверить статус заказа
     public static function checkStatusOrder($idOrder, $paymentType = null)
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $u = new DB('shop_order', 'so');
         $u->select('(SUM((st.price - IFNULL(st.discount, 0)) * st.count) - IFNULL(so.discount, 0) +
                 IFNULL(so.delivery_payee, 0)) sum_order');
