@@ -116,6 +116,26 @@ class Base extends CustomBase
 
             $this->result["searchFields"] = $this->searchFields;
             $this->result["items"] = $this->correctItemsBeforeFetch($u->getList($this->limit, $this->offset));
+            /*
+             * ДАННЫЕ ПО ВАЛЮТАМ
+             * если в первом эллементе указана валюта (curr)
+             * запрашиваем название,приставки/окончания валют
+             * и добавляем в эллементы массива соответственно
+             */
+            if (!empty($this->result["items"][0]["curr"])) {
+                $u = new DB('money_title', 'mt');
+                $u->select('mt.name name, mt.title title, mt.name_front nameFront, mt.name_flang nameFlang');
+                $currList = $u->getList();
+                unset($u);
+                foreach ($this->result["items"] as $key => $item)
+                    if (!empty($item["curr"]))
+                        foreach ($currList as $currUnit)
+                            if ($item["curr"] == $currUnit["name"]) {
+                                $this->result["items"][$key]["titleCurr"] = $currUnit["title"];
+                                $this->result["items"][$key]["nameFront"] = $currUnit["nameFront"];
+                                $this->result["items"][$key]["nameFlang"] = $currUnit["nameFlang"];
+                            };
+            };
 
             if (!empty($settingsFetch["aggregation"]["type"]))
                 $settingsFetch["aggregation"] = array($settingsFetch["aggregation"]);
