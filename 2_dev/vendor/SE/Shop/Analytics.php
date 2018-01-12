@@ -161,7 +161,7 @@ class Analytics extends Base
     {
         $rows = array();
 
-        $result["countVisitors"] = $this->countVisitors();
+        $funnel["countVisitors"] = $this->countVisitors();
 
         try {
             $u = new DB("shop_stat_events", 'sse');
@@ -172,7 +172,7 @@ class Analytics extends Base
             if ($this->endDate)
                 $u->andWhere('created_at <= "?"', date("Y-m-d", $this->endDate));
             $result = $u->getList();
-            $result["countAddCart"] = $result[0]["count"];
+            $funnel["countAddCart"] = $result[0]["count"];
 
             $u = new DB("shop_stat_events", 'sse');
             $u->select("COUNT(DISTINCT sse.id_session, sse.number) `count`");
@@ -182,7 +182,7 @@ class Analytics extends Base
             if ($this->endDate)
                 $u->andWhere('created_at <= "?"', date("Y-m-d", $this->endDate));
             $result = $u->getList();
-            $result["countViewProduct"] = $result[0]["count"];
+            $funnel["countViewProduct"] = $result[0]["count"];
 
             $u = new DB("shop_stat_events", 'sse');
             $u->select("COUNT(DISTINCT sse.id_session, sse.number) `count`");
@@ -194,7 +194,7 @@ class Analytics extends Base
             if ($this->endDate)
                 $u->andWhere('sse.created_at <= "?"', date("Y-m-d", $this->endDate));
             $result = $u->getList();
-            $result["countViewCart"] = $result[0]["count"];
+            $funnel["countViewCart"] = $result[0]["count"];
 
             $u = new DB("shop_stat_events", 'sse');
             $u->select("COUNT(DISTINCT sse.id_session) `count`");
@@ -204,7 +204,7 @@ class Analytics extends Base
             if ($this->endDate)
                 $u->andWhere('sse.created_at <= "?"', date("Y-m-d", $this->endDate));
             $result = $u->getList();
-            $result["countPlaceOrder"] = $result[0]["count"];
+            $funnel["countPlaceOrder"] = $result[0]["count"];
 
             $u = new DB("shop_stat_events", 'sse');
             $u->select("COUNT(DISTINCT sse.id_session) `count`");
@@ -214,7 +214,7 @@ class Analytics extends Base
             if ($this->endDate)
                 $u->andWhere('sse.created_at <= "?"', date("Y-m-d", $this->endDate));
             $result = $u->getList();
-            $result["countConfirmOrder"] = $result[0]["count"];
+            $funnel["countConfirmOrder"] = $result[0]["count"];
 
             $u = new DB("shop_stat_events", 'sse');
             $u->select("COUNT(DISTINCT sse.content) `count`");
@@ -226,22 +226,22 @@ class Analytics extends Base
                 $u->andWhere('sse.created_at <= "?"', date("Y-m-d", $this->endDate));
             $u->groupBy("so.id_author");
             $result = $u->getList();
-            $result["countPaidOrder"] = $result[0]["count"];
+            $funnel["countPaidOrder"] = $result[0]["count"];
 
             $rows[] = array("Name" => "countVisitors",
-                "Title" => "Посетили сайт", "Value" => $result["countVisitors"], "Color" => "#FF6384");
+                "Title" => "Посетили сайт", "Value" => $funnel["countVisitors"], "Color" => "#FF6384");
             $rows[] = array("Name" => "countViewProduct",
-                "Title" => "Посмотрели товар", "Value" => $result["countViewProduct"], "Color" => "#9400D3");
+                "Title" => "Посмотрели товар", "Value" => $funnel["countViewProduct"], "Color" => "#9400D3");
             $rows[] = array("Name" => "countAddCart",
-                "Title" => "Положили в корзину", "Value" => $result["countAddCart"], "Color" => "#FFCE56");
+                "Title" => "Положили в корзину", "Value" => $funnel["countAddCart"], "Color" => "#FFCE56");
             $rows[] = array("Name" => "countViewCart",
-                "Title" => "Перешли в корзину", "Value" => $result["countViewCart"], "Color" => "#36A2EB");
+                "Title" => "Перешли в корзину", "Value" => $funnel["countViewCart"], "Color" => "#36A2EB");
             $rows[] = array("Name" => "countPlaceOrder",
-                "Title" => "Оформили заказ", "Value" => $result["countPlaceOrder"], "Color" => "#4BC0C0");
+                "Title" => "Оформили заказ", "Value" => $funnel["countPlaceOrder"], "Color" => "#4BC0C0");
             $rows[] = array("Name" => "countConfirmOrder",
-                "Title" => "Подтвердили заказ", "Value" => $result["countConfirmOrder"], "Color" => "#CEFF56");
+                "Title" => "Подтвердили заказ", "Value" => $funnel["countConfirmOrder"], "Color" => "#CEFF56");
             $rows[] = array("Name" => "countPaidOrder",
-                "Title" => "Оплатили заказ", "Value" => $result["countPaidOrder"], "Color" => "#228B22");
+                "Title" => "Оплатили заказ", "Value" => $funnel["countPaidOrder"], "Color" => "#228B22");
             return $rows;
         } catch (Exception $e) {
             $this->error = "Не удаётся построить воронку продаж!";

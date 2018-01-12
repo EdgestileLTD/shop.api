@@ -396,38 +396,40 @@ class Category extends Base
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         // получаем список похожих категорий
-        $u = new DB('shop_group', 'sg');
-        $u->select('sg.name, sg.position, sg.id');
-        $u->innerJoin("(
-            SELECT id_related AS id
-            FROM shop_group_related
-            WHERE id_group = {$this->input["id"]}
-            AND type = 1
-            UNION
-            SELECT id_group AS id
-            FROM shop_group_related
-            WHERE id_related = {$this->input["id"]}
-            AND type = 1
-            AND is_cross
-        ) sgr", 'sg.id = sgr.id');
-        $u->orderBy('sg.upid');
-        $similarOld = $u->getList();
-        unset($u);
-        // выявляем удаленные связи через сверку
-        foreach ($similarOld as $keyOld => $valueOld)
-            $similarOld[$keyOld]['delete'] = true;
-        foreach ($similarOld as $keyOld => $valueOld)
-            foreach ($this->input["similar"] as $keyN => $valueN)
-                if ($valueOld['id'] == $valueN['id'])
-                    $similarOld[$keyOld]['delete'] = false;
-        // по сформированносу временному масиву $similarOld удаляем из БД похожие к.
-        foreach ($similarOld as $keyOld => $valueOld) {
-            if ($valueOld['delete'] == true) {
-                DB::query("DELETE FROM shop_group_related WHERE id_group = {$valueOld['id']} AND id_related = {$this->input["id"]}");
-                DB::query("DELETE FROM shop_group_related WHERE id_group = {$this->input["id"]} AND id_related = {$valueOld['id']}");
+        if (!empty($this->input["id"])) {
+            $u = new DB('shop_group', 'sg');
+            $u->select('sg.name, sg.position, sg.id');
+            $u->innerJoin("(
+                SELECT id_related AS id
+                FROM shop_group_related
+                WHERE id_group = {$this->input["id"]}
+                AND type = 1
+                UNION
+                SELECT id_group AS id
+                FROM shop_group_related
+                WHERE id_related = {$this->input["id"]}
+                AND type = 1
+                AND is_cross
+            ) sgr", 'sg.id = sgr.id');
+            $u->orderBy('sg.upid');
+            $similarOld = $u->getList();
+            unset($u);
+            // выявляем удаленные связи через сверку
+            foreach ($similarOld as $keyOld => $valueOld)
+                $similarOld[$keyOld]['delete'] = true;
+            foreach ($similarOld as $keyOld => $valueOld)
+                foreach ($this->input["similar"] as $keyN => $valueN)
+                    if ($valueOld['id'] == $valueN['id'])
+                        $similarOld[$keyOld]['delete'] = false;
+            // по сформированносу временному масиву $similarOld удаляем из БД похожие к.
+            foreach ($similarOld as $keyOld => $valueOld) {
+                if ($valueOld['delete'] == true) {
+                    DB::query("DELETE FROM shop_group_related WHERE id_group = {$valueOld['id']} AND id_related = {$this->input["id"]}");
+                    DB::query("DELETE FROM shop_group_related WHERE id_group = {$this->input["id"]} AND id_related = {$valueOld['id']}");
+                }
             }
+            unset($similarOld);
         }
-        unset($similarOld);
 
         if (isset($this->input["codeGr"])) {
             $this->input["codeGr"] = strtolower(se_translite_url($this->input["codeGr"]));

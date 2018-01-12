@@ -16,7 +16,7 @@ class Category extends Base
     // получить родительский пункт
     private function getParentItem($item, $items)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         foreach ($items as $it)
             if ($it["id"] == $item["upid"])
                 return $it;
@@ -25,7 +25,7 @@ class Category extends Base
     // получить имя пути
     private function getPathName($item, $items)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (!$item["upid"])
             return $item["name"];
 
@@ -38,7 +38,7 @@ class Category extends Base
     // получить патчи
     public function getPatches($items)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result = array();
         $search = strtolower($this->input["searchText"]);
         foreach ($items as $item) {
@@ -56,7 +56,7 @@ class Category extends Base
     // просмотреть полученную структуру
     private function getTreeView($items, $idParent = null)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result = array();
         foreach ($items as $item) {
             if ($item["upid"] == $idParent) {
@@ -70,7 +70,7 @@ class Category extends Base
     // установить id основного родителя
     private function setIdMainParent($items)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result = array();
         foreach ($items as $item) {
             if ($item['idsParents']) {
@@ -94,7 +94,7 @@ class Category extends Base
     // получить настройки
     protected function getSettingsFetch()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (CORE_VERSION != "5.2") {
             $result["select"] = "sg.*, GROUP_CONCAT(CONCAT_WS(':', sgtp.level, sgt.id_parent) SEPARATOR ';') ids_parents,
                 sgt.level level";
@@ -118,14 +118,14 @@ class Category extends Base
     // получить информацию по настройкам
     protected function getSettingsInfo()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         return $this->getSettingsFetch();
     }
 
     // информация
     public function info($id = null)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result = parent::info();
 
         // получаем список похожих категорий
@@ -158,7 +158,7 @@ class Category extends Base
     // получить правильные значения
     protected function correctItemsBeforeFetch($items = array())
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (CORE_VERSION != "5.2")
             $items = $this->setIdMainParent($items);
         if ($this->input["isTree"] && empty($this->input["searchText"]))
@@ -170,7 +170,7 @@ class Category extends Base
     // получить скидки
     public function getDiscounts($idCategory = null)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result = array();
         $id = $idCategory ? $idCategory : $this->input["id"];
         if (!$id)
@@ -187,7 +187,7 @@ class Category extends Base
     // получить изображения
     public function getImages($idCategory = null)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result = array();
         $id = $idCategory ? $idCategory : $this->input["id"];
         if (!$id)
@@ -225,7 +225,7 @@ class Category extends Base
     // получить поставки
     public function getDeliveries($idCategory = null)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result = array();
         $id = $idCategory ? $idCategory : $this->input["id"];
         if (!$id)
@@ -237,7 +237,7 @@ class Category extends Base
     // получить ссылки групп
     public function getLinksGroups($idCategory = null)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result = array();
         $id = $idCategory ? $idCategory : $this->input["id"];
         if (!$id)
@@ -263,7 +263,7 @@ class Category extends Base
     // перевод
     private function translate($name)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (strcmp($name, "price") === 0)
             return "Цена";
         if (strcmp($name, "brand") === 0)
@@ -278,7 +278,7 @@ class Category extends Base
     // получить отфильтрованные параметры
     public function getFilterParams($idCategory = null)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result = array();
         $id = $idCategory ? $idCategory : $this->input["id"];
         if (!$id)
@@ -309,7 +309,7 @@ class Category extends Base
     // получить детей
     protected function getChilds()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $idParent = $this->input["id"];
         if (CORE_VERSION != "5.2") {
             $filter = array(
@@ -328,7 +328,7 @@ class Category extends Base
     // получить имя родителя
     private function getNameParent()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (!$this->result["upid"])
             return null;
 
@@ -341,7 +341,7 @@ class Category extends Base
     // добавить полученную информацию
     protected function getAddInfo()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result["discounts"] = $this->getDiscounts();
         $result["images"] = $this->getImages();
         $result["deliveries"] = $this->getDeliveries();
@@ -358,7 +358,7 @@ class Category extends Base
     // получить пользовательские поля
     private function getCustomFields()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
             $idGroup = intval($this->input["id"]);
             $u = new DB('shop_userfields', 'su');
@@ -393,41 +393,43 @@ class Category extends Base
     // сохранить
     public function save()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         // получаем список похожих категорий
-        $u = new DB('shop_group', 'sg');
-        $u->select('sg.name, sg.position, sg.id');
-        $u->innerJoin("(
-            SELECT id_related AS id
-            FROM shop_group_related
-            WHERE id_group = {$this->input["id"]}
-            AND type = 1
-            UNION
-            SELECT id_group AS id
-            FROM shop_group_related
-            WHERE id_related = {$this->input["id"]}
-            AND type = 1
-            AND is_cross
-        ) sgr", 'sg.id = sgr.id');
-        $u->orderBy('sg.upid');
-        $similarOld = $u->getList();
-        unset($u);
-        // выявляем удаленные связи через сверку
-        foreach ($similarOld as $keyOld => $valueOld)
-            $similarOld[$keyOld]['delete'] = true;
-        foreach ($similarOld as $keyOld => $valueOld)
-            foreach ($this->input["similar"] as $keyN => $valueN)
-                if ($valueOld['id'] == $valueN['id'])
-                    $similarOld[$keyOld]['delete'] = false;
-        // по сформированносу временному масиву $similarOld удаляем из БД похожие к.
-        foreach ($similarOld as $keyOld => $valueOld) {
-            if ($valueOld['delete'] == true) {
-                DB::query("DELETE FROM shop_group_related WHERE id_group = {$valueOld['id']} AND id_related = {$this->input["id"]}");
-                DB::query("DELETE FROM shop_group_related WHERE id_group = {$this->input["id"]} AND id_related = {$valueOld['id']}");
+        if (!empty($this->input["id"])) {
+            $u = new DB('shop_group', 'sg');
+            $u->select('sg.name, sg.position, sg.id');
+            $u->innerJoin("(
+                SELECT id_related AS id
+                FROM shop_group_related
+                WHERE id_group = {$this->input["id"]}
+                AND type = 1
+                UNION
+                SELECT id_group AS id
+                FROM shop_group_related
+                WHERE id_related = {$this->input["id"]}
+                AND type = 1
+                AND is_cross
+            ) sgr", 'sg.id = sgr.id');
+            $u->orderBy('sg.upid');
+            $similarOld = $u->getList();
+            unset($u);
+            // выявляем удаленные связи через сверку
+            foreach ($similarOld as $keyOld => $valueOld)
+                $similarOld[$keyOld]['delete'] = true;
+            foreach ($similarOld as $keyOld => $valueOld)
+                foreach ($this->input["similar"] as $keyN => $valueN)
+                    if ($valueOld['id'] == $valueN['id'])
+                        $similarOld[$keyOld]['delete'] = false;
+            // по сформированносу временному масиву $similarOld удаляем из БД похожие к.
+            foreach ($similarOld as $keyOld => $valueOld) {
+                if ($valueOld['delete'] == true) {
+                    DB::query("DELETE FROM shop_group_related WHERE id_group = {$valueOld['id']} AND id_related = {$this->input["id"]}");
+                    DB::query("DELETE FROM shop_group_related WHERE id_group = {$this->input["id"]} AND id_related = {$valueOld['id']}");
+                }
             }
+            unset($similarOld);
         }
-        unset($similarOld);
 
         if (isset($this->input["codeGr"])) {
             $this->input["codeGr"] = strtolower(se_translite_url($this->input["codeGr"]));
@@ -439,7 +441,7 @@ class Category extends Base
     // сохранить скидки
     private function saveDiscounts()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
             foreach ($this->input["ids"] as $id)
                 DB::saveManyToMany($id, $this->input["discounts"],
@@ -453,7 +455,7 @@ class Category extends Base
     // сохранить изображения
     private function saveImages()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
             $idsGroups = $this->input["ids"];
             $images = $this->input["images"];
@@ -504,7 +506,7 @@ class Category extends Base
     // сохранить ссылки групп
     private function saveLinksGroups()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
             $idsGroups = $this->input["ids"];
             $links = $this->input["linksGroups"];
@@ -551,7 +553,7 @@ class Category extends Base
     // сохранить параметры фильтров
     private function saveParametersFilters()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
             $idsGroups = $this->input["ids"];
             $filters = $this->input["parametersFilters"];
@@ -580,7 +582,7 @@ class Category extends Base
     // сохранить пользовательские поля
     private function saveCustomFields()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (!isset($this->input["customFields"]) && !$this->input["customFields"])
             return true;
 
@@ -646,7 +648,7 @@ class Category extends Base
     // сохранить id родителя
     public function saveIdParent($id, $idParent)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
             $levelIdOld = self::getLevel($id);
             $level = 0;
@@ -674,7 +676,7 @@ class Category extends Base
     // сохранить id похожей категории
     public function saveIdSimilar($id, $idRelated)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
             DB::query("DELETE FROM shop_group_related WHERE id_group = {$id} AND id_related = {$idRelated}");
             DB::query("DELETE FROM shop_group_related WHERE id_group = {$idRelated} AND id_related = {$id}");
@@ -693,7 +695,7 @@ class Category extends Base
     // правильные значения перед сохранением
     protected function correctValuesBeforeSave()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (!$this->input["id"] && !$this->input["ids"] || isset($this->input["codeGr"])) {
             if (empty($this->input["codeGr"])) {
                 $this->input["codeGr"] = strtolower(se_translite_url($this->input["name"]));
@@ -710,7 +712,7 @@ class Category extends Base
     // сохранить добавленную информацию
     protected function saveAddInfo()
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $this->input["ids"] = empty($this->input["ids"]) ? array($this->input["id"]) : $this->input["ids"];
         if (!$this->input["ids"])
             return false;
