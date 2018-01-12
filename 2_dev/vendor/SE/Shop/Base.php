@@ -116,6 +116,18 @@ class Base extends CustomBase
 
             $this->result["searchFields"] = $this->searchFields;
             $this->result["items"] = $this->correctItemsBeforeFetch($u->getList($this->limit, $this->offset));
+            if (!empty($settingsFetch["aggregation"]["type"]))
+                $settingsFetch["aggregation"] = array($settingsFetch["aggregation"]);
+            $settingsFetch["aggregation"][] = ["type" => "COUNT", "field" => "*", "name" => "count"];
+            $query = [];
+            foreach ($settingsFetch["aggregation"] as $aggregation)
+                $query[] = "{$aggregation["type"]}({$aggregation["field"]}) `{$aggregation["name"]}`";
+            if (!empty($query)) {
+                $query = implode(",", $query);
+                $aggregations = $u->getListAggregation($query);
+                foreach ($settingsFetch["aggregation"] as $aggregation)
+                    $this->result[$aggregation["name"]] = $aggregations[$aggregation["name"]];
+            }
             /*
              * ДАННЫЕ ПО ВАЛЮТАМ
              * если в первом эллементе указана валюта (curr)
@@ -136,19 +148,6 @@ class Base extends CustomBase
                                 $this->result["items"][$key]["nameFlang"] = $currUnit["nameFlang"];
                             };
             };
-
-            if (!empty($settingsFetch["aggregation"]["type"]))
-                $settingsFetch["aggregation"] = array($settingsFetch["aggregation"]);
-            $settingsFetch["aggregation"][] = ["type" => "COUNT", "field" => "*", "name" => "count"];
-            $query = [];
-            foreach ($settingsFetch["aggregation"] as $aggregation)
-                $query[] = "{$aggregation["type"]}({$aggregation["field"]}) `{$aggregation["name"]}`";
-            if (!empty($query)) {
-                $query = implode(",", $query);
-                $aggregations = $u->getListAggregation($query);
-                foreach ($settingsFetch["aggregation"] as $aggregation)
-                    $this->result[$aggregation["name"]] = $aggregations[$aggregation["name"]];
-            }
             $this->result = $this->correctResultBeforeFetch($this->result);
         } catch (Exception $e) {
             $this->error = "Не удаётся получить список объектов!";
