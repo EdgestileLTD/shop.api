@@ -97,8 +97,10 @@ class Payment extends Base
     protected function correctItemsBeforeFetch($items = array())
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
-        foreach ($items as &$item)
+        foreach ($items as &$item) {
             $item["name"] = empty($item["name"]) ? "С лицевого счёта" : $item["name"];
+            $item["amount"] = number_format($item["amount"], 2, '.', ' ');
+        };
         return $items;
     }
 
