@@ -5,7 +5,7 @@ namespace SE\Shop;
 use SE\DB;
 use SE\Exception;
 use SE\Import;
-use SE\ProductExport as ProductExport;
+use SE\Shop\ProductExport as ProductExport;
 use \PHPExcel as PHPExcel;
 use \PHPExcel_Writer_Excel2007 as PHPExcel_Writer_Excel2007;
 use \PHPExcel_Style_Fill as PHPExcel_Style_Fill;

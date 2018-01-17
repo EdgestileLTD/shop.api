@@ -13,10 +13,25 @@ class Payment extends Base
     public function save()
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->input["curr"] = $this->getBaseCurr()["name"];
         $result = parent::save();
         if (!empty($this->input["idOrder"]))
             Order::checkStatusOrder($this->input["idOrder"], $this->input["paymentType"]);
         return $result;
+    }
+
+    /*
+     * ПОЛУЧИТЬ БАЗОВУЮ ВАЛЮТУ сайта
+     * получаем название, приставку, окончание, имя
+     */
+    protected function getBaseCurr()
+    {
+        $u = new DB('main', 'm');
+        $u->select('mt.name, mt.title, mt.name_front, mt.name_flang');
+        $u->innerJoin('money_title mt', 'm.basecurr = mt.name');;
+        $base = $u->fetchOne();
+        unset($u);
+        return $base;
     }
 
     // получить настройки
@@ -96,10 +111,27 @@ class Payment extends Base
     // правильные значения перед извлечением
     protected function correctItemsBeforeFetch($items = array())
     {
+        /*
+         * ДАННЫЕ ПО ВАЛЮТАМ
+         * запрашиваем название,приставки/окончания валют
+         * и добавляем в эллементы массива соответственно
+         */
+        $u = new DB('money_title', 'mt');
+        $u->select('mt.name name, mt.title title, mt.name_front nameFront, mt.name_flang nameFlang');
+        $currList = $u->getList();
+        unset($u);
+
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         foreach ($items as &$item) {
             $item["name"] = empty($item["name"]) ? "С лицевого счёта" : $item["name"];
             $item["amount"] = number_format($item["amount"], 2, '.', ' ');
+
+            foreach ($currList as $currUnit)
+                if ($item["curr"] == $currUnit["name"]) {
+                    $item["titleCurr"] = $currUnit["title"];
+                    $item["nameFront"] = $currUnit["nameFront"];
+                    $item["nameFlang"] = $currUnit["nameFlang"];
+                };
         };
         return $items;
     }
@@ -125,6 +157,7 @@ class Payment extends Base
             $data["orderId"] = $orderId;
             $data["operation"] = 1;
             $data["inPayee"] = $this->input["amount"];
+            $data["curr"] = $this->input["curr"];
             $document = null;
             if ($this->input["paymentTarget"] == 1)
                 $document = 'Поступление средств на счёт';
@@ -142,6 +175,7 @@ class Payment extends Base
             $data["orderId"] = $orderId;
             $data["operation"] = 2;
             $data["inPayee"] = 0;
+            $data["curr"] = $this->input["curr"];
             $data["outPayee"] = $this->input["amount"];
             $document = 'Оплата заказа № ' . $this->input["idOrder"];
             $data["docum"] = $document;

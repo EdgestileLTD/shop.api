@@ -12,6 +12,7 @@ class PaySystem extends Base
 
     private function getPlugins()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $urlRoot = 'http://' . HOSTNAME;
         $buffer = file_get_contents($urlRoot . "/lib/merchant/getlist.php");
         $items = explode("|", $buffer);
@@ -27,6 +28,7 @@ class PaySystem extends Base
 
     public function fetch()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
             $u = new DB('shop_payment', 'sp');
             $u->select('sp.id, sp.logoimg, `name_payment`, `active`, `is_test`, `sort`, lang, ident, way_payment');
@@ -64,6 +66,7 @@ class PaySystem extends Base
 
     public function save()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
             $this->correctValuesBeforeSave();
             DB::beginTransaction();
@@ -90,6 +93,7 @@ class PaySystem extends Base
 
     private function getParams()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $idPayment = $this->input["id"];
         $u = new DB('bank_accounts', 'ba');
         $u->select('ba.*');
@@ -110,6 +114,7 @@ class PaySystem extends Base
 
     private function getFilters($articles)
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (empty($articles))
             return array();
 
@@ -127,6 +132,7 @@ class PaySystem extends Base
 
     private function getHosts($hosts)
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result = array();
         foreach ($hosts as $host)
             $result[]['name'] = $host;
@@ -135,6 +141,7 @@ class PaySystem extends Base
 
     public function info($id = NULL)
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
             if (empty($this->input["id"])) {
                 $this->result["plugins"] = $this->getPlugins();
@@ -179,6 +186,7 @@ class PaySystem extends Base
 
     public function correctValuesBeforeSave()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (isset($this->input["isActive"]))
             $this->input["active"] = $this->input["isActive"] ? "Y" : "N";
 
@@ -216,6 +224,7 @@ class PaySystem extends Base
 
     private function getSortIndex()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $u = new DB('shop_payment', 'sp');
         $u->select('MAX(`sort`) maxIndex');
         $result = $u->fetchOne();
@@ -224,6 +233,7 @@ class PaySystem extends Base
 
     private function saveParams()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
             $params = $this->input["params"];
             foreach ($params as $p) {
@@ -239,6 +249,7 @@ class PaySystem extends Base
 
     private function getHostsStr($hosts)
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result = "";
         foreach ($hosts as $host) {
             if (!empty($result))
@@ -250,6 +261,7 @@ class PaySystem extends Base
 
     private function getFiltersStr($filters)
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result = "";
         foreach ($filters as $filter) {
             if (!empty($result))

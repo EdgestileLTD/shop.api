@@ -1,10 +1,11 @@
 <?php
 
-namespace SE;
+namespace SE\Shop;
 use SE\Shop\Product;
 use \PHPExcel as PHPExcel;
 use \PHPExcel_Writer_Excel2007 as PHPExcel_Writer_Excel2007;
 use \PHPExcel_Style_Fill as PHPExcel_Style_Fill;
+use SE\DB;
 
 class ProductExport extends Product
 {
