@@ -1,6 +1,6 @@
 <?php
 
-namespace SE;
+namespace SE\Shop;
 use SE\Shop\Product;
 use \PHPExcel as PHPExcel;
 use \PHPExcel_Writer_Excel2007 as PHPExcel_Writer_Excel2007;
