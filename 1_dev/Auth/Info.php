@@ -54,7 +54,7 @@ else {
                 CONCAT_WS(" ", p.last_name, CONCAT_WS(".", SUBSTR(p.first_name, 1, 1), SUBSTR(p.sec_name, 1, 1))) displayName');
     $u->innerjoin('person p', 'p.id = su.id');
     $u->leftjoin('se_user_group sug', 'sug.user_id = su.id AND sug.group_id = 3');
-    $u->where('is_active="Y" AND username="?"', $json->login);
+    $u->where('is_active="Y" AND is_manager AND username="?"', $json->login);
     $u->andWhere('password="?"', strtolower($json->password));
     $result = $u->fetchOne();
     if (!empty($result)) {
