@@ -18,6 +18,42 @@ class ProductExport extends Product
 
     // превью экспорта
     public function previewExport($limit, $offset) {
+        $headerCSV = array();
+        foreach ($this->rusCols as $k => $v)
+            array_push($headerCSV, $v);
+
+        /*
+         * ПОЛУЧЕНИЕ СВЯЗИ МОДИФИКАЦИЯ-ПАРАМЕТР  для чекбокс листа
+         *
+         * Схема:
+         * shop_modifications_group  <  shop_modifications  <    shop_modifications_feature    >  shop_feature
+         * name                  id  <  id_mod_group    id  <  id_modification     id_feature  >  id      name
+         *
+         * не доделана : нужно проверять работоспособность запроса
+         */
+
+        // $u = new DB('shop_modifications_feature', 'smf');
+        // $u->select('smg.name modification, sf.name feature');
+        // $u->leftJoin('shop_modifications sm', 'sm.id = smf.id_modification');
+        // $u->leftJoin('shop_modifications_group smg', 'smg.id = sm.id_mod_group');
+        // $u->leftJoin('shop_feature sf', 'sf.id = smf.id_feature');
+        // $u->where('smg.name != ""');
+        // $u->orderBy('smg.name, sf.name');
+        // $u->groupBy('smg.name, sf.name');
+        // $result = $u->getList();
+        // unset($u);
+
+        return $headerCSV;
+    }
+
+    // @@@@@@ @@@@@@@@    @@    @@@@@@ @@@@@@@@ @@@@@@ @@  @@ @@@@@@
+    // @@        @@      @@@@   @@  @@    @@    @@      @@@@  @@  @@
+    // @@@@@@    @@     @@  @@  @@@@@@    @@    @@@@@@   @@   @@@@@@
+    //     @@    @@    @@@@@@@@ @@ @@     @@    @@      @@@@  @@
+    // @@@@@@    @@    @@    @@ @@  @@    @@    @@@@@@ @@  @@ @@
+
+    // старт экспорта
+    public function startExport($limit, $offset) {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         // получаем данные из БД
         $u = new DB('shop_price', 'sp');

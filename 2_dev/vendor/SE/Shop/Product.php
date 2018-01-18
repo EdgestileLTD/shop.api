@@ -1779,20 +1779,36 @@ class Product extends Base
 
             $export = new ProductExport($this->input);
 
-            // получение данных из базы
-            $prExport = $export->previewExport($limit, $offset);
-            $goodsL = $prExport['goodsL'];
-            $goodsIndex = $prExport['goodsIndex'];
-            $modifications = $prExport['modifications'];
-            $excludingKeys = $prExport['excludingKeys'];
-            $headerCSV = $prExport['headerCSV'];
+            /*
+             * ЭКСПОРТ прохобит в 2 этапа:
+             *   1. ПОЛУЧЕНИЕ ПРЕВЬЮ: Получение заголовков + модификаций для чекбокс-листа (выбора экспортируемых столбцов)
+             *   2. ПОЛУЧЕНИЕ ФАЙЛА:  Получение заголовков + модификаций + листа записей по товарам с записью в файл
+             *
+             * тк в обоих шагах используется function export() - создана вилка.
+             * На переключение влияет параметр  $this->input['statusPreview']  true или отсутствие
+             */
 
-            // подготовка и запись файла
-            $headerCSV = $export->endExport(
-                $sheet, $line, $goodsL, $goodsIndex, $xls, $modifications,
-                $excludingKeys, $headerCSV, $filePath, $urlFile, $fileName,
-                $formData
-            );
+            if ($formData['statusPreview'] == true) {
+                // получаем заголовки + модификации товаров
+                 $headerCSV = $export->previewExport();
+            } else {
+
+                // получение данных из базы (заголовки,товары)
+                $prExport = $export->startExport($limit, $offset);
+                $goodsL = $prExport['goodsL'];
+                $goodsIndex = $prExport['goodsIndex'];
+                $modifications = $prExport['modifications'];
+                $excludingKeys = $prExport['excludingKeys'];
+                $headerCSV = $prExport['headerCSV'];
+
+                // подготовка и запись файла
+                $headerCSV = $export->endExport(
+                    $sheet, $line, $goodsL, $goodsIndex, $xls, $modifications,
+                    $excludingKeys, $headerCSV, $filePath, $urlFile, $fileName,
+                    $formData
+                );
+
+            };
 
             // передача в Ajax
             if (file_exists($filePath) && filesize($filePath)) {
