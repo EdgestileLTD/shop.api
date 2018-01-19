@@ -34,7 +34,8 @@ class Base extends CustomBase
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         parent::__construct($input);
-        $this->fileSettings = strtolower(DIR_SETTINGS . "/" . end(explode('\\', get_class($this)))) . ".json";
+        $cl = explode('\\', get_class($this));
+        $this->fileSettings = strtolower(DIR_SETTINGS . "/" . end($cl)) . ".json";
         $input = $this->input;
         $this->limit = $input["limit"] && $this->limit ? (int)$input["limit"] : $this->limit;
         $this->offset = $input["offset"] ? (int)$input["offset"] : $this->offset;

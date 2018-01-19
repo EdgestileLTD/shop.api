@@ -56,11 +56,11 @@ class ProductExport extends Product
     public function startExport($limit, $offset) {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         // получаем данные из БД
-        $u = new DB('shop_price', 'sp');
+        $u      = new DB('shop_price', 'sp');
         $u->select('COUNT(*) `count`');
         $result = $u->getList();
-        $count = $result[0]["count"];
-        $pages = ceil($count / $limit);
+        $count  = $result[0]["count"];
+        $pages  = ceil($count / $limit);
 
         // подключение к shop_price
         $u = new DB('shop_price', 'sp');
@@ -180,11 +180,16 @@ class ProductExport extends Product
         $u->groupBy('sp.id');
 
 
-        $goodsL = [];
+        /*
+         * Пакетный запрос к БД
+         * с перезагрузкой соединения к БД
+         */
+        $goodsL     = [];
         $goodsIndex = [];
         for ($i = 0; $i < $pages; ++$i) {
-            $goodsL = array_merge($goodsL, $u->getList($offset, $limit));
+            $goodsL = array_merge($goodsL, $u->getList($limit, $offset));
             $offset += $limit;
+            $u->reConnection();
         }
 
         // фильтрация значений
@@ -259,13 +264,13 @@ class ProductExport extends Product
         unset($u); // удаление переменной
 
         $excludingKeys = array("idGroup", "presence", "idModification");
-        $rusCols = $this->rusCols;
+        $rusCols       = $this->rusCols;
 
-        $header = array_keys($goodsL[0]);
+        $header    = array_keys($goodsL[0]);
         $headerCSV = [];
         foreach ($header as $col)
             if (!in_array($col, $excludingKeys)) {
-                $col = iconv('utf-8', 'utf-8', $rusCols[$col] ? $rusCols[$col] : $col); // CP1251
+                $col         = iconv('utf-8', 'utf-8', $rusCols[$col] ? $rusCols[$col] : $col); // CP1251
                 $headerCSV[] = $col;
             }
 
@@ -307,11 +312,11 @@ class ProductExport extends Product
             $goodsLNew = array();
             foreach($goodsL as $key => $value) {
                 $VColumn = 0;
-                $unit = array();
+                $unit    = array();
                 foreach($value as $k => $v) {
                     foreach($numColumn as $vNum) {
                         if ($VColumn == $vNum) {
-                            $record = True;
+                            $record  = True;
                             break;
                         }
                         else $record = False;
@@ -321,15 +326,15 @@ class ProductExport extends Product
                 }
                 if(count($unit) > 1) array_push($goodsLNew, $unit);
             }
-            $goodsL = $goodsLNew;
+            $goodsL        = $goodsLNew;
             $goodsIndexNew = array();
             foreach($goodsIndex as $key => $value) {
                 $VColumn = 0;
-                $unit = array();
+                $unit    = array();
                 foreach($value as $k => $v) {
                     foreach($numColumn as $vNum) {
                         if ($VColumn == $vNum) {
-                            $record = True;
+                            $record  = True;
                             break;
                         }
                         else $record = False;
@@ -343,8 +348,8 @@ class ProductExport extends Product
         }
 
 
-        $column = array();
-        $last_column = count($headerCSV);
+        $column        = array();
+        $last_column   = count($headerCSV);
         $column_number = 0;
         do {
             $column_name = (($t = floor($column_number / 26)) == 0 ? '' : chr(ord('A')+$t-1)).
@@ -361,9 +366,9 @@ class ProductExport extends Product
         }
         $line++;
 
-        $i = 0;
-        $header = null;
-        $lastId = null;
+        $i         = 0;
+        $header    = null;
+        $lastId    = null;
         $goodsItem = [];
 
         // вывод товаров без модификаций
@@ -395,7 +400,7 @@ class ProductExport extends Product
         foreach ($modifications as $mod) {
             if ($lastId != $mod["idProduct"]) {
                 $goodsItem = $goodsIndex[$mod["idProduct"]];
-                $lastId = $mod["idProduct"];
+                $lastId    = $mod["idProduct"];
             }
             if ($goodsItem) {
                 $row = $goodsItem;

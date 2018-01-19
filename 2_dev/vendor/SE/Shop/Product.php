@@ -1760,7 +1760,7 @@ class Product extends Base
         if (!file_exists($filePath) || !is_dir($filePath))
             mkdir($filePath);
         $filePath .= "/{$fileName}";
-        $urlFile = 'http://' . HOSTNAME . "/files/{$fileName}";
+        $urlFile  = 'http://' . HOSTNAME . "/files/{$fileName}";
 
         // инициализация файла
         $xls = new PHPExcel();
@@ -1771,9 +1771,9 @@ class Product extends Base
         $sheet->setCellValue("A1", 'тест1');
 
         // объявление параметров для экспорта
-        $limit = 1000;
+        $limit  = 1000;
         $offset = 0;
-        $line = 1;
+        $line   = 1;
 
         try {
 
@@ -1794,12 +1794,12 @@ class Product extends Base
             } else {
 
                 // получение данных из базы (заголовки,товары)
-                $prExport = $export->startExport($limit, $offset);
-                $goodsL = $prExport['goodsL'];
-                $goodsIndex = $prExport['goodsIndex'];
+                $prExport      = $export->startExport($limit, $offset );
+                $goodsL        = $prExport['goodsL'];
+                $goodsIndex    = $prExport['goodsIndex'];
                 $modifications = $prExport['modifications'];
                 $excludingKeys = $prExport['excludingKeys'];
-                $headerCSV = $prExport['headerCSV'];
+                $headerCSV     = $prExport['headerCSV'];
 
                 // подготовка и запись файла
                 $headerCSV = $export->endExport(
@@ -1812,8 +1812,8 @@ class Product extends Base
 
             // передача в Ajax
             if (file_exists($filePath) && filesize($filePath)) {
-                $this->result['url'] = $urlFile;
-                $this->result['name'] = $fileName;
+                $this->result['url']       = $urlFile;
+                $this->result['name']      = $fileName;
                 $this->result['headerCSV'] = $headerCSV;
             } else $this->result = "Не удаётся экспортировать данные контакта!";
 
