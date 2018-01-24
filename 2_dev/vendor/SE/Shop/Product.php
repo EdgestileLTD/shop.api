@@ -1762,19 +1762,6 @@ class Product extends Base
         $filePath .= "/{$fileName}";
         $urlFile  = 'http://' . HOSTNAME . "/files/{$fileName}";
 
-        // инициализация файла
-        $xls = new PHPExcel();
-        $xls->setActiveSheetIndex(0);
-        $sheet = $xls->getActiveSheet(); // инициализация листа
-        $sheet->setTitle($fileName); // определяем заголовок страницы
-        $sheet->setCellValue("A1", 'Ид.');
-        $sheet->setCellValue("A1", 'тест1');
-
-        // объявление параметров для экспорта
-        $limit  = 1000;
-        $offset = 0;
-        $line   = 1;
-
         try {
 
             $export = new ProductExport($this->input);
@@ -1790,23 +1777,11 @@ class Product extends Base
 
             if ($formData['statusPreview'] == true) {
                 // получаем заголовки + модификации товаров
-                 $headerCSV = $export->previewExport();
+                $headerCSV = $export->previewExport();
             } else {
 
                 // получение данных из базы (заголовки,товары)
-                $prExport      = $export->startExport($limit, $offset );
-                $goodsL        = $prExport['goodsL'];
-                $goodsIndex    = $prExport['goodsIndex'];
-                $modifications = $prExport['modifications'];
-                $excludingKeys = $prExport['excludingKeys'];
-                $headerCSV     = $prExport['headerCSV'];
-
-                // подготовка и запись файла
-                $headerCSV = $export->endExport(
-                    $sheet, $line, $goodsL, $goodsIndex, $xls, $modifications,
-                    $excludingKeys, $headerCSV, $filePath, $urlFile, $fileName,
-                    $formData
-                );
+                $headerCSV = $export->mainExport($formData, $fileName, $filePath);
 
             };
 
