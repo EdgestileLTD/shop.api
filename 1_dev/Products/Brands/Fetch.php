@@ -60,6 +60,6 @@ if (!se_db_error()) {
     $status['data'] = $data;
 } else {
     $status['status'] = 'error';
-    $status['error'] = 'Не удаётся получить список брендов!';
+    $status['error'] = se_db_error();// 'Не удаётся получить список брендов!';
 }
 outputData($status);

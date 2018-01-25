@@ -34,7 +34,7 @@ class GeoTargeting extends Base
     }
 
     // правильные значения перед извлечением
-    protected function correctValuesBeforeFetch($items = array())
+    protected function correctItemsBeforeFetch($items = array())
     {
         $idsCities = array();
         foreach ($items as $item)

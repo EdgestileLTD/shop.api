@@ -27,7 +27,11 @@ class Currency extends Base
         return $value . ' ' . $nameFlank;
     }
 
-    // получить список валют
+    /* ПОЛУЧИТЬ СПИСОК ВАЛЮТ
+     * отправляет нумерованный массив валют со значениями:
+     *      id lang name title nameFront nameFlang cbrKod minsum updatedAt createdAt
+     * $this->result используется в валюте товара
+     */
     public function fetch()
     {
         try {
@@ -96,7 +100,7 @@ class Currency extends Base
             $data['count'] = $count;
             $data['items'] = $items;
             $this->result = $data;
-            return $curr;
+            return $objects;
         } catch (Exception $e) {
             $this->result = "Не удаётся получить список валют!";
         }

@@ -5,6 +5,7 @@ use SE\Shop\Product;
 use \PHPExcel as PHPExcel;
 use \PHPExcel_Writer_Excel2007 as PHPExcel_Writer_Excel2007;
 use \PHPExcel_Style_Fill as PHPExcel_Style_Fill;
+use SE\DB;
 
 class ProductExport extends Product
 {
@@ -17,13 +18,49 @@ class ProductExport extends Product
 
     // превью экспорта
     public function previewExport($limit, $offset) {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $headerCSV = array();
+        foreach ($this->rusCols as $k => $v)
+            array_push($headerCSV, $v);
+
+        /*
+         * ПОЛУЧЕНИЕ СВЯЗИ МОДИФИКАЦИЯ-ПАРАМЕТР  для чекбокс листа
+         *
+         * Схема:
+         * shop_modifications_group  <  shop_modifications  <    shop_modifications_feature    >  shop_feature
+         * name                  id  <  id_mod_group    id  <  id_modification     id_feature  >  id      name
+         *
+         * не доделана : нужно проверять работоспособность запроса
+         */
+
+        // $u = new DB('shop_modifications_feature', 'smf');
+        // $u->select('smg.name modification, sf.name feature');
+        // $u->leftJoin('shop_modifications sm', 'sm.id = smf.id_modification');
+        // $u->leftJoin('shop_modifications_group smg', 'smg.id = sm.id_mod_group');
+        // $u->leftJoin('shop_feature sf', 'sf.id = smf.id_feature');
+        // $u->where('smg.name != ""');
+        // $u->orderBy('smg.name, sf.name');
+        // $u->groupBy('smg.name, sf.name');
+        // $result = $u->getList();
+        // unset($u);
+
+        return $headerCSV;
+    }
+
+    // @@@@@@ @@@@@@@@    @@    @@@@@@ @@@@@@@@ @@@@@@ @@  @@ @@@@@@
+    // @@        @@      @@@@   @@  @@    @@    @@      @@@@  @@  @@
+    // @@@@@@    @@     @@  @@  @@@@@@    @@    @@@@@@   @@   @@@@@@
+    //     @@    @@    @@@@@@@@ @@ @@     @@    @@      @@@@  @@
+    // @@@@@@    @@    @@    @@ @@  @@    @@    @@@@@@ @@  @@ @@
+
+    // старт экспорта
+    public function startExport($limit, $offset) {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         // получаем данные из БД
-        $u = new DB('shop_price', 'sp');
+        $u      = new DB('shop_price', 'sp');
         $u->select('COUNT(*) `count`');
         $result = $u->getList();
-        $count = $result[0]["count"];
-        $pages = ceil($count / $limit);
+        $count  = $result[0]["count"];
+        $pages  = ceil($count / $limit);
 
         // подключение к shop_price
         $u = new DB('shop_price', 'sp');
@@ -143,11 +180,16 @@ class ProductExport extends Product
         $u->groupBy('sp.id');
 
 
-        $goodsL = [];
+        /*
+         * Пакетный запрос к БД
+         * с перезагрузкой соединения к БД
+         */
+        $goodsL     = [];
         $goodsIndex = [];
         for ($i = 0; $i < $pages; ++$i) {
-            $goodsL = array_merge($goodsL, $u->getList($offset, $limit));
+            $goodsL = array_merge($goodsL, $u->getList($limit, $offset));
             $offset += $limit;
+            $u->reConnection();
         }
 
         // фильтрация значений
@@ -162,7 +204,7 @@ class ProductExport extends Product
 
         unset($u); // удаление переменной
 
-        $this->debugging('экспортируемые данные',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('special', __FUNCTION__.' '.__LINE__, __CLASS__, 'экспортируемые данные');
         //writeLog($goodsL);
 
         if (!$goodsL)
@@ -222,13 +264,13 @@ class ProductExport extends Product
         unset($u); // удаление переменной
 
         $excludingKeys = array("idGroup", "presence", "idModification");
-        $rusCols = $this->rusCols;
+        $rusCols       = $this->rusCols;
 
-        $header = array_keys($goodsL[0]);
+        $header    = array_keys($goodsL[0]);
         $headerCSV = [];
         foreach ($header as $col)
             if (!in_array($col, $excludingKeys)) {
-                $col = iconv('utf-8', 'utf-8', $rusCols[$col] ? $rusCols[$col] : $col); // CP1251
+                $col         = iconv('utf-8', 'utf-8', $rusCols[$col] ? $rusCols[$col] : $col); // CP1251
                 $headerCSV[] = $col;
             }
 
@@ -255,7 +297,7 @@ class ProductExport extends Product
         $excludingKeys, $headerCSV, $filePath, $urlFile, $fileName,
         $formData
     ) {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         // определяем колво заголовков и генерируем список столбцов по длине
 
         // замена значений на пользовательские
@@ -270,11 +312,11 @@ class ProductExport extends Product
             $goodsLNew = array();
             foreach($goodsL as $key => $value) {
                 $VColumn = 0;
-                $unit = array();
+                $unit    = array();
                 foreach($value as $k => $v) {
                     foreach($numColumn as $vNum) {
                         if ($VColumn == $vNum) {
-                            $record = True;
+                            $record  = True;
                             break;
                         }
                         else $record = False;
@@ -284,15 +326,15 @@ class ProductExport extends Product
                 }
                 if(count($unit) > 1) array_push($goodsLNew, $unit);
             }
-            $goodsL = $goodsLNew;
+            $goodsL        = $goodsLNew;
             $goodsIndexNew = array();
             foreach($goodsIndex as $key => $value) {
                 $VColumn = 0;
-                $unit = array();
+                $unit    = array();
                 foreach($value as $k => $v) {
                     foreach($numColumn as $vNum) {
                         if ($VColumn == $vNum) {
-                            $record = True;
+                            $record  = True;
                             break;
                         }
                         else $record = False;
@@ -306,8 +348,8 @@ class ProductExport extends Product
         }
 
 
-        $column = array();
-        $last_column = count($headerCSV);
+        $column        = array();
+        $last_column   = count($headerCSV);
         $column_number = 0;
         do {
             $column_name = (($t = floor($column_number / 26)) == 0 ? '' : chr(ord('A')+$t-1)).
@@ -324,9 +366,9 @@ class ProductExport extends Product
         }
         $line++;
 
-        $i = 0;
-        $header = null;
-        $lastId = null;
+        $i         = 0;
+        $header    = null;
+        $lastId    = null;
         $goodsItem = [];
 
         // вывод товаров без модификаций
@@ -358,7 +400,7 @@ class ProductExport extends Product
         foreach ($modifications as $mod) {
             if ($lastId != $mod["idProduct"]) {
                 $goodsItem = $goodsIndex[$mod["idProduct"]];
-                $lastId = $mod["idProduct"];
+                $lastId    = $mod["idProduct"];
             }
             if ($goodsItem) {
                 $row = $goodsItem;

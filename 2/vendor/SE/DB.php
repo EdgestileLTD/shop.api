@@ -9,6 +9,8 @@ class DB
 
     /* @var $lastQuery string */
     static public $lastQuery;
+    /* @var $connect string */
+    static public $connect;
     /* @var $dbSerial string */
     static public $dbSerial;
     /* @var $projectKey string */
@@ -74,7 +76,8 @@ class DB
     public static function initConnection($connection)
     {
         try {
-            self::$dbSerial = $connection['DBSerial'];
+            self::$connect    = $connection;
+            self::$dbSerial   = $connection['DBSerial'];
             self::$dbPassword = $connection['DBPassword'];
             self::$projectKey = $connection['ProjectKey'];
             self::$dbh = new PDO("mysql:host={$connection['HostName']};dbname={$connection['DBName']};charset=UTF8",
@@ -83,6 +86,17 @@ class DB
         } catch (\PDOException $e) {
             throw new Exception($e->getMessage());
         }
+    }
+
+    /*
+     * Переподключение к БД
+     * для экспорта/импорта больших баз
+     */
+    public function reConnection()
+    {
+        $connection = self::$connect;
+        self::$dbh  = null;
+        self::initConnection($connection);
     }
 
     /**
