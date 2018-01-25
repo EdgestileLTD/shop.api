@@ -12,13 +12,37 @@ class Delivery extends Base
     // получить
     public function fetch()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
             $u = new DB('shop_deliverytype', 'sd');
             $u->select('sd.*');
             $u->where('sd.id_parent IS NULL');
             $u->orderBy('sort', false);
-
             $objects = $u->getList();
+            unset($u);
+
+            /*
+             * ДАННЫЕ ПО ВАЛЮТАМ
+             * запрашиваем название,приставки/окончания валют
+             * и добавляем в эллементы массива соответственно
+             */
+
+            $u = new DB('money_title', 'mt');
+            $u->select('mt.name name, mt.title title, mt.name_front nameFront, mt.name_flang nameFlang');
+            $currList = $u->getList();
+            unset($u);
+
+            foreach ($objects as $key => $item)
+                if (!empty($item["curr"]))
+                    foreach ($currList as $currUnit)
+                        if ($item["curr"] == $currUnit["name"]) {
+                            $objects[$key]["titleCurr"] = $currUnit["title"];
+                            $objects[$key]["nameFront"] = $currUnit["nameFront"];
+                            $objects[$key]["nameFlang"] = $currUnit["nameFlang"];
+                        };
+
+            // ДАННЫЕ ПО ВАЛЮТАМ конец
+
             foreach ($objects as $item) {
                 $delivery = $item;
                 if (empty($delivery['code']))
@@ -43,6 +67,7 @@ class Delivery extends Base
     // получить параметры
     private function getConditionsParams($id)
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $u = new DB('shop_delivery_param');
         $u->where('sdp.id_delivery = ?', $id);
         return $u->getList();
@@ -51,6 +76,7 @@ class Delivery extends Base
     // получить регионы
     private function getConditionsRegions($id, $currency)
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $u = new DB('shop_deliverytype', 'sd');
         $u->select('sd.*, sdr.id id_geo, sdr.id_city, sdr.id_country, sdr.id_region');
         $u->innerJoin('shop_delivery_region sdr', 'sd.id = sdr.id_delivery');
@@ -73,6 +99,7 @@ class Delivery extends Base
     // получить географические регионы
     private function getGeoLocationsRegions($id)
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $u = new DB('shop_delivery_region', 'sdr');
         $u->select('sdr.*');
         $u->where('sdr.id_delivery = ?', $id);
@@ -93,6 +120,7 @@ class Delivery extends Base
     // информация
     public function info()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
             $u = new DB('shop_deliverytype', 'sd');
             $u->select('sd.*, GROUP_CONCAT(DISTINCT(sdp.id_payment) SEPARATOR ";") idsPayments');
@@ -142,6 +170,7 @@ class Delivery extends Base
     // получить индекс сортировки
     private function getSortIndex()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $u = new DB('shop_deliverytype', 'sdt');
         $u->select('MAX(sort) AS sort');
         $u->fetchOne();
@@ -151,6 +180,7 @@ class Delivery extends Base
     // сохранить систему оплаты
     private function savePaySystem()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
             $idDelivery = $this->input["id"];
             $idsPaySystems = $this->input["idsPaySystems"];
@@ -184,6 +214,7 @@ class Delivery extends Base
     // сохранить группы
     private function saveGroups()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $idsGroups = $this->input["idsGroups"];
         $idDelivery = $this->input["id"];
         $u = new DB('shop_deliverygroup', 'sd');
@@ -201,6 +232,7 @@ class Delivery extends Base
     // сохранить параметры
     private function saveConditionsParams()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $idDelivery = $this->input["id"];
         $conditions = $this->input["conditionsParams"];
         $idsExist = array();
@@ -223,10 +255,11 @@ class Delivery extends Base
     // сохранить регионы
     private function saveConditionsRegions()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $idDelivery = $this->input["id"];
         $deliveries = $this->input["conditionsRegions"];
 
-                $idsUpdate = array();
+        $idsUpdate = array();
         $idsGeoUpdate = array();
         foreach ($deliveries as $delivery) {
             if (!empty($delivery["id"]))
@@ -317,6 +350,7 @@ class Delivery extends Base
     // сохранить геолокацию реионов
     private function saveGeoLocationsRegions()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $regions = $this->input["geoLocationsRegions"];
         $idDelivery = $this->input["id"];
         $idsUpdate = array();
@@ -379,6 +413,7 @@ class Delivery extends Base
     // правильные значения перед сохранением
     protected function correctValuesBeforeSave()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $isNew = empty($this->input["id"]);
         if ($isNew)
             $this->input["sortIndex"] = $this->getSortIndex();
@@ -399,6 +434,7 @@ class Delivery extends Base
     // сохранить добавленную информацию
     protected function saveAddInfo()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $this->saveGroups();
         $this->savePaySystem();
         $this->saveConditionsParams();

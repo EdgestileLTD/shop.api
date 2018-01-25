@@ -12,6 +12,7 @@ class Coupon extends Base
     // получить настройки
     protected function getSettingsFetch()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         return array(
             "select" => 'sc.*, CONCAT_WS(" ",  p.last_name, p.first_name, p.sec_name) as user_name',
             "joins" => array(
@@ -27,12 +28,14 @@ class Coupon extends Base
     // получить инофромацию по настройкам
     protected function getSettingsInfo()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         return $this->getSettingsFetch();
     }
 
     // получить продукты
     public function getProducts($idCoupon = null)
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $id = $idCoupon ? $idCoupon : $this->input["id"];
         if (!$id)
             return array();
@@ -48,6 +51,7 @@ class Coupon extends Base
     // получить группы
     public function getGroups($idCoupon = null)
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $id = $idCoupon ? $idCoupon : $this->input["id"];
         if (!$id)
             return array();
@@ -63,6 +67,7 @@ class Coupon extends Base
     // получить заказы
     public function getOrders($idCoupon = null)
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $id = $idCoupon ? $idCoupon : $this->input["id"];
         if (!$id)
             return array();
@@ -73,6 +78,7 @@ class Coupon extends Base
     // получить добавленную информацию
     protected function getAddInfo()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result["products"] = $this->getProducts();
         $result["groups"] = $this->getGroups();
         $result["orders"] = $this->getOrders();
@@ -81,6 +87,7 @@ class Coupon extends Base
     // сохранить группы
     public function saveGroups()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {            
             DB::saveManyToMany($this->input["id"], $this->input["groups"],
                 array("table" => "shop_coupons_goods", "key" => "coupon_id", "link" => "group_id"));
@@ -93,6 +100,7 @@ class Coupon extends Base
     // сохранить продукты
     public function saveProducts()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {            
             DB::saveManyToMany($this->input["id"], $this->input["products"],
                 array("table" => "shop_coupons_goods", "key" => "coupon_id", "link" => "price_id"));
@@ -105,6 +113,7 @@ class Coupon extends Base
     // сохранить добавленную информацию
     protected function saveAddInfo()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $this->saveGroups();
         $this->saveProducts();
 

@@ -14,7 +14,7 @@ class Discount extends Base
     // получить натройки
     protected function getSettingsFetch()
     {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         return array(
             "select" => 'sd.*',
             "left" => array(
@@ -28,7 +28,7 @@ class Discount extends Base
     // добавить информацию
     protected function getAddInfo()
     {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result["listGroupsProducts"] = $this->getListGroupsProducts($this->result["id"]);
         $result["listProducts"] = $this->getListProducts($this->result["id"]);
         $result['listContacts'] = $this->getListContacts($this->result["id"]);
@@ -39,13 +39,13 @@ class Discount extends Base
     // сохранить информацию
     protected function saveAddInfo()
     {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         return $this->saveProducts() && $this->saveGroupsProducts() && $this->saveContacts() && $this->saveGroupsContacts() ;
     }
 
     // получить список продуктов
     private function getListProducts($id) {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
             $u = new DB('shop_discount_links', 'sdl');
             $u->select('sp.id, sp.code, sp.article, sp.name, sp.price, sp.curr');
@@ -60,7 +60,7 @@ class Discount extends Base
 
     // получить список групп продуктов
     private function getListGroupsProducts($id) {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
             $u = new DB('shop_discount_links', 'sdl');
             $u->select('sg.id, sg.code_gr, sg.name');
@@ -75,7 +75,7 @@ class Discount extends Base
 
     // получить список контактов
     private function getListContacts($id) {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
             $u = new DB('shop_discount_links', 'sdl');
             $u->select('p.id, p.first_name, p.sec_name, p.last_name, p.email');
@@ -90,7 +90,7 @@ class Discount extends Base
 
     // получить лист групп контактов
     private function getListGroupsContacts($id) {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
             $u = new DB('shop_discount_links', 'sdl');
             $u->select('sg.id, sg.name, sg.title');
@@ -107,7 +107,7 @@ class Discount extends Base
     // сохранить продукты
     private function saveProducts()
     {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__,'сохраняемые в базу значения товара'); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, 'сохраняемые в базу значения товара');
         if (!isset($this->input["listProducts"]))
             return true;
 
@@ -137,7 +137,7 @@ class Discount extends Base
     // сохранить группы продуктов
     private function saveGroupsProducts()
     {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (!isset($this->input["listGroupsProducts"]))
             return true;
 
@@ -155,7 +155,7 @@ class Discount extends Base
     // сохранить контакты
     private function saveContacts()
     {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (!isset($this->input["listContacts"]))
             return true;
 
@@ -173,7 +173,7 @@ class Discount extends Base
     // сохранить группы контактов
     private function saveGroupsContacts()
     {
-        $this->debugging('funct',__FUNCTION__.' '.__LINE__); // отладка
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (!isset($this->input["listGroupsContacts"]))
             return true;
 

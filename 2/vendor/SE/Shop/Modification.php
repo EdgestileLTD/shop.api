@@ -36,7 +36,7 @@ class Modification extends Base
 	}
 
 	// правильные значения перед извлечением
-	protected function correctValuesBeforeFetch($items = array())
+	protected function correctItemsBeforeFetch($items = array())
 	{
 		$result = array();
 		foreach ($items as $item) {

@@ -18,12 +18,14 @@ class Base
 
     function __construct($input = null)
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $this->input = empty($input) || is_array($input) ? $input : json_decode($input, true);
         $this->hostname = HOSTNAME;
     }
 
     public function initConnection($connection)
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
             DB::initConnection($connection);
             if ($_SESSION['isAuth'])
@@ -37,6 +39,7 @@ class Base
 
     public function output()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (!empty($this->error) && $this->statusAnswer == 200)
             $this->statusAnswer = 500;
         switch ($this->statusAnswer) {
@@ -61,6 +64,7 @@ class Base
 
     public function getMySQLVersion()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $r = DB::query("select version()");
         $answer = $r->fetchAll();
         if ($answer) {
@@ -74,11 +78,13 @@ class Base
 
     public function correctFileUpdateForMySQL56($fileName)
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         file_put_contents($fileName, str_replace(" ON UPDATE CURRENT_TIMESTAMP", "", file_get_contents($fileName)));
     }
 
     public function updateDB()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $settings = new DB('se_settings', 'ss');
         $settings->select("db_version");
         $result = $settings->fetchOne();
@@ -107,31 +113,47 @@ class Base
 
     function __set($name, $value)
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (is_array($this->input))
             $this->input[$name] = $value;
     }
 
     function __get($name)
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (is_array($this->input) && isset($this->input[$name]))
             return $this->input[$name];
     }
 
     // отладка
-    protected function debugging($group, $funct = null, $act = null)
-    {    // группа_логов/функция/комент
-        // значение:  True/False (печатать/не_печатать в логи)
+    protected function debugging($group, $funct = null, $class = null, $act = null)
+    {
+        // $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (API_STATUS == "dev") {
+
+            // [True | Print Log]  [False]
             $print = array(
-                'funct' => False,   // безымянные
+                'funct'   => False,   // общие
+                'special' => False,   // значения в модулях
             );
+
             if ($print[$group] == True) {
-                $wrLog = "Act: {$act}";
-                $Indentation = str_repeat(" ", (40 - mb_strlen($wrLog)));
-                $wrLog = "{$wrLog}{$Indentation} | Function: {$funct}";
-                $Indentation = str_repeat(" ", (80 - mb_strlen($wrLog)));
-                $class = get_class($this);
-                writeLog("{$wrLog}{$Indentation} | File: {$class}");
+
+                $thi = get_class($this);
+                $thisPrint  = "ThisCl: {$thi}";
+                $groupPrint = "Group: {$group}";
+                $classPrint = "Class: {$class}";
+                $functPrint = "Funct: {$funct}";
+                $actPrint   = "Act: {$act}";
+
+                $ind = 33;      $sy = " ";      $col = " | ";
+                $groupLen   = $groupPrint.str_repeat($sy,(15   - mb_strlen($groupPrint))).$col;
+                $thisLen    = $thisPrint.str_repeat( $sy,($ind - mb_strlen($thisPrint)) ).$col;
+                $classLen   = $classPrint.str_repeat($sy,($ind - mb_strlen($classPrint))).$col;
+                $functLen   = $functPrint.str_repeat($sy,($ind - mb_strlen($functPrint))).$col;
+                $actLen     = $actPrint.str_repeat(  $sy,($ind - mb_strlen($actPrint))  ).$col;
+
+                writeLog($groupLen.$actLen.$functLen.$classLen.$thisLen);
             }
         }
     }

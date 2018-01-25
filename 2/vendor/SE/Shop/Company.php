@@ -25,7 +25,7 @@ class Company extends Base
         );
     }
 
-    protected function correctValuesBeforeFetch($items = [])
+    protected function correctItemsBeforeFetch($items = [])
     {
         foreach ($items as &$item)
             $item['phone'] = Contact::correctPhone($item['phone']);
@@ -67,7 +67,7 @@ class Company extends Base
     // получить заказы
     public function getOrders($idCompany)
     {
-        return (new Order())->fetchByCompany($idCompany);
+       return (new Order())->fetchByCompany($idCompany);
     }
 
     // получить пользовательские поля

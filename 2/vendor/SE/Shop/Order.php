@@ -81,6 +81,7 @@ class Order extends Base // порядок
     // получить настройки
     protected function getSettingsFetch()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         return array(
             "select" => 'so.*,
                 DATE_FORMAT(so.date_order, "%d.%m.%Y") date_order_display,  
@@ -150,6 +151,7 @@ class Order extends Base // порядок
 
     protected function correctItemsBeforeFetch($items = [])
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         foreach ($items as &$item) {
             if (!empty($item['customerPhone']))
                 $item['customerPhone'] = Contact::correctPhone($item['customerPhone']);
@@ -162,6 +164,7 @@ class Order extends Base // порядок
 
     protected function correctResultBeforeFetch($result)
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result["totalAmount"] = number_format($result["totalAmount"], 2, '.', ' ');
 
         return $result;
@@ -170,6 +173,7 @@ class Order extends Base // порядок
     // получить информацию по настройкам
     protected function getSettingsInfo()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         return array(
             "select" => 'so.*, IFNULL(c.name, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name)) customer, 
                 IFNULL(c.phone, p.phone) customer_phone, IFNULL(c.email, p.email) customer_email,
@@ -227,6 +231,7 @@ class Order extends Base // порядок
     // добавить полученную информацию
     protected function getAddInfo()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result = array();
         $this->result["amount"] = (real)$this->result["amount"];
         $this->result["dateOrder"] = date("d.m.Y", strtotime($this->result["dateOrder"]));
@@ -244,6 +249,7 @@ class Order extends Base // порядок
     // получить оплаченную сумму
     private function getPaidSum()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $idOrder = $this->result["id"];
         $u = new DB('shop_order_payee', 'sop');
         $u->select('SUM(amount) amount');
@@ -255,6 +261,7 @@ class Order extends Base // порядок
     // получить ордера
     private function getOrderItems()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $idOrder = $this->result["id"];
         $u = new DB('shop_tovarorder', 'sto');
         $u->select("sto.*, sp.code, sp.id_group, sp.curr, sp.lang, sp.img, si.picture, sp.measure, sp.name price_name");
@@ -293,6 +300,7 @@ class Order extends Base // порядок
     // получить
     public function fetch($isId = false)
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if ($this->input['searchText'])
             $this->filters = null;
         return parent::fetch($isId);
@@ -301,6 +309,7 @@ class Order extends Base // порядок
     // получить плтежи
     private function getPayments()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $payment = new Payment();
         return $payment->fetchByOrder($this->input["id"]);
     }
@@ -308,6 +317,7 @@ class Order extends Base // порядок
     // получить пользовательские поля
     private function getCustomFields($idOrder)
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $u = new DB('shop_userfields', 'su');
         $u->select("sou.id, sou.id_order, sou.value, su.id id_userfield, 
                     su.name, su.type, su.values, sug.id id_group, sug.name name_group");
@@ -337,6 +347,7 @@ class Order extends Base // порядок
     // правильные значения перед сохранением
     protected function correctValuesBeforeSave()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (empty($this->input["id"]))
             $this->input["dateOrder"] = date("Y-m-d");
         if (isset($this->input["dateOrder"]))
@@ -349,6 +360,7 @@ class Order extends Base // порядок
     // сохранить добавленную информацию
     protected function saveAddInfo()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $this->saveItems();
         $this->saveDelivery();
         $this->saveCustomFields();
@@ -358,6 +370,7 @@ class Order extends Base // порядок
 
     protected function afterSave()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (!$this->input['send'])
             return;
 
@@ -387,6 +400,7 @@ class Order extends Base // порядок
     // сохранить элементы
     private function saveItems()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         $idOrder = $this->input["id"];
         $products = $this->input["items"];
@@ -465,6 +479,7 @@ class Order extends Base // порядок
     // сохранить пользовательские поля
     private function saveCustomFields()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (!isset($this->input["customFields"]))
             return true;
 
@@ -491,6 +506,7 @@ class Order extends Base // порядок
     // сохранить доставку
     private function saveDelivery()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $input = $this->input;
         unset($input["ids"]);
         $idOrder = $input["id"];
@@ -508,6 +524,7 @@ class Order extends Base // порядок
     // удалить
     public function delete()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
             $input = $this->input;
             $input["isDelete"] = "Y";
@@ -521,6 +538,7 @@ class Order extends Base // порядок
 
     public function export()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if ($this->input["id"]) {
             $this->exportItem();
             return;
@@ -595,6 +613,7 @@ class Order extends Base // порядок
 
     private function exportItem()
     {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $fileName = "export_order_{$this->input["id"]}.xlsx";
         $filePath = DOCUMENT_ROOT . "/files";
         if (!file_exists($filePath) || !is_dir($filePath))

@@ -132,7 +132,7 @@ class Product extends Base
         return $this->result["items"];
     }
 
-      // Добавить изменения
+    // Добавить изменения
     public function addModifications($ids)
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
@@ -717,6 +717,7 @@ class Product extends Base
         $result["modifications"] = $this->getModifications();
         $result["customFields"] = $this->getCustomFields();
         $result["countModifications"] = count($result["modifications"]);
+        $result["options"] = $this->getOptions();
         if (empty($result["customFields"]))
             $result["customFields"] = false;
 
@@ -895,6 +896,47 @@ class Product extends Base
         }
     }
 
+    private function saveOptions()
+    {
+        if (!isset($this->input["options"]))
+            return true;
+
+        try {
+            $idsProducts = $this->input["ids"];
+            $options = $this->input["options"];
+            $idsStr = implode(",", $idsProducts);
+            $idsExists = [];
+            foreach ($options as $option)
+                foreach ($option['items'] as $items) {
+                    if ($items["id"])
+                        $idsExists[] = $items["id"];
+                }
+            $idsExists = implode(",", $idsExists);
+
+
+            $u = new DB('shop_product_option');
+            if (!$idsExists)
+                $u->where('id_product IN (?)', $idsStr)->deleteList();
+            else $u->where("NOT id IN ({$idsExists}) AND id_product IN (?)", $idsStr)->deleteList();
+            foreach ($options as $option) {
+                foreach ($option['items'] as $items) {
+                    foreach ($idsProducts as $idProduct) {
+                        $items["idProduct"] = $idProduct;
+                        $items["price"] = $items["priceValue"];
+                        $u = new DB('shop_product_option');
+                        $u->setValuesFields($items);
+                        writeLog($items);
+                        $u->save();
+                    }
+                }
+            }
+            return true;
+        } catch (Exception $e) {
+            $this->error = "Не удаётся сохранить опции товара!";
+            throw new Exception($this->error);
+        }
+    }
+
     // Сохранить файлы
     private function saveFiles()
     {
@@ -1005,6 +1047,38 @@ class Product extends Base
         $idGroup = $this->getIdSpecificationGroup($specification->nameGroup);
         $specification->idFeature = $this->getIdFeature($idGroup, $specification->name);
         return $specification;
+    }
+
+    public function getOptions($idProduct = null)
+    {
+        $result = [];
+        $id = $idProduct ? $idProduct : $this->input["id"];
+        if (!$id)
+            return $result;
+
+        try {
+            $u = new DB('shop_option', 'so');
+            $u->select('so.*');
+            $u->innerJoin('shop_option_value sov', 'sov.id_option = so.id');
+            $u->innerJoin('shop_product_option spo', 'sov.id = spo.id_option_value');
+            $u->where('spo.id_product = ?', $id);
+            $u->orderBy('so.sort');
+            $u->groupby('so.id');
+            $result = $u->getList();
+            foreach($result as &$item) {
+                $u = new DB('shop_product_option', 'spo');
+                $u->select('spo.*, sov.name, spo.price as priceValue');
+                $u->innerJoin('shop_option_value sov', 'sov.id = spo.id_option_value');
+                $u->where('spo.id_product = ?', $id);
+                $u->andwhere('sov.id_option = ?', $item['id']);
+                $u->orderBy('spo.sort');
+                $item['columns'] = array(array('id'=>$item['id'], 'name'=>$item['name']));
+                $item['items'] = $u->getList();
+            }
+            return $result;
+        } catch (Exception $e) {
+            $this->error = "Не удаётся получить опции товара!";
+        }
     }
 
     // Получить пользовательские поля
@@ -1671,7 +1745,7 @@ class Product extends Base
             $this->saveAccompanyingProducts() && $this->saveComments() && $this->saveReviews() &&
             $this->saveCrossGroups() && $this->saveDiscounts() && $this->saveMeasure() &&
             $this->saveModifications() && $this->saveIdGroup() &&
-            $this->saveCustomFields() && $this->saveFiles();
+            $this->saveCustomFields() && $this->saveFiles() && $this->saveOptions();;
     }
 
 
