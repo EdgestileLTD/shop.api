@@ -1,21 +1,27 @@
 <?php
 
 namespace SE\Shop;
+
+require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/Spout/Autoloader/autoload.php';
+
 use SE\Shop\Product;
-use \PHPExcel as PHPExcel;
-use \PHPExcel_IOFactory as PHPExcel_IOFactory;
-use \PHPExcel_Writer_Excel2007 as PHPExcel_Writer_Excel2007;
-use \PHPExcel_Style_Fill as PHPExcel_Style_Fill;
 use SE\DB;
+
+use Box\Spout\Reader\ReaderFactory;
+use Box\Spout\Writer\WriterFactory;
+use Box\Spout\Common\Type;
+
 
 class ProductExport extends Product
 {
 
-    // @@@@@@ @@@@@@ @@@@@@ @@    @@    @@@@@@ @@  @@ @@@@@@  | превью экспорта
-    // @@  @@ @@  @@ @@     @@    @@    @@      @@@@  @@  @@  |
-    // @@@@@@ @@@@@@ @@@@@@  @@  @@     @@@@@@   @@   @@@@@@  |
-    // @@     @@ @@  @@       @@@@      @@      @@@@  @@      |
-    // @@     @@  @@ @@@@@@    @@       @@@@@@ @@  @@ @@      |
+    /*
+     *  @@@@@@ @@@@@@ @@@@@@ @@    @@    @@@@@@ @@  @@ @@@@@@  | превью экспорта
+     *  @@  @@ @@  @@ @@     @@    @@    @@      @@@@  @@  @@  |
+     *  @@@@@@ @@@@@@ @@@@@@  @@  @@     @@@@@@   @@   @@@@@@  |
+     *  @@     @@ @@  @@       @@@@      @@      @@@@  @@      |
+     *  @@     @@  @@ @@@@@@    @@       @@@@@@ @@  @@ @@      |
+     */ 
 
     public function previewExport()
     {
@@ -47,100 +53,137 @@ class ProductExport extends Product
         return $headerCSV;
     }
 
-    // @@     @@    @@    @@@@@@ @@    @@    @@@@@@ @@  @@ @@@@@@ @@@@@@ @@@@@@ @@@@@@@@  | Экспорт
-    // @@@   @@@   @@@@     @@   @@@   @@    @@      @@@@  @@  @@ @@  @@ @@  @@    @@     |
-    // @@ @@@ @@  @@  @@    @@   @@@@@ @@    @@@@@@   @@   @@@@@@ @@  @@ @@@@@@    @@     |
-    // @@  @  @@ @@@@@@@@   @@   @@  @@@@    @@      @@@@  @@     @@  @@ @@ @@     @@     |
-    // @@     @@ @@    @@ @@@@@@ @@   @@@    @@@@@@ @@  @@ @@     @@@@@@ @@  @@    @@     |
+    /*
+     *  @@     @@    @@    @@@@@@ @@    @@    @@@@@@ @@  @@ @@@@@@ @@@@@@ @@@@@@ @@@@@@@@  | Экспорт
+     *  @@@   @@@   @@@@     @@   @@@   @@    @@      @@@@  @@  @@ @@  @@ @@  @@    @@     |
+     *  @@ @@@ @@  @@  @@    @@   @@@@@ @@    @@@@@@   @@   @@@@@@ @@  @@ @@@@@@    @@     |
+     *  @@  @  @@ @@@@@@@@   @@   @@  @@@@    @@      @@@@  @@     @@  @@ @@ @@     @@     |
+     *  @@     @@ @@    @@ @@@@@@ @@   @@@    @@@@@@ @@  @@ @@     @@@@@@ @@  @@    @@     |
+     */
 
-    public function mainExport($formData, $fileName, $filePath)
+    public function mainExport($input, $fileName, $filePath, $oldFilePath, $temporaryFilePath)  // выяснить что приходит в $formData и отделить страницы
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
-
-        // инициализация файла
-        $xls = new PHPExcel();
-        $xls->setActiveSheetIndex(0);
-        $sheet = $xls->getActiveSheet(); // инициализация листа
-        $sheet->setTitle($fileName);     // определяем заголовок страницы
-        $sheet->setCellValue("A1", 'файл создан');
-        $objWriter = new PHPExcel_Writer_Excel2007($xls);
-        $objWriter->save($filePath);
-        unset($xls);
-        unset($sheet);
-
-
         /*
-         * запрос на получение листа товаров
-         *
-         * Пакетный запрос к БД
-         * с перезагрузкой соединения к БД
+         * $writer;   // данные по временным файлам
+         * $line;     // номер линии
+         * $column;   // колонки
+         * $limit;    // макс выдачи в одном запросе к БД
+         * $offset;   // начальный номер выдачи
+         * $pages;    // кол-во страниц
+         * $cycleNum; // номер нынешней страницы
          */
 
+
         // объявление параметров для экспорта
+        $cycleNum   = $input['cycleNum'];
         $limit      = 1000;
-        $offset     = 0;
+        $offset     = $cycleNum * $limit;
         $line       = 1;
+        $formData   = $input['columns'];
         $goodsIndex = [];
         $column     = array();
         $headerCSV  = array();
 
+        /*
+         * запрос на получение __листа_товаров__
+         * Пакетный запрос к БД с перезагрузкой соединения к БД
+         * сбор данных о $limit товарах за проход __цикла__
+         */
         list($mainRequest, $pages) = $this->shopPrice($limit, $offset);
-        //for ($cycleNum = 0; $cycleNum < $pages; ++$cycleNum) {
-        for ($cycleNum = 0; $cycleNum < $pages; ++$cycleNum) {
-            // получение лимитированного списка товаров
-            $goodsL  = $mainRequest->getList($limit, $offset);
-            $offset += $limit;
-            $mainRequest->reConnection();
-            writeLog("Размер скрипта: ".memory_get_usage());
+        $goodsL  = $mainRequest->getList($limit, $offset);  // получение лимитированного списка товаров
 
-            $time_start = microtime(true);
-            list($line, $column) = $this->exportCycle(
-                $sheet, $line, $goodsL, $goodsIndex, $xls,
+
+        if (!empty($goodsL)) {
+            /*
+             * Инициализация __объекта__ XLSX файла ИЛИ загрузка из сессии
+             *
+             * библиотека - Spout
+             * https://github.com/box/spout
+             *
+             * $writer->addRow(['dsfsd','fgdgdf','sdfert']);              добавить строку за раз
+             * $writer->addRows([['dsfsd','sdfert'],['fdgfdg','sdfd']]);  добавлять несколько строк за раз
+             * $writer->openToBrowser($fileName);                         передавать данные непосредственно в браузер
+             */
+            if ($cycleNum == 0) {
+                $writer = WriterFactory::create(Type::XLSX);
+                $writer->setTempFolder($temporaryFilePath);               // директория хранения временных файлов
+                $writer->openToFile($filePath);                           // директория сохраниния XLSX
+            } else {
+
+                /*
+                 * переименовываем файл
+                 * инициализируем метод чтения файла
+                 * инициализируем метод записи файла
+                 * переливаем по листам, по строкам в новый файл
+                 */
+
+                rename($filePath, $oldFilePath);
+
+                $reader = ReaderFactory::create(Type::XLSX);
+                $reader->setTempFolder($temporaryFilePath);               // директория хранения временных файлов
+                $reader->open($oldFilePath);
+                $reader->setShouldFormatDates(true);                      // это позволяет копировать даты
+
+                $writer = WriterFactory::create(Type::XLSX);
+                $writer->setTempFolder($temporaryFilePath);               // директория хранения временных файлов
+                $writer->openToFile($filePath);                           // директория сохраниния XLSX
+
+                foreach ($reader->getSheetIterator() as $sheetIndex => $sheet) {
+                    if ($sheetIndex !== 1) {
+                        $writer->addNewSheetAndMakeItCurrent();
+                    }
+                    foreach ($sheet->getRowIterator() as $row) {
+                        $writer->addRow($row);
+                    }
+                }
+            }
+
+
+            list($writer, $line, $column) = $this->exportCycle(
+                $writer, $line, $goodsL, $goodsIndex,
                 $filePath, $formData, $cycleNum, $column, $pages, $fileName
-            );
-            $time_end = microtime(true);
-            $time = $time_end - $time_start;
-            writeLog("Process Time: {$time}");
+            );  // Запись из БД в файл
+
+
+            /*
+             * если __первый__ цикл
+             *   сохраняем файл
+             *   закрываем объект записи
+             * иначе
+             *   сохраняем файл
+             *   закрываем объект записи
+             *   закрываем объект чтения
+             */
+            $writer->close();
+            unset($writer);
+            if ($cycleNum != 0) {
+                $reader->close();
+                unset($reader);
+            }
+            unset($mainRequest);
+            unset($objWriter);
         }
-        unset($mainRequest);
-        return $headerCSV;   // возврат в Ajax для завершения загрузки
+
+
+        return $pages;   // возврат в Ajax колво страниц в формируемом файле
     }
 
 
-    // @@@@@@ @@  @@ @@@@@@ @@     @@@@@@  | цикл экспорта
-    // @@     @@  @@ @@     @@     @@      |
-    // @@      @@@@  @@     @@     @@@@@@  |
-    // @@       @@   @@     @@     @@      |
-    // @@@@@@   @@   @@@@@@ @@@@@@ @@@@@@  |
+    /*
+     *  @@@@@@ @@  @@ @@@@@@ @@     @@@@@@  | цикл экспорта
+     *  @@     @@  @@ @@     @@     @@      |
+     *  @@      @@@@  @@     @@     @@@@@@  |
+     *  @@       @@   @@     @@     @@      |
+     *  @@@@@@   @@   @@@@@@ @@@@@@ @@@@@@  |
+     */
 
     // завершение экспорта
     public function exportCycle(
-        $sheet, $line, $goodsL, $goodsIndex, $xls,
+        $writer, $line, $goodsL, $goodsIndex,
         $filePath, $formData, $cycleNum, $column, $pages
     ) {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
-//        writeLog("линия: ".$line);
-//        writeLog(memory_get_usage());
-//        writeLog(count($sheet));
-//        writeLog(count($goodsL));
-//        writeLog(count($goodsIndex));
-//        writeLog(count($xls));
-//        writeLog(gettype($modifications));
-//        writeLog(gettype($excludingKeys));
-//        writeLog(gettype($headerCSV));
-//        writeLog(count($filePath));
-//        writeLog(count($urlFile));
-//        writeLog(count($fileName));
-//        writeLog(count($formData));                 
-//        writeLog(count($cycleNum));                 
-//        writeLog(count($column));
-//        writeLog(count($pages));
-
-        // подключение к существующему файлу
-        $xls = PHPExcel_IOFactory::createReader('Excel2007');
-        $xls = $xls->load($filePath);                                    // подключение к файлу Excel
-        $xls->setActiveSheetIndex(0);
-        $sheet = $xls->getActiveSheet();                                 // инициализация листа
 
         // фильтрация значений
         $goodsLFilter = [];
@@ -153,10 +196,6 @@ class ProductExport extends Product
         $goodsL = $goodsLFilter;
 
         $this->debugging('special', __FUNCTION__ . ' ' . __LINE__, __CLASS__, 'экспортируемые данные');
-        //writeLog($goodsL);
-
-        if (!$goodsL)
-            throw new Exception();
 
         $modsCols      = $this->modsCols();      // особенности
         $groups        = $this->groups();        // группы товаров
@@ -208,31 +247,22 @@ class ProductExport extends Product
         if ($cycleNum == 0)
             $column                = $this->columnLayout($column_number, $column, $last_column);
         if ($cycleNum == 0)
-            $line                  = $this->recordHeaders($headerCSV, $sheet, $column, $line);
-        $line                      = $this->pricesWithoutModifications($goodsL, $excludingKeys, $column, $line, $sheet);
-        $line                      = $this->pricesWithModifications($modifications, $lastId, $goodsItem,$goodsIndex, $excludingKeys, $line, $sheet);
-        $objWriter = PHPExcel_IOFactory::createWriter($xls, 'Excel2007');
-        $objWriter->save($filePath);
-        unset($xls);
-        unset($sheet);
+            list($writer, $line)   = $this->recordHeaders($writer, $headerCSV, $line);
+        list($writer, $line)       = $this->pricesWithoutModifications($writer, $goodsL, $excludingKeys, $column, $line);
+        list($writer, $line)       = $this->pricesWithModifications($writer, $modifications, $lastId, $goodsItem,$goodsIndex, $excludingKeys, $line);
 
-        return [$line, $column];
-
-//        // передача в Ajax
-//        if (file_exists($filePath) && filesize($filePath)) {
-//            $this->result['url'] = $urlFile;
-//            $this->result['name'] = $fileName;
-//            $this->result['headerCSV'] = $headerCSV;
-//        } else $this->result = "Не удаётся экспортировать данные контакта!";
+        return [$writer, $line, $column];
     }
 
 
 
-    // @@@@@@@@ @@@@@@ @@@@@     @@    @@@@@@ @@     @ | ПОЛУЧЕНИЕ
-    //    @@    @@  @@ @@  @@   @@@@   @@  @@ @@     @ | листа товаров
-    //    @@    @@  @@ @@@@@   @@  @@  @@@@@@ @@@@@@ @ |
-    //    @@    @@  @@ @@  @@ @@@@@@@@ @@     @@  @@ @ |
-    //    @@    @@@@@@ @@@@@  @@    @@ @@     @@@@@@ @ |
+    /*
+     *  @@@@@@@@ @@@@@@ @@@@@     @@    @@@@@@ @@     @ | ПОЛУЧЕНИЕ
+     *     @@    @@  @@ @@  @@   @@@@   @@  @@ @@     @ | листа товаров
+     *     @@    @@  @@ @@@@@   @@  @@  @@@@@@ @@@@@@ @ |
+     *     @@    @@  @@ @@  @@ @@@@@@@@ @@     @@  @@ @ |
+     *     @@    @@@@@@ @@@@@  @@    @@ @@     @@@@@@ @ |
+     */ 
 
     // получение листа товаров
     private function shopPrice($limit, $offset)
@@ -240,6 +270,7 @@ class ProductExport extends Product
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         // получаем данные из БД
         $u = new DB('shop_price', 'sp');
+        $u->reConnection();  // перезагрузка запроса
         $u->select('COUNT(*) `count`');
         $result = $u->getList();
         $count = $result[0]["count"];
@@ -365,17 +396,20 @@ class ProductExport extends Product
         return [$u, $pages];
     }
 
-    // @@@@@@@@ @@@@@@ @@@@@     @@    @@@@@@ @@     @     @     | ПОЛУЧЕНИЕ
-    //    @@    @@  @@ @@  @@   @@@@   @@  @@ @@     @     @     | особенностей товаров
-    //    @@    @@  @@ @@@@@   @@  @@  @@@@@@ @@@@@@ @  @@@@@@@  | групп        товаров
-    //    @@    @@  @@ @@  @@ @@@@@@@@ @@     @@  @@ @     @     | модификаций  товаров
-    //    @@    @@@@@@ @@@@@  @@    @@ @@     @@@@@@ @     @     |
+   /*
+    *  @@@@@@@@ @@@@@@ @@@@@     @@    @@@@@@ @@     @     @     | ПОЛУЧЕНИЕ
+    *     @@    @@  @@ @@  @@   @@@@   @@  @@ @@     @     @     | особенностей товаров
+    *     @@    @@  @@ @@@@@   @@  @@  @@@@@@ @@@@@@ @  @@@@@@@  | групп        товаров
+    *     @@    @@  @@ @@  @@ @@@@@@@@ @@     @@  @@ @     @     | модификаций  товаров
+    *     @@    @@@@@@ @@@@@  @@    @@ @@     @@@@@@ @     @     |
+    */
 
     // особенности
     private function modsCols()
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, 'экспортируемые данные');
         $u = new DB('shop_feature', 'sf');
+        $u->reConnection();  // перезагрузка запроса
         $u->select('sf.id Id, CONCAT_WS(\'#\', smg.name, sf.name) name');
         $u->innerJoin('shop_group_feature sgf', 'sgf.id_feature = sf.id');
         $u->innerJoin('shop_modifications_group smg', 'smg.id = sgf.id_group');
@@ -391,6 +425,7 @@ class ProductExport extends Product
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $u = new DB('shop_group', 'sg');
+        $u->reConnection();  // перезагрузка запроса
         if (CORE_VERSION != "5.2") {
             $u->select('sg.id, GROUP_CONCAT(sgp.name ORDER BY sgt.level SEPARATOR "/") name');
             $u->innerJoin("shop_group_tree sgt", "sg.id = sgt.id_child"); // присоединение столбца из другой таблицы
@@ -411,6 +446,7 @@ class ProductExport extends Product
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $u = new DB('shop_modifications', 'sm');
+        $u->reConnection();  // перезагрузка запроса
         $u->select('sm.id id, sm.id_mod_group idGroup, sm.id_price idProduct, sm.code article, sm.value price, sm.count,
 				smg.name nameGroup, smg.vtype typeGroup,
 				GROUP_CONCAT(CONCAT_WS(\'\t\', CONCAT_WS(\'#\', smg.name, sf.name), sfvl.value) SEPARATOR \'\n\') `values`,
@@ -428,12 +464,13 @@ class ProductExport extends Product
         return $modifications;
     }
 
-
-    // @@@@@@ @@@@@@ @@     @@@@@@  | формирование, запись файла
-    // @@       @@   @@     @@      |
-    // @@@@@@   @@   @@     @@@@@@  |
-    // @@       @@   @@     @@      |
-    // @@     @@@@@@ @@@@@@ @@@@@@  |
+    /*
+     *  @@@@@@ @@@@@@ @@     @@@@@@  | формирование, запись файла
+     *  @@       @@   @@     @@      |
+     *  @@@@@@   @@   @@     @@@@@@  |
+     *  @@       @@   @@     @@      |
+     *  @@     @@@@@@ @@@@@@ @@@@@@  |
+     */
 
     // замена значений на пользовательские
     private function customValues(
@@ -504,21 +541,17 @@ class ProductExport extends Product
 
     // записываем заголовки
     private function recordHeaders(
-        $headerCSV, $sheet, $column, $line
+        $writer, $headerCSV, $line
     ) {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
-        $column_num = 0;
-        foreach($headerCSV as $head) {
-            $sheet->setCellValue("{$column[$column_num]}{$line}", $head);
-            $column_num++;
-        }
+        $writer->addRow($headerCSV);
         $line++;
-        return $line;
+        return [$writer, $line];
     }
 
     // вывод товаров без модификаций
     private function pricesWithoutModifications(
-        $goodsL, $excludingKeys, $column, $line, $sheet
+        $writer, $goodsL, $excludingKeys, $column, $line
     ) {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         foreach ($goodsL as $row) {
@@ -536,20 +569,16 @@ class ProductExport extends Product
                     }
                 }
                 // записываем данные по товарам
-                $column_num = 0;
-                foreach($out as $ou) {
-                    $sheet->setCellValue("{$column[$column_num]}{$line}", $ou);
-                    $column_num++;
-                }
+                $writer->addRow($out);
                 $line++;
             }
         }
-        return $line;
+        return [$writer, $line];
     }
 
     // вывод товаров с модификациями
     private function pricesWithModifications(
-        $modifications, $lastId, $goodsItem, $goodsIndex, $excludingKeys, $line, $sheet
+        $writer, $modifications, $lastId, $goodsItem,$goodsIndex, $excludingKeys, $line
     ) {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         foreach ($modifications as $mod) {
@@ -595,14 +624,11 @@ class ProductExport extends Product
                 }
                 // записываем данные по модификациям товаров
                 $column_num = 0;
-                foreach($out as $ou) {
-                    $sheet->setCellValue("{$column[$column_num]}{$line}", $ou);
-                    $column_num++;
-                }
+                $writer->addRow($out);
                 $line++;
             }
         }
-        return $line;
+        return [$writer, $line];
     }
 
 }

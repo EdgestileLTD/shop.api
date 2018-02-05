@@ -47,6 +47,8 @@ class ExcelWriter
     /**
      * ExcelWriter constructor.
      * @throws \Exception
+     * 
+     * инициализровать
      */
     public function __construct()
     {
@@ -65,12 +67,17 @@ class ExcelWriter
 
     /**
      * @param string $author
+     *
+     * задать Автора
      */
     public function setAuthor($author)
     {
         $this->core->setAuthor($author);
     }
 
+    /**
+     * разрушить
+     */
     public function __destruct()
     {
         if (!empty($this->tempFiles)) {
@@ -84,6 +91,8 @@ class ExcelWriter
 
     /**
      * @param $dir
+     *
+     * установить каталог для временных файлов
      */
     public function setTmpDir($dir)
     {
@@ -94,6 +103,8 @@ class ExcelWriter
      * Set output filename: yourFileName.xlsx
      *
      * @param string $fileName
+     *
+     * установить имя файла
      */
     public function setFileName($fileName)
     {
@@ -103,6 +114,8 @@ class ExcelWriter
     /**
      * Return tmpFileName
      * @return string
+     *
+     * получить имя временного файла
      */
     protected function tempFilename()
     {
@@ -115,6 +128,8 @@ class ExcelWriter
 
     /**
      * @param bool $headers
+     *
+     * стандартный вывод
      */
     public function writeToStdOut($headers = true)
     {
@@ -141,6 +156,8 @@ class ExcelWriter
 
     /**
      * @return string
+     *
+     * записать в строку
      */
     public function writeToString()
     {
@@ -153,6 +170,8 @@ class ExcelWriter
 
     /**
      * @param string $filename
+     *
+     * записать в файл
      */
     public function writeToFile($filename)
     {
@@ -191,6 +210,8 @@ class ExcelWriter
 
     /**
      * @param string $sheetName
+     *
+     * инициализировать лист
      */
     protected function initializeSheet($sheetName)
     {
@@ -226,6 +247,8 @@ class ExcelWriter
      * @param $cellFormat
      *
      * @return string
+     *
+     * определить тип ячейки
      */
     private function determineCellType($cellFormat)
     {
@@ -276,6 +299,8 @@ class ExcelWriter
      * @param $cellFormat
      *
      * @return int|mixed
+     *
+     * добавить формат ячейки
      */
     private function addCellFormat($cellFormat)
     {
@@ -296,6 +321,8 @@ class ExcelWriter
      * @param string $cellFormat
      *
      * @return string
+     *
+     * получить формат ячейки
      */
     private function getCellFormat($cellFormat)
     {
@@ -326,6 +353,9 @@ class ExcelWriter
      * @param string $sheetName
      * @param array $headerTypes
      * @param bool $suppressRow
+     *
+     * написать заголовок листа
+     * название листа / типы заголовков / подавлять строку
      */
     public function writeSheetHeader($sheetName, array $headerTypes, $suppressRow = false)
     {
@@ -349,6 +379,8 @@ class ExcelWriter
     /**
      * @param Sheet $sheet
      * @param array $headerRow
+     *
+     * написать строку заголовка
      */
     private function writeRowHeader(Sheet $sheet, $headerRow)
     {
@@ -365,6 +397,8 @@ class ExcelWriter
     /**
      * @param string $sheetName
      * @param array $row
+     *
+     * написать лист строк
      */
     public function writeSheetRow($sheetName, array $row)
     {
@@ -401,6 +435,8 @@ class ExcelWriter
 
     /**
      * @param string $sheetName
+     *
+     * финализировать лист
      */
     protected function finalizeSheet($sheetName)
     {
@@ -438,6 +474,8 @@ class ExcelWriter
      * @param int $startCellColumn
      * @param int $endCellRow
      * @param int $endCellColumn
+     *
+     * объединение клеток
      */
     public function markMergedCell($sheetName, $startCellRow, $startCellColumn, $endCellRow, $endCellColumn)
     {
@@ -456,6 +494,9 @@ class ExcelWriter
      * @param array $data
      * @param string $sheetName
      * @param array $headerTypes
+     *
+     * создать лист
+     * данные / назваине листа / типы заголовков
      */
     public function writeSheet(array $data, $sheetName = '', array $headerTypes = [])
     {
@@ -476,6 +517,9 @@ class ExcelWriter
      * @param int $columnNumber
      * @param mixed $value
      * @param $cellIndex
+     *
+     * создать ячейку
+     * файл / ном строки / номер колонки / значение / индекс ячейки
      */
     protected function writeCell(Writer $file, $rowNumber, $columnNumber, $value, $cellIndex)
     {
@@ -495,6 +539,8 @@ class ExcelWriter
 
     /**
      * @return string
+     *
+     * написать стили
      */
     protected function writeStylesXML()
     {
@@ -511,6 +557,8 @@ class ExcelWriter
      * @param $v
      *
      * @return int|mixed
+     *
+     * установить общую строку
      */
     protected function setSharedString($v)
     {
@@ -527,6 +575,8 @@ class ExcelWriter
 
     /**
      * @return string
+     *
+     * написать XML-файлы общих строк
      */
     protected function writeSharedStringsXML()
     {
@@ -542,6 +592,8 @@ class ExcelWriter
     /**
      * @param \ZipArchive $zip
      * @param string $filename
+     *
+     * проверить и отключить
      */
     private function checkAndUnlink(\ZipArchive $zip, $filename)
     {

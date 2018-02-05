@@ -2494,6 +2494,8 @@ class PHPExcel_Worksheet implements PHPExcel_IComparable
 
 	/**
 	 * Run PHPExcel garabage collector.
+     *
+     * Запустите сборщик мусора PHPExcel.
 	 *
 	 * @return PHPExcel_Worksheet
 	 */

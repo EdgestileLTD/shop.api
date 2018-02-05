@@ -26,23 +26,24 @@ function writeLog($data)
     if (!is_string($data))
         $data = print_r($data, 1);
     $file = fopen($_SERVER['DOCUMENT_ROOT'] . "/api/" . API_VERSION ."/debug.log", "a+");
-    $query = "$data" . "\n";
+    $query = date('[Y-m-d H:i:s] ') . "$data" . "\n";
     fputs($file, $query);
     fclose($file);
 }
 
-if (IS_EXT) {  
+// библиотеки
+if (IS_EXT) {
     require_once 'api/update.php';
     require_once 'lib/lib_function.php';
     require_once 'lib/lib_se_function.php';
-    require_once 'lib/PHPExcel.php';
-    require_once 'lib/PHPExcel/Writer/Excel2007.php';
+//    require_once 'lib/PHPExcel.php';
+//    require_once 'lib/PHPExcel/Writer/Excel2007.php';
 } else {
     require_once '/home/e/edgestile/admin/home/siteedit/lib/function.php';
     require_once '/home/e/edgestile/admin/home/siteedit/lib/lib_function.php';
-    require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel.php';
-    require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel/IOFactory.php';
-    require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel/Writer/Excel2007.php';
+//    require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel.php';
+//    require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel/IOFactory.php';
+//    require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel/Writer/Excel2007.php';
 }
 
 require_once API_ROOT . "version.php";

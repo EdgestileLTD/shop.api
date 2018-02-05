@@ -6,9 +6,9 @@ use SE\DB;
 use SE\Exception;
 use SE\Import;
 use SE\Shop\ProductExport as ProductExport;
-use \PHPExcel as PHPExcel;
-use \PHPExcel_Writer_Excel2007 as PHPExcel_Writer_Excel2007;
-use \PHPExcel_Style_Fill as PHPExcel_Style_Fill;
+//use \PHPExcel as PHPExcel;
+//use \PHPExcel_Writer_Excel2007 as PHPExcel_Writer_Excel2007;
+//use \PHPExcel_Style_Fill as PHPExcel_Style_Fill;
 
 class Product extends Base
 {
@@ -925,7 +925,7 @@ class Product extends Base
                         $items["price"] = $items["priceValue"];
                         $u = new DB('shop_product_option');
                         $u->setValuesFields($items);
-                        writeLog($items);
+                        //writeLog($items);
                         $u->save();
                     }
                 }
@@ -1826,13 +1826,19 @@ class Product extends Base
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         // прием данных из формы
-        $formData = $this->input;
+        $input = $this->input;
 
         // определяем параметры файла
         $fileName = "export_products.xlsx";
+        $oldFileName = "old_export_products.xlsx";
         $filePath = DOCUMENT_ROOT . "/files";
         if (!file_exists($filePath) || !is_dir($filePath))
             mkdir($filePath);
+        $temporaryFilePath = "{$filePath}/tempfile";
+        // создать директорию, если отсутствует
+        if (!is_dir($temporaryFilePath))
+            mkdir($temporaryFilePath, 0777);
+        $oldFilePath = $filePath."/{$oldFileName}";
         $filePath .= "/{$fileName}";
         $urlFile  = 'http://' . HOSTNAME . "/files/{$fileName}";
 
@@ -1849,26 +1855,24 @@ class Product extends Base
              * На переключение влияет параметр  $this->input['statusPreview']  true или отсутствие
              */
 
-            if ($formData['statusPreview'] == true) {
+            if ($input['statusPreview'] == true) {
                 // получаем заголовки + модификации товаров
                 $headerCSV = $export->previewExport();
             } else {
-
                 // получение данных из базы (заголовки,товары)
-                $headerCSV = $export->mainExport($formData, $fileName, $filePath);
-
+                $pages = $export->mainExport($input, $fileName, $filePath, $oldFilePath, $temporaryFilePath);
             };
 
             // передача в Ajax
-            if (file_exists($filePath) && filesize($filePath)) {
-                $this->result['url']       = $urlFile;
-                $this->result['name']      = $fileName;
-                $this->result['headerCSV'] = $headerCSV;
-            } else $this->result = "Не удаётся экспортировать данные контакта!";
+            $this->result['pages']     = $pages;
+            $this->result['url']       = $urlFile;
+            $this->result['name']      = $fileName;
+            $this->result['headerCSV'] = $headerCSV;
 
         } catch (Exception $e) {
             // ошибка экспорта
-            $this->error = "Не удаётся экспортировать товары!";
+            $this->error = $e->getMessage();
+            //$this->error = "Не удаётся экспортировать товары!";
             throw new Exception($this->error);
         }
     }

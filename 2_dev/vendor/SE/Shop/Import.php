@@ -1,7 +1,12 @@
 <?php
 
 namespace SE;
-// завод // автопогрузчик
+
+require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel/IOFactory.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel/Writer/Excel2007.php';
+
+// Старая Excel библиотека
 use \PHPExcel_IOFactory as PHPExcel_IOFactory;
 use \PHPExcel_Autoloader as PHPExcel_Autoloader;
 

@@ -130,6 +130,9 @@ class PHPExcel
 	/**
 	 * Disconnect all worksheets from this PHPExcel workbook object,
 	 *    typically so that the PHPExcel object can be unset
+     *
+     * Отключите все рабочие листы из этого объекта рабочей книги PHPExcel,
+     * как правило, чтобы объект PHPExcel можно было отключить
 	 *
 	 */
 	public function disconnectWorksheets() {
@@ -721,10 +724,13 @@ class PHPExcel
 	/**
 	 * Eliminate all unneeded cellXf and afterwards update the xfIndex for all cells
 	 * and columns in the workbook
+     *
+     * Устраните все ненужные cellXf, а затем обновите xfIndex для всех ячеек и столбцов в книге
 	 */
 	public function garbageCollect()
 	{
     	// how many references are there to each cellXf ?
+        // сколько ссылок есть на каждый cellXf?
 		$countReferencesCellXf = array();
 		foreach ($this->_cellXfCollection as $index => $cellXf) {
 			$countReferencesCellXf[$index] = 0;
@@ -733,12 +739,14 @@ class PHPExcel
 		foreach ($this->getWorksheetIterator() as $sheet) {
 
 			// from cells
+            // из ячеек
 			foreach ($sheet->getCellCollection(false) as $cellID) {
 				$cell = $sheet->getCell($cellID);
 				++$countReferencesCellXf[$cell->getXfIndex()];
 			}
 
 			// from row dimensions
+            // от разделов ряда
 			foreach ($sheet->getRowDimensions() as $rowDimension) {
 				if ($rowDimension->getXfIndex() !== null) {
 					++$countReferencesCellXf[$rowDimension->getXfIndex()];
@@ -746,13 +754,16 @@ class PHPExcel
 			}
 
 			// from column dimensions
+            // из размеров столбцов
 			foreach ($sheet->getColumnDimensions() as $columnDimension) {
 				++$countReferencesCellXf[$columnDimension->getXfIndex()];
 			}
 		}
 
 		// remove cellXfs without references and create mapping so we can update xfIndex
-		// for all cells and columns
+        // for all cells and columns
+        // удалить cellXfs без ссылок и создать сопоставление, чтобы мы могли обновить xfIndex
+        // для всех ячеек и столбцов
 		$countNeededCellXfs = 0;
 		foreach ($this->_cellXfCollection as $index => $cellXf) {
 			if ($countReferencesCellXf[$index] > 0 || $index == 0) { // we must never remove the first cellXf
@@ -765,25 +776,30 @@ class PHPExcel
 		$this->_cellXfCollection = array_values($this->_cellXfCollection);
 
 		// update the index for all cellXfs
+        // обновить индекс для всех cellXfs
 		foreach ($this->_cellXfCollection as $i => $cellXf) {
 			$cellXf->setIndex($i);
 		}
 
 		// make sure there is always at least one cellXf (there should be)
+        // убедитесь, что всегда есть хотя бы один cellXf (должно быть)
 		if (empty($this->_cellXfCollection)) {
 			$this->_cellXfCollection[] = new PHPExcel_Style();
 		}
 
 		// update the xfIndex for all cells, row dimensions, column dimensions
+        // обновить xfIndex для всех ячеек, размеры строк, размеры столбцов
 		foreach ($this->getWorksheetIterator() as $sheet) {
 
 			// for all cells
+            // для всех ячеек
 			foreach ($sheet->getCellCollection(false) as $cellID) {
 				$cell = $sheet->getCell($cellID);
 				$cell->setXfIndex( $map[$cell->getXfIndex()] );
 			}
 
 			// for all row dimensions
+            // для всех размеров строк
 			foreach ($sheet->getRowDimensions() as $rowDimension) {
 				if ($rowDimension->getXfIndex() !== null) {
 					$rowDimension->setXfIndex( $map[$rowDimension->getXfIndex()] );
@@ -791,12 +807,14 @@ class PHPExcel
 			}
 
 			// for all column dimensions
+            // для всех размеров столбцов
 			foreach ($sheet->getColumnDimensions() as $columnDimension) {
 				$columnDimension->setXfIndex( $map[$columnDimension->getXfIndex()] );
 			}
 		}
 
 		// also do garbage collection for all the sheets
+        // также делать сбор мусора для всех листов
 		foreach ($this->getWorksheetIterator() as $sheet) {
 			$sheet->garbageCollect();
 		}

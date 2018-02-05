@@ -37,6 +37,8 @@ class Writer
 
     /**
      * @param $string
+     *
+     * записать
      */
     public function write($string)
     {
@@ -48,6 +50,8 @@ class Writer
 
     /**
      * add to file
+     *
+     * чистить
      */
     protected function purge()
     {
@@ -59,6 +63,8 @@ class Writer
 
     /**
      * close writing
+     *
+     * закрытие записи
      */
     public function close()
     {
@@ -71,6 +77,8 @@ class Writer
 
     /**
      * close after end
+     *
+     * закрыть после конца
      */
     public function __destruct()
     {

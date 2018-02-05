@@ -2,6 +2,10 @@
 
 namespace SE\Shop;
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel/IOFactory.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel/Writer/Excel2007.php';
+
 use SE\DB as DB;
 use SE\Exception;
 use \PHPExcel as PHPExcel;
