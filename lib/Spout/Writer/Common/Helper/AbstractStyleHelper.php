@@ -126,12 +126,12 @@ abstract class AbstractStyleHelper
             return $style;
         }
 
-        foreach ($dataRow as $cell) {
-            if (is_string($cell) && strpos($cell, "\n") !== false) {
-                $style->setShouldWrapText();
-                break;
-            }
-        }
+        // foreach ($dataRow as $cell) {
+        //     if (is_string($cell) && strpos($cell, "\n") !== false) {
+        //         $style->setShouldWrapText();
+        //         break;
+        //     }
+        // }
 
         return $style;
     }

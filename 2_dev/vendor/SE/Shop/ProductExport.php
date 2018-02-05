@@ -128,6 +128,7 @@ class ProductExport extends Product
                 $writer = WriterFactory::create(Type::XLSX);
                 $writer->setTempFolder($temporaryFilePath);               // директория хранения временных файлов
                 $writer->openToFile($filePath);                           // директория сохраниния XLSX
+                // перенос по словам отключен в библиотеке Spout\Writer\Common\Helper\AbstractStyleHelper.php
 
                 foreach ($reader->getSheetIterator() as $sheetIndex => $sheet) {
                     if ($sheetIndex !== 1) {
