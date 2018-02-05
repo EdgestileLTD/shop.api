@@ -16,6 +16,20 @@ class ProductExport extends Product
 {
 
     /*
+     * Удаление всего содержимого директории
+     */
+    public function rmdir_recursive($dir)
+    {
+        foreach(scandir($dir) as $file) {
+            if ('.' === $file || '..' === $file) continue;
+            if (is_dir("$dir/$file")) $this->rmdir_recursive("$dir/$file");
+            else unlink("$dir/$file");
+        }
+        // rmdir($dir);
+    }
+
+
+    /*
      *  @@@@@@ @@@@@@ @@@@@@ @@    @@    @@@@@@ @@  @@ @@@@@@  | превью экспорта
      *  @@  @@ @@  @@ @@     @@    @@    @@      @@@@  @@  @@  |
      *  @@@@@@ @@@@@@ @@@@@@  @@  @@     @@@@@@   @@   @@@@@@  |
@@ -23,8 +37,11 @@ class ProductExport extends Product
      *  @@     @@  @@ @@@@@@    @@       @@@@@@ @@  @@ @@      |
      */ 
 
-    public function previewExport()
+    public function previewExport($temporaryFilePath)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
+        $this->rmdir_recursive($temporaryFilePath);  // очистка директории с временными файлами
+
         $headerCSV = array();
         foreach ($this->rusCols as $k => $v)
             array_push($headerCSV, $v);

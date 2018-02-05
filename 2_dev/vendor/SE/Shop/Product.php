@@ -1831,16 +1831,16 @@ class Product extends Base
         // определяем параметры файла
         $fileName = "export_products.xlsx";
         $oldFileName = "old_export_products.xlsx";
-        $filePath = DOCUMENT_ROOT . "/files";
+        $filePath = DOCUMENT_ROOT . "/files/tempfiles";
         if (!file_exists($filePath) || !is_dir($filePath))
             mkdir($filePath);
-        $temporaryFilePath = "{$filePath}/tempfile";
+        $temporaryFilePath = "{$filePath}";
         // создать директорию, если отсутствует
-        if (!is_dir($temporaryFilePath))
-            mkdir($temporaryFilePath, 0777);
+        // if (!is_dir($temporaryFilePath))
+        //     mkdir($temporaryFilePath, 0777);
         $oldFilePath = $filePath."/{$oldFileName}";
         $filePath .= "/{$fileName}";
-        $urlFile  = 'http://' . HOSTNAME . "/files/{$fileName}";
+        $urlFile  = 'http://' . HOSTNAME . "/files/tempfiles/{$fileName}";
 
         try {
 
@@ -1857,7 +1857,7 @@ class Product extends Base
 
             if ($input['statusPreview'] == true) {
                 // получаем заголовки + модификации товаров
-                $headerCSV = $export->previewExport();
+                $headerCSV = $export->previewExport($temporaryFilePath);
             } else {
                 // получение данных из базы (заголовки,товары)
                 $pages = $export->mainExport($input, $fileName, $filePath, $oldFilePath, $temporaryFilePath);
