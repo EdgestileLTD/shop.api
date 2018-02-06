@@ -16,6 +16,12 @@ class ProductExport extends Product
 {
 
     /*
+     * @@@@@@  @@@@@@ @@     @@@@@@ @@@@@@@@ @@@@@@ |
+     * @@   @@ @@     @@     @@        @@    @@     |
+     * @@   @@ @@@@@@ @@     @@@@@@    @@    @@@@@@ |
+     * @@   @@ @@     @@     @@        @@    @@     |
+     * @@@@@@  @@@@@@ @@@@@@ @@@@@@    @@    @@@@@@ |
+     *
      * Удаление всего содержимого директории
      */
     public function rmdir_recursive($dir)
@@ -35,7 +41,7 @@ class ProductExport extends Product
      *  @@@@@@ @@@@@@ @@@@@@  @@  @@     @@@@@@   @@   @@@@@@  |
      *  @@     @@ @@  @@       @@@@      @@      @@@@  @@      |
      *  @@     @@  @@ @@@@@@    @@       @@@@@@ @@  @@ @@      |
-     */ 
+     */
 
     public function previewExport($temporaryFilePath)
     {
@@ -93,14 +99,16 @@ class ProductExport extends Product
 
 
         // объявление параметров для экспорта
-        $cycleNum   = $input['cycleNum'];
-        $limit      = 1000;
-        $offset     = $cycleNum * $limit;
-        $line       = 1;
-        $formData   = $input['columns'];
-        $goodsIndex = [];
-        $column     = array();
-        $headerCSV  = array();
+        $cycleNum                = $input['cycleNum'];
+        $limit                   = 1000;
+        $offset                  = $cycleNum * $limit;
+        $line                    = 1;
+        $formData                = $input['columns'];
+        $goodsIndex              = [];
+        $column                  = array();
+        $headerCSV               = array();
+        $writer                  = array();
+        $this->temporaryFilePath = $temporaryFilePath;
 
         /*
          * запрос на получение __листа_товаров__
@@ -112,77 +120,14 @@ class ProductExport extends Product
 
 
         if (!empty($goodsL)) {
-            /*
-             * Инициализация __объекта__ XLSX файла ИЛИ загрузка из сессии
-             *
-             * библиотека - Spout
-             * https://github.com/box/spout
-             *
-             * $writer->addRow(['dsfsd','fgdgdf','sdfert']);              добавить строку за раз
-             * $writer->addRows([['dsfsd','sdfert'],['fdgfdg','sdfd']]);  добавлять несколько строк за раз
-             * $writer->openToBrowser($fileName);                         передавать данные непосредственно в браузер
-             */
-            if ($cycleNum == 0) {
-                $writer = WriterFactory::create(Type::XLSX);
-                $writer->setTempFolder($temporaryFilePath);               // директория хранения временных файлов
-                $writer->openToFile($filePath);                           // директория сохраниния XLSX
-            } else {
-
-                /*
-                 * переименовываем файл
-                 * инициализируем метод чтения файла
-                 * инициализируем метод записи файла
-                 * переливаем по листам, по строкам в новый файл
-                 */
-
-                rename($filePath, $oldFilePath);
-
-                $reader = ReaderFactory::create(Type::XLSX);
-                $reader->setTempFolder($temporaryFilePath);               // директория хранения временных файлов
-                $reader->open($oldFilePath);
-                $reader->setShouldFormatDates(true);                      // это позволяет копировать даты
-
-                $writer = WriterFactory::create(Type::XLSX);
-                $writer->setTempFolder($temporaryFilePath);               // директория хранения временных файлов
-                $writer->openToFile($filePath);                           // директория сохраниния XLSX
-                // перенос по словам отключен в библиотеке Spout\Writer\Common\Helper\AbstractStyleHelper.php
-
-                foreach ($reader->getSheetIterator() as $sheetIndex => $sheet) {
-                    if ($sheetIndex !== 1) {
-                        $writer->addNewSheetAndMakeItCurrent();
-                    }
-                    foreach ($sheet->getRowIterator() as $row) {
-                        $writer->addRow($row);
-                    }
-                }
-            }
-
-
-            list($writer, $line, $column) = $this->exportCycle(
+            $this->exportCycle(
                 $writer, $line, $goodsL, $goodsIndex,
                 $filePath, $formData, $cycleNum, $column, $pages, $fileName
             );  // Запись из БД в файл
-
-
-            /*
-             * если __первый__ цикл
-             *   сохраняем файл
-             *   закрываем объект записи
-             * иначе
-             *   сохраняем файл
-             *   закрываем объект записи
-             *   закрываем объект чтения
-             */
-            $writer->close();
-            unset($writer);
-            if ($cycleNum != 0) {
-                $reader->close();
-                unset($reader);
-            }
-            unset($mainRequest);
-            unset($objWriter);
         }
 
+        if($cycleNum == $pages-1)
+            $this->assembly($pages, $filePath);
 
         return $pages;   // возврат в Ajax колво страниц в формируемом файле
     }
@@ -268,8 +213,7 @@ class ProductExport extends Product
             list($writer, $line)   = $this->recordHeaders($writer, $headerCSV, $line);
         list($writer, $line)       = $this->pricesWithoutModifications($writer, $goodsL, $excludingKeys, $column, $line);
         list($writer, $line)       = $this->pricesWithModifications($writer, $modifications, $lastId, $goodsItem,$goodsIndex, $excludingKeys, $line);
-
-        return [$writer, $line, $column];
+        $this->writTempFiles($writer, $cycleNum);
     }
 
 
@@ -280,7 +224,7 @@ class ProductExport extends Product
      *     @@    @@  @@ @@@@@   @@  @@  @@@@@@ @@@@@@ @ |
      *     @@    @@  @@ @@  @@ @@@@@@@@ @@     @@  @@ @ |
      *     @@    @@@@@@ @@@@@  @@    @@ @@     @@@@@@ @ |
-     */ 
+     */
 
     // получение листа товаров
     private function shopPrice($limit, $offset)
@@ -562,7 +506,7 @@ class ProductExport extends Product
         $writer, $headerCSV, $line
     ) {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
-        $writer->addRow($headerCSV);
+        $writer[] = $headerCSV;
         $line++;
         return [$writer, $line];
     }
@@ -587,7 +531,7 @@ class ProductExport extends Product
                     }
                 }
                 // записываем данные по товарам
-                $writer->addRow($out);
+                $writer[] = $out;
                 $line++;
             }
         }
@@ -642,11 +586,80 @@ class ProductExport extends Product
                 }
                 // записываем данные по модификациям товаров
                 $column_num = 0;
-                $writer->addRow($out);
+                $writer[] = $out;
                 $line++;
             }
         }
         return [$writer, $line];
     }
+
+
+
+    /*
+     * @@@@@@@@ @@@@@@ @@     @@ @@@@@@ | методы по работе с временными файлами
+     *    @@    @@     @@@   @@@ @@  @@ |
+     *    @@    @@@@@@ @@ @@@ @@ @@@@@@ |
+     *    @@    @@     @@  @  @@ @@     |
+     *    @@    @@@@@@ @@     @@ @@     |
+     *                                  |
+     */
+
+    // запись во временные файлы
+    private function writTempFiles($writer, $cycleNum)
+    {
+        /*
+         * создаются временные файлы в директории "files/tempfiles/" с именами "goodsL1.TMP" (число - номер цикла)
+         * объем файла - величина установленная в параметре $limit
+         */
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
+        if (!empty($writer)) {
+            $filename = "{$this->temporaryFilePath}/goodsL{$cycleNum}.TMP";
+            $file = fopen($filename, "w");
+            fwrite($file, json_encode($writer));
+            fclose($file);
+        }
+    }
+
+    // сборка файла из временных
+    private function assembly($pages, $filePath)
+    {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
+        /*
+         * читает объекты из файлов "goodsL1.TMP" (число - номер цикла) в директории "files/tempfiles/",
+         * кол-во циклов опредеялется общим колвом циклов экспорта;
+         * полученные объекты отправляет в Spout на запись файла
+         */
+        if (!empty($pages)) {
+            /*
+             * библиотека - Spout
+             * https://github.com/box/spout
+             *
+             * $writer->addRow(['dsfsd','fgdgdf','sdfert']);              добавить строку за раз
+             * $writer->addRows([['dsfsd','sdfert'],['fdgfdg','sdfd']]);  добавлять несколько строк за раз
+             * $writer->openToBrowser($fileName);                         передавать данные непосредственно в браузер
+             */
+
+            $writer = WriterFactory::create(Type::XLSX);
+            $writer->setTempFolder($temporaryFilePath);                   // директория хранения временных файлов
+            $writer->openToFile($filePath);                               // директория сохраниния XLSX
+
+            for ($cycleNum = 0; $cycleNum < $pages; ++$cycleNum) {
+                $filename = "{$this->temporaryFilePath}/goodsL{$cycleNum}.TMP";
+                $goodsL = $file = json_decode(file_get_contents($filename)); // чтение файла
+                $writer->addRows($goodsL);
+            }
+            unset($mainRequest);
+
+            /*
+             * сохраняем файл
+             * закрываем объект записи
+             */
+            $writer->close();
+            unset($writer);
+            unset($mainRequest);
+            unset($objWriter);
+        }
+    }
+
 
 }
