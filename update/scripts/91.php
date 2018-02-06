@@ -4,7 +4,7 @@ se_db_query('CREATE TABLE import_profile (
   id int(10) NOT NULL AUTO_INCREMENT,
   name varchar(255) NOT NULL,
   settings text DEFAULT NULL COMMENT \'Настройки в json формате\',
-  updated_at timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  updated_at timestamp NULL DEFAULT NULL,
   created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id)
 )

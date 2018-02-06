@@ -8,7 +8,7 @@ se_db_query("CREATE TABLE shop_measure_weight (
   value double(10, 6) DEFAULT NULL COMMENT 'Мера',
   is_base tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Признак базовой меры',
   `precision` int(11) DEFAULT NULL COMMENT 'Точность числа (кол-во знаков после запятой)',
-  updated_at timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  updated_at timestamp NULL DEFAULT NULL,
   created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id)
 )
@@ -25,7 +25,7 @@ se_db_query("CREATE TABLE shop_measure_volume (
   value double(10, 6) DEFAULT NULL COMMENT 'Мера',
   is_base tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Признак базовой меры',
   `precision` int(11) DEFAULT NULL COMMENT 'Точность числа (кол-во знаков после запятой)',
-  updated_at timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  updated_at timestamp NULL DEFAULT NULL,
   created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id)
 )
@@ -41,7 +41,7 @@ se_db_query("CREATE TABLE shop_price_measure (
   id_weight_edit int(11) UNSIGNED DEFAULT NULL,
   id_volume_view int(11) UNSIGNED DEFAULT NULL,
   id_volume_edit int(11) UNSIGNED DEFAULT NULL,
-  updated_at timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  updated_at timestamp NULL DEFAULT NULL,
   created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   CONSTRAINT FK_price_measure_id_volume_e FOREIGN KEY (id_volume_edit)

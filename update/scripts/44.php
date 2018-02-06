@@ -8,7 +8,7 @@ CREATE TABLE permission_role (
     id int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   name varchar(100) NOT NULL,
   description varchar(255) DEFAULT NULL,
-  updated_at timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
+  updated_at timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id)
 )
@@ -23,7 +23,7 @@ CREATE TABLE permission_role_user (
     id int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   id_role int(10) UNSIGNED NOT NULL,
   id_user int(10) UNSIGNED DEFAULT NULL,
-  updated_at timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
+  updated_at timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE INDEX UK_permission_role_user (id_role, id_user),
@@ -42,7 +42,7 @@ CREATE TABLE permission_object (
     id int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   code varchar(100) NOT NULL,
   name varchar(255) NOT NULL,
-  updated_at timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
+  updated_at timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id)
 )
@@ -57,7 +57,7 @@ CREATE TABLE permission_object_role (
   id_object int(10) UNSIGNED NOT NULL,
   id_role int(10) UNSIGNED NOT NULL,
   mask smallint(6) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Маска прав (4 бита)',
-  updated_at timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
+  updated_at timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   CONSTRAINT FK_permission_object_role_permission_object_id FOREIGN KEY (id_object)
