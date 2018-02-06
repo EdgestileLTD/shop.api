@@ -336,14 +336,21 @@ function getSimilarProducts($id, &$product)
 function getAccompanyingProducts($id, &$product)
 {
     $u = new seTable('shop_accomp', 'sa');
-    $u->select('sp.id, sp.name, sp.code, sp.article, sp.price');
-    $u->innerjoin('shop_price sp', 'sp.id = sa.id_acc');
-    $u->where('sa.id_price=?', $id);
+    $u->select('sp.id, sp.name, sa.id_group, sg.name `group`, sp.code, sp.article, sp.price');
+    $u->leftJoin('shop_price sp', 'sp.id = sa.id_acc');
+    $u->leftJoin('shop_group sg', 'sg.id = sa.id_group');
+    $u->where('sa.id_price = ?', $id);
     $objects = $u->getList();
     foreach ($objects as $item) {
         $accompanying = null;
         $accompanying['id'] = $item['id'];
+        $accompanying['idGroup'] = $item['id_group'];
         $accompanying['name'] = $item['name'];
+        $accompanying["note"] = "Товар";
+        if ($item["group"]) {
+            $accompanying["name"] = $item["group"];
+            $accompanying["note"] = "Группа";
+        }
         $accompanying['code'] = $item['code'];
         $accompanying['article'] = $item['article'];
         $accompanying['price'] = (real)$item['price'];

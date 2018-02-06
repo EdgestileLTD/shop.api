@@ -177,6 +177,7 @@ function getOrderItems($idOrder, $currency)
             $product['currency'] = $currency;
             $product['license'] = $item['license'];
             $product['note'] = $item['commentary'];
+            $product['imagePath'] = 'rus/shopprice/' . $item['img'];
             $product['imageFile'] = (strpos($item['img'], '://') === false) ? $url_img . $item['lang'] . '/shopprice/' . $item['img'] : $item['img'];
             if ($_SESSION["isShowOptions"]) {
                 $product['options'] = getOptions($product['idPrice'], $item["id"]);
@@ -190,7 +191,7 @@ function getOrderItems($idOrder, $currency)
 function getDynFields($idOrder)
 {
     $u = new seTable('shop_userfields', 'su');
-    $u->select("sou.*, su.id idMain, su.type");
+    $u->select("sou.*, su.id idMain, su.type, sou.id_userfield");
     $u->leftjoin('shop_order_userfields sou', "(sou.id_userfield = su.id AND id_order = {$idOrder}) OR id_order IS NULL");
     $u->groupby('su.id');
     $u->orderby('su.sort');
@@ -200,6 +201,7 @@ function getDynFields($idOrder)
         $field['id'] = $item['id'];
         $field['idMain'] = $item['idMain'];
         $field['value'] = $item['value'];
+        $field['idUserField'] = $item['id_userfield'];
         if ($item['type'] == "date")
             $field['value'] = date('Y-m-d', strtotime($item['value']));
         $items[] = $field;

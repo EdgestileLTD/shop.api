@@ -21,7 +21,7 @@ se_db_query("ALTER TABLE  `shop_group` ADD  `compare` TINYINT( 1 ) NOT NULL DEFA
 if (!se_db_is_field('shop_group','compare')){ 
 se_db_query("ALTER TABLE  `shop_group` ADD  `compare` TINYINT( 1 ) NOT NULL DEFAULT  '0' AFTER  `visits`");
 }
-
+/*
     se_db_query("DROP TABLE IF EXISTS `emotion_groups`;");
 
     se_db_query("CREATE TABLE IF NOT EXISTS `emotion_groups` (
@@ -31,7 +31,7 @@ se_db_query("ALTER TABLE  `shop_group` ADD  `compare` TINYINT( 1 ) NOT NULL DEFA
   `title` varchar(50) DEFAULT NULL,
   `updated_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
   `created_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  ADD PRIMARY KEY (`id`),
+  ADD PRIMARY KEY (`id`)
   
 ) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8;");
 
@@ -725,5 +725,5 @@ se_db_query("ALTER TABLE  `shop_group` ADD  `compare` TINYINT( 1 ) NOT NULL DEFA
 
     se_db_query("ALTER TABLE `emotions` ADD PRIMARY KEY (`id`), ADD KEY `id_group` (`id_group`);");
     se_db_query("ALTER TABLE `emotions` MODIFY `id` int(10) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=736;");
-
+*/
 

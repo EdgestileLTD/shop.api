@@ -112,11 +112,11 @@ $u->select('st.id Id, st.id_order IdOrder, st.id_price IdProduct, st.article Art
             st.modifications IdsModifications, st.commentary Note');
 $u->leftjoin('shop_price sp', 'sp.id=st.id_price');
 $u->leftjoin('shop_brand sb', 'sb.id = sp.id_brand');
+$u->innerjoin('shop_order so', 'st.id_order=so.id');
 if (!empty($filter)) {
-    $u->innerjoin('shop_order so', 'st.id_order=so.id');
     $u->innerjoin('person p', 'p.id=so.id_author');
     $u->where($filter);
-}
+} else $u->where('so.is_delete = "N"');
 $u->groupby('st.id');
 $u->orderby('st.id');
 createExportFileFromQuery($u->getSql(), "orders-products", "order-products");

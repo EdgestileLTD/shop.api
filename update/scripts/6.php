@@ -1,6 +1,6 @@
 <?php
 
-se_db_add_field('shop_group', 'visits', 'int(10) unsigned NOT NULL default 0 AFTER `active`');
+//se_db_add_field('shop_group', 'visits', 'int(10) unsigned NOT NULL default 0 AFTER `active`');
 se_db_add_field('shop_group', 'picture_alt', 'varchar(255) default NULL AFTER `picture`');
 se_db_add_field('shop_group', 'keywords', 'varchar(255) default NULL AFTER `commentary`');
 se_db_add_field('shop_group', 'title', 'varchar(255) default NULL AFTER `commentary`');
@@ -21,8 +21,10 @@ se_db_add_index('shop_comm', 'showing', 1);
 se_db_add_field('shop_comm', 'response', 'text default NULL AFTER `commentary`');
 
 // SHOP_ORDER
+/*
 se_db_add_field('shop_order', 'manager_id', "int unsigned default NULL AFTER `id`");
 se_db_add_index('shop_order', 'manager_id', 1);
+*/
 se_db_query("ALTER TABLE`shop_order` CHANGE `delivery_status` `delivery_status` enum('N', 'Y', 'P', 'M') DEFAULT 'N'");
 if (!se_db_is_field('shop_order','is_delete')){ 
       se_db_query("ALTER TABLE`shop_order` CHANGE `is_delete` `is_delete` enum('N', 'Y') DEFAULT 'N'");

@@ -6,7 +6,7 @@ se_db_query("CREATE TABLE shop_group_related (
   id_related int(10) UNSIGNED NOT NULL,
   type tinyint(1) NOT NULL DEFAULT 1 COMMENT '1 - похожий, 2 - сопуствующий',
   is_cross tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Двухсторонний',
-  updated_at timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  updated_at timestamp NULL DEFAULT NULL,
   created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   INDEX id_related (id_related),

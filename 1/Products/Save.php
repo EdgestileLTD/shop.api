@@ -420,14 +420,21 @@ function saveSimilarProducts($idsProducts, $products)
 function saveAccompanyingProducts($idsProducts, $products)
 {
     $idsStr = implode(",", $idsProducts);
+
     $u = new seTable('shop_accomp', 'sa');
     $u->where('id_price in (?)', $idsStr)->deletelist();
 
     foreach ($products as $p)
-        foreach ($idsProducts as $idProduct)
-            $data[] = array('id_price' => $idProduct, 'id_acc' => $p->id);
-    if (!empty($data))
-        se_db_InsertList('shop_accomp', $data);
+        foreach ($idsProducts as $idProduct) {
+            $t = new seTable("shop_accomp");
+            $t->id_price = $idProduct;
+            if ($p->id) {
+                $t->id_acc = $p->id;
+            }
+            if ($p->idGroup)
+                $t->id_group = $p->idGroup;
+            $t->save();
+        }
 }
 
 function saveComments($idsProducts, $comments)

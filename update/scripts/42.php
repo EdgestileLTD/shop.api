@@ -3,7 +3,7 @@
 se_db_query("CREATE TABLE shop_product_type (
       id int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
       name varchar(255) NOT NULL,
-      updated_at timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
+      updated_at timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
       created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
       PRIMARY KEY (id)
     )
@@ -17,7 +17,7 @@ se_db_query("CREATE TABLE shop_product_type_feature (
       id int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
       id_type int(10) UNSIGNED NOT NULL,
       id_feature int(10) UNSIGNED NOT NULL,
-      updated_at timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
+      updated_at timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
       created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
       PRIMARY KEY (id),
       CONSTRAINT FK_shop_product_type_feature_shop_feature_id FOREIGN KEY (id_feature)

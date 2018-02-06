@@ -86,6 +86,12 @@ function getYAMarketCategory($hostname) {
     }
 }
 
+function getIsShowBlankShipment($hostname)
+{
+    $file = PATH_ROOT . $hostname . '/public_html/system/shipment_blank';
+    return file_exists($file);
+}
+
 $status = array();
 if ($u->id) {
 
@@ -119,6 +125,7 @@ if ($u->id) {
     $main['isShowSESections'] = getIsShowSESections($json->hostname);
     $main['isShowDocDelivery'] = getIsShowDocDelivery();
     $main['isShowRequestCredit'] = getIsShowRequestCredit();
+    $main['isShowBlankShipment'] = getIsShowBlankShipment($json->hostname);
     if (!IS_EXT) {
         $main['isShowIncPrices'] = getIsShowIncPrices();
         $main['isShowOptions'] = getIsShowOptions();
