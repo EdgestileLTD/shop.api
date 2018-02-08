@@ -1,6 +1,6 @@
 <?php
 
-namespace SE;
+namespace SE\Shop;
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel/IOFactory.php';
@@ -9,8 +9,11 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel/Wri
 // Старая Excel библиотека
 use \PHPExcel_IOFactory as PHPExcel_IOFactory;
 use \PHPExcel_Autoloader as PHPExcel_Autoloader;
+use SE\Shop\Product;
+use SE\DB;
 
-class Import {
+class Import extends Product
+{
 
     private $data = array();
 
@@ -547,15 +550,29 @@ class Import {
         }
 
 
-        // если имеем дело с массивом - отсеиваем группы со всеми пустыми параметрами
+        /*
+         * если имеем дело с массивом - отсеиваем группы со всеми пустыми параметрами
+         *
+         * измеряем длину массивов по id, коду и пути
+         * определяем наибольшее значение
+         * Array        Array           Array
+         * (            (               (
+         *     [0] =>       [0] => 12       [0] => dub
+         *     [1] =>       [1] => 15       [1] => dizajn-1
+         * )            )               )
+         * проходим по наибольшему значению ранжированием
+         * если все значения в строке "таблицы" пустые - удаляем
+         */
         if(gettype($code_group) == 'array') {
-            $cou_code_group = count($id_gr_cg);
-            $cou_min = min($cou_code_group);
+            $cou_id_gr_ig   = count($id_gr_ig);
+            $cou_id_gr_cg   = count($id_gr_cg);
+            $cou_code_group = count($code_group);
+            $cou_min = max($cou_id_gr_ig, $cou_id_gr_cg, $cou_code_group);
             // инициализируем список NULL id, равный длине $id_gr_cg
             $id_gr_ig = array_fill(0, $cou_min, NULL);
             $range = range(0, $cou_min - 1, 1);
             foreach($range as $ran){
-                if($code_group[$ran] == NULL){
+                if($id_gr_ig[$ran] == NULL and $id_gr_cg[$ran] == NULL and $code_group[$ran] == NULL){
                     unset($id_gr_ig[$ran]);    $id_gr_ig = array_values($id_gr_ig);
                     unset($id_gr_cg[$ran]);    $id_gr_cg = array_values($id_gr_cg);
                     unset($code_group[$ran]);  $code_group = array_values($code_group);
@@ -571,16 +588,14 @@ class Import {
             $start = 0;
             foreach($id_gr as $i)
                 if($i == NULL) $start = $start + 1;
-            if($start != 0)
-                $id_gr = $id_gr_cg;
+            if($start != 0)    $id_gr = $id_gr_cg;
         };
         // ...если отсутствуют, сверяем имена с базой (если присутствуют)
         if(gettype($id_gr) == 'array'){
             $start = 0;
             foreach($id_gr as $i)
                 if($i == NULL) $start = $start + 1;
-            if($start != 0)
-                $id_gr = $id_gr_pg;
+            if($start != 0)    $id_gr = $id_gr_pg;
         };
 
 

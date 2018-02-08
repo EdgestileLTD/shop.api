@@ -614,7 +614,7 @@ class ProductExport extends Product
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         if (!empty($writer)) {
             $filename = "{$this->temporaryFilePath}/goodsL{$cycleNum}.TMP";
-            $file = fopen($filename, "w");
+            $file     = fopen($filename, "w");
             fwrite($file, json_encode($writer));
             fclose($file);
         }
@@ -645,7 +645,7 @@ class ProductExport extends Product
 
             for ($cycleNum = 0; $cycleNum < $pages; ++$cycleNum) {
                 $filename = "{$this->temporaryFilePath}/goodsL{$cycleNum}.TMP";
-                $goodsL = $file = json_decode(file_get_contents($filename)); // чтение файла
+                $goodsL   = json_decode(file_get_contents($filename)); // чтение файла
                 $writer->addRows($goodsL);
             }
             unset($mainRequest);

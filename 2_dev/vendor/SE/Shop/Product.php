@@ -4,7 +4,7 @@ namespace SE\Shop;
 
 use SE\DB;
 use SE\Exception;
-use SE\Import;
+use SE\Shop\Import;
 use SE\Shop\ProductExport as ProductExport;
 
 //use \PHPExcel as PHPExcel;
