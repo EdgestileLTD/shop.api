@@ -1,0 +1,2 @@
+ALTER TABLE shop_label
+  ADD COLUMN `sort` INT(10) UNSIGNED NOT NULL AFTER `code`;

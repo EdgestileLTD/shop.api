@@ -727,6 +727,8 @@ class Product extends Base
         $result["customFields"] = $this->getCustomFields();
         $result["countModifications"] = count($result["modifications"]);
         $result["options"] = $this->getOptions();
+        $result["labels"] = $this->getLabels();
+
         if (empty($result["customFields"]))
             $result["customFields"] = false;
 
@@ -1792,7 +1794,7 @@ class Product extends Base
             $this->saveAccompanyingProducts() && $this->saveComments() && $this->saveReviews() &&
             $this->saveCrossGroups() && $this->saveDiscounts() && $this->saveMeasure() &&
             $this->saveModifications() && $this->saveIdGroup() &&
-            $this->saveCustomFields() && $this->saveFiles() && $this->saveOptions();;
+            $this->saveCustomFields() && $this->saveFiles() && $this->saveOptions() && $this->saveLabels();;
     }
 
 
@@ -2473,4 +2475,41 @@ class Product extends Base
         return $id;
     }
 
+    public function getLabels($idProduct = null)
+    {
+        $idProduct = $idProduct ? $idProduct : $this->input["id"];
+        $result = [];
+        $labels = (new ProductLabel())->fetch();
+        $u = new DB("shop_label_product");
+        $u->select("id_label");
+        $u->where("id_product = ?", $idProduct);
+        $items = $u->getList();
+        foreach ($labels as $label) {
+            $isChecked = false;
+            foreach ($items as $item)
+                if ($isChecked = ($label["id"] == $item["idLabel"]))
+                    break;
+            $label["isChecked"] = $isChecked;
+            $result[] = $label;
+        }
+        return $result;
+    }
+
+    private function saveLabels()
+    {
+        $labels = $this->input["labels"];
+        $labelsNew = [];
+        foreach ($labels as $label)
+            if ($label["isChecked"])
+                $labelsNew[] = $label;
+        try {
+            foreach ($this->input["ids"] as $id)
+                DB::saveManyToMany($id, $labelsNew,
+                    array("table" => "shop_label_product", "key" => "id_product", "link" => "id_label"));
+            return true;
+        } catch (Exception $e) {
+            $this->error = "Не удаётся сохранить ярлыки товара!";
+            throw new Exception($this->error);
+        }
+    }
 }
