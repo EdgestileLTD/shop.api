@@ -13,7 +13,7 @@ if (!file_exists($root . $dir)) {
     foreach ($dirs as $d) {
         $path .= $d;
         if (!file_exists($path))
-            mkdir($path, 0700);
+            mkdir($path, 0700, true);
         $path .= '/';
     }
 }

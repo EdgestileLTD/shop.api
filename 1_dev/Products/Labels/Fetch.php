@@ -32,8 +32,8 @@ foreach ($objects as $item) {
     $label['imageFile'] = $item['image'];
     if ($label['imageFile']) {
         if (strpos($label['imageFile'], "://") === false) {
-            $label['imageUrl'] = 'http://' . $json->hostname . "/images/rus/shoplabels/" . $label['imageFile'];
-            $label['imageUrlPreview'] = "http://{$json->hostname}/lib/image.php?size=64&img=images/rus/shoplabels/" . $label['imageFile'];
+            $label['imageUrl'] = 'http://' . $json->hostname . "/images/rus/labels/" . $label['imageFile'];
+            $label['imageUrlPreview'] = "http://{$json->hostname}/lib/image.php?size=64&img=images/rus/labels/" . $label['imageFile'];
         } else {
             $label['imageUrl'] = $label['imageFile'];
             $label['imageUrlPreview'] = $label['imageFile'];

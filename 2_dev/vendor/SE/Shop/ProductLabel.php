@@ -28,4 +28,25 @@ class ProductLabel extends Base
         );
     }
 
+    protected function correctItemsBeforeFetch($items = [])
+    {
+        $resultItems = [];
+
+        foreach ($items as $item) {
+            $item['imageFile'] = $item['image'];
+            if ($item['imageFile']) {
+                if (strpos($item['imageFile'], "://") === false) {
+                    $item['imageUrl'] = 'http://' . $this->hostname . "/images/rus/labels/" . $item['imageFile'];
+                    $item['imageUrlPreview'] = "http://{$this->hostname}/lib/image.php?size=64&img=images/rus/labels/" . $item['imageFile'];
+                } else {
+                    $item['imageUrl'] = $item['imageFile'];
+                    $item['imageUrlPreview'] = $item['imageFile'];
+                }
+            }
+            $resultItems[] = $item;
+        }
+
+        return $resultItems;
+    }
+
 }
