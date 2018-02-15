@@ -406,6 +406,32 @@ function getFiles($id, &$product)
     $product['files'] = $objects;
 }
 
+function getLabels($id, &$product)
+{
+    $idProduct = $id;
+    $result = [];
+
+    $t = new seTable('shop_label', 'sl');
+    $t->select('sl.*');
+    $t->orderby('sl.sort');
+    $labels = $t->getList();
+
+    $u = new seTable("shop_label_product");
+    $u->select("id_label");
+    $u->where("id_product = ?", $idProduct);
+    $items = $u->getList();
+    foreach ($labels as $label) {
+        $isChecked = false;
+        foreach ($items as $item)
+            if ($isChecked = ($label["id"] == $item["id_label"]))
+                break;
+        $label["isChecked"] = (bool)$isChecked;
+        $result[] = $label;
+    }
+
+    $product['labels'] = $result;
+}
+
 function getOptions($id, &$product)
 {
     if (!$_SESSION["isShowOptions"])
@@ -466,6 +492,7 @@ function getPathGroup($idGroup)
     return $result;
 }
 
+
 $u = new seTable('shop_price', 'sp');
 $u->select('sp.*, sg.id idGroup, sb.name AS nameBrand, sg.name AS nameGroup, sg.id_modification_group_def,
     spm.id_weight_view, spm.id_weight_edit, spm.id_volume_view, spm.id_volume_edit');
@@ -487,7 +514,7 @@ if ($u->id) {
     $product['code'] = $u->code;
     $product['name'] = $u->name;
     $product['article'] = $u->article;
-    $product['sortIndex'] = (int) $u->sort;
+    $product['sortIndex'] = (int)$u->sort;
     $product['idGroup'] = $u->idGroup;
     $product['idType'] = $u->id_type;
     $product['nameGroup'] = $u->nameGroup;
@@ -564,6 +591,8 @@ if ($u->id) {
     getFiles($u->id, $product);
     // опции
     getOptions($u->id, $product);
+    // метки
+    getLabels($u->id, $product);
 
     $product['isDiscountAllowed'] = $product['isDiscount'] && count($product["discounts"]);
     $items[] = $product;

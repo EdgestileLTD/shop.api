@@ -1,8 +1,9 @@
 <?php
 
+
 namespace SE\Shop;
 
-use SE\DB;
+use SE\DB as DB;
 use SE\Exception;
 
 class ProductLabel extends Base
@@ -12,7 +13,7 @@ class ProductLabel extends Base
     protected function getSettingsFetch()
     {
         return array(
-            "select" => 'sl.*',
+            "select" => 'sl.*, sl.image image_file',
             "joins" => array(
                 array(
                     "type" => "left",
@@ -30,9 +31,7 @@ class ProductLabel extends Base
 
     protected function correctItemsBeforeFetch($items = [])
     {
-        $resultItems = [];
-
-        foreach ($items as $item) {
+        foreach ($items as &$item) {
             $item['imageFile'] = $item['image'];
             if ($item['imageFile']) {
                 if (strpos($item['imageFile'], "://") === false) {
@@ -43,10 +42,9 @@ class ProductLabel extends Base
                     $item['imageUrlPreview'] = $item['imageFile'];
                 }
             }
-            $resultItems[] = $item;
         }
 
-        return $resultItems;
+        return $items;
     }
 
 }

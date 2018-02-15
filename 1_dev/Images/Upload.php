@@ -20,8 +20,6 @@ if ($section == "yandexphotos")
 else $uploadDir .= "/images/$lang/$section";
 mkdir($path, 0700, true);
 
-writeLog($section);
-
 $countFiles = count($_FILES);
 $ups = 0;
 $files = array();
