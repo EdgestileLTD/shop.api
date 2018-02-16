@@ -58,6 +58,8 @@ class Base extends CustomBase
             if (!empty($uiSettings["searchFields"]))
                 $this->searchFields = $uiSettings["searchFields"];
         }
+        if (is_array($this->input))
+            $this->input = $this->correctInput($this->input);
     }
 
     public function setFilters($filters)
@@ -584,6 +586,13 @@ class Base extends CustomBase
     protected function correctResultBeforeFetch($result)
     {
         return $result;
+    }
+
+    private function correctInput($input)
+    {
+
+
+        return $input;
     }
 
 }

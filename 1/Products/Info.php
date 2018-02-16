@@ -594,8 +594,6 @@ if ($u->id) {
     // метки
     getLabels($u->id, $product);
 
-    writeLog($product);
-
     $product['isDiscountAllowed'] = $product['isDiscount'] && count($product["discounts"]);
     $items[] = $product;
 }

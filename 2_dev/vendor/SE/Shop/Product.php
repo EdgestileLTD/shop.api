@@ -252,6 +252,7 @@ class Product extends Base
             }
         }
 
+
     }
 
     private function calkMeasure($table, $id)

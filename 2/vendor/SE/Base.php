@@ -45,6 +45,7 @@ class Base
         switch ($this->statusAnswer) {
             case 200: {
                 header('Content-Type: application/json');
+                $this->result = $this->correctOutput($this->result);
                 echo json_encode($this->result);
                 exit;
             }
@@ -156,6 +157,15 @@ class Base
                 writeLog($groupLen.$actLen.$functLen.$classLen.$thisLen);
             }
         }
+    }
+
+    private function correctOutput($output)
+    {
+        $output["text"] = str_replace('<img src="/images', '<img src="' . $this->protocol . "://" . $this->hostname . '/images', $output["text"]);
+        $output["note"] = str_replace('<img src="/images', '<img src="' . $this->protocol . "://" . $this->hostname . '/images', $output["note"]);
+        $output["description"] = str_replace('<img src="/images', '<img src="' . $this->protocol . "://" . $this->hostname . '/images', $output["description"]);
+
+        return $output;
     }
 
 

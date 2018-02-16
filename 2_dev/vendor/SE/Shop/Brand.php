@@ -13,6 +13,8 @@ class Brand extends Base
     public function fetch($isId = false)
     {
         try {
+            $items = [];
+
             $u = new DB('shop_brand', 'sb');
             $u->select('sb.*, COUNT(sp.id) countGoods');
             $u->leftjoin('shop_price sp', 'sb.id=sp.id_brand');
