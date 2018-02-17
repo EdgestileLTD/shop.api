@@ -590,7 +590,13 @@ class Base extends CustomBase
 
     private function correctInput($input)
     {
+        $url = $this->protocol . "://" . $this->hostname;
 
+        $tagImages = 'src="' . $url . '/images';
+
+        $input["text"] = str_replace($tagImages, 'src="/images',  $input["text"]);
+        $input["note"] = str_replace($tagImages, 'src="/images',  $input["note"]);
+        $input["description"] = str_replace($tagImages, 'src="/images',  $input["description"]);
 
         return $input;
     }

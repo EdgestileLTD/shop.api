@@ -58,6 +58,8 @@ class Base extends CustomBase
             if (!empty($uiSettings["searchFields"]))
                 $this->searchFields = $uiSettings["searchFields"];
         }
+        if (is_array($this->input))
+            $this->input = $this->correctInput($this->input);
     }
 
     public function setFilters($filters)
@@ -584,6 +586,19 @@ class Base extends CustomBase
     protected function correctResultBeforeFetch($result)
     {
         return $result;
+    }
+
+    private function correctInput($input)
+    {
+        $url = $this->protocol . "://" . $this->hostname;
+
+        $tagImages = 'src="' . $url . '/images';
+
+        $input["text"] = str_replace($tagImages, 'src="/images',  $input["text"]);
+        $input["note"] = str_replace($tagImages, 'src="/images',  $input["note"]);
+        $input["description"] = str_replace($tagImages, 'src="/images',  $input["description"]);
+
+        return $input;
     }
 
 }

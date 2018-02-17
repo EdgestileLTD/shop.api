@@ -21,6 +21,7 @@ $u = new seTable('shop_order', 'so');
 $u->select('so.*, 
             CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) as customer,
             CONCAT_WS(" ", pm.last_name, pm.first_name, pm.sec_name) as manager,
+            
             p.phone as customerPhone, p.email as customerEmail,
             c.name company, c.phone companyPhone, c.email companyEmail, 
            (SELECT (SUM((sto.price-IFNULL(sto.discount, 0))*sto.count)-IFNULL(so.discount, 0) + IFNULL(so.delivery_payee, 0)) FROM shop_tovarorder sto WHERE sto.id_order = so.id) summ, 
@@ -29,7 +30,9 @@ $u->select('so.*,
 $u->leftjoin('person p', 'p.id = so.id_author');
 if (empty($_SESSION["idUser"]) || $_SESSION["isUserAdmin"])
     $u->leftjoin('person pm', 'pm.id = so.id_admin');
-else $u->innerjoin('person pm', "pm.id = so.id_admin AND so.id_admin = {$_SESSION["idUser"]}");
+else
+    $u->leftjoin('person pm', "pm.id = so.id_admin AND so.id_admin = {$_SESSION["idUser"]}");
+
 $u->leftjoin('company c', 'c.id = so.id_company');
 $u->leftjoin('shop_order_payee sop', 'sop.id_order = so.id');
 $u->leftjoin('shop_payment spp', 'spp.id = sop.payment_type');
