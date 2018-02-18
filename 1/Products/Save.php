@@ -604,6 +604,41 @@ function saveFiles($idsProducts, $files)
         se_db_InsertList('shop_files', $data);
 }
 
+function saveLabels($idsProducts, $labels)
+{
+    $data = [];
+
+    if (empty($labels)) {
+        $idsProductsStr = implode(",", $idsProducts);
+        $u = new seTable('shop_label_product');
+        $u->where('id_product IN (?)', $idsProductsStr)->deleteList();
+    }
+
+    foreach ($labels as $label) {
+        foreach ($idsProducts as $idProduct) {
+            $u = new seTable('shop_label_product', 'slp');
+            $u->select("slp.id");
+            $u->where('slp.id_product = ?', $idProduct);
+            $u->andWhere('slp.id_label = ?', $label->id);
+            $result = $u->fetchOne();
+
+            if (empty($result)) {
+                if ($label->isChecked)
+                    $data[] = array('id_product' => $idProduct, 'id_label' => $label->id);
+            } else {
+                if (!$label->isChecked) {
+                    $u = new seTable('shop_label_product');
+                    $u->where('id_product = ?', $idProduct);
+                    $u->andWhere('id_label = ?', $label->id)->deleteList();
+                }
+            }
+        }
+    }
+
+    if (!empty($data))
+        se_db_InsertList('shop_label_product', $data);
+}
+
 function saveOptions($idsProducts, $options)
 {
     if (!$_SESSION["isShowOptions"])
@@ -969,6 +1004,8 @@ if ($isNew || !empty($ids)) {
         saveDiscounts($ids, $json->discounts);
     if ($ids && isset($json->files))
         saveFiles($ids, $json->files);
+    if ($ids && isset($json->labels))
+        saveLabels($ids, $json->labels);
     if ($ids && isset($json->options))
         saveOptions($ids, $json->options);
 
