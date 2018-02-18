@@ -41,6 +41,7 @@ function convertFields($str)
     $str = str_replace('[idBrand]', 'sb.id', $str);
     $str = str_replace('[brand]', 'sb.name', $str);
     $str = str_replace('[idModificationGroup]', 'smg.id', $str);
+    $str = str_replace('[idLabel]', 'slp.id_label', $str);
 
     return $str;
 }
@@ -84,6 +85,8 @@ if ($json->filter && strpos($json->filter, '[idModificationGroup]')) {
     $u->leftjoin('shop_modifications sm', 'sm.id_price = sp.id');
     $u->leftjoin('shop_modifications_group smg', 'smg.id = sm.id_mod_group');
 }
+$u->leftjoin('shop_label_product slp', 'sp.id = slp.id_product');
+
 
 $searchStr = $json->searchText;
 $searchArr = explode(' ', $searchStr);
