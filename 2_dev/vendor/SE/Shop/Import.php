@@ -2,20 +2,22 @@
 
 namespace SE\Shop;
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel/IOFactory.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel/Writer/Excel2007.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/Spout/Autoloader/autoload.php';
 
 // Старая Excel библиотека
-use \PHPExcel_IOFactory as PHPExcel_IOFactory;
-use \PHPExcel_Autoloader as PHPExcel_Autoloader;
 use SE\Shop\Product;
 use SE\DB;
+
+use Box\Spout\Reader\ReaderFactory;
+use Box\Spout\Common\Type;
+
 
 class Import extends Product
 {
 
     private $data = array();
+    private $cycleNum = 0;
+    private $checkGroupIdName = FALSE; // проверка наличия массива ид-имя группы в сессии
 
     public $fieldsMap = array();
 
@@ -107,7 +109,8 @@ class Import extends Product
     public $mode = 'ins';
 
     // конвертация в JS
-    public function convJS($nm){
+    public function convJS($nm)
+    {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         $letters = array(
@@ -143,25 +146,48 @@ class Import extends Product
     }
 
     // запуск импорта
-    public function startImport($filename, $prepare = false, $options, $customEdition){
+    public function startImport($filename, $prepare = false, $options, $customEdition, $cycleNum)
+    {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
-        if($this->getDataFromFile($filename, $options)){
-            if (!$prepare)
-                $this->prepareData($customEdition, $options);
-            $this->iteratorData($prepare, $options);
-            if ($prepare) {
-                return $this->importData;
-            } else
-                $this->addData();
-            return TRUE;
+
+        /*
+         * if     - превью      - чтение первых 100 строк
+         * elseif - первый цикл - весь файл во временные
+         */
+        $this->cycleNum = $cycleNum;
+        if ($prepare) {
+            unset($_SESSION["pages"]);
+            $this->getDataFromFile($filename, $options, $prepare);
+            $this->cycleNum = 0;
+        } elseif ($this->cycleNum == 0) {
+            unset($_SESSION["pages"]);
+            unlink(DOCUMENT_ROOT . "/files/tempfiles/tempfile0.TMP");
+            $this->getDataFromFile($filename, $options, $prepare);
         }
-        return FALSE;
+        if ($prepare or $this->cycleNum != 0) {
+            // перебор записанных файлов
+            if ($prepare)       $this->data = $this->readTempFiles($this->cycleNum);
+            else                $this->data = $this->readTempFiles($this->cycleNum-1);
+            if (!$prepare and $this->cycleNum == 1)  {
+                $this->prepareData($customEdition, $options); // заголовки
+                $this->communications();                      // связи
+                // writeLog($_SESSION["getId"]["code_group"]);
+                // writeLog($_SESSION["getId"]["path_group"]);
+            }
+            elseif (!$prepare)  $this->fieldsMap = $_SESSION["fieldsMap"];
+            $this->iteratorData($prepare, $options);
+            if ($prepare)       return $this->importData;
+            else                $this->addData();
+            unset($this->data);
+        }
+        return 0;
     }
 
 
     // добавить категорию / массив категорий
-    private function addCategory($code_group, $path_group){
+    private function addCategory($code_group, $path_group)
+    {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
 
@@ -180,82 +206,71 @@ class Import extends Product
                 $ways = (array)explode('/', $path_group[$ran]);
                 $countWays = count($ways) - 1;
                 foreach (range(0, $countWays) as $number) {
+                     $this->addCategoryParents($number, $ways, $code_group, $ran);
 
-
-                    // получение данных из таблицы для определения ид родителей
-                    $reconTable = 'shop_group';
-                    $column     = 'name';
-                    $objects = NULL;
-                    $u = new DB($reconTable, $reconTable);
-                    $u->select($reconTable.'.id Id, '.$reconTable.'.'.$column);
-                    $u->groupBy($reconTable.'.id');
-                    $u->orderBy($reconTable.'.id');
-                    $objects = $u->getList();
-                    unset($u); // удаление переменной
-
-
-                    // определяем потребность в создании группы (родителя)
-                    $ar_pop_wa = $ways[$number];
-                    $create_object = True;
-                    foreach ($objects as $object) {
-                        $ar_pop_wa = mb_strtolower(trim($ar_pop_wa));
-                        $obj       = mb_strtolower(trim($object[$this->convJS($column)]));
-                        if ($ar_pop_wa == $obj) {
-                            $create_object = False;
-                            break;
-                        }
-                    }
-                    if($create_object == True) {
-
-
-                        // определение родителя
-                        if($number != 0) {
-                            $ar_pop_wa_par = $ways[$number - 1];
-                            $ar_pop_wa_par = mb_strtolower(trim($ar_pop_wa_par));
-                            $pare = NULL;
-                            foreach ($objects as $object) {
-                                $obj = mb_strtolower(trim($object[$this->convJS($column)]));
-                                if ($ar_pop_wa_par == $obj) {
-                                    $pare = (int)$object[id];
-                                    break;
-                                }
-                            }
-                        }
-
-
-                        // принять хотя бы 1 из 2 параметров - остальные сгенерировать, если отсутствуют
-                        $parent = NULL;
-                        $error = False;
-                        if(!empty($ar_pop_wa)){             $name = $ar_pop_wa;
-                                                            $parent = $pare;
-                            if(empty($code_group[$ran]))    $code_gr = strtolower(se_translite_url($ar_pop_wa));
-                            else                            $code_gr = $code_group[$ran];
-                        }elseif(!empty($code_group[$ran])){ $name = $code_group[$ran];
-                                                            $code_gr = $code_group[$ran];
-                        }else                               $error = True;
-
-
-                        if($error != True) {
-                            $newCat = array(
-                                'code_gr'   => $code_gr,
-                                'name'      => $name,
-                                'upid'      => $parent
-                            );
-                            if(!empty($id) or !empty($code_gr) or !empty($name)) {
-                                DB::query("SET foreign_key_checks = 0");
-                                DB::insertList('shop_group', array($newCat),TRUE);
-                                DB::query("SET foreign_key_checks = 1");
-                            }
-                        }
-                    }
                 }
+            }
+        }
+    }
+
+    // добавить категорию / массив категорий
+    private function addCategoryParents($number, $ways, $code_group, $ran)
+    {
+        // определяем потребность в создании группы (родителя)
+        $ar_pop_wa = $ways[$number];
+        if (!$_SESSION["getId"]["path_group"][$ar_pop_wa]) {
+
+            // определение родителя
+            if($number != 0) {
+                $ar_pop_wa_par = $ways[$number - 1];
+                $ar_pop_wa_par = mb_strtolower(trim($ar_pop_wa_par));
+                $pare = NULL;
+                if(!$_SESSION["getId"]["path_group"][$ar_pop_wa_par]) $pare = $_SESSION["getId"]["path_group"][$ar_pop_wa_par];
+                // else $this->addCategoryParents($number, $ways, $code_group, $ran)
+            }
+
+
+            // принять хотя бы 1 из 2 параметров - остальные сгенерировать, если отсутствуют
+            $parent = NULL;
+            $error = False;
+            if(!empty($ar_pop_wa)){             $name = $ar_pop_wa;
+                $parent = $pare;
+                if(empty($code_group[$ran]))    $code_gr = strtolower(se_translite_url($ar_pop_wa));
+                else                            $code_gr = $code_group[$ran];
+            }elseif(!empty($code_group[$ran])){ $name = $code_group[$ran];
+                $code_gr = $code_group[$ran];
+            }else                               $error = True;
+
+
+            if($error != True) {
+                $newCat = array(
+                    'code_gr'   => $code_gr,
+                    'name'      => $name,
+                    'upid'      => $parent
+                );
+                if(!empty($id) or !empty($code_gr) or !empty($name)) {
+                    DB::query("SET foreign_key_checks = 0");
+                    DB::insertList('shop_group', array($newCat),TRUE);
+                    DB::query("SET foreign_key_checks = 1");
+                }
+                // TODO get id
+                $id = DB::query("SELECT id FROM shop_group WHERE name = ".$name);
+                // $u = new DB('shop_group', 'sg');
+                // $u->select('sg.id');
+                // $u->where('sg.name = (?)', join(',', $name));
+                // $id = $u->getList();
+                // unset($u);
+                $path_new_group = implode("/", array_pop($ways));
+                $_SESSION["getId"]['code_gr'][$code_gr] = $id;
+                $_SESSION["getId"]["path_group"][$path_new_group] = $id;
             }
         }
     }
 
 
     // проверить
-    private function check($id, $type = 'category'){
+    private function check($id, $type = 'category')
+    {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         foreach ($this->importData[$type] as $cat)
             if ($cat['id'] == $id) return TRUE;
@@ -263,25 +278,51 @@ class Import extends Product
     }
 
     // Получить данные из файла
-    public function getDataFromFile($filename, $options){
+    public function getDataFromFile($filename, $options, $prepare)
+    {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try{
-            $file = DOCUMENT_ROOT . "/files/".$filename;
+            $temporaryFilePath = DOCUMENT_ROOT . "/files/tempfiles/";
+            $file              = $temporaryFilePath.$filename;
             if(file_exists($file) and is_readable($file)){
                 $extension = pathinfo($file, PATHINFO_EXTENSION);
                 if($extension == 'xlsx') {
-                    if (class_exists('PHPExcel_IOFactory', true)) {
-                        PHPExcel_Autoloader::Load('PHPExcel_IOFactory');
-                        $obj_reader = PHPExcel_IOFactory::createReader('Excel2007');
-                        $obj_reader->setReadDataOnly(true);
-                        $objPHPExcel = $obj_reader->load($file);
-                        $this->data = $objPHPExcel->setActiveSheetIndex(0)->toArray();
-                        if (count($this->data) < 2) {
-                            return false;
+                    $reader = ReaderFactory::create(Type::XLSX);
+                    $reader->setTempFolder($temporaryFilePath);               // директория хранения временных файлов
+                    $reader->open($file);
+                    $reader->setShouldFormatDates(true);                      // это позволяет копировать даты
+                    /*
+                     * TODO: найти способ читать из файла (xlsx, csv) в Spout по частям (тк в целом время приближается под 2 минутам - разрыву связи с сервером)
+                     * TODO: разобраться со стилями xlsx - для уменьшения торможения
+                     * считываем из памяти Spout строки
+                     * добавляем в массив
+                     * каждые 1000 строк сохраняем во временный файл и сбрасываем массив
+                     */
+                    $rows = array();
+                    $cycleNum = 0;
+                    foreach ($reader->getSheetIterator() as $sheet)
+                        foreach ($sheet->getRowIterator() as $row) {
+                            $rows[] = $row;
+
+                            if (count($rows) >= 100 and $prepare == true) {
+                                $this->writTempFiles($rows, $cycleNum);
+                                $rows = array();
+                                break;
+                                break;
+                            } if (count($rows) >= 100) {
+                                $this->writTempFiles($rows, $cycleNum);
+                                $cycleNum += 1;
+                                $rows = array();
+                            }
                         }
-                        return true;
+                    if (count($rows) > 0) {
+                        $this->writTempFiles($rows, $cycleNum); // запись остатка
+                        $cycleNum += 1;
                     }
+                    $_SESSION["pages"] = $cycleNum;
+                    return true;
                 } elseif($extension == 'csv') {
+                    // TODO: CSV - тестировать
                     // если импортируем csv
                     $delimiter = $options['delimiter'];
                     // $encoding = $options['encoding'];
@@ -324,6 +365,7 @@ class Import extends Product
 
                     // формируем массив
                     $row = 0;
+                    $cycleNum = 0;
                     if (($handle = fopen($file, "r")) !== FALSE) {
                         while (($line = fgetcsv($handle, 10000, $delimiter, $options['limiterField'])) !== FALSE) {
 
@@ -337,9 +379,25 @@ class Import extends Product
                                 } else $cell = $line[$c];
                                 $this->data[$row][$c] = $cell;
                             }
-                            $row++;
+                            if ($row >= 100 and $prepare == true) {
+                                $this->writTempFiles($this->data, $cycleNum);
+                                $row = 0;
+                                $this->data = array();
+                                break;
+                            } elseif ($row >= 100) {
+                                // если превью
+                                $this->writTempFiles($this->data, $cycleNum);
+                                $cycleNum += 1;
+                                $row = 0;
+                                $this->data = array();
+                            } else $row++;
+                        }
+                        if ($row > 0) {
+                            $this->writTempFiles($this->data, $cycleNum); // запись остатка
+                            $cycleNum += 1;
                         }
                         fclose($handle);
+                        $_SESSION["pages"] = $cycleNum;
 
                         if (count($this->data) < 2) {
                             return false;
@@ -362,7 +420,8 @@ class Import extends Product
      * Готовим данные
      */
     // привязываем заголовки к номерам столбцов
-    private function prepareData($userData, $options){
+    private function prepareData($userData, $options)
+    {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         // если приходит пользовательская редакция - подставляем
@@ -386,10 +445,45 @@ class Import extends Product
             foreach ($array as $key => $field)
                 if ($field == $rus)
                     $this->fieldsMap[$name] = $key;
+        $_SESSION["fieldsMap"] = $this->fieldsMap;
+    }
+
+
+    // подготовка данных по связям __товаров__ с __группами__
+    private function communications()
+    {
+        $u = new DB('shop_group', 'sg');
+        $u->reConnection();  // перезагрузка запроса
+        if (CORE_VERSION != "5.2") {
+            $u->select('
+                sg.id,
+                GROUP_CONCAT(
+                    sgp.name
+                    ORDER BY sgt.level
+                    SEPARATOR "/"
+                ) name,
+                sg.code_gr
+            ');
+            $u->innerJoin("shop_group_tree sgt",   "sg.id = sgt.id_child"   );
+            $u->innerJoin("shop_group sgp",        "sgp.id = sgt.id_parent" );
+            $u->orderBy('sgt.level');
+        } else {
+            $u->select('sg.*');
+            $u->orderBy('sg.id');
+        }
+        $u->groupBy('sg.id');
+        $groups = $u->getList();
+        unset($u); // удаление переменной
+
+        foreach ($groups as $key =>  $item) {
+            $_SESSION["getId"]["code_group"][$item['codeGr']] = $key;
+            $_SESSION["getId"]["path_group"][$item['name']]   = $key;
+        }
     }
 
     // Данные итератора
-    private function iteratorData($prepare = false, $options){
+    private function iteratorData($prepare = false, $options)
+    {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         // номер строки файла
         $i=0;
@@ -437,7 +531,8 @@ class Import extends Product
     }
 
     // Получение ИД от Имени/Кода... (поддерживает переменные и списки,когда в ячейке эксель несколько значений)
-    private function getId($key = 'id', $delimiter, $reconTable, $column, $item){ // ключ / разделитель / таблСверки / колонка / значение
+    private function getId($key = 'id', $delimiter, $reconTable, $column, $item)  // ключ / разделитель / таблСверки / колонка / значение
+    {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         if(isset($item[$this->fieldsMap[$key]]) and !empty($item[$this->fieldsMap[$key]])) {
@@ -445,7 +540,7 @@ class Import extends Product
 
             // разбиение переменной на список
             $listObj = $item[$this->fieldsMap[$key]];
-            $listObj = explode($delimiter, $listObj);
+            if ($delimiter !== FALSE) $listObj = preg_split($delimiter, $listObj);
 
             // если осталась строкой - приводим к общему формату
             if(gettype($listObj) == string or gettype($listObj) == integer) $listObj = array($listObj);
@@ -462,17 +557,21 @@ class Import extends Product
             // сопоставление вход_списка с данными из таблицы
             $get = array();
             foreach ($listObj as $lObj) {
-                $code = NULL;
-                foreach ($objects as $object) {
-                    $this->debugging('special', __FUNCTION__.' '.__LINE__, __CLASS__, $object[id] . ' ' . $object[$this->convJS($column)]);
+                $code = $_SESSION["getId"][$key][$lObj]; // пробуем достать связку из сессии (для быстродействия)
+                if ($code == "") {
+                    $code = NULL;
+                    foreach ($objects as $object) {
+                        $this->debugging('special', __FUNCTION__ . ' ' . __LINE__, __CLASS__, $object[id] . ' ' . $object[$this->convJS($column)]);
 
-                    // trim: удаление пробелов в начале и конце строки,
-                    // mb_strtolower: к нижнему регистру
-                    $lObj = mb_strtolower(trim($lObj));
-                    $obj = mb_strtolower(trim($object[$this->convJS($column)]));
+                        // trim: удаление пробелов в начале и конце строки,
+                        // mb_strtolower: к нижнему регистру
+                        $lObj = mb_strtolower(trim($lObj));
+                        $obj = mb_strtolower(trim($object[$this->convJS($column)]));
 
-                    if ($lObj == $obj) {
-                        $code = (int)$object[id];
+                        if ($lObj == $obj) {
+                            $code = (int)$object[id];
+                            $_SESSION["getId"][$key][$lObj] = (int)$object[id]; // запоминаем связку в сессии (для быстродействия)
+                        }
                     }
                 }
                 array_push($get, $code);
@@ -487,15 +586,43 @@ class Import extends Product
             return NULL;
     }
 
+    private function getIdGroup($key = 'id', $delimiter, $item)  // ключ / разделитель / таблСверки / колонка / значение
+    {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+
+        if(isset($item[$this->fieldsMap[$key]]) and !empty($item[$this->fieldsMap[$key]])) {
+            /*
+             * разбиение переменной на список
+             * если осталась строкой - приводим к общему формату
+             */
+            $listObj = $item[$this->fieldsMap[$key]];
+            if ($delimiter !== FALSE) $listObj = preg_split($delimiter, $listObj);
+            if(gettype($listObj) == string or gettype($listObj) == integer) $listObj = array($listObj);
+
+            // сопоставление вход_списка с данными из таблицы
+            $get = array();
+            foreach ($listObj as $lObj) {
+                $code = $_SESSION["getId"][$key][$lObj];
+                array_push($get, $code);
+            }
+            if (count($get) == 1)
+                $get = $get[0];
+            return $get;
+
+        } else
+            return NULL;
+    }
+
 
     // получить
-    private function get( $key = 'id', $delimiter, $item){
+    private function get( $key = 'id', $delimiter, $item)
+    {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
 
         // разложение строки на элементы
         if(gettype($item[$this->fieldsMap[$key]]) == string)
-            $fieldsM = explode($delimiter, $item[$this->fieldsMap[$key]]);
+            if ($delimiter !== FALSE) $fieldsM = preg_split($delimiter, $item[$this->fieldsMap[$key]]);
         else
             $fieldsM = array((string) $item[$this->fieldsMap[$key]]);
         // если осталась строкой - приводим к общему формату
@@ -516,15 +643,25 @@ class Import extends Product
 
 
     // создание групп и связей с ними товаров
-    private function CommunGroup($item, $creatGroup){
+    private function CommunGroup($item, $creatGroup)
+    {
 
+
+        // // фильтрация путей групп - получение значений после последних слешей
+        // $listObj = $item[$this->fieldsMap['path_group']];
+        // $listObj = preg_split("/,(?!\s+)/ui", $listObj);
+        // foreach($listObj as &$lo) {
+        //     $lo = explode("/", $lo);
+        //     if(gettype($lo) == 'array') $lo = array_pop($lo);
+        // }
+        // $item[$this->fieldsMap['path_group']] = implode(",", $listObj);
 
         // получаем данные для обработки
         $id_gr_ig   = array(NULL);
-        $id_gr_cg   = $this->getId('code_group', ",", 'shop_group', 'code_gr', $item);
-        $id_gr_pg   = $this->getId('path_group', "/", 'shop_group', 'name', $item);
-        if(gettype($id_gr_pg) == 'array') $id_gr_pg = array_pop($id_gr_pg);
-        $code_group = $this->get('code_group', ",", $item);
+        $id_gr_cg   = $this->getIdGroup('code_group', "/,(?!\s+)/ui", $item);
+        $id_gr_pg   = $this->getIdGroup('path_group', "/,(?!\s+)/ui", $item);
+
+        $code_group = $this->get('code_group', "/,(?!\s+)/ui", $item);
         $path_group = $this->get('path_group', "NULL_delimiter", $item);
         // унифицируем
         if(gettype($code_group) != 'array' and $code_group != NULL) $code_group = array($code_group);
@@ -602,9 +739,12 @@ class Import extends Product
         // ...если отсутствуют, добавляем категории и передаем данные для последующей привязки (если в базе не найдены совпадения)
         if($creatGroup == TRUE) {
             if (getType($code_group) == 'array' or getType($path_group) == 'array') {
+
                 // унифицируем
                 if(gettype($id_gr)      != 'array') $id_gr      = array($id_gr);
                 if(getType($code_group) != 'array') $code_group = array($code_group);
+                $path_group = $item[$this->fieldsMap['path_group']];
+                $listObj = preg_split("/,(?!\s+)/ui", $path_group);
                 if(getType($path_group) != 'array') $path_group = array($path_group);
 
                 $start = 0;
@@ -626,15 +766,16 @@ class Import extends Product
 
 
     // Получить правильные данные
-    private function getRightData($item, $options){
+    private function getRightData($item, $options)
+    {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         // $item - данные по КАЖДОМУ товару
 
 //        // Добавляем категории
 //        $this->addCategory(
-//            $this->get('id_group', ",", $item),
-//            $this->get('code_group', ",", $item),
-//            $this->get('path_group', ",", $item)
+//            $this->get('id_group', "/,(?!\s+)/ui", $item),
+//            $this->get('code_group', "/,(?!\s+)/ui", $item),
+//            $this->get('path_group', "/,(?!\s+)/ui", $item)
 //        );
 
         //writeLog($options['delimiter']);
@@ -644,16 +785,16 @@ class Import extends Product
 
         // Добавляем меры (веса/объема)
         $this->importData['measure'][] = array(
-            'id_price' =>           $this->get('id', ",", $item),
-            "id_weight_view" =>     $this->getId('measures_weight', ",", 'shop_measure_weight', 'name', $item)[0], // НЕ ПРЕВОДИТЬ В int >> не отфильтровывается значеине при передаче
-            "id_weight_edit" =>     $this->getId('measures_weight', ",", 'shop_measure_weight', 'name', $item)[1],
-            "id_volume_view" =>     $this->getId('measures_volume', ",", 'shop_measure_volume', 'name', $item)[0],
-            "id_volume_edit" =>     $this->getId('measures_volume', ",", 'shop_measure_volume', 'name', $item)[1]
+            'id_price' =>           $this->get('id', "/,(?!\s+)/ui", $item),
+            "id_weight_view" =>     $this->getId('measures_weight', "/,(?!\s+)/ui", 'shop_measure_weight', 'name', $item)[0], // НЕ ПРЕВОДИТЬ В int >> не отфильтровывается значеине при передаче
+            "id_weight_edit" =>     $this->getId('measures_weight', "/,(?!\s+)/ui", 'shop_measure_weight', 'name', $item)[1],
+            "id_volume_view" =>     $this->getId('measures_volume', "/,(?!\s+)/ui", 'shop_measure_volume', 'name', $item)[0],
+            "id_volume_edit" =>     $this->getId('measures_volume', "/,(?!\s+)/ui", 'shop_measure_volume', 'name', $item)[1]
         );
 
         // Добавляем сопутствующие товары
-        $accomp       = $this->get('id_acc', ",", $item);
-        $id_price_acc = $this->get('id', ",", $item);
+        $accomp       = $this->get('id_acc', "/,(?!\s+)/ui", $item);
+        $id_price_acc = $this->get('id', "/,(?!\s+)/ui", $item);
         // если присутствуют сопутствующие - добавляем
         if($accomp != NULL) {
             foreach ($accomp as $ac) {
@@ -666,41 +807,40 @@ class Import extends Product
 
         // ас.массив значений записи в БД
         $Product = array(
-            'id' =>                 $this->get('id', ",", $item),
+            'id' =>                 $this->get('id', FALSE, $item),
             'id_group' =>           $id_gr,
-            'name' =>               $this->get('name', ",", $item),
-            'article' =>            $this->get('article', ",", $item),
-            'code' =>               $this->get('code', ",", $item),
-            'price' =>              (int) $this->get('price', ",", $item),
-            'price_opt' =>          (int) $this->get('price_opt', ",", $item),
-            'price_opt_corp' =>     (int) $this->get('price_opt_corp', ",", $item),
-            'price_purchase' =>     (int) $this->get('price_purchase', ",", $item),
-            'bonus' =>     			(int) $this->get('bonus', ",", $item),
-            'presence_count' =>     $this->get('presence_count', ",", $item),
+            'name' =>               $this->get('name', FALSE, $item),
+            'article' =>            $this->get('article', FALSE, $item),
+            'code' =>               $this->get('code', FALSE, $item),
+            'price' =>              (int) $this->get('price', FALSE, $item),
+            'price_opt' =>          (int) $this->get('price_opt', FALSE, $item),
+            'price_opt_corp' =>     (int) $this->get('price_opt_corp', FALSE, $item),
+            'price_purchase' =>     (int) $this->get('price_purchase', FALSE, $item),
+            'bonus' =>     			(int) $this->get('bonus', FALSE, $item),
+            'presence_count' =>     $this->get('presence_count', FALSE, $item),
             'presence' =>           NULL, // если Остаток текстовый - поле заполняется ниже
-            'step_count' =>         $this->get('step_count', ",", $item),
+            'step_count' =>         $this->get('step_count', FALSE, $item),
 
-            'weight' =>             $this->get('weight', ",", $item),
-            'volume' =>             $this->get('volume', ",", $item),
+            'weight' =>             $this->get('weight', FALSE, $item),
+            'volume' =>             $this->get('volume', FALSE, $item),
 
-            'measure' =>            $this->get('measure', ",", $item),
-            'note' =>               $this->get('note', ",", $item),
-            'text' =>               $this->get('text', ",", $item),
-            'curr' =>               $this->get('curr', ",", $item),
+            'measure' =>            $this->get('measure', "/,(?!\s+)/ui", $item),
+            'note' =>               $this->get('note', FALSE, $item),
+            'text' =>               $this->get('text', FALSE, $item),
+            'curr' =>               $this->get('curr', FALSE, $item),
 
-            'enabled' =>            $this->get('enabled', ",", $item),//
-            'flag_new' =>           $this->get('flag_new', ",", $item),
-            'flag_hit' =>           $this->get('flag_hit', ",", $item),
-            'is_market' =>          (int) $this->get('is_market', ",", $item),
+            'enabled' =>            $this->get('enabled', FALSE, $item),//
+            'flag_new' =>           $this->get('flag_new', FALSE, $item),
+            'flag_hit' =>           $this->get('flag_hit', FALSE, $item),
+            'is_market' =>          (int) $this->get('is_market', FALSE, $item),
 
-            "img_alt" =>            $this->get('img_alt', ",", $item),
-            // "description" =>        $this->get('description', ",", $item),
-            'min_count' =>          (int) $this->get('min_count', ",", $item),
-            'id_brand' =>           $this->getId('id_brand', ",", 'shop_brand', 'name', $item),
+            "img_alt" =>            $this->get('img_alt', "/,(?!\s+)/ui", $item),
+            'min_count' =>          (int) $this->get('min_count', FALSE, $item),
+            'id_brand' =>           $this->getId('id_brand', FALSE, 'shop_brand', 'name', $item),
 
-            'title' =>              $this->get('title', ",", $item),
-            'keywords' =>           $this->get('keywords', ",", $item),
-            'description' =>        $this->get('description', ",", $item)
+            'title' =>              $this->get('title', FALSE, $item),
+            'keywords' =>           $this->get('keywords', FALSE, $item),
+            'description' =>        $this->get('description', FALSE, $item)
             // смотреть в БД
 
         );
@@ -739,11 +879,11 @@ class Import extends Product
         $imgList = array('img_alt','img', 'img_2', 'img_3', 'img_4', 'img_5', 'img_6', 'img_7', 'img_8', 'img_9', 'img_10');
 
         foreach ($imgList as $imgKey){
-            if($imgLL = $this->get($imgKey, ",", $item)){
+            if($imgLL = $this->get($imgKey, "/,(?!\s+)/ui", $item)){
 
                 // разложение на элементы
                 //$imgLL = iconv('utf-8', 'windows-1251', $imgLL);
-                //$imgLL = explode(",", $imgLL);
+                //$imgLL = explode("/,(?!\s+)/ui", $imgLL);
 
                 // преобразование информации по изображения под таблицу shop_img
                 foreach ($imgLL as $result) {
@@ -752,7 +892,7 @@ class Import extends Product
                     if ($result != '') {
 
                         $newImg = array(
-                            "id_price" => $this->get('id', ",", $item),
+                            "id_price" => $this->get('id', "/,(?!\s+)/ui", $item),
                             "picture" => $result
                         );
 
@@ -770,7 +910,8 @@ class Import extends Product
     }
 
     // Добавить данные
-    private function addData(){
+    private function addData()
+    {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try{
             //writeLog($this->mode,'MODE');
@@ -907,7 +1048,8 @@ class Import extends Product
     }
 
     // удалить категорию
-    private function deleteCategory($id_price,$id_group){
+    private function deleteCategory($id_price,$id_group)
+    {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $spg = new DB('shop_price_group','spg');
         $spg->select('spg.*');
@@ -1081,7 +1223,8 @@ class Import extends Product
     }
 
     // обновить группы таблиц
-    public function updateGroupTable() {
+    public function updateGroupTable()
+    {
         $sql = "CREATE TABLE IF NOT EXISTS shop_group_tree (
             id int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
             id_parent int(10) UNSIGNED NOT NULL,
@@ -1121,7 +1264,8 @@ class Import extends Product
     }
 
     // добавить в дерево
-    private function addInTree($tree , $parent = 0, $level = 0, &$treepath = array()){
+    private function addInTree($tree , $parent = 0, $level = 0, &$treepath = array())
+    {
         if ($level == 0) {
             $treepath = array();
         } else

@@ -252,7 +252,6 @@ class Product extends Base
             }
         }
 
-
     }
 
     private function calkMeasure($table, $id)
@@ -1934,10 +1933,12 @@ class Product extends Base
     // @@     @@@@@@ @@@@@@    @@
 
     // После
-    public function post()
+    public function post($tempFile = FALSE)
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
-        if ($items = parent::post()) {
+        $this->rmdir_recursive(DOCUMENT_ROOT . "/files/tempfiles");  // очистка директории с временными файлами
+        unset($_SESSION["getId"]);                                       // очистка временных данных по связям товар-группа
+        if ($items = parent::post(true)) {
             $this->import($items[0]["url"], $items[0]["name"]);
         }
     }
@@ -1953,20 +1954,30 @@ class Product extends Base
     public function import($url = null, $fileName = null)
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
-        //writeLog($headerCSV);
+
         if (!empty($_POST)) $_SESSION["options"] = $_POST;
-        if (is_null($fileName)) {
+        /*
+         * if   превью импорта
+         * else непосредственный импорт
+         *
+         * $this->result - отправка в Ajax
+         * $headerCSV - заголовки CSV?
+         */
+        if (!is_null($fileName)) {
+            return $this->productsImport($url, $fileName);
+        } else {
             $import = new Import($this->input);
             $options = $_SESSION["options"];
-            $this->result = $import->startImport(
+            $pages = $import->startImport(
                 $this->input['filename'],
                 false,
                 $options,
-                $this->input['prepare'][0]
+                $this->input['prepare'][0],
+                $this->input['cycleNum']
             );
+            $this->result['pages'] = $_SESSION["pages"];
             return true;
         }
-        return $this->productsImport($url, $fileName);
     }
 
 
@@ -1976,7 +1987,7 @@ class Product extends Base
     // @@     @@ @@  @@  @@ @@   @@     @@   @@  @  @@ @@
     // @@     @@  @@ @@@@@@ @@@@@@    @@@@@@ @@     @@ @@
 
-    // Импорт продуктов
+    // Превью импорта
     private function productsImport($url, $fileName)
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
@@ -1986,7 +1997,8 @@ class Product extends Base
             $fileName,
             true,
             $options,
-            $this->input['prepare'][0]
+            $this->input['prepare'][0],
+            0
         );
     }
 

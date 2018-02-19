@@ -16,26 +16,6 @@ class ProductExport extends Product
 {
 
     /*
-     * @@@@@@  @@@@@@ @@     @@@@@@ @@@@@@@@ @@@@@@ |
-     * @@   @@ @@     @@     @@        @@    @@     |
-     * @@   @@ @@@@@@ @@     @@@@@@    @@    @@@@@@ |
-     * @@   @@ @@     @@     @@        @@    @@     |
-     * @@@@@@  @@@@@@ @@@@@@ @@@@@@    @@    @@@@@@ |
-     *
-     * Удаление всего содержимого директории
-     */
-    public function rmdir_recursive($dir)
-    {
-        foreach(scandir($dir) as $file) {
-            if ('.' === $file || '..' === $file) continue;
-            if (is_dir("$dir/$file")) $this->rmdir_recursive("$dir/$file");
-            else unlink("$dir/$file");
-        }
-        // rmdir($dir);
-    }
-
-
-    /*
      *  @@@@@@ @@@@@@ @@@@@@ @@    @@    @@@@@@ @@  @@ @@@@@@  | превью экспорта
      *  @@  @@ @@  @@ @@     @@    @@    @@      @@@@  @@  @@  |
      *  @@@@@@ @@@@@@ @@@@@@  @@  @@     @@@@@@   @@   @@@@@@  |
@@ -601,24 +581,7 @@ class ProductExport extends Product
      *    @@    @@@@@@ @@ @@@ @@ @@@@@@ |
      *    @@    @@     @@  @  @@ @@     |
      *    @@    @@@@@@ @@     @@ @@     |
-     *                                  |
      */
-
-    // запись во временные файлы
-    private function writTempFiles($writer, $cycleNum)
-    {
-        /*
-         * создаются временные файлы в директории "files/tempfiles/" с именами "goodsL1.TMP" (число - номер цикла)
-         * объем файла - величина установленная в параметре $limit
-         */
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
-        if (!empty($writer)) {
-            $filename = "{$this->temporaryFilePath}/goodsL{$cycleNum}.TMP";
-            $file     = fopen($filename, "w");
-            fwrite($file, json_encode($writer));
-            fclose($file);
-        }
-    }
 
     // сборка файла из временных
     private function assembly($pages, $filePath)
@@ -644,8 +607,7 @@ class ProductExport extends Product
             $writer->openToFile($filePath);                               // директория сохраниния XLSX
 
             for ($cycleNum = 0; $cycleNum < $pages; ++$cycleNum) {
-                $filename = "{$this->temporaryFilePath}/goodsL{$cycleNum}.TMP";
-                $goodsL   = json_decode(file_get_contents($filename)); // чтение файла
+                $goodsL = $this->readTempFiles($cycleNum);
                 $writer->addRows($goodsL);
             }
             unset($mainRequest);

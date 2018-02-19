@@ -5,7 +5,8 @@ error_reporting(E_ALL);
 function log_error( $num, $str, $file, $line, $context = null )
 {
     if($num > 8){
-        $file = array_pop(explode('api',$file));
+        $a = explode('api',$file);
+        $file = array_pop($a);
         writeLog($num.'['.$file.'|'.$line.'] '.$str, 'ERROR');
     }
 }
