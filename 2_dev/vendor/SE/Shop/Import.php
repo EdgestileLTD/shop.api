@@ -158,6 +158,7 @@ class Import extends Product
         $this->cycleNum = $cycleNum;
         if ($prepare) {
             unset($_SESSION["pages"]);
+            unset($_SESSION["getId"]);
             $this->getDataFromFile($filename, $options, $prepare);
             $this->cycleNum = 0;
         } elseif ($this->cycleNum == 0) {
@@ -179,69 +180,97 @@ class Import extends Product
             $this->iteratorData($prepare, $options);
             if ($prepare)       return $this->importData;
             else                $this->addData();
+            unset($_SESSION["getId"]);
             unset($this->data);
         }
         return 0;
     }
 
 
-    // добавить категорию / массив категорий
-    private function addCategory($code_group, $path_group)
+    /**
+     * добавить категорию / массив категорий
+     * @param $code_group - нумерованны массив или строка (автопреобразуется в массив)
+     * @param $path_group - нумерованны массив или строка (автопреобразуется в массив)
+     */
+    private function addCategoryMain($code_group, $path_group)
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
-
 
         // унификация (приводим к одному формату)
         if(gettype($code_group) == string)  $code_group = array($code_group);
         if(gettype($path_group) == string)  $path_group = array($path_group);
         // категории приходят массивом
         if(count($code_group) > 0 or count($path_group) > 0) {
-            $ran = 0;
-            if (!$this->check($code_group[$ran], 'code_group') or
-                !$this->check($path_group[$ran], 'path_group')
-            ) {
-
-
-                // раскладываем путь, создаем группы по пути
-                $ways = (array)explode('/', $path_group[$ran]);
-                $countWays = count($ways) - 1;
-                foreach (range(0, $countWays) as $number) {
-                     $this->addCategoryParents($number, $ways, $code_group, $ran);
-
+            $list_group = max(count($code_group),count($path_group)) - 1;
+            // перебираем пришедшие группы
+            foreach (range(0, $list_group) as $unit_group) {
+                if (!$this->check($code_group[$unit_group], 'code_group') or
+                    !$this->check($path_group[$unit_group], 'path_group')
+                ) {
+                    // раскладываем путь, создаем группы по пути + код присваиваем ПОСЛЕДНЕЙ группе
+                    $ways = (array)explode('/', $path_group[$unit_group]);
+                    $countWays = count($ways) - 1;
+                    $list_code = array();
+                    $list_code[$countWays] = $code_group;
+                    // проходим по пути проверяя наличие группы, при отсутствие - генерим, получаем id
+                    foreach (range(0, $countWays) as $number) {
+                        $this->addCategoryParents($number, $ways, $list_code, $unit_group);
+                    }
                 }
             }
         }
     }
 
-    // добавить категорию / массив категорий
-    private function addCategoryParents($number, $ways, $code_group, $ran)
+    /**
+     * добавить категорию  (с поддержкой родитель-групп)
+     * @param $number      - число, номер ранжирования по пути группы
+     * @param $ways        - нумерованный массив, групп из пути разбитый по слешам, нулевой - родительский
+     * @param $code_group  - строка, код группы
+     * @param $unit_group  - число, порядковое группы в пришедшем массиве
+     */
+    private function addCategoryParents($number, $ways, $code_group, $unit_group)
     {
-        // определяем потребность в создании группы (родителя)
-        $ar_pop_wa = $ways[$number];
-        if (!$_SESSION["getId"]["path_group"][$ar_pop_wa]) {
+        // определяем потребность в создании группы
+        $ar_pop_wa      = $ways[$number];
+        $section_groups = array_slice($ways, 0, $number+1);
+        $path_new_group = implode("/", $section_groups);
+        if (!$_SESSION["getId"]["path_group"][$path_new_group]) {
 
             // определение родителя
             if($number != 0) {
-                $ar_pop_wa_par = $ways[$number - 1];
-                $ar_pop_wa_par = mb_strtolower(trim($ar_pop_wa_par));
-                $pare = NULL;
-                if(!$_SESSION["getId"]["path_group"][$ar_pop_wa_par]) $pare = $_SESSION["getId"]["path_group"][$ar_pop_wa_par];
-                // else $this->addCategoryParents($number, $ways, $code_group, $ran)
+                $ar_pop_wa_par = array_slice($ways, 0, $number);
+                $ar_pop_wa_par = implode("/", $ar_pop_wa_par);
+                if($_SESSION["getId"]["path_group"][$ar_pop_wa_par])
+                    $pare      = $_SESSION["getId"]["path_group"][$ar_pop_wa_par];
+                else $pare     = NULL;
+                // else $this->addCategoryParents($number, $ways, $code_group, $unit_group)
             }
 
 
-            // принять хотя бы 1 из 2 параметров - остальные сгенерировать, если отсутствуют
+            /*
+             * generete group data
+             * принять хотя бы 1 из 2 параметров - остальные сгенерировать, если отсутствуют
+             */
             $parent = NULL;
-            $error = False;
-            if(!empty($ar_pop_wa)){             $name = $ar_pop_wa;
-                $parent = $pare;
-                if(empty($code_group[$ran]))    $code_gr = strtolower(se_translite_url($ar_pop_wa));
-                else                            $code_gr = $code_group[$ran];
-            }elseif(!empty($code_group[$ran])){ $name = $code_group[$ran];
-                $code_gr = $code_group[$ran];
-            }else                               $error = True;
+            $error  = False;
+            if(!empty($ar_pop_wa)) {
+                $name                                        = $ar_pop_wa;
+                $parent                                      = $pare;
+                if(empty($code_group[$unit_group])) $code_gr = strtolower(se_translite_url($ar_pop_wa));
+                else $code_gr                                = $code_group[$unit_group];
+            } elseif(!empty($code_group[$unit_group])) {
+                $name                                        = $code_group[$unit_group];
+                $parent                                      = $pare;
+                $code_gr                                     = $code_group[$unit_group];
+            } else
+                $error                                       = True;
 
 
+            /*
+             * write DB shop_group
+             * get id group
+             * write id in session
+             */
             if($error != True) {
                 $newCat = array(
                     'code_gr'   => $code_gr,
@@ -249,20 +278,19 @@ class Import extends Product
                     'upid'      => $parent
                 );
                 if(!empty($id) or !empty($code_gr) or !empty($name)) {
-                    DB::query("SET foreign_key_checks = 0");
+                    DB::query('SET foreign_key_checks = 0');
                     DB::insertList('shop_group', array($newCat),TRUE);
-                    DB::query("SET foreign_key_checks = 1");
+                    DB::query('SET foreign_key_checks = 1');
                 }
-                // TODO get id
-                $id = DB::query("SELECT id FROM shop_group WHERE name = ".$name);
-                // $u = new DB('shop_group', 'sg');
-                // $u->select('sg.id');
-                // $u->where('sg.name = (?)', join(',', $name));
-                // $id = $u->getList();
-                // unset($u);
-                $path_new_group = implode("/", array_pop($ways));
-                $_SESSION["getId"]['code_gr'][$code_gr] = $id;
-                $_SESSION["getId"]["path_group"][$path_new_group] = $id;
+
+                $u  = new DB('shop_group', 'sg');
+                $u->select('sg.id');
+                $u->where("sg.name = '?'", $name);
+                $id = $u->fetchOne();
+                unset($u);
+
+                $_SESSION["getId"]['code_gr'][$code_gr]           = $id['id'];
+                $_SESSION["getId"]["path_group"][$path_new_group] = $id['id'];
             }
         }
     }
@@ -475,9 +503,9 @@ class Import extends Product
         $groups = $u->getList();
         unset($u); // удаление переменной
 
-        foreach ($groups as $key =>  $item) {
-            $_SESSION["getId"]["code_group"][$item['codeGr']] = $key;
-            $_SESSION["getId"]["path_group"][$item['name']]   = $key;
+        foreach ($groups as $key => $item) {
+            $_SESSION["getId"]["code_group"][$item['codeGr']] = $item['id'];
+            $_SESSION["getId"]["path_group"][$item['name']]   = $item['id'];
         }
     }
 
@@ -752,7 +780,7 @@ class Import extends Product
                     if ($i == NULL) $start = $start + 1;
 
                 if ($start != 0) {
-                    $this->addCategory($code_group, $path_group);
+                    $this->addCategoryMain($code_group, $listObj);
                     $id_gr = array($item);
                 };
             };
