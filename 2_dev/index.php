@@ -21,12 +21,35 @@ define('API_ROOT_URL', "http://" . $_SERVER['SERVER_NAME'] . "/api/" . API_VERSI
 define('AUTH_SERVER', "https://api.siteedit.ru");
 
 // запись в журнал
-function writeLog($data)
+function writeLog($data, $enter = TRUE)
 {
     if (!is_string($data))
         $data = print_r($data, 1);
     $file = fopen($_SERVER['DOCUMENT_ROOT'] . "/api/" . API_VERSION ."/debug.log", "a+");
-    $query = date('[Y-m-d H:i:s] ') . "$data" . "\n";
+    $date = microtime();
+    $date = explode(" ",$date);
+    $date = strval($date[0]);
+
+    $dateLogMin = (int)(date("i"));
+    $dateLogSec = substr($date, 2);
+    $dateLogSec = (float)(date("s") . ".$dateLogSec");
+    $interval = (float)$dateLogSec - (float)$_SESSION["logInterval"]['sec'];
+    $interval = number_format($interval,6, '.','');
+    $interval = '[secInterval ' . $interval . ']';
+
+    $date = substr($date, 2, 3);
+    $date = '[TimeNow '.date("H:i:s").":$date]";
+    $intervalMin = $dateLogMin - $_SESSION["logInterval"]['min'];
+    if ($intervalMin == 0) $query = $interval." $data";
+    else                   $query = $date." $data";
+
+    if($enter == TRUE) $query .= "\n";
+    else               $query .= "  ";
+
+    $_SESSION["logInterval"] = array(
+        'sec' => $dateLogSec,
+        'min' => $dateLogMin
+    );
     fputs($file, $query);
     fclose($file);
 }

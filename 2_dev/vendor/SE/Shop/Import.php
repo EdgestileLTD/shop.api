@@ -101,10 +101,10 @@ class Import extends Product
     );
 
     /**
-     * ins  - Добавление в БД данных как новые строки
-     * rld  - Добавление в БД данных как новые строки, с удалением других товаров
-     * upd  - Обновление БД
-     * pre  - Подготовка данных
+     * ins Добавление в БД данных как новые строки
+     * rld Добавление в БД данных как новые строки, с удалением других товаров
+     * upd Обновление БД
+     * pre Подготовка данных
      */
     public $mode = 'ins';
 
@@ -189,8 +189,8 @@ class Import extends Product
 
     /**
      * добавить категорию / массив категорий
-     * @param $code_group - нумерованны массив или строка (автопреобразуется в массив)
-     * @param $path_group - нумерованны массив или строка (автопреобразуется в массив)
+     * @param $code_group нумерованны массив или строка (автопреобразуется в массив)
+     * @param $path_group нумерованны массив или строка (автопреобразуется в массив)
      */
     private function addCategoryMain($code_group, $path_group)
     {
@@ -350,7 +350,6 @@ class Import extends Product
                     $_SESSION["pages"] = $cycleNum;
                     return true;
                 } elseif($extension == 'csv') {
-                    // TODO: CSV - тестировать
                     // если импортируем csv
                     $delimiter = $options['delimiter'];
                     // $encoding = $options['encoding'];
@@ -446,6 +445,8 @@ class Import extends Product
 
     /**
      * Готовим данные
+     * @param $userData
+     * @param $options
      */
     // привязываем заголовки к номерам столбцов
     private function prepareData($userData, $options)
