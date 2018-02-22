@@ -60,8 +60,8 @@ if (CORE_VERSION != "5.2")
 $select = "sp.*, sg.name namegroup, sdl.discount_id is_discount, 
             COUNT(DISTINCT(smf.id_modification)) as countModifications, sb.name nameBrand, {$crossGroup}";
 
-if ($_SESSION['isShowOptions'])
-    $select .= ", COUNT(spo.id) countOptions";
+//if ($_SESSION['isShowOptions'])
+//    $select .= ", COUNT(spo.id) countOptions";
 
 $u = new seTable('shop_price', 'sp');
 $u->select("{$select}");
@@ -74,8 +74,8 @@ if (CORE_VERSION != "5.2") {
     $u->leftjoin('shop_group_price spg', 'sp.id = spg.price_id');
 }
 
-if ($_SESSION['isShowOptions'])
-    $u->leftjoin('shop_product_option spo', 'sp.id = spo.id_product');
+//if ($_SESSION['isShowOptions'])
+//    $u->leftjoin('shop_product_option spo', 'sp.id = spo.id_product');
 
 $u->leftjoin('shop_discount_links sdl', 'sdl.id_price=sp.id');
 $u->leftjoin('(SELECT smf.id_price, smf.id_modification FROM shop_modifications_feature smf

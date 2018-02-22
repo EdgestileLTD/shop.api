@@ -175,7 +175,7 @@ if ($json->token) {
         $core_version = trim(file_get_contents($ver_file));
         $core_version = explode(':', $core_version);
         $core_version = ($core_version[1]);
-        $core_version = (!empty($core_version)) ? $core_version : "5.1";
+        $core_version = (!empty($core_version)) ? $core_version : "5.3";
     }
     define('CORE_VERSION', $core_version);
 } else {

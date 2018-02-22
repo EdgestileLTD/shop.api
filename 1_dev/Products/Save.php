@@ -648,6 +648,19 @@ function saveOptions($idsProducts, $options)
     foreach ($options as $option) {
         foreach ($option->optionValues as $value)
             $values[] = $value;
+
+        foreach ($idsProducts as $idProduct) {
+            $u = new seTable('shop_product_option_position', 'pop');
+            $u->select("pop.id");
+            $u->where("pop.id_product = ?", $idProduct);
+            $u->andWhere('pop.id_option  = ?', $option->id);
+            $u->fetchOne();
+            $u->id_product = $idProduct;
+            $u->id_option = $option->id;
+            $u->position = $option->position;
+            $u->save();
+        }
+
     }
 
     foreach ($idsProducts as $idProduct) {
