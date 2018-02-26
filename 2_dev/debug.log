@@ -1,0 +1,15 @@
+
+[TimeNow 10:24:09:027] start Reader  [secInterval 6.297636] end Reader  [secInterval 0.000088] start getRowIterator  [secInterval 1.735217] end getRowIterator  [secInterval 0.000105] end forech
+==================================
+
+[secInterval 36.067100] start Reader  [secInterval 6.339941] end Reader  [secInterval 0.000254] start getRowIterator  [TimeNow 10:25:01:208] end getRowIterator  [secInterval 0.000116] end forech
+[secInterval 0.184826] start Reader  [secInterval 6.553122] end Reader  [secInterval 0.000094] start getRowIterator  [secInterval 9.604860] end getRowIterator  [secInterval 0.000095] end forech
+[secInterval 0.194637] start Reader  [secInterval 6.510480] end Reader  [secInterval 0.000090] start getRowIterator  [secInterval 21.193442] end getRowIterator  [secInterval 0.000094] end forech
+[secInterval 0.195281] start Reader  [secInterval 6.476316] end Reader  [secInterval 0.000126] start getRowIterator  [TimeNow 10:26:25:954] end getRowIterator  [secInterval 0.000104] end forech
+[secInterval 0.193546] start Reader  [secInterval 6.520816] end Reader  [secInterval 0.000098] start getRowIterator
+
+[maxNumStringsPerTempFile:protected] => 10000
+==================================
+
+
+[TimeNow 13:00:06:267] Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sp.id_label' in 'where clause'
