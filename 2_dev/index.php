@@ -20,7 +20,14 @@ define('API_ROOT', $_SERVER['DOCUMENT_ROOT'] . '/api/' . API_VERSION . '/');
 define('API_ROOT_URL', "http://" . $_SERVER['SERVER_NAME'] . "/api/" . API_VERSION);
 define('AUTH_SERVER', "https://api.siteedit.ru");
 
-// запись в журнал
+/**
+ * запись в логи
+ *
+ * @param $data              текст
+ * @param bool $enter        переключение печати в строчкУ/строчкИ (по умолчанию с новой строчки)
+ * @var TYPE_NAME $date      [TimeNow]
+ * @var TYPE_NAME $interval  SI - secInterval (прошло секунд с последнего лога в пределах минуты)
+ */
 function writeLog($data, $enter = TRUE)
 {
     if (!is_string($data))
@@ -35,16 +42,16 @@ function writeLog($data, $enter = TRUE)
     $dateLogSec = (float)(date("s") . ".$dateLogSec");
     $interval = (float)$dateLogSec - (float)$_SESSION["logInterval"]['sec'];
     $interval = number_format($interval,6, '.','');
-    $interval = '[secInterval ' . $interval . ']';
+    $interval = '[SI ' . $interval . ']';
 
     $date = substr($date, 2, 3);
-    $date = '[TimeNow '.date("H:i:s").":$date]";
+    $date = '['.date("H:i:s").":$date]";
     $intervalMin = $dateLogMin - $_SESSION["logInterval"]['min'];
     if ($intervalMin == 0) $query = $interval." $data";
     else                   $query = $date." $data";
 
-    if($enter == TRUE) $query .= "\n";
-    else               $query .= "  ";
+    if($enter == TRUE) $query = "\n".$query;
+    else               $query = "  ".$query;
 
     $_SESSION["logInterval"] = array(
         'sec' => $dateLogSec,

@@ -2,14 +2,15 @@
 
 namespace SE\Shop;
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/Spout/Autoloader/autoload.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel/IOFactory.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel/Writer/Excel2007.php';
 
-// Старая Excel библиотека
+use \PHPExcel_IOFactory as PHPExcel_IOFactory;
+use \PHPExcel_Autoloader as PHPExcel_Autoloader;
 use SE\Shop\Product;
 use SE\DB;
-
-use Box\Spout\Reader\ReaderFactory;
-use Box\Spout\Common\Type;
+use SE\Shop\ReadFilter;
 
 
 class Import extends Product
@@ -157,13 +158,15 @@ class Import extends Product
          */
         $this->cycleNum = $cycleNum;
         if ($prepare) {
+            unset($_SESSION["cycleNum"]);
             unset($_SESSION["pages"]);
+            $_SESSION["countPages"] = 0;
             unset($_SESSION["getId"]);
             $this->getDataFromFile($filename, $options, $prepare);
             $this->cycleNum = 0;
         } elseif ($this->cycleNum == 0) {
+            $_SESSION["cycleNum"] = 0;
             unset($_SESSION["pages"]);
-            unlink(DOCUMENT_ROOT . "/files/tempfiles/tempfile0.TMP");
             $this->getDataFromFile($filename, $options, $prepare);
         }
         if ($prepare or $this->cycleNum != 0) {
@@ -178,8 +181,12 @@ class Import extends Product
             }
             elseif (!$prepare)  $this->fieldsMap = $_SESSION["fieldsMap"];
             $this->iteratorData($prepare, $options);
-            if ($prepare)       return $this->importData;
-            else                $this->addData();
+            if ($prepare) {
+                unlink(DOCUMENT_ROOT . "/files/tempfiles/tempfile0.TMP");
+                return $this->importData;
+            } else
+                $this->addData();
+            $_SESSION["cycleNum"] += 1;
             unset($_SESSION["getId"]);
             unset($this->data);
         }
@@ -315,40 +322,86 @@ class Import extends Product
             if(file_exists($file) and is_readable($file)){
                 $extension = pathinfo($file, PATHINFO_EXTENSION);
                 if($extension == 'xlsx') {
-                    $reader = ReaderFactory::create(Type::XLSX);
-                    $reader->setTempFolder($temporaryFilePath);               // директория хранения временных файлов
-                    $reader->open($file);
-                    $reader->setShouldFormatDates(true);                      // это позволяет копировать даты
-                    /*
-                     * TODO: найти способ читать из файла (xlsx, csv) в Spout по частям (тк в целом время приближается под 2 минутам - разрыву связи с сервером)
-                     * TODO: разобраться со стилями xlsx - для уменьшения торможения
-                     * считываем из памяти Spout строки
-                     * добавляем в массив
-                     * каждые 1000 строк сохраняем во временный файл и сбрасываем массив
-                     */
-                    $rows = array();
-                    $cycleNum = 0;
-                    foreach ($reader->getSheetIterator() as $sheet)
-                        foreach ($sheet->getRowIterator() as $row) {
-                            $rows[] = $row;
+                    if (class_exists('PHPExcel_IOFactory', true)) {
+                        $startRow  = 3;
+                        $chunksize = 2;
 
-                            if (count($rows) >= 100 and $prepare == true) {
-                                $this->writTempFiles($rows, $cycleNum);
-                                $rows = array();
-                                break;
-                                break;
-                            } if (count($rows) >= 100) {
-                                $this->writTempFiles($rows, $cycleNum);
-                                $cycleNum += 1;
-                                $rows = array();
-                            }
+                        PHPExcel_Autoloader::Load('PHPExcel_IOFactory');
+                        $obj_reader = PHPExcel_IOFactory::createReader('Excel2007');
+                        $obj_reader->setReadDataOnly(true);
+
+                        $chunkSize   = 10000;
+                        $chunkFilter = new ReadFilter();
+                        $obj_reader->setReadFilter($chunkFilter);
+                        $chunkFilter->setRows($startRow,$chunksize);
+
+                        $objPHPExcel = $obj_reader->load($file);
+                        $data        = $objPHPExcel->setActiveSheetIndex(0)->toArray();
+                        $data        = array_slice($data, $startRow-1);
+
+                        writeLog($data);
+
+                        if (count($this->data) < 1) {
+                            return false;
                         }
-                    if (count($rows) > 0) {
-                        $this->writTempFiles($rows, $cycleNum); // запись остатка
-                        $cycleNum += 1;
+                        return true;
                     }
-                    $_SESSION["pages"] = $cycleNum;
-                    return true;
+
+
+
+//                    $reader = ReaderFactory::create(Type::XLSX);
+//                    $reader->setTempFolder($temporaryFilePath);               // директория хранения временных файлов
+//                    $reader->open($file);
+//                    $reader->setShouldFormatDates(true);                      // это позволяет копировать даты
+//
+//                    /*
+//                     * TODO: найти способ читать из файла (xlsx, csv) в Spout по частям (тк в целом время приближается под 2 минутам - разрыву связи с сервером)
+//                     * TODO: разобраться со стилями xlsx - для уменьшения торможения
+//                     * считываем из памяти Spout строки
+//                     * добавляем в массив
+//                     * каждые 200 строк сохраняем во временный файл и сбрасываем массив
+//                     */
+//
+//                    $rows = array();
+//                    $rowNumber = 0;
+//                    $isbreack = false;
+//                    foreach ($reader->getSheetIterator() as $sheet) {
+//                        $rowIt = $sheet->getRowIterator();
+//                        foreach ($rowIt as $row) {
+//
+//                            if ($rowNumber >= 200*$_SESSION["countPages"]) {
+//                                $rows[] = $row;
+//
+//                                if (count($rows) >= 200 and $prepare == true) {
+//                                    $this->writTempFiles($rows, $_SESSION["countPages"]);
+//                                    $rows = array();
+//                                    $isbreack = true;
+//                                    break;
+//                                }
+//                                if (count($rows) >= 200) {
+//                                    //writeLog('_SESSION '.$_SESSION["countPages"]);
+//                                    //writeLog('cou '.count($rows),false);
+//                                    $this->writTempFiles($rows, $_SESSION["countPages"]);
+//                                    $_SESSION["countPages"] += 1;
+//                                    $rows = array();
+//                                    $isbreack = true;
+//                                    break;
+//                                }
+//                            }
+//                            $rowNumber += 1;
+//                        }
+//                        if ($isbreack) break;
+//                        $_SESSION["pages"] = $_SESSION["countPages"];
+//                        $_SESSION["cycleNum"] += 1;
+//                    }
+//                    if (count($rows) > 0) {
+//                        $this->writTempFiles($rows, $_SESSION["countPages"]); // запись остатка
+//                        $_SESSION["countPages"] += 1;
+//                        $_SESSION["pages"] = $_SESSION["countPages"];
+//                    }
+
+                    return TRUE;
+
                 } elseif($extension == 'csv') {
                     // если импортируем csv
                     $delimiter = $options['delimiter'];

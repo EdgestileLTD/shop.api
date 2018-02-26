@@ -1981,7 +1981,8 @@ class Product extends Base
                 $this->input['prepare'][0],
                 $this->input['cycleNum']
             );
-            $this->result['pages'] = $_SESSION["pages"];
+            $this->result['pages'] = $_SESSION["countPages"];
+            $this->result['cycleNum'] = $_SESSION["cycleNum"];
             return true;
         }
     }
