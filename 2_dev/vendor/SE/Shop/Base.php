@@ -115,7 +115,11 @@ class Base extends CustomBase
             if (!empty($this->search) || !empty($this->filters))
                 $u->where($this->getWhereQuery($searchFields));
             $u->groupBy();
-            $u->orderBy($this->sortBy, $this->sortOrder == 'desc');
+            if (is_array($this->sortBy)) {
+                foreach ($this->sortBy as $sortField)
+                    $u->addOrderBy($sortField, $this->sortOrder == 'desc');
+
+            } else $u->orderBy($this->sortBy, $this->sortOrder == 'desc');
 
             $this->result["searchFields"] = $this->searchFields;
             $this->result["items"] = $this->correctItemsBeforeFetch($u->getList($this->limit, $this->offset));

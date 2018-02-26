@@ -37,6 +37,7 @@
                 $u->select("value");
                 $u->where("id=?", $parameter->idValue);
                 $u->fetchOne();
+
                 if ($u->value != $parameter->value) {
                     $u->addupdate("value", "'$parameter->value'");
                     $u->where("id=?", $parameter->idValue);

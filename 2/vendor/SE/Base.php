@@ -91,6 +91,7 @@ class Base
         $result = $settings->fetchOne();
         if (empty($result["dbVersion"]))
             DB::query("INSERT INTO se_settings (`version`, `db_version`) VALUE (1, 1)");
+        
         if ($result["dbVersion"] < DB_VERSION) {
             $pathRoot =  $_SERVER['DOCUMENT_ROOT'] . '/api/update/sql/';
             DB::setErrorMode(\PDO::ERRMODE_SILENT);

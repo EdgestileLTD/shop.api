@@ -115,7 +115,11 @@ class Base extends CustomBase
             if (!empty($this->search) || !empty($this->filters))
                 $u->where($this->getWhereQuery($searchFields));
             $u->groupBy();
-            $u->orderBy($this->sortBy, $this->sortOrder == 'desc');
+            if (is_array($this->sortBy)) {
+                foreach ($this->sortBy as $sortField)
+                    $u->addOrderBy($sortField, $this->sortOrder == 'desc');
+
+            } else $u->orderBy($this->sortBy, $this->sortOrder == 'desc');
 
             $this->result["searchFields"] = $this->searchFields;
             $this->result["items"] = $this->correctItemsBeforeFetch($u->getList($this->limit, $this->offset));
@@ -481,13 +485,14 @@ class Base extends CustomBase
         return $result;
     }
 
-    public function post()
+    public function post($tempFile = FALSE)
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $countFiles = count($_FILES);
         $ups = 0;
         $items = [];
-        $dir = DOCUMENT_ROOT . "/files";
+        if ($tempFile == true) $dir = DOCUMENT_ROOT . "/files/tempfiles";
+        else $dir = DOCUMENT_ROOT . "/files";
         $url = !empty($_POST["url"]) ? $_POST["url"] : null;
         if (!file_exists($dir) || !is_dir($dir))
             mkdir($dir);
@@ -600,5 +605,62 @@ class Base extends CustomBase
 
         return $input;
     }
+
+    /*
+     * @@@@@@  @@@@@@ @@     @@@@@@ @@@@@@@@ @@@@@@ |
+     * @@   @@ @@     @@     @@        @@    @@     |
+     * @@   @@ @@@@@@ @@     @@@@@@    @@    @@@@@@ |
+     * @@   @@ @@     @@     @@        @@    @@     |
+     * @@@@@@  @@@@@@ @@@@@@ @@@@@@    @@    @@@@@@ |
+     *
+     * Удаление всего содержимого директории
+     */
+    public function rmdir_recursive($dir)
+    {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        foreach(scandir($dir) as $file) {
+            if ('.' === $file || '..' === $file) continue;
+            if (is_dir("$dir/$file")) $this->rmdir_recursive("$dir/$file");
+            else unlink("$dir/$file");
+        }
+        // rmdir($dir);
+    }
+
+
+    /*
+     * @@@@@@@@ @@@@@@ @@     @@ @@@@@@ |
+     *    @@    @@     @@@   @@@ @@  @@ |
+     *    @@    @@@@@@ @@ @@@ @@ @@@@@@ |
+     *    @@    @@     @@  @  @@ @@     |
+     *    @@    @@@@@@ @@     @@ @@     |
+     *
+     * методы по работе с временными файлами
+     */
+
+    /*
+     * запись во временные файлы
+     * метод адаптирован к циклическим записям (для больших объемов данных)
+     * создаются временные файлы в директории "files/tempfiles/" с именами "tempfile1.TMP" (число - номер цикла)
+     */
+    public function writTempFiles($writer, $cycleNum)
+    {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
+        if (!empty($writer)) {
+            $filename = DOCUMENT_ROOT . "/files/tempfiles/tempfile{$cycleNum}.TMP";
+            $file     = fopen($filename, "w");
+            fwrite($file, json_encode($writer));
+            fclose($file);
+        }
+    }
+
+    // чтение из временного файла
+    public function readTempFiles($cycleNum)
+    {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $filename = DOCUMENT_ROOT . "/files/tempfiles/tempfile{$cycleNum}.TMP";
+        $read   = json_decode(file_get_contents($filename)); // чтение файла
+        return $read;
+    }
+
 
 }
