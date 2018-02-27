@@ -312,7 +312,38 @@ class Import extends Product
         return FALSE;
     }
 
+
+    public function getNumberRowsFromFile($file, $extension, $prepare, $chunksize)
+    {
+        if($extension == 'xlsx' and $prepare != TRUE and $_SESSION["cycleNum"] == 0) {
+            /**
+             * @link https://stackoverflow.com/questions/47987034/get-row-count-with-data-of-excel-sheet-by-using-phpexcel?rq=1
+             * @link php number of lines in csv  https://stackoverflow.com/questions/21447329/how-can-i-get-the-total-number-of-rows-in-a-csv-file-with-php
+             */
+            $objReader         = PHPExcel_IOFactory::createReader("Excel2007");
+            $worksheetData     = $objReader->listWorksheetInfo($file);
+            $totalRows         = $worksheetData[0]['totalRows'];
+            //$totalColumns      = $worksheetData[0]['totalColumns'];
+            $pages             = $totalRows / $chunksize;
+            $_SESSION["pages"] = $pages;
+        } elseif($extension == 'csv' and $prepare != TRUE and empty($_SESSION["pages"])) {
+            $totalRows         = file($file);
+            $totalRows         = count($totalRows);
+            $pages             = ceil(ceil(($totalRows / $chunksize))/2 +1); // +1 - заглушка для неразбитой загрузки
+            $_SESSION["pages"] = $pages;
+        }
+    }
+
+
     // Получить данные из файла
+
+    /**
+     * @param $filename
+     * @param $options
+     * @param $prepare
+     * @return bool
+     * @throws \Exception
+     */
     public function getDataFromFile($filename, $options, $prepare)
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
@@ -321,10 +352,15 @@ class Import extends Product
             $file              = $temporaryFilePath.$filename;
             if(file_exists($file) and is_readable($file)){
                 $extension = pathinfo($file, PATHINFO_EXTENSION);
+
+                if ($prepare != TRUE)  $chunksize = 1000; // объем временного файла
+                else                   $chunksize = 100;  // объем врем файла для превью
+
                 if($extension == 'xlsx') {
-                    if (class_exists('PHPExcel_IOFactory', true)) {
-                        $startRow  = 3;
-                        $chunksize = 2;
+                    $this->getNumberRowsFromFile($file, $extension, $prepare, $chunksize);
+
+                    if (class_exists('PHPExcel_IOFactory', TRUE)) {
+                        $startRow  = ($chunksize * $_SESSION["countPages"]);
 
                         PHPExcel_Autoloader::Load('PHPExcel_IOFactory');
                         $obj_reader = PHPExcel_IOFactory::createReader('Excel2007');
@@ -333,76 +369,24 @@ class Import extends Product
                         $chunkSize   = 10000;
                         $chunkFilter = new ReadFilter();
                         $obj_reader->setReadFilter($chunkFilter);
-                        $chunkFilter->setRows($startRow,$chunksize);
+                        $chunkFilter->setRows($startRow+1,$chunksize);
 
                         $objPHPExcel = $obj_reader->load($file);
-                        $data        = $objPHPExcel->setActiveSheetIndex(0)->toArray();
-                        $data        = array_slice($data, $startRow-1);
+                        $rows        = $objPHPExcel->setActiveSheetIndex(0)->toArray();
+                        $rows        = array_slice($rows, $startRow);
 
-                        writeLog($data);
-
-                        if (count($this->data) < 1) {
-                            return false;
-                        }
-                        return true;
+                        $this->writTempFiles($rows, $_SESSION["countPages"]);
+                        if ($prepare != TRUE and count($rows) == $chunksize) {
+                            $_SESSION["countPages"]     += 1;
+                        } elseif ($prepare != TRUE) {
+                            $_SESSION["countPages"]     += 1;
+                            $_SESSION["cycleNum"]       += 1;
+                        } elseif ($_SESSION["countPages"] == 0 and count($rows) < 1)
+                            return FALSE;
+                        return TRUE;
                     }
-
-
-
-//                    $reader = ReaderFactory::create(Type::XLSX);
-//                    $reader->setTempFolder($temporaryFilePath);               // директория хранения временных файлов
-//                    $reader->open($file);
-//                    $reader->setShouldFormatDates(true);                      // это позволяет копировать даты
-//
-//                    /*
-//                     * TODO: найти способ читать из файла (xlsx, csv) в Spout по частям (тк в целом время приближается под 2 минутам - разрыву связи с сервером)
-//                     * TODO: разобраться со стилями xlsx - для уменьшения торможения
-//                     * считываем из памяти Spout строки
-//                     * добавляем в массив
-//                     * каждые 200 строк сохраняем во временный файл и сбрасываем массив
-//                     */
-//
-//                    $rows = array();
-//                    $rowNumber = 0;
-//                    $isbreack = false;
-//                    foreach ($reader->getSheetIterator() as $sheet) {
-//                        $rowIt = $sheet->getRowIterator();
-//                        foreach ($rowIt as $row) {
-//
-//                            if ($rowNumber >= 200*$_SESSION["countPages"]) {
-//                                $rows[] = $row;
-//
-//                                if (count($rows) >= 200 and $prepare == true) {
-//                                    $this->writTempFiles($rows, $_SESSION["countPages"]);
-//                                    $rows = array();
-//                                    $isbreack = true;
-//                                    break;
-//                                }
-//                                if (count($rows) >= 200) {
-//                                    //writeLog('_SESSION '.$_SESSION["countPages"]);
-//                                    //writeLog('cou '.count($rows),false);
-//                                    $this->writTempFiles($rows, $_SESSION["countPages"]);
-//                                    $_SESSION["countPages"] += 1;
-//                                    $rows = array();
-//                                    $isbreack = true;
-//                                    break;
-//                                }
-//                            }
-//                            $rowNumber += 1;
-//                        }
-//                        if ($isbreack) break;
-//                        $_SESSION["pages"] = $_SESSION["countPages"];
-//                        $_SESSION["cycleNum"] += 1;
-//                    }
-//                    if (count($rows) > 0) {
-//                        $this->writTempFiles($rows, $_SESSION["countPages"]); // запись остатка
-//                        $_SESSION["countPages"] += 1;
-//                        $_SESSION["pages"] = $_SESSION["countPages"];
-//                    }
-
-                    return TRUE;
-
                 } elseif($extension == 'csv') {
+                    $this->getNumberRowsFromFile($file, $extension, $prepare, $chunksize);
                     // если импортируем csv
                     $delimiter = $options['delimiter'];
                     // $encoding = $options['encoding'];
@@ -447,6 +431,14 @@ class Import extends Product
                     $row = 0;
                     $cycleNum = 0;
                     if (($handle = fopen($file, "r")) !== FALSE) {
+                        /**
+                         * @var $handle                          Корректный файловый указатель на файл
+                         * @var int $length                      макс длина строки
+                         * @var string $delimiter                разделитель ячеек
+                         * @var string $options['limiterField']  разделитель вложенного текста
+                         * @var array $line                      масив ячеек строчки
+                         *     перебирает все строчки через while
+                         */
                         while (($line = fgetcsv($handle, 10000, $delimiter, $options['limiterField'])) !== FALSE) {
 
                             $num = count($line);
@@ -459,13 +451,13 @@ class Import extends Product
                                 } else $cell = $line[$c];
                                 $this->data[$row][$c] = $cell;
                             }
-                            if ($row >= 100 and $prepare == true) {
+                            if ($row >= $chunksize and $prepare == TRUE) {
                                 $this->writTempFiles($this->data, $cycleNum);
                                 $row = 0;
                                 $this->data = array();
                                 break;
-                            } elseif ($row >= 100) {
-                                // если превью
+                            } elseif ($row >= $chunksize) {
+                                // если не превью
                                 $this->writTempFiles($this->data, $cycleNum);
                                 $cycleNum += 1;
                                 $row = 0;
@@ -477,7 +469,21 @@ class Import extends Product
                             $cycleNum += 1;
                         }
                         fclose($handle);
-                        $_SESSION["pages"] = $cycleNum;
+                        $_SESSION["countPages"] = 1; // заглушка для прогресс бара
+
+
+
+                        // $this->writTempFiles($rows, $_SESSION["countPages"]);
+                        // if ($prepare != TRUE and count($rows) == $chunksize) {
+                        //     $_SESSION["countPages"]     += 1;
+                        // } elseif ($prepare != TRUE) {
+                        //     $_SESSION["countPages"]     += 1;
+                        //     $_SESSION["cycleNum"]       += 1;
+                        // } elseif ($_SESSION["countPages"] == 0 and count($rows) < 1)
+                        //     return FALSE;
+                        // return TRUE;
+
+
 
                         if (count($this->data) < 2) {
                             return false;
@@ -599,7 +605,7 @@ class Import extends Product
 
                 } else {
                     // построчная обработка в БД
-                    $this->getRightData($item, $options);
+                    if ($this->rowCheck($item) == TRUE)  $this->getRightData($item, $options);
                     $this->data[$key] = null;
                 }
 
@@ -844,6 +850,23 @@ class Import extends Product
         // унифицируем конечный результат
         if(gettype($id_gr) == integer) $id_gr = array($id_gr);
         return $id_gr;
+    }
+
+
+    /**
+     * Проверка заполненности строки
+     * @param  $item  массив ячеек строки
+     * @return bool   TRUE - не пустая
+     */
+    private function rowCheck($item)
+    {
+        $startGetRightData = FALSE;
+        foreach($item as $k => $v)
+            if (!empty($v)) {
+                $startGetRightData = TRUE;
+                break;
+            }
+        return $startGetRightData;
     }
 
 

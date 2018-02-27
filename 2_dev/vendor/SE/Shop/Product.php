@@ -1981,7 +1981,14 @@ class Product extends Base
                 $this->input['prepare'][0],
                 $this->input['cycleNum']
             );
-            $this->result['pages'] = $_SESSION["countPages"];
+
+            /**
+             * @var float $this->result['pages']        всего страниц
+             * @var Integer $this->result['countPages'] колво прочитанных страниц
+             * @var Integer $this->result['cycleNum']   колво обработанных страниц
+             */
+            $this->result['pages'] = $_SESSION["pages"];
+            $this->result['countPages'] = $_SESSION["countPages"];
             $this->result['cycleNum'] = $_SESSION["cycleNum"];
             return true;
         }
