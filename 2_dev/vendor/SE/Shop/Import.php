@@ -357,7 +357,6 @@ class Import extends Product
                 //  тест  2. csv33000редакт
                 //  тест  3. xlsxMin
                 //  тест  4. csvMin
-                // TODO тест вставки
 
                 if ($prepare != TRUE)  $chunksize = 1000; // объем временного файла
                 else                   $chunksize = 1000; // объем врем файла для превью
@@ -1029,11 +1028,11 @@ class Import extends Product
             //writeLog($this->mode,'MODE');
             $param = true;
             // удалить все строки в таблицах БД...
-            if ($this->mode == 'rld') {
+            if ($this->mode == 'rld' and $_SESSION["cycleNum"] == 1) {
                 DB::query("SET foreign_key_checks = 0");
                 DB::query("TRUNCATE TABLE shop_group");
                 DB::query("TRUNCATE TABLE shop_price");
-//                    DB::query("TRUNCATE TABLE shop_brand");
+                //DB::query("TRUNCATE TABLE shop_brand");
                 DB::query("TRUNCATE TABLE shop_img");
                 DB::query("TRUNCATE TABLE shop_group_price");
                 DB::query("TRUNCATE TABLE shop_discounts");
@@ -1049,9 +1048,7 @@ class Import extends Product
                 DB::query("TRUNCATE TABLE shop_tovarorder");
                 DB::query("TRUNCATE TABLE shop_order");
                 DB::query("SET foreign_key_checks = 1");
-            } else {
-                $param = false;
-            }
+            } elseif ($_SESSION["cycleNum"] == 1)  $param = false;
 
             // импорт категорий
             if (!empty($this->importData['category'])){
@@ -1077,69 +1074,8 @@ class Import extends Product
             // импорт товаров
             if (!empty($this->importData['products'])) {
                 // $this->mode == 'upd' отвечает за обновление (доавление к существующим, например, товарам)
-                if ($this->mode == 'upd'){
-                    $this->updateList();
-                } else {
-
-                    // передать импортируемые данные в БД таблица: 'shop_price'
-                    $this->debugging('special', __FUNCTION__.' '.__LINE__, __CLASS__, 'передать импортируемые данные в БД таблица: "shop_price"');
-                    // writeLog($this->importData['products']); // прослушивание передачи продукта
-
-                    // получаем главною группу для id_group
-
-                    $data = array();
-                    $id_group_list = array();
-                    foreach ($this->importData['products'] as $product_unit){
-
-                        // если id группы не получена (новая группа) - получаем
-                        if (gettype($product_unit['id_group']) == 'array' and
-                            gettype($product_unit['id_group'][0]) == 'array'
-                        ) $id_group = $this->CommunGroup($product_unit['id_group'][0], FALSE);
-
-                        // получаем главною группу для shop_price id_group
-                        $data_unit = $product_unit;
-                        // если имеем дело с новой группой и новым товаром
-                        if( gettype($product_unit['id_group']) == 'array' and
-                            gettype($product_unit['id_group'][0]) == 'array'
-                        )   $data_unit['id_group'] = $id_group[0];
-                        // ... или соответственно массивом
-                        elseif(gettype($product_unit['id_group']) == 'array')
-                            $data_unit['id_group'] = $data_unit['id_group'][0];
-                        array_push($id_group_list, $data_unit);
-
-
-                        // для shop_price_group
-                        // если значение одно - завернуть в массив для обработки
-                        // если значения не соотнесены (отсутствовали данные по id) - совершить вторую попытку
-                        if(gettype($product_unit['id_group']) == integer)
-                            $product_unit['id_group'] = array($product_unit['id_group']);
-                        elseif(gettype($product_unit['id_group']) == 'array' and gettype($product_unit['id_group'][0]) == 'array')
-                            $product_unit['id_group'] = $id_group;
-                        foreach ($product_unit['id_group'] as $i)
-                            $this->deleteCategory($product_unit['id'], $i);
-                        // получаем элементы массива с определением главной группы
-                        if(isset($product_unit['id'],$product_unit['id_group'][0])) {
-                            foreach ($product_unit['id_group'] as $i) {
-                                if(isset($product_unit['id'],$i)) {
-                                    $product_group_unit = array(
-                                        'id_price' => (int) $product_unit['id'],
-                                        'id_group' => (int) $i,
-                                        'is_main'  => (bool) 0
-                                    );
-                                };
-                                // если группа первая в списке - значит главная
-                                if ($i == $product_unit['id_group'][0])
-                                    $product_group_unit['is_main'] = (bool) 1;
-                                array_push($data,$product_group_unit);
-                            };
-                        };
-                    };
-                    DB::insertList('shop_price', $id_group_list,$param);
-                    DB::query("SET foreign_key_checks = 0");
-                    DB::insertList('shop_price_group', $data);
-
-
-                }
+                if ($this->mode == 'upd')  $this->updateListImport();
+                else                       $this->insertListImport();
                 DB::query("SET foreign_key_checks = 1");
             }
 
@@ -1170,8 +1106,72 @@ class Import extends Product
         $spg->deleteList();
     }
 
+
+    // вставка: нет товара - добавляет, есть - пропускает
+    public function insertListImport()
+    {
+        // передать импортируемые данные в БД таблица: 'shop_price'
+        $this->debugging('special', __FUNCTION__.' '.__LINE__, __CLASS__, 'передать импортируемые данные в БД таблица: "shop_price"');
+        // writeLog($this->importData['products']); // прослушивание передачи продукта
+
+        // получаем главною группу для id_group
+
+        $data = array();
+        $id_group_list = array();
+        foreach ($this->importData['products'] as $product_unit){
+
+            // если id группы не получена (новая группа) - получаем
+            if (gettype($product_unit['id_group']) == 'array' and
+                gettype($product_unit['id_group'][0]) == 'array'
+            ) $id_group = $this->CommunGroup($product_unit['id_group'][0], FALSE);
+
+            // получаем главною группу для shop_price id_group
+            $data_unit = $product_unit;
+            // если имеем дело с новой группой и новым товаром
+            if( gettype($product_unit['id_group']) == 'array' and
+                gettype($product_unit['id_group'][0]) == 'array'
+            )   $data_unit['id_group'] = $id_group[0];
+            // ... или соответственно массивом
+            elseif(gettype($product_unit['id_group']) == 'array')
+                $data_unit['id_group'] = $data_unit['id_group'][0];
+            array_push($id_group_list, $data_unit);
+
+
+            // для shop_price_group
+            // если значение одно - завернуть в массив для обработки
+            // если значения не соотнесены (отсутствовали данные по id) - совершить вторую попытку
+            if(gettype($product_unit['id_group']) == integer)
+                $product_unit['id_group'] = array($product_unit['id_group']);
+            elseif(gettype($product_unit['id_group']) == 'array' and gettype($product_unit['id_group'][0]) == 'array')
+                $product_unit['id_group'] = $id_group;
+            foreach ($product_unit['id_group'] as $i)
+                $this->deleteCategory($product_unit['id'], $i);
+            // получаем элементы массива с определением главной группы
+            if(isset($product_unit['id'],$product_unit['id_group'][0])) {
+                foreach ($product_unit['id_group'] as $i) {
+                    if(isset($product_unit['id'],$i)) {
+                        $product_group_unit = array(
+                            'id_price' => (int) $product_unit['id'],
+                            'id_group' => (int) $i,
+                            'is_main'  => (bool) 0
+                        );
+                    };
+                    // если группа первая в списке - значит главная
+                    if ($i == $product_unit['id_group'][0])
+                        $product_group_unit['is_main'] = (bool) 1;
+                    array_push($data,$product_group_unit);
+                };
+            };
+        };
+        // TODO фильтр товаров для вставки
+        DB::insertList('shop_price', $id_group_list,$param);
+        DB::query("SET foreign_key_checks = 0");
+        DB::insertList('shop_price_group', $data);
+    }
+
+
     // Список обновлений (добавление к существующим, например, товарам)
-    public function updateList()
+    public function updateListImport()
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
