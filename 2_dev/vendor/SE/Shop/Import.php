@@ -324,7 +324,7 @@ class Import extends Product
             $worksheetData     = $objReader->listWorksheetInfo($file);
             $totalRows         = $worksheetData[0]['totalRows'];
             //$totalColumns      = $worksheetData[0]['totalColumns'];
-            $pages             = $totalRows / $chunksize;
+            $pages             = ceil($totalRows / $chunksize);
             $_SESSION["pages"] = $pages;
         } elseif($extension == 'csv' and $prepare != TRUE and empty($_SESSION["pages"])) {
             $totalRows         = file($file);
@@ -335,9 +335,9 @@ class Import extends Product
     }
 
 
-    // Получить данные из файла
-
     /**
+     * Получить данные из файла
+     *
      * @param $filename
      * @param $options
      * @param $prepare
@@ -353,8 +353,14 @@ class Import extends Product
             if(file_exists($file) and is_readable($file)){
                 $extension = pathinfo($file, PATHINFO_EXTENSION);
 
+                //  тест  1. xlsx33000редакт
+                //  тест  2. csv33000редакт
+                //  тест  3. xlsxMin
+                //  тест  4. csvMin
+                // TODO тест вставки
+
                 if ($prepare != TRUE)  $chunksize = 1000; // объем временного файла
-                else                   $chunksize = 100;  // объем врем файла для превью
+                else                   $chunksize = 1000; // объем врем файла для превью
 
                 if($extension == 'xlsx') {
                     $this->getNumberRowsFromFile($file, $extension, $prepare, $chunksize);
@@ -470,6 +476,7 @@ class Import extends Product
                         }
                         fclose($handle);
                         $_SESSION["countPages"] = 1; // заглушка для прогресс бара
+                        $_SESSION["cycleNum"]  += 1;
 
 
 
