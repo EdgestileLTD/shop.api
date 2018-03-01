@@ -46,3 +46,26 @@ $objReader->setReadFilter($chunkFilter);
 $chunkFilter->setRows(1,500);
 $objPHPExcel = $objReader->load($inputFileName);
 */
+
+/*
+if (class_exists('PHPExcel_IOFactory', true)) {
+    PHPExcel_Autoloader::Load('PHPExcel_IOFactory');
+    $obj_reader = PHPExcel_IOFactory::createReader('Excel2007');
+    $obj_reader->setReadDataOnly(true);
+
+    $chunkSize = 500;
+    $chunkFilter = new ReadFilter();
+    $obj_reader->setReadFilter($chunkFilter);
+    $chunkFilter->setRows(3,2);
+
+    $objPHPExcel = $obj_reader->load($file);
+    $data = $objPHPExcel->setActiveSheetIndex(0)->toArray();
+
+    writeLog($data);
+
+    if (count($this->data) < 2) {
+        return false;
+    }
+    return true;
+}
+*/

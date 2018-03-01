@@ -5,6 +5,7 @@ namespace SE;
 // авторизаця по токену
 class TokenAuth extends Base
 {
+
     // получать разрешение
     public function getPermission($idUser)
     {

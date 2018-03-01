@@ -14,34 +14,66 @@ date_default_timezone_set("Europe/Moscow");
 ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
-define('API_VERSION', "2");
+define('API_VERSION', "2_dev");
 define('IS_EXT', file_exists($_SERVER['DOCUMENT_ROOT'] . '/system/main/init.php'));
 define('API_ROOT', $_SERVER['DOCUMENT_ROOT'] . '/api/' . API_VERSION . '/');
 define('API_ROOT_URL', "http://" . $_SERVER['SERVER_NAME'] . "/api/" . API_VERSION);
 define('AUTH_SERVER', "https://api.siteedit.ru");
 
-// запись в журнал
-function writeLog($data)
+/**
+ * запись в логи
+ *
+ * @param $data              текст
+ * @param bool $enter        переключение печати в строчкУ/строчкИ (по умолчанию с новой строчки)
+ * @var TYPE_NAME $date      [TimeNow]
+ * @var TYPE_NAME $interval  SI - secInterval (прошло секунд с последнего лога в пределах минуты)
+ */
+function writeLog($data, $enter = TRUE)
 {
     if (!is_string($data))
         $data = print_r($data, 1);
     $file = fopen($_SERVER['DOCUMENT_ROOT'] . "/api/" . API_VERSION ."/debug.log", "a+");
-    $query = "$data" . "\n";
+    $date = microtime();
+    $date = explode(" ",$date);
+    $date = strval($date[0]);
+
+    $dateLogMin = (int)(date("i"));
+    $dateLogSec = substr($date, 2);
+    $dateLogSec = (float)(date("s") . ".$dateLogSec");
+    $interval = (float)$dateLogSec - (float)$_SESSION["logInterval"]['sec'];
+    $interval = number_format($interval,6, '.','');
+    $interval = '[SI ' . $interval . ']';
+
+    $date = substr($date, 2, 3);
+    $date = '['.date("H:i:s").":$date]";
+    $intervalMin = $dateLogMin - $_SESSION["logInterval"]['min'];
+    if ($intervalMin == 0) $query = $interval." $data";
+    else                   $query = $date." $data";
+
+    if($enter == TRUE) $query = "\n".$query;
+    else               $query = "  ".$query;
+
+    $_SESSION["logInterval"] = array(
+        'sec' => $dateLogSec,
+        'min' => $dateLogMin
+    );
     fputs($file, $query);
     fclose($file);
 }
 
-if (IS_EXT) {  
+// библиотеки
+if (IS_EXT) {
     require_once 'api/update.php';
     require_once 'lib/lib_function.php';
     require_once 'lib/lib_se_function.php';
-    require_once 'lib/PHPExcel.php';
-    require_once 'lib/PHPExcel/Writer/Excel2007.php';
+//    require_once 'lib/PHPExcel.php';
+//    require_once 'lib/PHPExcel/Writer/Excel2007.php';
 } else {
     require_once '/home/e/edgestile/admin/home/siteedit/lib/function.php';
     require_once '/home/e/edgestile/admin/home/siteedit/lib/lib_function.php';
-    require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel.php';
-    require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel/Writer/Excel2007.php';
+//    require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel.php';
+//    require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel/IOFactory.php';
+//    require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel/Writer/Excel2007.php';
 }
 
 require_once API_ROOT . "version.php";

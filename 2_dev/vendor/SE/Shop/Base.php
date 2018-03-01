@@ -623,7 +623,7 @@ class Base extends CustomBase
             if (is_dir("$dir/$file")) $this->rmdir_recursive("$dir/$file");
             else unlink("$dir/$file");
         }
-        rmdir($dir);
+        // rmdir($dir);
     }
 
 

@@ -40,7 +40,7 @@ $pdf->AddPage();
 $pdf->SetMargins(10, 10, 10);
 $y = 0;
 
-$pdf ->Image(PATH_ROOT . $json->hostname . '/public_html/images/logo.jpg', 100, $y + 7.1, 100);
+$pdf ->Image(PATH_ROOT . $json->hostname . '/public_html/upload/logo.jpg', 100, $y + 7.1, 100);
 
 $pdf->SetLineStyle(['dash' => 0, 'width' => 0.3, "color" => [0, 0, 0]]);
 $pdf->Line(10, $y + 7, 200, $y + 7);
@@ -294,7 +294,7 @@ $pdf->SetLineStyle(['dash' => 0]);
 
 $y += 1;
 
-$pdf ->Image(PATH_ROOT . $json->hostname . '/public_html/images/logo.jpg', 100, $y + 7.1, 100);
+$pdf ->Image(PATH_ROOT . $json->hostname . '/public_html/upload/logo.jpg', 100, $y + 7.1, 100);
 
 $pdf->SetLineStyle(['dash' => 0, 'width' => 0.3, "color" => [0, 0, 0]]);
 $pdf->Line(10, $y + 7, 200, $y + 7);

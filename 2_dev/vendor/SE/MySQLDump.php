@@ -4,7 +4,6 @@ namespace SE;
 
 use \PDO as PDO;
 
-// MySQL свалка
 class MySQLDump
 {
     const MAX_SQL_SIZE = 1e6;
@@ -26,7 +25,6 @@ class MySQLDump
      * @param  string filename
      * @return void
      */
-    // сохранить
     public function save($file)
     {
         $handle = strcasecmp(substr($file, -3), '.gz') ? fopen($file, 'wb') : gzopen($file, 'wb');
@@ -41,7 +39,6 @@ class MySQLDump
      * @param  resource
      * @return void
      */
-    // записать
     public function write($handle = NULL)
     {
         if ($handle === NULL) {
@@ -89,7 +86,6 @@ class MySQLDump
      * @param  resource
      * @return void
      */
-    // свалка таблиц
     public function dumpTable($handle, $table)
     {
         $delTable = $this->delimite($table);
@@ -124,6 +120,7 @@ class MySQLDump
             $res = DB::query("SELECT * FROM {$delTable}");
 
             while ($row = $res->fetch(PDO::FETCH_ASSOC)) {
+                writeLog("111");
                 $s = '(';
                 foreach ($row as $key => $value) {
                     if ($value === NULL) {
@@ -131,7 +128,7 @@ class MySQLDump
                     } elseif ($numeric[$key]) {
                         $s .= $value . ",\t";
                     } else {
-                        $s .= DB::quote($value) . ",\t";
+                        $s .= "'" . DB::quote($value) . "',\t";
                     }
                 }
 
@@ -160,7 +157,7 @@ class MySQLDump
 
         if ($mode & self::TRIGGERS) {
             $res = DB::query("SHOW TRIGGERS LIKE '{$table}'");
-            if ($res->rowCount()) {
+            if ($res->num_rows) {
                 fwrite($handle, "DELIMITER ;;\n\n");
                 while ($row = $res->fetch(PDO::FETCH_ASSOC)) {
                     fwrite($handle, "CREATE TRIGGER {$this->delimite($row['Trigger'])} $row[Timing] $row[Event] ON $delTable FOR EACH ROW\n$row[Statement];;\n\n");
@@ -172,7 +169,7 @@ class MySQLDump
         fwrite($handle, "\n");
     }
 
-    // удаление лимитов
+
     private function delimite($s)
     {
         return '`' . str_replace('`', '``', $s) . '`';

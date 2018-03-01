@@ -88,6 +88,7 @@ $settings->fetchOne();
 $db_version = $settings->db_version;
 if (empty($db_version))
     se_db_query("INSERT INTO se_settings (`version`, `db_version`) VALUE (1, 1)");
+$db_version = 1;
 
 if ($db_version < DB_VERSION) {
     $pathRoot = $_SERVER['DOCUMENT_ROOT'] . '/api/update/scripts/';
