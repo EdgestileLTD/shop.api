@@ -152,7 +152,7 @@ class Import extends Product
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
 
-        /*
+        /**
          * if     - превью      - чтение первых 100 строк
          * elseif - первый цикл - весь файл во временные
          */
@@ -254,7 +254,7 @@ class Import extends Product
             }
 
 
-            /*
+            /**
              * generete group data
              * принять хотя бы 1 из 2 параметров - остальные сгенерировать, если отсутствуют
              */
@@ -273,7 +273,7 @@ class Import extends Product
                 $error                                       = True;
 
 
-            /*
+            /**
              * write DB shop_group
              * get id group
              * write id in session
@@ -312,7 +312,46 @@ class Import extends Product
         return FALSE;
     }
 
-    // Получить данные из файла
+
+    /**
+     * INFO Определить количество циклов в импортируемом файле
+     *
+     * @link https://stackoverflow.com/questions/47987034/get-row-count-with-data-of-excel-sheet-by-using-phpexcel?rq=1
+     * @link php number of lines in csv  https://stackoverflow.com/questions/21447329/how-can-i-get-the-total-number-of-rows-in-a-csv-file-with-php
+     *
+     * @param string $file         путь к файлу с именем файла
+     * @param string $extension    тип файла xlsx/csv
+     * @param bool $prepare        превью
+     * @param Integer $chunksize   объем цикла
+     * @throws \Exception
+     */
+    public function getNumberRowsFromFile($file, $extension, $prepare, $chunksize)
+    {
+        if($extension == 'xlsx' and $prepare != TRUE and $_SESSION["cycleNum"] == 0) {
+            $objReader         = PHPExcel_IOFactory::createReader("Excel2007");
+            $worksheetData     = $objReader->listWorksheetInfo($file);
+            $totalRows         = $worksheetData[0]['totalRows'];
+            //$totalColumns      = $worksheetData[0]['totalColumns'];
+            $pages             = ceil($totalRows / $chunksize);
+            $_SESSION["pages"] = $pages;
+        } elseif($extension == 'csv' and $prepare != TRUE and empty($_SESSION["pages"])) {
+            $totalRows         = file($file);
+            $totalRows         = count($totalRows);
+            $pages             = ceil(ceil(($totalRows / $chunksize))/2 +1); // +1 - заглушка для неразбитой загрузки
+            $_SESSION["pages"] = $pages;
+        }
+    }
+
+
+    /**
+     * Получить данные из файла
+     *
+     * @param $filename
+     * @param $options
+     * @param $prepare
+     * @return bool
+     * @throws \Exception
+     */
     public function getDataFromFile($filename, $options, $prepare)
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
@@ -321,10 +360,20 @@ class Import extends Product
             $file              = $temporaryFilePath.$filename;
             if(file_exists($file) and is_readable($file)){
                 $extension = pathinfo($file, PATHINFO_EXTENSION);
+
+                //  тест  1. xlsx33000редакт
+                //  тест  2. csv33000редакт
+                //  тест  3. xlsxMin
+                //  тест  4. csvMin
+
+                if ($prepare != TRUE)  $chunksize = 1000; // объем временного файла
+                else                   $chunksize = 1000; // объем врем файла для превью
+
                 if($extension == 'xlsx') {
-                    if (class_exists('PHPExcel_IOFactory', true)) {
-                        $startRow  = 3;
-                        $chunksize = 2;
+                    $this->getNumberRowsFromFile($file, $extension, $prepare, $chunksize);
+
+                    if (class_exists('PHPExcel_IOFactory', TRUE)) {
+                        $startRow  = ($chunksize * $_SESSION["countPages"]);
 
                         PHPExcel_Autoloader::Load('PHPExcel_IOFactory');
                         $obj_reader = PHPExcel_IOFactory::createReader('Excel2007');
@@ -333,76 +382,24 @@ class Import extends Product
                         $chunkSize   = 10000;
                         $chunkFilter = new ReadFilter();
                         $obj_reader->setReadFilter($chunkFilter);
-                        $chunkFilter->setRows($startRow,$chunksize);
+                        $chunkFilter->setRows($startRow+1,$chunksize);
 
                         $objPHPExcel = $obj_reader->load($file);
-                        $data        = $objPHPExcel->setActiveSheetIndex(0)->toArray();
-                        $data        = array_slice($data, $startRow-1);
+                        $rows        = $objPHPExcel->setActiveSheetIndex(0)->toArray();
+                        $rows        = array_slice($rows, $startRow);
 
-                        writeLog($data);
-
-                        if (count($this->data) < 1) {
-                            return false;
-                        }
-                        return true;
+                        $this->writTempFiles($rows, $_SESSION["countPages"]);
+                        if ($prepare != TRUE and count($rows) == $chunksize) {
+                            $_SESSION["countPages"]     += 1;
+                        } elseif ($prepare != TRUE) {
+                            $_SESSION["countPages"]     += 1;
+                            $_SESSION["cycleNum"]       += 1;
+                        } elseif ($_SESSION["countPages"] == 0 and count($rows) < 1)
+                            return FALSE;
+                        return TRUE;
                     }
-
-
-
-//                    $reader = ReaderFactory::create(Type::XLSX);
-//                    $reader->setTempFolder($temporaryFilePath);               // директория хранения временных файлов
-//                    $reader->open($file);
-//                    $reader->setShouldFormatDates(true);                      // это позволяет копировать даты
-//
-//                    /*
-//                     * TODO: найти способ читать из файла (xlsx, csv) в Spout по частям (тк в целом время приближается под 2 минутам - разрыву связи с сервером)
-//                     * TODO: разобраться со стилями xlsx - для уменьшения торможения
-//                     * считываем из памяти Spout строки
-//                     * добавляем в массив
-//                     * каждые 200 строк сохраняем во временный файл и сбрасываем массив
-//                     */
-//
-//                    $rows = array();
-//                    $rowNumber = 0;
-//                    $isbreack = false;
-//                    foreach ($reader->getSheetIterator() as $sheet) {
-//                        $rowIt = $sheet->getRowIterator();
-//                        foreach ($rowIt as $row) {
-//
-//                            if ($rowNumber >= 200*$_SESSION["countPages"]) {
-//                                $rows[] = $row;
-//
-//                                if (count($rows) >= 200 and $prepare == true) {
-//                                    $this->writTempFiles($rows, $_SESSION["countPages"]);
-//                                    $rows = array();
-//                                    $isbreack = true;
-//                                    break;
-//                                }
-//                                if (count($rows) >= 200) {
-//                                    //writeLog('_SESSION '.$_SESSION["countPages"]);
-//                                    //writeLog('cou '.count($rows),false);
-//                                    $this->writTempFiles($rows, $_SESSION["countPages"]);
-//                                    $_SESSION["countPages"] += 1;
-//                                    $rows = array();
-//                                    $isbreack = true;
-//                                    break;
-//                                }
-//                            }
-//                            $rowNumber += 1;
-//                        }
-//                        if ($isbreack) break;
-//                        $_SESSION["pages"] = $_SESSION["countPages"];
-//                        $_SESSION["cycleNum"] += 1;
-//                    }
-//                    if (count($rows) > 0) {
-//                        $this->writTempFiles($rows, $_SESSION["countPages"]); // запись остатка
-//                        $_SESSION["countPages"] += 1;
-//                        $_SESSION["pages"] = $_SESSION["countPages"];
-//                    }
-
-                    return TRUE;
-
                 } elseif($extension == 'csv') {
+                    $this->getNumberRowsFromFile($file, $extension, $prepare, $chunksize);
                     // если импортируем csv
                     $delimiter = $options['delimiter'];
                     // $encoding = $options['encoding'];
@@ -447,6 +444,14 @@ class Import extends Product
                     $row = 0;
                     $cycleNum = 0;
                     if (($handle = fopen($file, "r")) !== FALSE) {
+                        /**
+                         * @var $handle                          Корректный файловый указатель на файл
+                         * @var int $length                      макс длина строки
+                         * @var string $delimiter                разделитель ячеек
+                         * @var string $options['limiterField']  разделитель вложенного текста
+                         * @var array $line                      масив ячеек строчки
+                         *     перебирает все строчки через while
+                         */
                         while (($line = fgetcsv($handle, 10000, $delimiter, $options['limiterField'])) !== FALSE) {
 
                             $num = count($line);
@@ -459,13 +464,13 @@ class Import extends Product
                                 } else $cell = $line[$c];
                                 $this->data[$row][$c] = $cell;
                             }
-                            if ($row >= 100 and $prepare == true) {
+                            if ($row >= $chunksize and $prepare == TRUE) {
                                 $this->writTempFiles($this->data, $cycleNum);
                                 $row = 0;
                                 $this->data = array();
                                 break;
-                            } elseif ($row >= 100) {
-                                // если превью
+                            } elseif ($row >= $chunksize) {
+                                // если не превью
                                 $this->writTempFiles($this->data, $cycleNum);
                                 $cycleNum += 1;
                                 $row = 0;
@@ -477,7 +482,22 @@ class Import extends Product
                             $cycleNum += 1;
                         }
                         fclose($handle);
-                        $_SESSION["pages"] = $cycleNum;
+                        $_SESSION["countPages"] = 1; // заглушка для прогресс бара
+                        $_SESSION["cycleNum"]  += 1;
+
+
+
+                        // $this->writTempFiles($rows, $_SESSION["countPages"]);
+                        // if ($prepare != TRUE and count($rows) == $chunksize) {
+                        //     $_SESSION["countPages"]     += 1;
+                        // } elseif ($prepare != TRUE) {
+                        //     $_SESSION["countPages"]     += 1;
+                        //     $_SESSION["cycleNum"]       += 1;
+                        // } elseif ($_SESSION["countPages"] == 0 and count($rows) < 1)
+                        //     return FALSE;
+                        // return TRUE;
+
+
 
                         if (count($this->data) < 2) {
                             return false;
@@ -599,7 +619,7 @@ class Import extends Product
 
                 } else {
                     // построчная обработка в БД
-                    $this->getRightData($item, $options);
+                    if ($this->rowCheck($item) == TRUE)  $this->getRightData($item, $options);
                     $this->data[$key] = null;
                 }
 
@@ -668,6 +688,7 @@ class Import extends Product
             return NULL;
     }
 
+    // получение ид группы
     private function getIdGroup($key = 'id', $delimiter, $item)  // ключ / разделитель / таблСверки / колонка / значение
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
@@ -769,7 +790,7 @@ class Import extends Product
         }
 
 
-        /*
+        /**
          * если имеем дело с массивом - отсеиваем группы со всеми пустыми параметрами
          *
          * измеряем длину массивов по id, коду и пути
@@ -844,6 +865,23 @@ class Import extends Product
         // унифицируем конечный результат
         if(gettype($id_gr) == integer) $id_gr = array($id_gr);
         return $id_gr;
+    }
+
+
+    /**
+     * Проверка заполненности строки
+     * @param  $item  массив ячеек строки
+     * @return bool   TRUE - не пустая
+     */
+    private function rowCheck($item)
+    {
+        $startGetRightData = FALSE;
+        foreach($item as $k => $v)
+            if (!empty($v)) {
+                $startGetRightData = TRUE;
+                break;
+            }
+        return $startGetRightData;
     }
 
 
@@ -999,11 +1037,11 @@ class Import extends Product
             //writeLog($this->mode,'MODE');
             $param = true;
             // удалить все строки в таблицах БД...
-            if ($this->mode == 'rld') {
+            if ($this->mode == 'rld' and $_SESSION["cycleNum"] == 1) {
                 DB::query("SET foreign_key_checks = 0");
                 DB::query("TRUNCATE TABLE shop_group");
                 DB::query("TRUNCATE TABLE shop_price");
-//                    DB::query("TRUNCATE TABLE shop_brand");
+                //DB::query("TRUNCATE TABLE shop_brand");
                 DB::query("TRUNCATE TABLE shop_img");
                 DB::query("TRUNCATE TABLE shop_group_price");
                 DB::query("TRUNCATE TABLE shop_discounts");
@@ -1019,9 +1057,7 @@ class Import extends Product
                 DB::query("TRUNCATE TABLE shop_tovarorder");
                 DB::query("TRUNCATE TABLE shop_order");
                 DB::query("SET foreign_key_checks = 1");
-            } else {
-                $param = false;
-            }
+            } elseif ($_SESSION["cycleNum"] == 1)  $param = false;
 
             // импорт категорий
             if (!empty($this->importData['category'])){
@@ -1047,69 +1083,8 @@ class Import extends Product
             // импорт товаров
             if (!empty($this->importData['products'])) {
                 // $this->mode == 'upd' отвечает за обновление (доавление к существующим, например, товарам)
-                if ($this->mode == 'upd'){
-                    $this->updateList();
-                } else {
-
-                    // передать импортируемые данные в БД таблица: 'shop_price'
-                    $this->debugging('special', __FUNCTION__.' '.__LINE__, __CLASS__, 'передать импортируемые данные в БД таблица: "shop_price"');
-                    // writeLog($this->importData['products']); // прослушивание передачи продукта
-
-                    // получаем главною группу для id_group
-
-                    $data = array();
-                    $id_group_list = array();
-                    foreach ($this->importData['products'] as $product_unit){
-
-                        // если id группы не получена (новая группа) - получаем
-                        if (gettype($product_unit['id_group']) == 'array' and
-                            gettype($product_unit['id_group'][0]) == 'array'
-                        ) $id_group = $this->CommunGroup($product_unit['id_group'][0], FALSE);
-
-                        // получаем главною группу для shop_price id_group
-                        $data_unit = $product_unit;
-                        // если имеем дело с новой группой и новым товаром
-                        if( gettype($product_unit['id_group']) == 'array' and
-                            gettype($product_unit['id_group'][0]) == 'array'
-                        )   $data_unit['id_group'] = $id_group[0];
-                        // ... или соответственно массивом
-                        elseif(gettype($product_unit['id_group']) == 'array')
-                            $data_unit['id_group'] = $data_unit['id_group'][0];
-                        array_push($id_group_list, $data_unit);
-
-
-                        // для shop_price_group
-                        // если значение одно - завернуть в массив для обработки
-                        // если значения не соотнесены (отсутствовали данные по id) - совершить вторую попытку
-                        if(gettype($product_unit['id_group']) == integer)
-                            $product_unit['id_group'] = array($product_unit['id_group']);
-                        elseif(gettype($product_unit['id_group']) == 'array' and gettype($product_unit['id_group'][0]) == 'array')
-                            $product_unit['id_group'] = $id_group;
-                        foreach ($product_unit['id_group'] as $i)
-                            $this->deleteCategory($product_unit['id'], $i);
-                        // получаем элементы массива с определением главной группы
-                        if(isset($product_unit['id'],$product_unit['id_group'][0])) {
-                            foreach ($product_unit['id_group'] as $i) {
-                                if(isset($product_unit['id'],$i)) {
-                                    $product_group_unit = array(
-                                        'id_price' => (int) $product_unit['id'],
-                                        'id_group' => (int) $i,
-                                        'is_main'  => (bool) 0
-                                    );
-                                };
-                                // если группа первая в списке - значит главная
-                                if ($i == $product_unit['id_group'][0])
-                                    $product_group_unit['is_main'] = (bool) 1;
-                                array_push($data,$product_group_unit);
-                            };
-                        };
-                    };
-                    DB::insertList('shop_price', $id_group_list,$param);
-                    DB::query("SET foreign_key_checks = 0");
-                    DB::insertList('shop_price_group', $data);
-
-
-                }
+                if ($this->mode == 'upd')  $this->updateListImport();
+                else                       $this->insertListImport();
                 DB::query("SET foreign_key_checks = 1");
             }
 
@@ -1140,168 +1115,278 @@ class Import extends Product
         $spg->deleteList();
     }
 
-    // Список обновлений (добавление к существующим, например, товарам)
-    public function updateList()
+
+    /**
+     * ВСТАВКА: нет товара - добавляет, есть - пропускает
+     *
+     * 1: получаем id существующих товаров
+     * 2: получаем главною группу для id_group
+     * 3: сверяем id товара с shop_price,    если нет > отправляем к инсету на добавление
+     *   если товар отсутствует - создаем
+     *   иначе пропускаем
+     * 4: если id группы не получена (новая группа) - получаем
+     * 5: получаем главною группу для shop_price id_group
+     *   если имеем дело с новой группой и новым товаром
+     *   ... или соответственно массивом
+     * 6: для shop_price_group
+     *   если значение одно - завернуть в массив для обработки
+     *   если значения не соотнесены (отсутствовали данные по id) - совершить вторую попытку
+     * 7: получаем элементы массива с определением главной группы
+     *   если группа первая в списке - значит главная
+     */
+
+    public function insertListImport()
+    {
+        $this->debugging('special', __FUNCTION__.' '.__LINE__, __CLASS__, 'передать импортируемые данные в БД таблица: "shop_price"');
+        //writeLog($this->importData['products']); // прослушивание передачи продукта
+
+        $shop_price = new DB('shop_price');                                           //1
+        $shop_price->select('id');
+        $id_list = $shop_price->getList();
+        foreach($id_list as &$id_unit) $id_unit = $id_unit['id'];
+
+        $data = array();                                                              //2
+        $id_group_list = array();
+        foreach ($this->importData['products'] as &$product_unit){
+
+            $data_unit = $product_unit;                                               //3
+            foreach($id_list as $id_unit)
+                if($data_unit['id'] == $id_unit)  $availability = TRUE;
+            if($availability == FALSE) {
+
+                if (gettype($product_unit['id_group']) == 'array' and                 //4
+                    gettype($product_unit['id_group'][0]) == 'array'
+                ) $id_group = $this->CommunGroup($product_unit['id_group'][0], FALSE);
+
+                if( gettype($product_unit['id_group']) == 'array' and                 //5
+                    gettype($product_unit['id_group'][0]) == 'array'
+                )   $data_unit['id_group'] = $id_group[0];
+                elseif(gettype($product_unit['id_group']) == 'array')
+                    $data_unit['id_group'] = $data_unit['id_group'][0];
+                array_push($id_group_list, $data_unit);
+
+
+                if(gettype($product_unit['id_group']) == integer)                     //6
+                    $product_unit['id_group'] = array($product_unit['id_group']);
+                elseif(gettype($product_unit['id_group']) == 'array' and gettype($product_unit['id_group'][0]) == 'array')
+                    $product_unit['id_group'] = $id_group;
+                foreach ($product_unit['id_group'] as $i)
+                    $this->deleteCategory($product_unit['id'], $i);
+
+                if(isset($product_unit['id'],$product_unit['id_group'][0])) {         //7
+                    foreach ($product_unit['id_group'] as $i) {
+                        if(isset($product_unit['id'],$i)) {
+                            $product_group_unit = array(
+                                'id_price' => (int) $product_unit['id'],
+                                'id_group' => (int) $i,
+                                'is_main'  => (bool) 0
+                            );
+                        };
+                        if ($i == $product_unit['id_group'][0])
+                            $product_group_unit['is_main'] = (bool) 1;
+                        array_push($data,$product_group_unit);
+                    };
+                };
+            };
+        };
+        DB::insertList('shop_price', $id_group_list,$param);
+        DB::query("SET foreign_key_checks = 0");
+        DB::insertList('shop_price_group', $data);
+    }
+
+
+    // лист продуктов на обновление (при отсутствии - добавление; при наличии - обновление (замена))
+    public function updateListImport()
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         $product_list = $this->importData['products'];
 
         // получаем id существующих товаров
-        $shop_price = new DB('shop_price');
+        $shop_price = new DB('shop_price');                                    //1
         $shop_price->select('id');
         $id_list = $shop_price->getList();
         foreach($id_list as &$id_unit) $id_unit = $id_unit['id'];
 
         try {
 
-            // запись ПРОДУКТОВ и СВЯЗЕЙ группа-продукт
+            /**
+             * лист продуктов на обновление (при отсутствии - добавление; при наличии - обновление (замена))
+             * запись ПРОДУКТОВ и СВЯЗЕЙ группа-продукт
+             *
+             * 1: получаем id существующих товаров
+             * 2: начать транзакцию
+             * 3: если id группы не получена (новая руппа) - получаем
+             * 4: для shop_price id_group
+             *   записываем ПРОДУКТ в бд (ГРУППЫ записаны при вызове CommunGroup в getRightData)
+             *   если имеем дело с новой группой
+             *   ... или соответственно массивом
+             * 5: сверяем id товара с shop_price,    если нет > отправляем к инсету на добавление
+             *   если товар отсутствует - создаем
+             *   иначе просто изменяем
+             *
+             * 6: конец транзакции
+             * 7: в случае ошибки - прервать транзакцию
+             */
             foreach ($product_list as &$product_unit){
-                DB::beginTransaction();
+                DB::beginTransaction();                                        //2
 
-                // если id группы не получена (новая руппа) - получаем
-                if (gettype($product_unit['id_group']) == 'array' and
+                if (gettype($product_unit['id_group']) == 'array' and          //3
                     gettype($product_unit['id_group'][0]) == 'array'
                 ) $id_group = $this->CommunGroup($product_unit['id_group'][0], FALSE);
 
-                // для shop_price id_group
-                // записываем ПРОДУКТ в бд (ГРУППЫ записаны при вызове CommunGroup в getRightData)
-                $data_unit = $product_unit;
-                // если имеем дело с новой группой
+                $data_unit = $product_unit;                                    //4
                 if (gettype($product_unit['id_group']) == 'array' and
                     gettype($product_unit['id_group'][0]) == 'array'
                 ) $data_unit['id_group'] = $id_group[0];
-                // ... или соответственно массивом
                 elseif(gettype($product_unit['id_group']) == 'array')
                     $data_unit['id_group'] = $data_unit['id_group'][0];
                 $pr_unit = new DB('shop_price');
 
-                // сверяем id товара с shop_price,    если нет > отправляем к инсету на добавление
-                foreach($id_list as $id_unit)
+                foreach($id_list as $id_unit)                                  //5
                     if($data_unit['id'] == $id_unit)  $availability = TRUE;
                 if($availability == FALSE) {
-                    // если товар отсутствует - создаем
                     $param = true;
                     if ($this->mode != 'rld') $param = false;
                     $data_unit = array($data_unit);
                     DB::insertList('shop_price', $data_unit,$param);
                     $id_price = $data_unit[0]['id'];
                 }else {
-                    // иначе просто изменяем
                     $pr_unit->setValuesFields($data_unit);
                     $id_price = $pr_unit->save();
                 };
 
 
-                // для shop_price_group
-                // если значение одно - завернуть в массив для обработки
-                // если значения не соотнесены (отсутствовали данные по id) - совершить вторую попытку
-                if(gettype($product_unit['id_group']) == integer)
-                    $product_unit['id_group'] = array($product_unit['id_group']);
-                elseif(gettype($product_unit['id_group']) == 'array' and gettype($product_unit['id_group'][0]) == 'array')
-                    $product_unit['id_group'] = $id_group;
-                if(CORE_VERSION != "5.2" and is_numeric($id_price) and isset($product_unit['id_group'])){
-                    // ОПРЕДЕЛЯЕМ ПОТРЕБНОСТЬ В ОЧИСТКЕ СВЯЗЕЙ И УДАЛЯЕМ НЕ АКТУАЛЬНЫЕ
-                    // получаем данные из базы для определения изменений
-                    $pr_gr = new DB('shop_price_group');
-                    $pr_gr->select('*');
-                    $pr_gr->where('id_price = ?', $id_price);
-                    $pr_gr_list = $pr_gr->getList();
+                // TODO: протянуть связи в новый метод
 
-
-                    if($pr_gr_list != NULL) {
-                        $white_list = array();
-                        // раскладываем продукт на связи (с группами)
-                        $cycle = 0;
-                        foreach ($product_unit['id_group'] as $id_gr_unit) {
-                            // формируем данные по импортируемой связи
-                            // определяем главную/второстепенные связи
-                            if ($cycle == 0) $is_main = (int)1;
-                            else             $is_main = (int)0;
-                            // группируем параметры связи
-                            $category_unit = array(
-                                'id' => NULL,
-                                'idPrice' => (int)$id_price,
-                                'idGroup' => (int)$id_gr_unit,
-                                'isMain' => (bool)$is_main
-                            );
-                            // сопоставляем параметры с бд
-                            foreach ($pr_gr_list as $pr_gr_unit) {
-                                if ($category_unit['idPrice'] == $pr_gr_unit['idPrice'] and
-                                    $category_unit['idGroup'] == $pr_gr_unit['idGroup'] and
-                                    $category_unit['isMain'] == $pr_gr_unit['isMain']
-                                ) $category_unit['id'] = $pr_gr_unit['id'];
-                            };
-                            // если есть хотя бы одно совпадение по бд - отменяем
-                            if ($category_unit['id'] != NULL) $white_list[] = $category_unit;
-
-                            $cycle = $cycle + 1;
-                        };
-
-                        // сверка связей с созданым белым листом - в случае не обнаружения среди белых, УДАЛЯЕТ СВЯЗЬ
-                        $delete_id_list = array();
-                        foreach ($pr_gr_list as $pr_gr_unit) {
-                            if ($pr_gr_unit['idPrice'] == $id_price) {
-                                $delete_confirmation = (int)1;
-                                foreach ($white_list as $white_unit) {
-                                    if ($white_unit['id'] == $pr_gr_unit['id']) $delete_confirmation = (int)0;
-                                };
-                                if ($delete_confirmation == 1) $delete_id_list[] = $pr_gr_unit['id'];
-                            };
-                        };
-                        if(count($delete_id_list) > 0) {
-                            $spg = new DB('shop_price_group', 'spg');
-                            $spg->select('spg.*');
-                            $spg->where('id IN (?)', join(',', $delete_id_list));
-                            $spg->deleteList();
-                        };
-                    };
-                    //writeLog('$delete_id_list // на удаление');writeLog($delete_id_list);
-
-                    // получаем данные из shop_price_group для последующей сверки данны с id-шниками (проверка на наличие)
-                    // ОБЯЗАТЕЛЬНО ПОСЛЕ ОЧИСТКИ ТАБЛИЦЫ!
-                    $pr_gr_list_delete = array();
-                    foreach($pr_gr_list as &$pr_gr_unit) {
-                        if(in_array($pr_gr_unit['id'], $delete_id_list) == FALSE) $pr_gr_list_delete[] = $pr_gr_unit;
-                    };
-                    $pr_gr_list = $pr_gr_list_delete;
-
-                    // получение элементов массива с определением главной группы
-                    if(isset($product_unit['id'],$product_unit['id_group'][0])) {
-                        foreach ($product_unit['id_group'] as $id_gr_unit) {
-                            if(isset($product_unit['id'],$id_gr_unit)) {
-                                $category_unit = array(
-                                    'id'      => NULL,
-                                    'idPrice' => (int) $id_price,
-                                    'idGroup' => (int) $id_gr_unit,
-                                    'isMain'  => (bool) 0
-                                );
-                                // если группа первая в списке - значит главная
-                                if($id_gr_unit == $product_unit['id_group'][0])
-                                    $category_unit['isMain'] = (bool) 1;
-                                if($pr_gr_list != NULL) {
-                                    foreach($pr_gr_list as $pr_gr_unit){ // ищим id в базе - есть, добавляем
-                                        if( $category_unit['idPrice'] == $pr_gr_unit['idPrice'] and
-                                            $category_unit['idGroup'] == $pr_gr_unit['idGroup'] and
-                                            $category_unit['isMain']  == $pr_gr_unit['isMain']
-                                        )   $category_unit['id'] = $pr_gr_unit['id'];
-                                    };
-                                };
-                                //writeLog('$category_unit // добавление');writeLog($category_unit);
-                                $pr_gr = new DB('shop_price_group');
-                                $pr_gr->setValuesFields($category_unit);
-                                $pr_gr->save();
-                            };
-                        };
-                    };
-                };
-                DB::commit(); // конец транзакции
+                $this->linkRecordShopPriceGroup();
+                DB::commit();                                                  //6
             };
         } catch (Exception $e) {
-            DB::rollBack(); // прервать транзакцию
+            DB::rollBack();                                                    //7
             return false;
         };
         return true;
+    }
+
+
+    /**
+     * ЗАПОЛНЕНИЕ shop_price_group
+     *
+     * Определяем потребность в очистке связей и удаляем не актуальные
+     *
+     * 0: если значение одно - завернуть в массив для обработки
+     *   если значения не соотнесены (отсутствовали данные по id) - совершить вторую попытку
+     * 1: получаем данные из базы для определения изменений
+     * 2: раскладываем продукт на связи (с группами)
+     *   3: формируем данные по импортируемой связи;  определяем главную/второстепенные связи
+     *   4: группируем параметры связи
+     *   5: сопоставляем параметры с бд
+     *   6: если есть хотя бы одно совпадение по бд - отменяем
+     * 7: сверка связей с созданым белым листом - в случае не обнаружения среди белых, УДАЛЯЕТ СВЯЗЬ
+     *
+     * Запись связей в таблицу shop_price_group
+     *
+     * 8: получаем данные из shop_price_group для последующей сверки данны с id-шниками (проверка на наличие)
+     *   ОБЯЗАТЕЛЬНО ПОСЛЕ ОЧИСТКИ ТАБЛИЦЫ!
+     * 9: получение элементов массива с определением главной группы
+     *   10: если группа первая в списке - значит главная
+     *   11: ищим id в базе - есть, добавляем в shop_price_group
+     *
+     * 12: конец транзакции
+     * 13: в случае ошибки - прервать транзакцию
+     */
+
+    public function linkRecordShopPriceGroup()
+    {
+        if(gettype($product_unit['id_group']) == integer)                                  //0
+            $product_unit['id_group'] = array($product_unit['id_group']);
+        elseif(gettype($product_unit['id_group']) == 'array' and gettype($product_unit['id_group'][0]) == 'array')
+            $product_unit['id_group'] = $id_group;
+
+        if(CORE_VERSION != "5.2" and is_numeric($id_price) and isset($product_unit['id_group'])){
+
+            $pr_gr = new DB('shop_price_group');                                           //1
+            $pr_gr->select('*');
+            $pr_gr->where('id_price = ?', $id_price);
+            $pr_gr_list = $pr_gr->getList();
+
+
+            if($pr_gr_list != NULL) {
+                $white_list = array();
+                $cycle = 0;
+                foreach ($product_unit['id_group'] as $id_gr_unit) {                       //2
+                    if ($cycle == 0) $is_main = (int)1;                                    //3
+                    else             $is_main = (int)0;
+                    $category_unit = array(                                                //4
+                        'id' => NULL,
+                        'idPrice' => (int)$id_price,
+                        'idGroup' => (int)$id_gr_unit,
+                        'isMain' => (bool)$is_main
+                    );
+                    foreach ($pr_gr_list as $pr_gr_unit) {                                 //5
+                        if ($category_unit['idPrice'] == $pr_gr_unit['idPrice'] and
+                            $category_unit['idGroup'] == $pr_gr_unit['idGroup'] and
+                            $category_unit['isMain'] == $pr_gr_unit['isMain']
+                        ) $category_unit['id'] = $pr_gr_unit['id'];
+                    };
+                    if ($category_unit['id'] != NULL) $white_list[] = $category_unit;      //6
+
+                    $cycle = $cycle + 1;
+                };
+
+                $delete_id_list = array();                                                 //7
+                foreach ($pr_gr_list as $pr_gr_unit) {
+                    if ($pr_gr_unit['idPrice'] == $id_price) {
+                        $delete_confirmation = (int)1;
+                        foreach ($white_list as $white_unit) {
+                            if ($white_unit['id'] == $pr_gr_unit['id']) $delete_confirmation = (int)0;
+                        };
+                        if ($delete_confirmation == 1) $delete_id_list[] = $pr_gr_unit['id'];
+                    };
+                };
+                if(count($delete_id_list) > 0) {
+                    $spg = new DB('shop_price_group', 'spg');
+                    $spg->select('spg.*');
+                    $spg->where('id IN (?)', join(',', $delete_id_list));
+                    $spg->deleteList();
+                };
+            };
+            //writeLog('$delete_id_list // на удаление');writeLog($delete_id_list);
+
+            $pr_gr_list_delete = array();                                                  //8
+            foreach($pr_gr_list as &$pr_gr_unit) {
+                if(in_array($pr_gr_unit['id'], $delete_id_list) == FALSE) $pr_gr_list_delete[] = $pr_gr_unit;
+            };
+            $pr_gr_list = $pr_gr_list_delete;
+
+            if(isset($product_unit['id'],$product_unit['id_group'][0])) {                  //9
+                foreach ($product_unit['id_group'] as $id_gr_unit) {
+                    if(isset($product_unit['id'],$id_gr_unit)) {
+                        $category_unit = array(
+                            'id'      => NULL,
+                            'idPrice' => (int) $id_price,
+                            'idGroup' => (int) $id_gr_unit,
+                            'isMain'  => (bool) 0
+                        );
+                        if($id_gr_unit == $product_unit['id_group'][0])                    //10
+                            $category_unit['isMain'] = (bool) 1;
+                        if($pr_gr_list != NULL) {
+                            foreach($pr_gr_list as $pr_gr_unit){                           //11
+                                if( $category_unit['idPrice'] == $pr_gr_unit['idPrice'] and
+                                    $category_unit['idGroup'] == $pr_gr_unit['idGroup'] and
+                                    $category_unit['isMain']  == $pr_gr_unit['isMain']
+                                )   $category_unit['id'] = $pr_gr_unit['id'];
+                            };
+                        };
+                        //writeLog('$category_unit // добавление');writeLog($category_unit);
+                        $pr_gr = new DB('shop_price_group');
+                        $pr_gr->setValuesFields($category_unit);
+                        $pr_gr->save();
+                    };
+                };
+            };
+        };
     }
 
     // обновить группы таблиц

@@ -1,0 +1,6 @@
+
+[12:39:15:906] 2048[/2_dev/vendor/SE/Shop/Image.php|9] Declaration of SE\Shop\Image::post() should be compatible with SE\Shop\Base::post($tempFile = false)
+[SI 10.209699] 2048[/2_dev/vendor/SE/Shop/Image.php|9] Declaration of SE\Shop\Image::post() should be compatible with SE\Shop\Base::post($tempFile = false)
+[SI 11.087042] 2048[/2_dev/vendor/SE/Shop/Image.php|9] Declaration of SE\Shop\Image::post() should be compatible with SE\Shop\Base::post($tempFile = false)
+[12:42:46:499] 2048[/2_dev/vendor/SE/Shop/Image.php|9] Declaration of SE\Shop\Image::post() should be compatible with SE\Shop\Base::post($tempFile = false)
+[SI 4.899518] 2048[/2_dev/vendor/SE/Shop/Image.php|9] Declaration of SE\Shop\Image::post() should be compatible with SE\Shop\Base::post($tempFile = false)
