@@ -1041,6 +1041,7 @@ class Import extends Product
                 DB::query("SET foreign_key_checks = 0");
                 DB::query("TRUNCATE TABLE shop_group");
                 DB::query("TRUNCATE TABLE shop_price");
+                DB::query("TRUNCATE TABLE shop_price_group");
                 //DB::query("TRUNCATE TABLE shop_brand");
                 DB::query("TRUNCATE TABLE shop_img");
                 DB::query("TRUNCATE TABLE shop_group_price");
@@ -1260,7 +1261,7 @@ class Import extends Product
                 };
 
 
-                // TODO: сделать удление связей из shop_price_group при удалении товаров (в том числе в удалении при вставке в импорте)
+                // TODO: сделать удление связей из shop_price_group при удалении товаров + масштабировать удаление
 
                 $this->linkRecordShopPriceGroup($product_unit,$id_group,$id_price);
                 DB::commit();                                                  //6
