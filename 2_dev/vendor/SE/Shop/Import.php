@@ -322,7 +322,7 @@ class Import extends Product
      * @param string $file         путь к файлу с именем файла
      * @param string $extension    тип файла xlsx/csv
      * @param bool $prepare        превью
-     * @param Integer $chunksize   объем цикла
+     * @param integer $chunksize   объем цикла
      * @throws \Exception
      */
     public function getNumberRowsFromFile($file, $extension, $prepare, $chunksize)
@@ -1124,6 +1124,7 @@ class Import extends Product
      * 3: сверяем id товара с shop_price,    если нет > отправляем к инсету на добавление
      *   если товар отсутствует - создаем
      *   иначе пропускаем
+     * 3.1: начать транзакцию
      * 4: если id группы не получена (новая группа) - получаем
      * 5: получаем главною группу для shop_price id_group
      *   если имеем дело с новой группой и новым товаром
@@ -1133,6 +1134,7 @@ class Import extends Product
      *   если значения не соотнесены (отсутствовали данные по id) - совершить вторую попытку
      * 7: получаем элементы массива с определением главной группы
      *   если группа первая в списке - значит главная
+     * 8: конец транзакции
      */
 
     public function insertListImport()
@@ -1153,6 +1155,7 @@ class Import extends Product
             foreach($id_list as $id_unit)
                 if($data_unit['id'] == $id_unit)  $availability = TRUE;
             if($availability == FALSE) {
+                DB::beginTransaction();                                               //3.1
 
                 if (gettype($product_unit['id_group']) == 'array' and                 //4
                     gettype($product_unit['id_group'][0]) == 'array'
@@ -1187,6 +1190,8 @@ class Import extends Product
                         array_push($data,$product_group_unit);
                     };
                 };
+                $this->linkRecordShopPriceGroup($product_unit,$id_group,$data_unit[0]['id']);
+                DB::commit();                                                         //8
             };
         };
         DB::insertList('shop_price', $id_group_list,$param);
@@ -1195,14 +1200,30 @@ class Import extends Product
     }
 
 
-    // лист продуктов на обновление (при отсутствии - добавление; при наличии - обновление (замена))
+    /**
+     * лист продуктов на обновление (при отсутствии - добавление; при наличии - обновление (замена))
+     * запись ПРОДУКТОВ и СВЯЗЕЙ группа-продукт
+     *
+     * 1: получаем id существующих товаров
+     * 2: начать транзакцию
+     * 3: если id группы не получена (новая руппа) - получаем
+     * 4: для shop_price id_group
+     *   записываем ПРОДУКТ в бд (ГРУППЫ записаны при вызове CommunGroup в getRightData)
+     *   если имеем дело с новой группой
+     *   ... или соответственно массивом
+     * 5: сверяем id товара с shop_price,    если нет > отправляем к инсету на добавление
+     *   если товар отсутствует - создаем
+     *   иначе просто изменяем
+     *
+     * 6: конец транзакции
+     * 7: в случае ошибки - прервать транзакцию
+     */
     public function updateListImport()
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         $product_list = $this->importData['products'];
 
-        // получаем id существующих товаров
         $shop_price = new DB('shop_price');                                    //1
         $shop_price->select('id');
         $id_list = $shop_price->getList();
@@ -1210,24 +1231,6 @@ class Import extends Product
 
         try {
 
-            /**
-             * лист продуктов на обновление (при отсутствии - добавление; при наличии - обновление (замена))
-             * запись ПРОДУКТОВ и СВЯЗЕЙ группа-продукт
-             *
-             * 1: получаем id существующих товаров
-             * 2: начать транзакцию
-             * 3: если id группы не получена (новая руппа) - получаем
-             * 4: для shop_price id_group
-             *   записываем ПРОДУКТ в бд (ГРУППЫ записаны при вызове CommunGroup в getRightData)
-             *   если имеем дело с новой группой
-             *   ... или соответственно массивом
-             * 5: сверяем id товара с shop_price,    если нет > отправляем к инсету на добавление
-             *   если товар отсутствует - создаем
-             *   иначе просто изменяем
-             *
-             * 6: конец транзакции
-             * 7: в случае ошибки - прервать транзакцию
-             */
             foreach ($product_list as &$product_unit){
                 DB::beginTransaction();                                        //2
 
@@ -1257,9 +1260,9 @@ class Import extends Product
                 };
 
 
-                // TODO: протянуть связи в новый метод
+                // TODO: сделать удление связей из shop_price_group при удалении товаров (в том числе в удалении при вставке в импорте)
 
-                $this->linkRecordShopPriceGroup();
+                $this->linkRecordShopPriceGroup($product_unit,$id_group,$id_price);
                 DB::commit();                                                  //6
             };
         } catch (Exception $e) {
@@ -1275,38 +1278,39 @@ class Import extends Product
      *
      * Определяем потребность в очистке связей и удаляем не актуальные
      *
-     * 0: если значение одно - завернуть в массив для обработки
+     * 1: если значение одно - завернуть в массив для обработки
      *   если значения не соотнесены (отсутствовали данные по id) - совершить вторую попытку
-     * 1: получаем данные из базы для определения изменений
-     * 2: раскладываем продукт на связи (с группами)
-     *   3: формируем данные по импортируемой связи;  определяем главную/второстепенные связи
-     *   4: группируем параметры связи
-     *   5: сопоставляем параметры с бд
-     *   6: если есть хотя бы одно совпадение по бд - отменяем
-     * 7: сверка связей с созданым белым листом - в случае не обнаружения среди белых, УДАЛЯЕТ СВЯЗЬ
+     * 2: получаем данные из базы для определения изменений
+     * 3: раскладываем продукт на связи (с группами)
+     *   4: формируем данные по импортируемой связи;  определяем главную/второстепенные связи
+     *   5: группируем параметры связи
+     *   6: сопоставляем параметры с бд
+     *   7: если есть хотя бы одно совпадение по бд - отменяем
+     * 8: сверка связей с созданым белым листом - в случае не обнаружения среди белых, УДАЛЯЕТ СВЯЗЬ
      *
      * Запись связей в таблицу shop_price_group
      *
-     * 8: получаем данные из shop_price_group для последующей сверки данны с id-шниками (проверка на наличие)
+     * 9: получаем данные из shop_price_group для последующей сверки данны с id-шниками (проверка на наличие)
      *   ОБЯЗАТЕЛЬНО ПОСЛЕ ОЧИСТКИ ТАБЛИЦЫ!
-     * 9: получение элементов массива с определением главной группы
-     *   10: если группа первая в списке - значит главная
-     *   11: ищим id в базе - есть, добавляем в shop_price_group
+     * 10: получение элементов массива с определением главной группы
+     *   11: если группа первая в списке - значит главная
+     *   12: ищим id в базе - есть, добавляем в shop_price_group
      *
-     * 12: конец транзакции
-     * 13: в случае ошибки - прервать транзакцию
+     * @param array $product_unit  массив параметров $fields по единице товара
+     * @param integer $id_group    ид группы
+     * @param integer $id_price    ид товара
      */
 
-    public function linkRecordShopPriceGroup()
+    public function linkRecordShopPriceGroup($product_unit,$id_group,$id_price)
     {
-        if(gettype($product_unit['id_group']) == integer)                                  //0
+        if(gettype($product_unit['id_group']) == integer)                                  //1
             $product_unit['id_group'] = array($product_unit['id_group']);
         elseif(gettype($product_unit['id_group']) == 'array' and gettype($product_unit['id_group'][0]) == 'array')
             $product_unit['id_group'] = $id_group;
 
         if(CORE_VERSION != "5.2" and is_numeric($id_price) and isset($product_unit['id_group'])){
 
-            $pr_gr = new DB('shop_price_group');                                           //1
+            $pr_gr = new DB('shop_price_group');                                           //2
             $pr_gr->select('*');
             $pr_gr->where('id_price = ?', $id_price);
             $pr_gr_list = $pr_gr->getList();
@@ -1315,27 +1319,27 @@ class Import extends Product
             if($pr_gr_list != NULL) {
                 $white_list = array();
                 $cycle = 0;
-                foreach ($product_unit['id_group'] as $id_gr_unit) {                       //2
-                    if ($cycle == 0) $is_main = (int)1;                                    //3
+                foreach ($product_unit['id_group'] as $id_gr_unit) {                       //3
+                    if ($cycle == 0) $is_main = (int)1;                                    //4
                     else             $is_main = (int)0;
-                    $category_unit = array(                                                //4
+                    $category_unit = array(                                                //5
                         'id' => NULL,
                         'idPrice' => (int)$id_price,
                         'idGroup' => (int)$id_gr_unit,
                         'isMain' => (bool)$is_main
                     );
-                    foreach ($pr_gr_list as $pr_gr_unit) {                                 //5
+                    foreach ($pr_gr_list as $pr_gr_unit) {                                 //6
                         if ($category_unit['idPrice'] == $pr_gr_unit['idPrice'] and
                             $category_unit['idGroup'] == $pr_gr_unit['idGroup'] and
                             $category_unit['isMain'] == $pr_gr_unit['isMain']
                         ) $category_unit['id'] = $pr_gr_unit['id'];
                     };
-                    if ($category_unit['id'] != NULL) $white_list[] = $category_unit;      //6
+                    if ($category_unit['id'] != NULL) $white_list[] = $category_unit;      //7
 
                     $cycle = $cycle + 1;
                 };
 
-                $delete_id_list = array();                                                 //7
+                $delete_id_list = array();                                                 //8
                 foreach ($pr_gr_list as $pr_gr_unit) {
                     if ($pr_gr_unit['idPrice'] == $id_price) {
                         $delete_confirmation = (int)1;
@@ -1354,13 +1358,13 @@ class Import extends Product
             };
             //writeLog('$delete_id_list // на удаление');writeLog($delete_id_list);
 
-            $pr_gr_list_delete = array();                                                  //8
+            $pr_gr_list_delete = array();                                                  //9
             foreach($pr_gr_list as &$pr_gr_unit) {
                 if(in_array($pr_gr_unit['id'], $delete_id_list) == FALSE) $pr_gr_list_delete[] = $pr_gr_unit;
             };
             $pr_gr_list = $pr_gr_list_delete;
 
-            if(isset($product_unit['id'],$product_unit['id_group'][0])) {                  //9
+            if(isset($product_unit['id'],$product_unit['id_group'][0])) {                  //10
                 foreach ($product_unit['id_group'] as $id_gr_unit) {
                     if(isset($product_unit['id'],$id_gr_unit)) {
                         $category_unit = array(
@@ -1369,10 +1373,10 @@ class Import extends Product
                             'idGroup' => (int) $id_gr_unit,
                             'isMain'  => (bool) 0
                         );
-                        if($id_gr_unit == $product_unit['id_group'][0])                    //10
+                        if($id_gr_unit == $product_unit['id_group'][0])                    //11
                             $category_unit['isMain'] = (bool) 1;
                         if($pr_gr_list != NULL) {
-                            foreach($pr_gr_list as $pr_gr_unit){                           //11
+                            foreach($pr_gr_list as $pr_gr_unit){                           //12
                                 if( $category_unit['idPrice'] == $pr_gr_unit['idPrice'] and
                                     $category_unit['idGroup'] == $pr_gr_unit['idGroup'] and
                                     $category_unit['isMain']  == $pr_gr_unit['isMain']
