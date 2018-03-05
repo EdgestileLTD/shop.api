@@ -168,7 +168,7 @@ class Base extends CustomBase
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (!empty($this->input['allMode'])) {
             $this->allMode = true;
-            $this->limit = 10000;
+            $this->limit = 100000;
             $this->setFilters($this->input['allModeLastParams']['filters']);
             $this->search = $this->input['allModeLastParams']['searchText'];
 
@@ -219,6 +219,12 @@ class Base extends CustomBase
 
     public function delete()
     {
+        /**
+         * @param  string $this->tableName    имя таблицы           exm:"shop_price"
+         * @param  string $this->tableAlias   псевдоним таблицы     exm:"sp"
+         * @param  array  $this->input["ids"] массив id на удаление exm:"array(0=>425, 1=>11)"
+         * @return bool                       при удалении - TRUE
+         */
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
             $this->correctAll('del');
