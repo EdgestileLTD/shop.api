@@ -65,7 +65,7 @@ class Update
     {
         if (file_exists($file = getcwd() . "/" . $this->fileUpdate))
             unlink($file);
-        if (createZip(array("1", "update"), $this->fileUpdate))
+        if (createZip(array("1", "2", "update"), $this->fileUpdate))
             return true;
     }
 

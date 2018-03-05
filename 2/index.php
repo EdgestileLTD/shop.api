@@ -14,11 +14,12 @@ date_default_timezone_set("Europe/Moscow");
 ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
-define('API_VERSION', "2_dev");
+define('API_VERSION', "2");
 define('IS_EXT', file_exists($_SERVER['DOCUMENT_ROOT'] . '/system/main/init.php'));
 define('API_ROOT', $_SERVER['DOCUMENT_ROOT'] . '/api/' . API_VERSION . '/');
 define('API_ROOT_URL', "http://" . $_SERVER['SERVER_NAME'] . "/api/" . API_VERSION);
 define('AUTH_SERVER', "https://api.siteedit.ru");
+define('URL_API_ORIGINAL', 'http://upload.beget.edgestile.net/api');
 
 /**
  * запись в логи
@@ -76,7 +77,7 @@ if (IS_EXT) {
 //    require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel/Writer/Excel2007.php';
 }
 
-require_once API_ROOT . "version.php";
+require_once API_ROOT . "../1/version.php";
 require_once API_ROOT . "vendor/autoload.php";
 
 $apiMethod = $_SERVER['REQUEST_METHOD'];
@@ -96,6 +97,14 @@ if (!empty($origin)) {
     }
     if ($apiMethod == "OPTIONS")
         exit;
+}
+
+if (IS_EXT) {
+    $originalBuild = (int)file_get_contents(URL_API_ORIGINAL . "/update.php?method=getVersion");
+    if ($originalBuild > API_BUILD) {
+        $update = new Update(URL_API_ORIGINAL . "/update.php");
+        $update->exec();
+    }
 }
 
 if (strpos($apiClass, "/Auth"))

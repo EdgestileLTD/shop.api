@@ -89,14 +89,6 @@ $path = explode("/", $path['path']);
 array_pop($path);
 $apiObject = end($path);
 
-if (IS_EXT && $apiObject == "Auth") {
-    $originalBuild = (int)file_get_contents(URL_API_ORIGINAL . "/update.php?method=getVersion");
-    if ($originalBuild > API_BUILD) {
-        $update = new Update(URL_API_ORIGINAL . "/update.php");
-        $update->exec();
-    }
-}
-
 $auth = explode('/', getcwd());
 $is_auth = (end($auth) == 'Auth');
 $isCompress = $_GET['compressed'];
@@ -118,6 +110,14 @@ if ($headers['Origin'] || $headers['origin']) {
             header("Access-Control-Allow-Credentials: true");
             header("Access-Control-Allow-Headers: Token, Secookie");
         }
+    }
+}
+
+if (IS_EXT && $apiObject == "Auth") {
+    $originalBuild = (int)file_get_contents(URL_API_ORIGINAL . "/update.php?method=getVersion");
+    if ($originalBuild > API_BUILD) {
+        $update = new Update(URL_API_ORIGINAL . "/update.php");
+        $update->exec();
     }
 }
 
