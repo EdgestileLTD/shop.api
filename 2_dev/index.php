@@ -78,9 +78,12 @@ if (IS_EXT) {
 //    require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel/Writer/Excel2007.php';
 }
 
-require_once API_ROOT . "../1_dev/version.php";
+require_once API_ROOT . "version.php";
 require_once API_ROOT . "vendor/autoload.php";
 
+/**
+ * @var array $apiClass получение из ajax параметра object
+ */
 $apiMethod = $_SERVER['REQUEST_METHOD'];
 $apiClass = parse_url($_SERVER["REQUEST_URI"]);
 $apiClass = str_replace("api/" . API_VERSION . "/", "", trim($apiClass['path'], "/"));
@@ -182,6 +185,10 @@ if (!method_exists($apiClass, $apiMethod)) {
 }
 
 
+/**
+ * @var array $phpInput получает данные параметра data из ajax
+ * @var array $CONFIG получает DBName,HostName,DBUserName,DBPassword,DBDsn,DBSerial
+ */
 $apiObject = new $apiClass($phpInput);
 if ($apiObject->initConnection($CONFIG))
     $apiObject->$apiMethod();

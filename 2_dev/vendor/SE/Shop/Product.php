@@ -13,7 +13,14 @@ use SE\Shop\ProductExport as ProductExport;
 
 class Product extends Base
 {
-    protected $tableName = "shop_price";
+    /**
+     * @var string $tableName имя основной таблмцы
+     * @var array $tableNameDepen имена таблиц и поля соотношения (id товара)
+     */
+    protected $tableName      = "shop_price";
+    protected $tableNameDepen = array(
+        "shop_price_group" => "id_price"
+    );
     private $newImages;
 
     // руссификация заголовков столбцов
@@ -262,6 +269,7 @@ class Product extends Base
 
     private function calkMeasure($table, $id)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $u = new DB('shop_measure');
     }
 
@@ -914,6 +922,7 @@ class Product extends Base
 
     private function saveOptions()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         if (!isset($this->input["options"]))
             return true;
 
@@ -1067,6 +1076,7 @@ class Product extends Base
 
     public function getOptions($idProduct = null)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $result = [];
         $id = $idProduct ? $idProduct : $this->input["id"];
         if (!$id)
@@ -2503,6 +2513,7 @@ class Product extends Base
 
     public function getLabels($idProduct = null)
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $idProduct = $idProduct ? $idProduct : $this->input["id"];
         $result = [];
         $labels = (new ProductLabel())->fetch();
@@ -2523,6 +2534,7 @@ class Product extends Base
 
     private function saveLabels()
     {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $labels = $this->input["labels"];
         $labelsNew = [];
         foreach ($labels as $label)

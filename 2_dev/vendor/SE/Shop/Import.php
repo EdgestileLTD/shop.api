@@ -1261,7 +1261,7 @@ class Import extends Product
                 };
 
 
-                // TODO: сделать удление связей из shop_price_group при удалении товаров + масштабировать удаление
+                // TODO: удаление Всех категорий
 
                 $this->linkRecordShopPriceGroup($product_unit,$id_group,$id_price);
                 DB::commit();                                                  //6
