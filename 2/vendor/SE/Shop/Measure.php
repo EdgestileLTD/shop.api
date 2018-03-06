@@ -11,8 +11,12 @@ class Measure extends Base {
     // получить веса/объемы
     public function info($id = null)
     {
-        $this->result['weights'] = $this->getWeights();
-        $this->result['volumes'] = $this->getVolumes();
+        $result['weights'] = $this->getWeights();
+        $result['volumes'] = $this->getVolumes();
+
+        $this->result = $result;
+
+        return $result;
     }
 
     // получить веса

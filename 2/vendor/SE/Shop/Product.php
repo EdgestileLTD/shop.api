@@ -252,14 +252,18 @@ class Product extends Base
         $measure = $meas->info();
         $this->result['weightEdit'] = $this->result['weight'];
         $this->result['volumeEdit'] = $this->result['volume'];
-        foreach ($measure->weights as $w) {
-            if ($this->result['idWeightEdit'] == $w['id']) {
+        foreach ($measure["weights"] as $w) {
+            if (($this->result['idWeightEdit'] == $w['id']) || empty($this->result['idWeightEdit'])) {
+                if (empty($this->result['idWeightEdit']))
+                    $this->result['idWeightEdit'] = $w["id"];
                 $this->result['weightEdit'] = $this->result['weight'] * $w['value'];
                 break;
             }
         }
-        foreach ($measure->volumes as $v) {
-            if ($this->result['idVolumeEdit'] == $v['id']) {
+        foreach ($measure["volumes"] as $v) {
+            if (($this->result['idVolumeEdit'] == $v['id']) || empty($this->result['idVolumeEdit'])) {
+                if (empty($this->result['idVolumeEdit']))
+                    $this->result['idVolumeEdit'] = $v["id"];
                 $this->result['volumeEdit'] = $this->result['volume'] * $v['value'];
                 break;
             }
