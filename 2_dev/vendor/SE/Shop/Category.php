@@ -144,6 +144,7 @@ class Category extends Base
             AND is_cross
         ) sgr", 'sg.id = sgr.id');
         $u->orderBy('sg.upid');
+        $u->addOrderBy("sg.position");
         $result['similar'] = $u->getList();
         unset($u);
 

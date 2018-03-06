@@ -358,6 +358,14 @@ class Order extends Base // порядок
             $this->input["dateOrder"] = date("Y-m-d", strtotime($this->input["dateOrder"]));
         if (isset($this->input["idAdmin"]) && empty($this->input["idAdmin"]))
             $this->input["idAdmin"] = null;
+        if ($this->isNew) {
+            $t = new DB("main", "m");
+            $t->select("m.basecurr");
+            $result = $t->fetchOne();
+            if (!empty($result["basecurr"]))
+                $this->input["curr"] = $result["basecurr"];
+        }
+
         return true;
     }
 
@@ -531,10 +539,14 @@ class Order extends Base // порядок
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
             $input = $this->input;
-            $input["isDelete"] = "Y";
-            $u = new DB('shop_order', 'so');
-            $u->setValuesFields($input);
-            $u->save();
+            if (!empty($input["allMode"]))
+                DB::query("UPDATE shop_order SET is_delete = 'Y'");
+            else {
+                $ids = implode(",", $input["ids"]);
+                if (!empty($ids))
+                    DB::query("UPDATE shop_order SET is_delete = 'Y' WHERE id IN ({$ids})");
+
+            }
         } catch (Exception $e) {
             $this->error = "Не удаётся отменить заказ!";
         }

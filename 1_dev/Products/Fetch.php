@@ -157,6 +157,7 @@ $sortBy = (isset($patterns[$json->sortBy])) ? $patterns[$json->sortBy] : 'id';
 $u->orderby($sortBy, $json->sortOrder === 'desc');
 $objects = $u->getList($json->offset, $json->limit);
 
+
 foreach ($objects as $item) {
     $product = null;
     $product['id'] = $item['id'];
@@ -217,5 +218,6 @@ if (!se_db_error()) {
     $status['status'] = 'error';
     $status['error'] = se_db_error();// 'Не удаётся получить список товаров!';
 }
+
 
 outputData($status);

@@ -1,0 +1,150 @@
+
+[17:35:47:037] 2048[/2_dev/vendor/SE/Shop/Contact.php|0] Declaration of SE\Shop\Contact::post() should be compatible with SE\Shop\Base::post($tempFile = false)
+[18:07:32:203] 2048[/2_dev/vendor/SE/Shop/Contact.php|12] Declaration of SE\Shop\Contact::post() should be compatible with SE\Shop\Base::post($tempFile = false)
+[18:08:10:046] 2048[/2_dev/vendor/SE/Shop/Contact.php|12] Declaration of SE\Shop\Contact::post() should be compatible with SE\Shop\Base::post($tempFile = false)
+[18:08:15:806] Array
+(
+    [ids] => Array
+        (
+            [0] => 144
+            [1] => 132
+            [2] => 133
+            [3] => 145
+            [4] => 114
+        )
+
+    [text] => 
+    [note] => 
+    [description] => 
+)
+
+[SI 0.058890] 2048[/2_dev/vendor/SE/Shop/Contact.php|0] Declaration of SE\Shop\Contact::post() should be compatible with SE\Shop\Base::post($tempFile = false)
+[SI 10.684830] Array
+(
+    [ids] => Array
+        (
+            [0] => 2
+            [1] => 1
+        )
+
+    [text] => 
+    [note] => 
+    [description] => 
+)
+
+[SI 9.242855] 2048[/2_dev/vendor/SE/Shop/Contact.php|12] Declaration of SE\Shop\Contact::post() should be compatible with SE\Shop\Base::post($tempFile = false)
+[SI 11.791772] 2048[/2_dev/vendor/SE/Shop/Contact.php|12] Declaration of SE\Shop\Contact::post() should be compatible with SE\Shop\Base::post($tempFile = false)
+[18:09:02:567] 2048[/2_dev/vendor/SE/Shop/Contact.php|12] Declaration of SE\Shop\Contact::post() should be compatible with SE\Shop\Base::post($tempFile = false)
+[SI 13.418503] 2048[/2_dev/vendor/SE/Shop/Contact.php|12] Declaration of SE\Shop\Contact::post() should be compatible with SE\Shop\Base::post($tempFile = false)
+[SI 11.613508] Array
+(
+    [ids] => Array
+        (
+            [0] => 5
+            [1] => 4
+            [2] => 3
+        )
+
+    [text] => 
+    [note] => 
+    [description] => 
+)
+
+[18:09:37:286] Array
+(
+    [allMode] => 1
+    [allModeLastParams] => Array
+        (
+            [offset] => 0
+            [limit] => 15
+            [sortBy] => customer
+            [sortOrder] => desc
+            [searchText] => 
+            [filters] => Array
+                (
+                    [0] => Array
+                        (
+                            [value] => N
+                            [field] => isDelete
+                            [sign] => =
+                        )
+
+                )
+
+        )
+
+    [text] => 
+    [note] => 
+    [description] => 
+)
+
+[SI 0.056655] 2048[/2_dev/vendor/SE/Shop/Contact.php|0] Declaration of SE\Shop\Contact::post() should be compatible with SE\Shop\Base::post($tempFile = false)
+[18:10:03:094] 2048[/2_dev/vendor/SE/Shop/Contact.php|12] Declaration of SE\Shop\Contact::post() should be compatible with SE\Shop\Base::post($tempFile = false)
+[SI 9.749112] 2048[/2_dev/vendor/SE/Shop/Contact.php|12] Declaration of SE\Shop\Contact::post() should be compatible with SE\Shop\Base::post($tempFile = false)
+[SI 20.482857] Array
+(
+    [ids] => Array
+        (
+            [0] => 7
+            [1] => 6
+        )
+
+    [text] => 
+    [note] => 
+    [description] => 
+)
+
+[SI 8.725999] Array
+(
+    [allMode] => 1
+    [allModeLastParams] => Array
+        (
+            [offset] => 0
+            [limit] => 15
+            [searchText] => 
+            [filters] => Array
+                (
+                    [0] => Array
+                        (
+                            [value] => N
+                            [field] => isDelete
+                            [sign] => =
+                        )
+
+                )
+
+        )
+
+    [text] => 
+    [note] => 
+    [description] => 
+)
+
+[18:11:15:306] Array
+(
+    [allMode] => 1
+    [allModeLastParams] => Array
+        (
+            [offset] => 0
+            [limit] => 15
+            [searchText] => 
+            [filters] => Array
+                (
+                    [0] => Array
+                        (
+                            [value] => N
+                            [field] => isDelete
+                            [sign] => =
+                        )
+
+                )
+
+        )
+
+    [text] => 
+    [note] => 
+    [description] => 
+)
+
+[18:11:21:129] 2048[/2_dev/vendor/SE/Shop/Contact.php|0] Declaration of SE\Shop\Contact::post() should be compatible with SE\Shop\Base::post($tempFile = false)
+[SI 2.447445] 2048[/2_dev/vendor/SE/Shop/Contact.php|0] Declaration of SE\Shop\Contact::post() should be compatible with SE\Shop\Base::post($tempFile = false)
