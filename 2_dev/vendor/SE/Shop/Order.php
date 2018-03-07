@@ -294,6 +294,7 @@ class Order extends Base // порядок
                 $product['discount'] = (real)$item['discount'];
                 $product['license'] = $item['license'];
                 $product['note'] = $item['commentary'];
+                $product['curr'] = $this->result["curr"];
                 $items[] = $product;
             }
         }

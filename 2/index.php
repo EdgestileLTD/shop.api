@@ -1,7 +1,7 @@
 <?php
 
 $allowedMethods = array('FETCH', 'POST', 'DELETE', 'SAVE', 'INFO', 'GET', 'ADDPRICE', 'TRANSLIT', 'UPLOAD',
-    'CHECKNAMES', 'SORT', 'EXPORT', 'IMPORT', 'LOGOUT', 'ITEMS', 'STORE');
+    'CHECKNAMES', 'SORT', 'EXPORT', 'IMPORT', 'LOGOUT', 'ITEMS', 'STORE', 'CONVERT');
 $allowedMethods = implode(",", $allowedMethods);
 
 $headers = getallheaders();

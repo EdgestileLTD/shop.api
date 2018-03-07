@@ -18,6 +18,7 @@ define("IS_CURR_LIB", $isCurrLib);
 class Currency extends Base
 {
     protected $tableName = "money_title";
+    private $baseCurr = null;
 
     // формат валюты
     private function formatCurrency($nameFront, $nameFlank, $value)
@@ -44,7 +45,7 @@ class Currency extends Base
             $isManualMode = (bool)$base['isManualCurrRate'];
             $baseNameFront = $base['nameFront'];
             $baseNameFlank = $base['nameFlang'];
-            $baseCurrency = $base['basecurr'];
+            $baseCurrency = empty($this->baseCurr) ? $base['basecurr'] : $this->baseCurr;
 
             if (!$isRate)
                 $this->input["dateReplace"] = date('Y-m-d');
@@ -104,6 +105,26 @@ class Currency extends Base
         } catch (Exception $e) {
             $this->result = "Не удаётся получить список валют!";
         }
+    }
+
+    public function convert() {
+
+        $this->baseCurr = $this->input["target"];
+        $source = $this->input["source"];
+        $price = $this->input["price"];
+
+
+        $this->fetch();
+        $currencies = $this->result["items"];
+
+
+        foreach ($currencies as $currency) {
+            if (strtolower($currency["name"]) == strtolower($source)) {
+                $this->result["price"] = round($price * $currency["rate"], 2);
+                break;
+            }
+        }
+
     }
 
 }
