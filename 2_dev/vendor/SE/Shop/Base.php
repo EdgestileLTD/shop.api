@@ -223,11 +223,11 @@ class Base extends CustomBase
          * 1 удаление элементов из основной таблицы
          * 2 удаление элементов из зависимых таблиц
          *
-         * @param  string $this->tableName    имя таблицы           exm:"shop_price"
-         * @param  string $this->tableAlias   псевдоним таблицы     exm:"sp"
-         * @param  array  $this->input["ids"] массив id на удаление exm:"array(0=>425, 1=>11)"
-         * @param  array  $tableNameDepen     имена таблиц и поля соотношения (id элемента)
-         * @return bool                       при удалении - TRUE
+         * @param  string $this->tableName       имя таблицы           exm:"shop_price"
+         * @param  string $this->tableAlias      псевдоним таблицы     exm:"sp"
+         * @param  array  $this->input["ids"]    массив id на удаление exm:"array(0=>425, 1=>11)"
+         * @param  array  $this->tableNameDepen  имена таблиц и поля соотношения (id элемента)
+         * @return bool                          при удалении - TRUE
          */
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {

@@ -1261,8 +1261,6 @@ class Import extends Product
                 };
 
 
-                // TODO: удаление Всех категорий
-
                 $this->linkRecordShopPriceGroup($product_unit,$id_group,$id_price);
                 DB::commit();                                                  //6
             };
