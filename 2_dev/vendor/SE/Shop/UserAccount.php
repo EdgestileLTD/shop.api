@@ -5,6 +5,7 @@ namespace SE\Shop;
 use \PHPExcel as PHPExcel;
 use \PHPExcel_Writer_Excel2007 as PHPExcel_Writer_Excel2007;
 use \PHPExcel_Style_Fill as PHPExcel_Style_Fill;
+use SE\DB as seTable;
 class UserAccount extends Base
 {
     protected $tableName = "se_user_account";
@@ -46,13 +47,25 @@ class UserAccount extends Base
     public function fetch()
     {
         parent::fetch();
+
+        // базовая валюта
+        $u = new seTable('main', 'm');
+        $u->select('mt.name, mt.title, mt.name_front');
+        $u->innerJoin('money_title mt', 'm.basecurr = mt.name');
+        $currData = $u->fetchOne();
+        unset($u);
+
         foreach($this->result['items'] as $fld=>$item){
-            $this->result['items'][$fld]['inPay'] = round($this->result['items'][$fld]['inPay']);
-            $this->result['items'][$fld]['outPay'] = round($this->result['items'][$fld]['outPay']);
+            $this->result['items'][$fld]['inPay']   = round($this->result['items'][$fld]['inPay']);
+            $this->result['items'][$fld]['outPay']  = round($this->result['items'][$fld]['outPay']);
             $this->result['items'][$fld]['balanse'] = round($this->result['items'][$fld]['balanse']);
+
+            $this->result['items'][$fld]['nameFlang'] = $currData["name"];
+            $this->result['items'][$fld]['titleCurr'] = $currData["title"];
+            $this->result['items'][$fld]['nameFront'] = $currData["nameFront"];
         }
-        $this->result['totalInPay'] = round($this->result['totalInPay']);
-        $this->result['totalOutPay'] = round($this->result['totalOutPay']);
+        $this->result['totalInPay']      = round($this->result['totalInPay']);
+        $this->result['totalOutPay']     = round($this->result['totalOutPay']);
         $this->result['totalBalansePay'] = round($this->result['totalBalansePay']);
     }
 
