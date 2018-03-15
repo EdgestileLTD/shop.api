@@ -14,7 +14,6 @@ use Box\Spout\Common\Type;
 
 class ProductExport extends Product
 {
-    // TODO тест бага с выгрузкой на рабочую ветку превью экспорта
 
     /*
      *  @@@@@@ @@@@@@ @@@@@@ @@    @@    @@@@@@ @@  @@ @@@@@@  | превью экспорта

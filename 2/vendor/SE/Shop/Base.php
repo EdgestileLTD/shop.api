@@ -168,7 +168,7 @@ class Base extends CustomBase
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (!empty($this->input['allMode'])) {
             $this->allMode = true;
-            $this->limit = 10000;
+            $this->limit = 100000;
             $this->setFilters($this->input['allModeLastParams']['filters']);
             $this->search = $this->input['allModeLastParams']['searchText'];
 
@@ -219,14 +219,40 @@ class Base extends CustomBase
 
     public function delete()
     {
+        /**
+         * 1 удаление элементов из основной таблицы
+         * 2 удаление элементов из зависимых таблиц
+         *
+         * @param  string $this->tableName       имя таблицы           exm:"shop_price"
+         * @param  string $this->tableAlias      псевдоним таблицы     exm:"sp"
+         * @param  array  $this->input["ids"]    массив id на удаление exm:"array(0=>425, 1=>11)"
+         * @param  array  $this->tableNameDepen  имена таблиц и поля соотношения (id элемента)
+         * @return bool                          при удалении - TRUE
+         */
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
+
+            // 1
             $this->correctAll('del');
             $u = new DB($this->tableName, $this->tableAlias);
             if ($this->input["ids"] && !empty($this->tableName)) {
                 $ids = implode(",", $this->input["ids"]);
                 $u->where('id IN (?)', $ids)->deleteList();
             }
+            unset($u);
+
+            // 2
+            if ($this->tableNameDepen) {
+                foreach ($this->tableNameDepen as $tabNameDepen => $field) {
+                    $u = new DB($tabNameDepen, $tabNameDepen);
+                    if ($this->input["ids"] && !empty($tabNameDepen)) {
+                        $ids = implode(",", $this->input["ids"]);
+                        $u->where($field.' IN (?)', $ids)->deleteList();
+                    }
+                    unset($u);
+                }
+            }
+
             return true;
         } catch (Exception $e) {
             $this->error = "Не удаётся произвести удаление!";
