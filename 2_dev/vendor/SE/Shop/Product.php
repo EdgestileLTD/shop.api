@@ -70,7 +70,7 @@ class Product extends Base
                 spg.id_group id_group, sg.name name_group, sg.id_modification_group_def id_modification_group_def,
                 COUNT(DISTINCT(smf.id_modification)) count_modifications,
                 (SELECT picture FROM shop_img WHERE id_price = sp.id LIMIT 1) img,
-                sb.name name_brand, slp.id_label id_label,
+                sb.name name_brand, slp.id_label id_label, sp.is_show_feature, sp.market_available, 
                 spm.id_weight_view, spm.id_weight_edit, spm.id_volume_view, spm.id_volume_edit';
 
             $joins[] = array(
