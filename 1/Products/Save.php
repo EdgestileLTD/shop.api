@@ -648,6 +648,19 @@ function saveOptions($idsProducts, $options)
     foreach ($options as $option) {
         foreach ($option->optionValues as $value)
             $values[] = $value;
+
+        foreach ($idsProducts as $idProduct) {
+            $u = new seTable('shop_product_option_position', 'pop');
+            $u->select("pop.id");
+            $u->where("pop.id_product = ?", $idProduct);
+            $u->andWhere('pop.id_option  = ?', $option->id);
+            $u->fetchOne();
+            $u->id_product = $idProduct;
+            $u->id_option = $option->id;
+            $u->position = $option->position;
+            $u->save();
+        }
+
     }
 
     foreach ($idsProducts as $idProduct) {
@@ -863,9 +876,16 @@ if ($isNew || !empty($ids)) {
     $isUpdated |= setField($isNew, $u, $json->stepCount, 'step_count');
     $isUpdated |= setField($isNew, $u, $json->minCount, 'min_count');
     $isUpdated |= setField($isNew, $u, $json->precense, 'presence');
+
     if (isset($json->isYAMarket) && !$json->isYAMarket)
         $json->isYAMarket = "0";
+    if (isset($json->isYAMarketAvailable) && !$json->isYAMarketAvailable)
+        $json->isYAMarketAvailable = "0";
+    if (isset($json->isShowFeatures) && !$json->isShowFeatures)
+        $json->isShowFeatures = "0";
     $isUpdated |= setField($isNew, $u, $json->isYAMarket, 'is_market');
+    $isUpdated |= setField($isNew, $u, $json->isYAMarketAvailable, 'market_available');
+    $isUpdated |= setField($isNew, $u, $json->isShowFeatures, 'is_show_feature');
 
     if (isset($json->isNew)) {
         $isUpdated = true;

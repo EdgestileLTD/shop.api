@@ -441,13 +441,16 @@ function getOptions($id, &$product)
 
     $u = new seTable('shop_product_option', 'spo');
     $u->select('so.id id_option, so.name `option`, so.type, so.type_price, 
-                sov.id, sov.name, spo.price, spo.is_default, so.is_counted');
+                sov.id, sov.name, spo.price, spo.is_default, so.is_counted, pop.position');
     $u->innerJoin('shop_option_value sov', 'spo.id_option_value = sov.id');
     $u->innerJoin('shop_option so', 'sov.id_option = so.id');
+    $u->leftJoin('shop_product_option_position pop', 'pop.id_product = spo.id_product AND pop.id_option = so.id');
     $u->where('spo.id_product = ?', $id);
     $u->orderBy('so.sort');
     $u->addOrderBy('sov.sort');
     $u->groupBy("spo.id");
+
+    writeLog($u->getSql());
 
     $objects = $u->getList();
     $listOptions = array();
@@ -463,6 +466,7 @@ function getOptions($id, &$product)
         $listOptions[$object["id_option"]]["isCounted"] = $object["is_counted"];
         $listOptions[$object["id_option"]]["type"] = (int)$object["type"];
         $listOptions[$object["id_option"]]["typePrice"] = (int)$object["type_price"];
+        $listOptions[$object["id_option"]]["position"] = (int)$object["position"];
         $listOptions[$object["id_option"]]["optionValues"][] = $value;
     }
 
@@ -544,6 +548,8 @@ if ($u->id) {
     $product['isSpecial'] = (bool)($u->special_offer === 'Y');
     $product['isAction'] = (bool)($u->unsold === 'Y');
     $product['isYAMarket'] = (bool)$u->is_market;
+    $product['isYAMarketAvailable'] = (bool)$u->market_available;
+    $product['isShowFeatures'] = (bool)$u->is_show_feature;
     $product['manufacturer'] = $u->manufacturer;
     $product['idManufacturer'] = $u->id_manufacturer;
     if ($u->date_manufactured)

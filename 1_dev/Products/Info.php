@@ -548,6 +548,8 @@ if ($u->id) {
     $product['isSpecial'] = (bool)($u->special_offer === 'Y');
     $product['isAction'] = (bool)($u->unsold === 'Y');
     $product['isYAMarket'] = (bool)$u->is_market;
+    $product['isYAMarketAvailable'] = (bool)$u->market_available;
+    $product['isShowFeatures'] = (bool)$u->is_show_feature;
     $product['manufacturer'] = $u->manufacturer;
     $product['idManufacturer'] = $u->id_manufacturer;
     if ($u->date_manufactured)
