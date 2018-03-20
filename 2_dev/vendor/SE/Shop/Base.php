@@ -124,7 +124,7 @@ class Base extends CustomBase
             $this->result["searchFields"] = $this->searchFields;
             $this->result["items"] = $this->correctItemsBeforeFetch($u->getList($this->limit, $this->offset));
 
-            // TODO : заказы(Добавить Конвертацию) товары(ДК) доставка(проверить) купоны(Добавить Валюту) платежи(ДК) контактыГлавная(ДВ) лицевойСчет(ДВ +заказы) операцииПоСчетам(остаток)
+            // TODO : заказы(Добавить Конвертацию) товары(ДК) доставка(проверить) купоны(Добавить Валюту) платежи(ДК) контактыГлавная(ДВ)
             $this->dataCurrencies($settingsFetch);
 
             if (!empty($settingsFetch["aggregation"]["type"]))
@@ -218,9 +218,12 @@ class Base extends CustomBase
                     if ($settingsFetch["convertingValues"]) { // 5
                         $course = DB::getCourse($this->currData["name"], $item["curr"]);
                         foreach ($settingsFetch["convertingValues"] as $key => $i) {
-                            $item[$i] = $item[$i] * $course;
+                            $item[$i] = round($item[$i] * $course, 2);
                         }
-                        $item["curr"] = $this->currData["name"];
+                        unset($item["curr"]);
+                        $item["nameFlang"] = $this->currData["name"];
+                        $item["titleCurr"] = $this->currData["title"];
+                        $item["nameFront"] = $this->currData["nameFront"];
                     } else { // 3
                         foreach ($currList as $currUnit) {
                             if ($item["curr"] == $currUnit["name"]) {
