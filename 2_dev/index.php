@@ -21,7 +21,6 @@ define('API_ROOT_URL', "http://" . $_SERVER['SERVER_NAME'] . "/api/" . API_VERSI
 define('AUTH_SERVER', "https://api.siteedit.ru");
 define('URL_API_ORIGINAL', 'http://upload.beget.edgestile.net/api');
 
-
 /**
  * запись в логи
  *
@@ -78,7 +77,7 @@ if (IS_EXT) {
 //    require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel/Writer/Excel2007.php';
 }
 
-require_once API_ROOT . "version.php";
+require_once API_ROOT . "../1/version.php";
 require_once API_ROOT . "vendor/autoload.php";
 
 /**
