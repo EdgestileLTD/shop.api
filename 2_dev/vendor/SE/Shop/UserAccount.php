@@ -21,7 +21,6 @@ class UserAccount extends Base
          */
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
-        // свойство balanse - заглушка. Оставлен, тк без него не работает форма сортировки
         return array(
             "select" => 'p.id,
                          sua.operation,
@@ -29,10 +28,7 @@ class UserAccount extends Base
                          SUM(IF(sua.in_payee IS NULL,0,sua.in_payee)) in_pay,
                          SUM(IF(sua.out_payee IS NULL,0,sua.out_payee)) out_pay,
                          CONCAT_WS(" ",p.last_name,p.first_name) as name,
-                         (
-                             SUM(IF(sua.in_payee IS NULL,0,0))
-                             - SUM(IF(sua.out_payee IS NULL,0,0))
-                         ) balanse
+                         (SUM(IF(sua.in_payee IS NULL,0,sua.in_payee)) - SUM(IF(sua.out_payee IS NULL,0,sua.out_payee))) balanse
                          ',
             "joins" => array(
                 array(
@@ -62,7 +58,8 @@ class UserAccount extends Base
                 "inPay",
                 "outPay",
                 "totalInPay",
-                "totalOutPay"
+                "totalOutPay",
+                "totalBalansePay"
 
             )
         );

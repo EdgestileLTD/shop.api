@@ -504,7 +504,7 @@ class DB
         return $course;
     }
 
-        public function getListAggregation($statement, $settingsFetch, $currData, $colCurr)
+    public function getListAggregation($statement, $settingsFetch, $currData, $colCurr)
     {
         /** Получить агрегацию списков - итого таблицы
          *
@@ -540,10 +540,10 @@ class DB
                             $items[$i] += round($item[$i] * $course, 2);
                         }
                         $item["curr"] = $currData["name"];
+                        $items["count"] += $item["count"];
                     }
                 } else $items = $item;
             }
-
             return $items;
         } catch (\PDOException $e) {
             throw new Exception($e->getMessage());

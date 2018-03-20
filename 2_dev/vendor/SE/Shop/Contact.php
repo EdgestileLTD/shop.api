@@ -22,11 +22,21 @@ class Contact extends Base
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         return array(
-            "select" => 'p.*, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) display_name, 
-                c.name company, sug.group_id id_group,
-                COUNT(so.id) count_orders, SUM(so.amount) amount_orders,                
-                SUM(sop.amount) paid_orders,     
-                su.username username, su.password password, (su.is_active = "Y") is_active',
+            "select" => 'p.*,
+                         CONCAT_WS(
+                            " ",
+                            p.last_name,
+                            p.first_name,
+                            p.sec_name
+                        ) display_name, 
+                        c.name company,
+                        sug.group_id id_group,
+                        COUNT(so.id) count_orders,
+                        SUM(so.amount) amount_orders,                
+                        SUM(sop.amount) paid_orders,     
+                        su.username username,
+                        su.password password,
+                        (su.is_active = "Y") is_active',
             "joins" => array(
                 array(
                     "type" => "inner",
@@ -36,12 +46,19 @@ class Contact extends Base
                 array(
                     "type" => "left",
                     "table" =>
-                        '(SELECT so.id, so.id_author, 
-                            (SUM((sto.price - IFNULL(sto.discount, 0)) * sto.count) - IFNULL(so.discount, 0) + 
-                            IFNULL(so.delivery_payee, 0)) amount 
+                        '(
+                            SELECT 
+                                  so.id,
+                                  so.id_author, 
+                                 (
+                                     SUM((sto.price - IFNULL(sto.discount, 0))* sto.count)
+                                     - IFNULL(so.discount, 0)
+                                     + IFNULL(so.delivery_payee, 0)
+                                 ) amount 
                             FROM shop_order so 
                             INNER JOIN shop_tovarorder sto ON sto.id_order = so.id AND is_delete="N"
-                            GROUP BY so.id) so',
+                            GROUP BY so.id
+                         ) so',
                     "condition" => 'so.id_author = p.id'
                 ),
                 array(
@@ -65,7 +82,11 @@ class Contact extends Base
                     "condition" => 'c.id = cp.id_company'
                 )
             ),
-            "patterns" => array("displayName" => "p.last_name")
+            "patterns" => array("displayName" => "p.last_name"),
+            "convertingValues" => array(
+                "amountOrders",
+                "paidOrders",
+            )
         );
     }
 
@@ -128,12 +149,36 @@ class Contact extends Base
         $id = empty($id) ? $this->input["id"] : $id;
         try {
             $u = new DB('person', 'p');
-            $u->select('p.*, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name) display_name,
-                p.avatar imageFile,
-                su.username login, su.password, (su.is_active = "Y") isActive, uu.company, uu.director,
-                uu.tel, uu.fax, uu.uradres, uu.fizadres,
-                CONCAT_WS(" ", pr.last_name, pr.first_name, pr.sec_name) refer_name,
-                CONCAT_WS(" ", pm.last_name, pm.first_name, pm.sec_name) manager_name');
+            $u->select('p.*,
+                        CONCAT_WS(
+                            " ",
+                            p.last_name,
+                            p.first_name,
+                            p.sec_name
+                        ) display_name,
+                        p.avatar imageFile,
+                        su.username login,
+                        su.password,
+                        (su.is_active = "Y") isActive,
+                        uu.company,
+                        uu.director,
+                        uu.tel,
+                        uu.fax,
+                        uu.uradres,
+                        uu.fizadres,
+                        CONCAT_WS(
+                            " ",
+                            pr.last_name,
+                            pr.first_name,
+                            pr.sec_name
+                        ) refer_name,
+                        CONCAT_WS(
+                            " ",
+                            pm.last_name,
+                            pm.first_name,
+                            pm.sec_name
+                        ) manager_name
+                        ');
             $u->leftJoin('se_user su', 'p.id=su.id');
             $u->leftJoin('user_urid uu', 'uu.id=su.id');
             $u->leftJoin('person pr', 'pr.id=p.id_up');
@@ -195,19 +240,43 @@ class Contact extends Base
     //  @@@@  @@@@@@ @@@@@@    @@      @@@@@   @@  @@  @@  @@ @@  @@@@ @@     @@@@@@
     //   @@       @@ @@        @@          @@ @@@@@@@@ @@  @@ @@@@  @@ @@     @@  @@
     //   @@       @@ @@@@@@    @@      @@@@@@ @@    @@ @@  @@ @@@   @@ @@@@@@ @@@@@@
-    // получить личную учетную запись
     private function getPersonalAccount($id)
     {
+        /** Получить личную учетную запись
+         * 1 получаем поступления/расходы по аккаунту
+         * 2 получаем базовую валюту
+         * 3 запрашиваем курс и конвертируем столбцы по списку (с прибавлением данных по базовой валюте)
+         *
+         * @param int $id idАккаунта
+         * @reuturn array $account массивы с данными транзакицй по клиенту
+         */
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
-        $u = new DB('se_user_account');
+        $u = new DB('se_user_account'); // 1
         $u->where('user_id = ?', $id);
         $u->orderBy("date_payee");
         $result = $u->getList();
+
+        $u = new DB('main', 'm'); // 2
+        $u->select('mt.name, mt.title, mt.name_front');
+        $u->innerJoin('money_title mt', 'm.basecurr = mt.name');
+        $this->currData = $u->fetchOne();
+        unset($u);
+
         $account = array();
         $balance = 0;
         foreach ($result as $item) {
             $balance += ($item['inPayee'] - $item['outPayee']);
             $item['balance'] = $balance;
+
+            $course = DB::getCourse($this->currData["name"], $item["curr"]); // 3
+            $convertingValues = array('inPayee','outPayee','balance');
+            foreach ($convertingValues as $key => $i) {
+                $item[$i] = $item[$i] * $course;
+            }
+            unset($item["curr"]);
+            $item["nameFlang"] = $this->currData["name"];
+            $item["titleCurr"] = $this->currData["title"];
+            $item["nameFront"] = $this->currData["nameFront"];
             $account[] = $item;
         }
         return $account;
