@@ -12,38 +12,42 @@ class Delivery extends Base
     // получить
     public function fetch()
     {
+        /** Получить данные по доставке
+         * 1 вытаскиваем данные из DB shop_deliverytype
+         * 2 получаем данные по базовой валюте
+         * 3 переводим значения в баз-валюту и добавляем обозначения
+         */
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
-            $u = new DB('shop_deliverytype', 'sd');
+            $u = new DB('shop_deliverytype', 'sd'); // 1
             $u->select('sd.*');
             $u->where('sd.id_parent IS NULL');
             $u->orderBy('sort', false);
             $objects = $u->getList();
             unset($u);
 
-            /*
-             * ДАННЫЕ ПО ВАЛЮТАМ
-             * запрашиваем название,приставки/окончания валют
-             * и добавляем в эллементы массива соответственно
-             */
-
-            $u = new DB('money_title', 'mt');
-            $u->select('mt.name name, mt.title title, mt.name_front nameFront, mt.name_flang nameFlang');
-            $currList = $u->getList();
+            $u = new DB('main', 'm'); // 2
+            $u->select('mt.name, mt.title, mt.name_front');
+            $u->innerJoin('money_title mt', 'm.basecurr = mt.name');
+            $this->currData = $u->fetchOne();
             unset($u);
 
-            foreach ($objects as $key => $item)
-                if (!empty($item["curr"]))
-                    foreach ($currList as $currUnit)
-                        if ($item["curr"] == $currUnit["name"]) {
-                            $objects[$key]["titleCurr"] = $currUnit["title"];
-                            $objects[$key]["nameFront"] = $currUnit["nameFront"];
-                            $objects[$key]["nameFlang"] = $currUnit["nameFlang"];
-                        };
-
-            // ДАННЫЕ ПО ВАЛЮТАМ конец
-
+            $account = array();
             foreach ($objects as $item) {
+                $item['balance'] = $balance;
+
+                $course = DB::getCourse($this->currData["name"], $item["curr"]); // 3
+                $convertingValues = array('price');
+                foreach ($convertingValues as $key => $i) {
+                    $item[$i] = $item[$i] * $course;
+                }
+                unset($item["curr"]);
+                $item["nameFlang"] = $this->currData["name"];
+                $item["titleCurr"] = $this->currData["title"];
+                $item["nameFront"] = $this->currData["nameFront"];
+                $account[] = $item;
+
+
                 $delivery = $item;
                 if (empty($delivery['code']))
                     $delivery['code'] = "simple";
@@ -60,7 +64,7 @@ class Delivery extends Base
             $data['items'] = $items;
             $this->result = $data;
         } catch (Exception $e) {
-            $this->error = "Не удаётся получить список типов дооставок!";
+            $this->error = "Не удаётся получить список типов доставок!";
         }
     }
 
@@ -118,7 +122,7 @@ class Delivery extends Base
     }
 
     // информация
-    public function info()
+    public function info($id = NULL)
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {

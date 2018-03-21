@@ -21,6 +21,10 @@ class Coupon extends Base
                     "table" => 'person p',
                     "condition" => 'p.id = sc.id_user'
                 )
+            ),
+            "convertingValues" => array(
+                "discount",
+                "minSumOrder"
             )
         );
     }
