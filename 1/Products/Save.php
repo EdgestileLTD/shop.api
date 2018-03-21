@@ -830,6 +830,7 @@ if ($isNew || !empty($ids)) {
         $isUpdated |= setField($isNew, $u, $json->code, 'code');
     }
 
+
     if (isset($json->article) && empty($json->article))
         $json->article = maxArticle($json->idGroup);
 

@@ -28,7 +28,7 @@ class Auth extends Base
     {
         $url = AUTH_SERVER . "/api/2/Auth/Register.api";
         $ch = curl_init($url);
-        $data["project"] =  str_replace(".e-stile.ru", "", HOSTNAME);
+        $data["project"] = str_replace(".e-stile.ru", "", HOSTNAME);
         $apiData = json_encode($data);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($ch, CURLOPT_POSTFIELDS, $apiData);
@@ -48,6 +48,10 @@ class Auth extends Base
     public function info()
     {
         $authData = $this->getAuthData($this->input);
+        if (!empty($authData["version"])) {
+            $authData["version"] = preg_replace('/[^0-9]/', '', $authData["version"]);
+            $authData["version"] = (int)str_replace(" ", "0", sprintf("%-3s", $authData["version"]));
+        }
         if (!$authData) {
             $this->error = "Проект не найден или не активен!";
             return null;

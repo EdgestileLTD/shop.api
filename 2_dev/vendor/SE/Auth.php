@@ -48,6 +48,10 @@ class Auth extends Base
     public function info()
     {
         $authData = $this->getAuthData($this->input);
+        if (!empty($authData["version"])) {
+            $authData["version"] = preg_replace('/[^0-9]/', '', $authData["version"]);
+            $authData["version"] = (int)str_replace(" ", "0", sprintf("%-3s", $authData["version"]));
+        }
         if (!$authData) {
             $this->error = "Проект не найден или не активен!";
             return null;

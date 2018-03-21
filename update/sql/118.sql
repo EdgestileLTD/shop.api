@@ -3,7 +3,7 @@ CREATE TABLE shop_product_option_position (
   id_product int(10) UNSIGNED NOT NULL,
   id_option int(10) UNSIGNED NOT NULL,
   `position` tinyint(4) NOT NULL DEFAULT 1 COMMENT 'Позиция отображения: 0 - нигде, 1 - оба варианта, 2 - только снизу (основной контент), 3 - только справа (плавающий блок)',
-  updated_at timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  updated_at timestamp NULL DEFAULT NULL,
   created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE INDEX UK_shop_product_option (id_product, id_option),
