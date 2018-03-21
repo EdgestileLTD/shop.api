@@ -12,12 +12,8 @@ $u = new seTable('shop_mail', 'sm');
 
 if ($isNew || !empty($ids)) {
 
-    writeLog($json->letter);
-
     if (!empty($json->letter))
         $json->letter = str_replace('src="/images', 'src="http://' . $json->hostname . '/images', $json->letter);
-
-    writeLog($json->letter);
 
 
     $isUpdated = false;

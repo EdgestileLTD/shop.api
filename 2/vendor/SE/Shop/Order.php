@@ -149,6 +149,10 @@ class Order extends Base // порядок
                 "type" => "SUM",
                 "field" => "amount",
                 "name" => "totalAmount"
+            ),
+            "convertingValues" => array(
+                "amount",
+                "totalAmount"
             )
         );
     }

@@ -21,6 +21,10 @@ class Discount extends Base
                 "type" => "inner",
                 "table" => 'shop_discount_links sdl',
                 "condition" => 'sdl.discount_id = sd.id'
+            ),
+            "convertingValues" => array(
+                "summFrom",
+                "summTo"
             )
         );
     }
@@ -44,7 +48,8 @@ class Discount extends Base
     }
 
     // получить список продуктов
-    private function getListProducts($id) {
+    private function getListProducts($id)
+    {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
             $u = new DB('shop_discount_links', 'sdl');
@@ -59,7 +64,8 @@ class Discount extends Base
     }
 
     // получить список групп продуктов
-    private function getListGroupsProducts($id) {
+    private function getListGroupsProducts($id)
+    {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
             $u = new DB('shop_discount_links', 'sdl');
@@ -74,7 +80,8 @@ class Discount extends Base
     }
 
     // получить список контактов
-    private function getListContacts($id) {
+    private function getListContacts($id)
+    {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
             $u = new DB('shop_discount_links', 'sdl');
@@ -89,7 +96,8 @@ class Discount extends Base
     }
 
     // получить лист групп контактов
-    private function getListGroupsContacts($id) {
+    private function getListGroupsContacts($id)
+    {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
             $u = new DB('shop_discount_links', 'sdl');

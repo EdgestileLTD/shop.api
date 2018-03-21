@@ -55,6 +55,10 @@ class Payment extends Base
                 "type" => "SUM",
                 "field" => "amount",
                 "name" => "totalAmount"
+            ),
+            "convertingValues" => array(
+                "amount",
+                "totalAmount"
             )
         );
     }

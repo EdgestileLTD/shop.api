@@ -4,6 +4,17 @@ namespace SE;
 
 use \PDO as PDO;
 
+
+// библиотека получения курсов валют
+IF (IS_EXT)
+    $dirRoot = $_SERVER['DOCUMENT_ROOT'];
+else $dirRoot = $_SERVER['DOCUMENT_ROOT'] . '/api';
+$dirLib = $dirRoot . "/lib";
+$scriptCurrency = $dirLib . "/lib_currency.php";
+if ($isCurrLib = file_exists($scriptCurrency))
+    require_once $scriptCurrency;
+define("IS_CURR_LIB", $isCurrLib);
+
 class DB
 {
 
@@ -469,17 +480,70 @@ class DB
         return (int)$result['count'];
     }
 
-    // Получить агрегацию списков
-    public function getListAggregation($statement)
+    public static function getCourse($baseCurrency, $unitCurrency)
     {
-        $sql = "SELECT {$statement} FROM (" . $this->getSelectSql(true) . ") res_count";
+        /** Получить курс валюты (относительно базовой валюты сайта)
+         * @param str $baseCurrency базовая валюта сайта
+         * @param str $unitCurrency валюта позиции
+         * @return float|int|null курс валюты
+         */
+
+        $baseValues     = getCurrencyValues($baseCurrency);
+        $currencyValues = getCurrencyValues($unitCurrency);
+
+        $baserate = (float)str_replace(",", ".", $baseValues['Value']) / str_replace(",", ".", $baseValues['Nominal']);
+        if (empty($baserate)) $baserate = 1;
+        $currrate = (float)str_replace(",", ".", $currencyValues['Value']) / str_replace(",", ".", $currencyValues['Nominal']);
+        if (empty($currrate)) $currrate = 1;
+        if ($baserate > 0)
+            $course = ($currrate / $baserate);
+        else $course = null;
+        if ($course < 0)
+            $course = null;
+
+        return $course;
+    }
+
+    public function getListAggregation($statement, $settingsFetch, $currData, $colCurr)
+    {
+        /** Получить агрегацию списков - итого таблицы
+         * 1 конвертация
+         *
+         * @param str $statement  строка для селекта
+         * @param $settingsFetch
+         * @param $currData
+         * @param boll $colCurr  наличеие валюты в таблице
+         * @return array $result  возвращает масивзапрошенных параметров + всего элементов (int/float)
+         */
+        if ($colCurr == TRUE) $sql = "SELECT {$statement} FROM (" . $this->getSelectSql(true) . ") res_count GROUP BY res_count.curr";
+        else $sql = "SELECT {$statement} FROM (" . $this->getSelectSql(true) . ") res_count";
         try {
             $stmt = self::$dbh->prepare($sql);
             $this->bindValues($stmt);
             $stmt->execute();
             $stmt->setFetchMode(PDO::FETCH_ASSOC);
-            $result = $stmt->fetch();
-            return $result;
+
+            $items = array();
+            while ($row = $stmt->fetch()) {
+                $item = array();
+                foreach ($row as $key => $value) {
+                    if ($this->isNumericField($key) && !is_null($value))
+                        $value += 0;
+                    $item[$this->convertFieldToModel($key)] = $value;
+                }
+
+                if ($settingsFetch["convertingValues"]) { // 1
+                    if ($settingsFetch["convertingValues"]) {
+                        $course = DB::getCourse($currData["name"], $item["curr"]);
+                        foreach ($settingsFetch["convertingValues"] as $key => $i) {
+                            $items[$i] += round($item[$i] * $course, 2);
+                        }
+                        $item["curr"] = $currData["name"];
+                        $items["count"] += $item["count"];
+                    }
+                } else $items = $item;
+            }
+            return $items;
         } catch (\PDOException $e) {
             throw new Exception($e->getMessage());
         }

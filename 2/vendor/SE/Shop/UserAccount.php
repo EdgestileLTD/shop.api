@@ -6,6 +6,7 @@ use \PHPExcel as PHPExcel;
 use \PHPExcel_Writer_Excel2007 as PHPExcel_Writer_Excel2007;
 use \PHPExcel_Style_Fill as PHPExcel_Style_Fill;
 use SE\DB;
+
 class UserAccount extends Base
 {
     protected $tableName = "se_user_account";
@@ -14,63 +15,65 @@ class UserAccount extends Base
     protected function getSettingsFetch()
     {
         /** Получить данные из DB по операциям на счетах
-         * @id, @operation, @inPay, @outPay, balanse, @name, @curr  //nameFlang, titleCurr, nameFront
-         * @return array массив операций по счетам
+         * @return array $this->currData данные по базовой валюте
+         * @return array $this->result['items'] массив операций по счетам
+         *   num => [id, operation, inPay, outPay, name, curr]
          */
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
-        $u = new DB('se_user_account', 'sua');
-        $u->select('sua.id, sua.in_payee, sua.out_payee outPay, sua.curr, sua.operation, CONCAT_WS(" ",p.last_name,p.first_name) as name');
-        $u->innerJoin("person p", "p.id = sua.user_id");
-        $u->groupBy('sua.id');
-        $this->result['items'] = $u->getList();
-        unset($u);
+        return array(
+            "select" => 'p.id,
+                         sua.operation,
+                         sua.curr,
+                         SUM(IF(sua.in_payee IS NULL,0,sua.in_payee)) in_pay,
+                         SUM(IF(sua.out_payee IS NULL,0,sua.out_payee)) out_pay,
+                         CONCAT_WS(" ",p.last_name,p.first_name) as name,
+                         (SUM(IF(sua.in_payee IS NULL,0,sua.in_payee)) - SUM(IF(sua.out_payee IS NULL,0,sua.out_payee))) balanse
+                         ',
+            "joins" => array(
+                array(
+                    "type" => "inner",
+                    "table" => 'person p',
+                    "condition" => 'p.id = sua.user_id'
+                ),
+            ),
+            "aggregation" => array(
+                array(
+                    "type" => "SUM",
+                    "field" => "in_pay",
+                    "name" => "totalInPay"
+                ),
+                array(
+                    "type" => "SUM",
+                    "field" => "out_pay",
+                    "name" => "totalOutPay"
+                ),
+                array(
+                    "type" => "SUM",
+                    "field" => "balanse",
+                    "name" => "totalBalansePay"
+                )
+            ),
+            "convertingValues" => array(
+                "inPay",
+                "outPay",
+                "totalInPay",
+                "totalOutPay",
+                "totalBalansePay"
 
-        $u = new DB('main', 'm');                                      // 2
-        $u->select('mt.name, mt.title, mt.name_front');
-        $u->innerJoin('money_title mt', 'm.basecurr = mt.name');
-        $this->currData = $u->fetchOne();
-        unset($u);
-
-
-
-//        return array(
-//            "select" => 'p.id, sua.operation, SUM(IF(sua.in_payee IS NULL,0,sua.in_payee)) in_pay, SUM(IF(sua.out_payee IS NULL,0,sua.out_payee)) out_pay,
-//                (SUM(IF(sua.in_payee IS NULL,0,sua.in_payee)) - SUM(IF(sua.out_payee IS NULL,0,sua.out_payee))) balanse,
-//                CONCAT_WS(" ",p.last_name,p.first_name) as name',
-//            "joins" => array(
-//                array(
-//                    "type" => "inner",
-//                    "table" => 'person p',
-//                    "condition" => 'p.id = sua.user_id'
-//                ),
-//            ),
-//            "aggregation" => array(
-//                array(
-//                    "type" => "SUM",
-//                    "field" => "in_pay",
-//                    "name" => "totalInPay"
-//                ),
-//                array(
-//                    "type" => "SUM",
-//                    "field" => "out_pay",
-//                    "name" => "totalOutPay"
-//                ),
-//                array(
-//                    "type" => "SUM",
-//                    "field" => "balanse",
-//                    "name" => "totalBalansePay"
-//                )
-//            )
-//        );
+            )
+        );
     }
 
     public function fetch()
     {
         /** MAIN получить данные по лицевому счету
          * 1 получение данных из базы se_user_account (Shop\Base)
-         * 2 получение базовой валюты
          * 3 обработка/объединение данных
+         *   4 получение курса валюты, относительно базовой валюты
+         *   5 унификация значений: приведение к базовой валюте
+         *   6 расчет баланса по каждому клиенту
+         *   7 добавление данных по валюте
          *
          * @param array $this->result['items'] значения лицивого счета
          * @param array $this->currData данные по главной валюте
@@ -79,33 +82,26 @@ class UserAccount extends Base
 
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
-        //parent::fetch();                                             // 1
-        $this->getSettingsFetch();
+        parent::fetch();                                               // 1
+
         $balances = array();
-
         foreach($this->result['items'] as $fld=>$item){                // 3
-            //writeLog($this->result['items'][$fld]);
-            $this->result['items'][$fld]['inPay']   = round((float) $this->result['items'][$fld]['inPay']);
-            $this->result['items'][$fld]['outPay']  = round((float) $this->result['items'][$fld]['outPay']);
 
-            if(empty($balances[$this->result['items'][$fld]['name']]))$balances[$this->result['items'][$fld]['name']] = 0;
-            $balances[$this->result['items'][$fld]['name']] = (
+            $this->result['items'][$fld]['inPay']   = round((float) $this->result['items'][$fld]['inPay'], 2); // 5
+            $this->result['items'][$fld]['outPay']  = round((float) $this->result['items'][$fld]['outPay'], 2);
+
+            $balances[$this->result['items'][$fld]['name']] = (        // 6
                 (int) $balances[$this->result['items'][$fld]['name']]
                 + $this->result['items'][$fld]['inPay']
                 - $this->result['items'][$fld]['outPay']
             );
-            $this->result['items'][$fld]['balanse'] = round($balances[$this->currData["name"]]);
+            $this->result['items'][$fld]['balanse'] = round($balances[$this->currData["name"]], 2);
 
-            $this->result['items'][$fld]['nameFlang'] = $this->currData["name"];
+            $this->result['items'][$fld]['nameFlang'] = $this->currData["name"]; // 7
             $this->result['items'][$fld]['titleCurr'] = $this->currData["title"];
             $this->result['items'][$fld]['nameFront'] = $this->currData["nameFront"];
             unset($this->result['items'][$fld]['curr']);
         }
-        //writeLog($this->result['items']);
-        writeLog($balances);
-        $this->result['totalInPay']      = round($this->result['totalInPay']);
-        $this->result['totalOutPay']     = round($this->result['totalOutPay']);
-        $this->result['totalBalansePay'] = round($this->result['totalBalansePay']);
     }
 
     public function export()

@@ -22,22 +22,23 @@ function correctFileUpdateForMySQL56($fileName)
     file_put_contents($fileName, str_replace(" ON UPDATE CURRENT_TIMESTAMP", "", file_get_contents($fileName)));
 }
 
-function getPermission($idUser) {
+function getPermission($idUser)
+{
     if (!$idUser)
         return array();
 
-    $u = new seTable('permission_object','po');
+    $u = new seTable('permission_object', 'po');
     $u->select('po.*, BIT_OR(por.mask) mask');
     $u->leftjoin('permission_object_role por', 'por.id_object = po.id');
     $u->leftjoin('permission_role_user pru', 'pru.id_role = por.id_role');
     $u->where('pru.id_user = ?', $idUser);
     $u->groupby('po.id');
     $objects = $u->getList();
-    foreach($objects as $item) {
+    foreach ($objects as $item) {
         $object = null;
         $object['id'] = $item['id'];
         $object['code'] = $item['code'];
-        $object['mask'] = (int) $item['mask'];
+        $object['mask'] = (int)$item['mask'];
         $items[] = $object;
     }
     return $items;
@@ -47,8 +48,7 @@ if (trim($json->token) == trim($userToken)) {
     $data['userDisplay'] = 'Администратор';
     $data['idUser'] = "admin";
     $data["isUserAdmin"] = true;
-}
-else {
+} else {
     $u = new seTable("se_user", "su");
     $u->select('su.id, su.is_super_admin, sug.group_id, 
                 CONCAT_WS(" ", p.last_name, CONCAT_WS(".", SUBSTR(p.first_name, 1, 1), SUBSTR(p.sec_name, 1, 1))) displayName');
@@ -124,6 +124,16 @@ if (!IS_EXT) {
     foreach ($rows as $row)
         $tables[] = $row[0];
 }
+
+$data["useWysiwyg"] = true;
+
+$t = new seTable("shop_settings", "ss");
+$t->select("sv.value");
+$t->innerJoin("shop_setting_values sv", "ss.id = sv.id_setting");
+$t->where("ss.code = 'wysiwyg_view'");
+$result = $t->fetchOne();
+if ($result)
+    $data["useWysiwyg"] = (bool)$result["value"];
 
 $data['permission'] = getPermission($data['idUser']);
 $data['tables'] = $tables;

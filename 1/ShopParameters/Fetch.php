@@ -1,6 +1,7 @@
 <?php
 
-function getParameters($idGroup) {
+function getParameters($idGroup)
+{
 
     $parameters = array();
 
@@ -22,6 +23,9 @@ function getParameters($idGroup) {
         $parameter['name'] = $row["name"];
         $parameter['valueType'] = $types[$row["type"]];
         $parameter['value'] = $row["value"];
+        if ($parameter['valueType'] == "B") {
+            $parameter['value'] = (bool)$row["value"];
+        }
         if ($parameter['valueType'] == "L") {
             $list = explode(',', $row["list_values"]);
             $listValues = array();
@@ -37,12 +41,12 @@ function getParameters($idGroup) {
             else $parameter['value'] = $listValues[$row["value"]];
 
         } else {
-            if (empty($parameter['value']))
+            if (is_null($parameter['value']))
                 $parameter['value'] = $row["default"];
             $parameter['listValues'] = $row["list_values"];
         }
         $parameter['note'] = $row["description"];
-        $parameter['isActive'] = (bool) $row["enabled"];
+        $parameter['isActive'] = (bool)$row["enabled"];
         $parameters[] = $parameter;
     }
 

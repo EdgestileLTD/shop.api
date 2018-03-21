@@ -450,8 +450,6 @@ function getOptions($id, &$product)
     $u->addOrderBy('sov.sort');
     $u->groupBy("spo.id");
 
-    writeLog($u->getSql());
-
     $objects = $u->getList();
     $listOptions = array();
     foreach ($objects as $object) {
