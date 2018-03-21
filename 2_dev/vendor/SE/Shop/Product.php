@@ -120,8 +120,17 @@ class Product extends Base
                            WHERE NOT smf.id_value IS NULL AND NOT smf.id_modification IS NULL GROUP BY smf.id_modification) smf',
             "condition" => 'sp.id = smf.id_price'
         );
+
+        $convertingValues[] = array(
+            "price",
+            "priceOpt",
+            "priceOptCorp",
+            "pricePurchase"
+        );
+
         $result["select"] = $select;
         $result["joins"] = $joins;
+        $result["convertingValues"] = $convertingValues[0];
         return $result;
     }
 

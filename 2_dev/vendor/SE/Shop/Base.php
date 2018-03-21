@@ -124,14 +124,13 @@ class Base extends CustomBase
             $this->result["searchFields"] = $this->searchFields;
             $this->result["items"] = $this->correctItemsBeforeFetch($u->getList($this->limit, $this->offset));
 
-            // TODO : заказы(Добавить Конвертацию) товары(ДК) доставка(проверить) купоны(Добавить Валюту) платежи(ДК) контактыГлавная(ДВ)
+            // TODO : доставка(проверить) купоны(Добавить Валюту) контактыГлавная(ДВ) итоги(ДВ)
             $this->dataCurrencies($settingsFetch);
 
             if (!empty($settingsFetch["aggregation"]["type"]))
                 $settingsFetch["aggregation"] = array($settingsFetch["aggregation"]);
 
-            /**
-             * Формирование итогов таблицы
+            /** Формирование итогов таблицы
              * 1 получаем список столбцов для проверки наличия curr
              * 2 если валюта есть - формируем запрос с сортировкой по валюте | нет - без сортировки
              */
@@ -179,8 +178,7 @@ class Base extends CustomBase
 
     public function dataCurrencies($settingsFetch)
     {
-        /**
-         * ДАННЫЕ ПО ВАЛЮТАМ
+        /** ДАННЫЕ ПО ВАЛЮТАМ
          * 1 если в первом эллементе указана валюта (curr)
          *   2 запрашиваем название,приставки/окончания валют
          *   3 и добавляем в эллементы массива соответственно

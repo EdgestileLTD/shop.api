@@ -507,14 +507,13 @@ class DB
     public function getListAggregation($statement, $settingsFetch, $currData, $colCurr)
     {
         /** Получить агрегацию списков - итого таблицы
+         * 1 конвертация
          *
          * @param str $statement  строка для селекта
          * @param $settingsFetch
          * @param $currData
          * @param boll $colCurr  наличеие валюты в таблице
          * @return array $result  возвращает масивзапрошенных параметров + всего элементов (int/float)
-         *
-         * 1 конвертация
          */
         if ($colCurr == TRUE) $sql = "SELECT {$statement} FROM (" . $this->getSelectSql(true) . ") res_count GROUP BY res_count.curr";
         else $sql = "SELECT {$statement} FROM (" . $this->getSelectSql(true) . ") res_count";
