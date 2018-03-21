@@ -188,6 +188,8 @@ class Base extends CustomBase
          *   4 если нужно конвертировать: получаем базовую валюту
          *   5 если нужно конвертировать: запрашиваем курс и конвертируем столбцы по списку
          *
+         *   7 назначаем валюту итого
+         *
          * 6 костыль на случай если в таблице БД будет "currency" вместо "curr",
          *   или валюта будет вовсе отсутствовать - назначается валюта по умолчанию (при параметре convertingValues)
          *
@@ -235,7 +237,13 @@ class Base extends CustomBase
                     };
                 }
             }
-        }
+        };
+
+        $this->result["currTotal"] = array ( // 7
+            "nameFlang" => $this->currData["name"],
+            "titleCurr" => $this->currData["title"],
+            "nameFront" => $this->currData["nameFront"]
+        );
     }
 
     public function correctAll()
