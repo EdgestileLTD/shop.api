@@ -19,7 +19,11 @@ class OptionItems extends Base
             "table" => 'shop_option so',
             "condition" => 'sov.id_option = so.id'
         );
+        $convertingValues[] = array(
+            "price"
+        );
         $result["joins"] = $joins;
+        $result["convertingValues"] = $convertingValues;
         return $result;
     }
 
