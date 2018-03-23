@@ -151,7 +151,6 @@ class Order extends Base // порядок
                 "name" => "totalAmount"
             ),
             "convertingValues" => array(
-                "amount",
                 "totalAmount"
             )
         );
@@ -163,9 +162,8 @@ class Order extends Base // порядок
         foreach ($items as &$item) {
             if (!empty($item['customerPhone']))
                 $item['customerPhone'] = Contact::correctPhone($item['customerPhone']);
-            //$item["amount"] = number_format($item["amount"], 2, '.', ' ');
-        }
-
+            $item["amount"] = number_format($item["amount"], 2, '.', ' ');
+        }  
 
         return $items;
     }

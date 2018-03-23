@@ -98,6 +98,7 @@ class Auth extends Base
             $_SESSION['idUser'] = $data['idUser'];
             $_SESSION['isAuth'] = true;
             $_SESSION['hostname'] = HOSTNAME;
+            $_SESSION['coreVersion'] = $authData["version"];
 
             $this->result = $data;
 

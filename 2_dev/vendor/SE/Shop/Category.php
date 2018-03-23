@@ -731,4 +731,14 @@ class Category extends Base
         return true;
     }
 
+
+    public function delete()
+    {
+        $result = parent::delete();
+        if ($result && ($_SESSION['coreVersion'] >= 530))
+            DB::query('DELETE FROM shop_group WHERE NOT id IN (SELECT t.id_parent FROM shop_group_tree t)');
+
+        return $result;
+    }
+
 }

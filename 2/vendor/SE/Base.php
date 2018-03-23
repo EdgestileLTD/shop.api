@@ -89,6 +89,7 @@ class Base
         $settings = new DB('se_settings', 'ss');
         $settings->select("db_version");
         $result = $settings->fetchOne();
+
         if (empty($result["dbVersion"]))
             DB::query("INSERT INTO se_settings (`version`, `db_version`) VALUE (1, 1)");
         if ($result["dbVersion"] < DB_VERSION) {
