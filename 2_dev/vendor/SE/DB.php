@@ -305,7 +305,12 @@ class DB
         return strtolower($result);
     }
 
-    // вставить список
+    /** вставить список
+     * @param string $tableName  название таблицы
+     * @param array $data  нумерованный массив с вложенными именными массивами (имена: названия столбцов)
+     * @param bool $isIgnoreMode если совпадение ключа - вставку не производить - продолжить по списку
+     * @return bool
+     */
     public static function insertList($tableName, $data, $isIgnoreMode = false)
     {
         if (empty($data) || !is_array($data))

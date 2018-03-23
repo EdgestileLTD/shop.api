@@ -125,8 +125,8 @@ class Base extends CustomBase
             $this->result["items"] = $this->correctItemsBeforeFetch($u->getList($this->limit, $this->offset));
 
             /**
-             * TODO : контактыГлавная(ДВ)
-             * TODO : итоги(ДВ)
+             * TODO : опции(добавить валюту)
+             * TODO :  проверить конвертацию в контакт-редактор-заказы
              */
             $this->dataCurrencies($settingsFetch);
 

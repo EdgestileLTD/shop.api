@@ -21,7 +21,48 @@ class Contact extends Base
     protected function getSettingsFetch()
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
-        return array(
+
+        /** Премножение на валюты с использованием временной таблицы валют
+         * 1 запросБД базовой валюты
+         * 2 запросБД на состав валют на получение
+         * 3 получение валют у ЦБ
+         * 4 запросБД на наличие таблицы : на создание таблицы при ее отсутствие
+         * 5 чистим таблицу валют перед записью
+         * 6 запросБД на заполение
+         * 7 запросБД на расчет с перемножением на текущие курсы
+         */
+
+        $u = new DB('main', 'm'); // 1
+        $u->select('mt.name, mt.title, mt.name_front');
+        $u->innerJoin('money_title mt', 'm.basecurr = mt.name');
+        $this->currData = $u->fetchOne();
+        unset($u);
+
+        $u = new DB('shop_order', 'so'); // 2
+        $u->select("so.curr");
+        $u->groupBy('so.curr');
+        $data = $u->getList();
+        unset($u);
+
+        foreach ($data as $k => $item) { // 3
+            $course = DB::getCourse($this->currData["name"], $item["curr"]);
+            $result[] = array(
+                "curr"   => $item["curr"],
+                "course" => $course,
+            );
+        };
+
+        DB::query("
+            CREATE TABLE IF NOT EXISTS `courses` (
+                `curr` varchar(255),
+                `course` float,
+                PRIMARY KEY (curr)
+            )
+        "); // 4
+        DB::query("TRUNCATE TABLE courses"); // 5
+        DB::insertList('courses', $result); // 6
+
+        return array( // 7
             "select" => 'p.*,
                          CONCAT_WS(
                             " ",
@@ -32,8 +73,22 @@ class Contact extends Base
                         c.name company,
                         sug.group_id id_group,
                         COUNT(so.id) count_orders,
-                        SUM(so.amount) amount_orders,                
-                        SUM(sop.amount) paid_orders,     
+                        SUM(
+                            so.amount
+                            * ( SELECT c.course
+                                FROM `courses` `c`
+                                WHERE c.curr = so.curr
+                                LIMIT 1
+                            )
+                        ) amount_orders,
+                        SUM(
+                            sop.amount
+                            * ( SELECT c.course
+                                FROM `courses` `c`
+                                WHERE c.curr = sop.curr
+                                LIMIT 1
+                            )
+                        ) paid_orders,
                         su.username username,
                         su.password password,
                         (su.is_active = "Y") is_active',
@@ -48,17 +103,18 @@ class Contact extends Base
                     "table" =>
                         '(
                             SELECT 
-                                  so.id,
-                                  so.id_author, 
-                                 (
-                                     SUM((sto.price - IFNULL(sto.discount, 0))* sto.count)
-                                     - IFNULL(so.discount, 0)
-                                     + IFNULL(so.delivery_payee, 0)
-                                 ) amount 
+                                so.id,
+                                so.id_author,
+                                so.curr,
+                                (
+                                    SUM((sto.price - IFNULL(sto.discount, 0))* sto.count)
+                                    - IFNULL(so.discount, 0)
+                                    + IFNULL(so.delivery_payee, 0)
+                                ) amount 
                             FROM shop_order so 
                             INNER JOIN shop_tovarorder sto ON sto.id_order = so.id AND is_delete="N"
                             GROUP BY so.id
-                         ) so',
+                        ) so',
                     "condition" => 'so.id_author = p.id'
                 ),
                 array(
