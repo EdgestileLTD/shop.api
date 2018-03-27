@@ -17,6 +17,11 @@ $status['name'] = 'Предоплата';
 $status['color'] = '#FFFF00';
 $items[] = $status;
 
+$status['id'] = 'D';
+$status['name'] = 'Отказ';
+$status['color'] = '#FF0000';
+$items[] = $status;
+
 $status['id'] = 'K';
 $status['name'] = 'Кредит';
 $status['color'] = '#FFAAAA';
