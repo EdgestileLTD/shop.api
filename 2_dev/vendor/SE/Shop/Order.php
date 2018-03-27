@@ -152,7 +152,8 @@ class Order extends Base // порядок
                 "name" => "totalAmount"
             ),
             "convertingValues" => array(
-                "totalAmount"
+                "totalAmount",
+                "amount"
             )
         );
     }

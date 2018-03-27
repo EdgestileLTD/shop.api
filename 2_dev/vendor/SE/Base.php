@@ -130,7 +130,7 @@ class Base
     protected function debugging($group, $funct = null, $class = null, $act = null)
     {
         // $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
-        if (API_STATUS == "dev") {
+        if (API_STATUS == "dev2") {
 
             // [True | Print Log]  [False]
             $print = array(
