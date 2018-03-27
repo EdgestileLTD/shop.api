@@ -59,7 +59,7 @@ class Product extends Base
     protected function getSettingsFetch()
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
-        if (CORE_VERSION != "5.2") {
+        if ($_SESSION['coreVersion'] > 520) {
             // получаем данные из таблиц БД
             $select = 'sp.id, sp.id_group shop_id_group, sp.code, sp.article, sp.name,
                 sp.price, sp.price_opt, sp.price_opt_corp,
@@ -549,7 +549,7 @@ class Product extends Base
         if (!$id)
             return $result;
 
-        if (CORE_VERSION != "5.2") {
+        if ($_SESSION['coreVersion'] > 520) {
             $u = new DB('shop_price_group', 'spg');
             $u->select('sg.id, sg.name');
             $u->innerJoin('shop_group sg', 'sg.id = spg.id_group');
@@ -1431,7 +1431,7 @@ class Product extends Base
             if (!empty($this->input['delCrosGroups']))
                 $del = $this->input['delCrosGroups'];
             $idsStr = implode(",", $idsProducts);
-            if (CORE_VERSION != "5.2") {
+            if ($_SESSION['coreVersion'] > 520) {
                 if ($del != "False") {
                     $u = new DB('shop_price_group', 'spg');
                     $u->where('NOT is_main AND id_price in (?)', $idsStr)->deleteList();
@@ -1747,7 +1747,7 @@ class Product extends Base
     private function saveIdGroup()
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
-        if (CORE_VERSION != "5.3" || !isset($this->input["idGroup"]))
+        if (($_SESSION['coreVersion'] < 530) || !isset($this->input["idGroup"]))
             return true;
 
         try {

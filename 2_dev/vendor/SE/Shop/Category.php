@@ -95,7 +95,7 @@ class Category extends Base
     protected function getSettingsFetch()
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
-        if (CORE_VERSION != "5.2") {
+        if ($_SESSION['coreVersion'] > 520) {
             $result["select"] = "sg.*, GROUP_CONCAT(CONCAT_WS(':', sgtp.level, sgt.id_parent) SEPARATOR ';') ids_parents,
                 sgt.level level";
             $joins[] = array(
@@ -148,7 +148,7 @@ class Category extends Base
         $result['similar'] = $u->getList();
         unset($u);
 
-        if (CORE_VERSION != "5.2") {
+        if ($_SESSION['coreVersion'] > 520) {
             $arr = $this->setIdMainParent(array($result));
             $this->result = $arr[0];
         }
@@ -160,7 +160,7 @@ class Category extends Base
     protected function correctItemsBeforeFetch($items = array())
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
-        if (CORE_VERSION != "5.2")
+        if ($_SESSION['coreVersion'] > 520)
             $items = $this->setIdMainParent($items);
         if ($this->input["isTree"] && empty($this->input["searchText"]))
             $result = $this->getTreeView($items);
@@ -312,7 +312,7 @@ class Category extends Base
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $idParent = $this->input["id"];
-        if (CORE_VERSION != "5.2") {
+        if ($_SESSION['coreVersion'] > 520) {
             $filter = array(
                 array("field" => "upid", "value" => $idParent),
                 array("field" => "level", "value" => ++$this->result["level"]));
@@ -515,7 +515,7 @@ class Category extends Base
             foreach ($links as $group)
                 if ($group["id"])
                     $idsExists[] = $group["id"];
-            if (CORE_VERSION != "5.3")
+            if ($_SESSION['coreVersion'] < 530)
                 $idsExists = array_diff($idsExists, $idsGroups);
             $idsExistsStr = implode(",", $idsExists);
             $idsStr = implode(",", $idsGroups);

@@ -124,10 +124,6 @@ class Base extends CustomBase
             $this->result["searchFields"] = $this->searchFields;
             $this->result["items"] = $this->correctItemsBeforeFetch($u->getList($this->limit, $this->offset));
 
-            /**
-             * TODO : контактыГлавная(ДВ)
-             * TODO : итоги(ДВ)
-             */
             $this->dataCurrencies($settingsFetch);
 
             if (!empty($settingsFetch["aggregation"]["type"]))

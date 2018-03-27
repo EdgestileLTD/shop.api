@@ -67,14 +67,9 @@ if (IS_EXT) {
     require_once 'api/update.php';
     require_once 'lib/lib_function.php';
     require_once 'lib/lib_se_function.php';
-//    require_once 'lib/PHPExcel.php';
-//    require_once 'lib/PHPExcel/Writer/Excel2007.php';
 } else {
     require_once '/home/e/edgestile/admin/home/siteedit/lib/function.php';
     require_once '/home/e/edgestile/admin/home/siteedit/lib/lib_function.php';
-//    require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel.php';
-//    require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel/IOFactory.php';
-//    require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/PHPExcel/Classes/PHPExcel/Writer/Excel2007.php';
 }
 
 require_once API_ROOT . "../1/version.php";
@@ -149,14 +144,6 @@ else {
     echo 'Сессия истекла! Необходима авторизация!';
     exit;
 }
-$coreVersion = "5.1";
-$verFile = DOCUMENT_ROOT . "/lib/version";
-if (file_exists($verFile)) {
-    $coreVersion = trim(file_get_contents($verFile));
-    $coreVersion = explode(':', $coreVersion);
-    $coreVersion = $coreVersion[1];
-}
-define('CORE_VERSION', $coreVersion);
 
 $dirSettings = DOCUMENT_ROOT . '/manager';
 if (!file_exists($dirSettings))
@@ -165,7 +152,7 @@ if (!file_exists($dirSettings))
 define("DIR_SETTINGS", $dirSettings);
 
 // проверка авторизации
-if (($apiClass != "Auth" && $apiClass != "TokenAuth") && empty($_SESSION['isAuth']) && !in_array($_SERVER["REMOTE_ADDR"], $allowableServers)) {
+if (($apiClass != "Auth" && $apiClass != "TokenAuth") && empty($_SESSION['isAuth'])) {
     header("HTTP/1.1 401 Unauthorized");
     echo 'Необходима авторизация!';
     exit;
