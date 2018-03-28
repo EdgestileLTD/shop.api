@@ -243,6 +243,7 @@ class Contact extends Base
             $contact["birthDate"] = date("d.m.Y", strtotime($contact["birthDate"]));
             $contact["regDate"] = date("d.m.Y", strtotime($contact["regDate"]));
             $contact['groups'] = $this->getGroups($contact['id']);
+            $contact['groupsCount'] = count($contact['groups']);
             $contact['companyRequisites'] = $this->getCompanyRequisites($contact['id']);
             $contact['personalAccount'] = $this->getPersonalAccount($contact['id']);
             $accountTypeOperations = new BankAccountTypeOperation();
