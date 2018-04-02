@@ -218,6 +218,7 @@ class Base extends CustomBase
             if ($settingsFetch["convertingValues"]) { // 5
                 $course = DB::getCourse($this->currData["name"], $item["curr"]);
                 foreach ($settingsFetch["convertingValues"] as $key => $i) {
+                    $item[$i] = (int)str_replace(" ","",$item[$i]);
                     $item[$i] = round($item[$i] * $course, 2);
                 }
                 unset($item["curr"]);
