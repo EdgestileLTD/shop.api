@@ -249,6 +249,7 @@ class Order extends Base // порядок
         $result["oldDeliveryStatus"] = $this->result["deliveryStatus"];
         $result["items"] = $this->getOrderItems();
         $result['payments'] = $this->getPayments();
+        $result['paymentsCount'] = count($result['payments']);
         $result['customFields'] = $this->getCustomFields($this->input["id"]);
         $result['paid'] = $this->getPaidSum();
         $result['surcharge'] = $this->result["amount"] - $result['paid'];
@@ -316,7 +317,7 @@ class Order extends Base // порядок
         return parent::fetch($isId);
     }
 
-    // получить плтежи
+    // получить платежи
     private function getPayments()
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');

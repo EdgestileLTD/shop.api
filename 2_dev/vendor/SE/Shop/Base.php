@@ -218,7 +218,7 @@ class Base extends CustomBase
             if ($settingsFetch["convertingValues"]) { // 5
                 $course = DB::getCourse($this->currData["name"], $item["curr"]);
                 foreach ($settingsFetch["convertingValues"] as $key => $i) {
-                    $item[$i] = (int)str_replace(" ","",$item[$i]);
+                    $item[$i] = (float)str_replace(" ","",$item[$i]);
                     $item[$i] = round($item[$i] * $course, 2);
                 }
                 unset($item["curr"]);
@@ -309,6 +309,7 @@ class Base extends CustomBase
          * @param  array  $this->tableNameDepen  имена таблиц и поля соотношения (id элемента)
          * @return bool                          при удалении - TRUE
          */
+
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
 
