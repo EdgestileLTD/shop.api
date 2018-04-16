@@ -237,9 +237,12 @@ class Order extends Base // порядок
         );
     }
 
-    // добавить полученную информацию
     protected function getAddInfo()
     {
+        /** Передать информацию на страницу
+         * 1 передаем базовую валюту в JS
+         */
+
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result = array();
         $this->result["amount"] = (real)$this->result["amount"];
@@ -253,6 +256,13 @@ class Order extends Base // порядок
         $result['customFields'] = $this->getCustomFields($this->input["id"]);
         $result['paid'] = $this->getPaidSum();
         $result['surcharge'] = $this->result["amount"] - $result['paid'];
+
+        $u = new DB('main', 'm'); // 1
+        $u->select('mt.name, mt.title, mt.name_front');
+        $u->innerJoin('money_title mt', 'm.basecurr = mt.name');
+        $result['baseCurr'] = $u->fetchOne();
+        unset($u);
+
         return $result;
     }
 

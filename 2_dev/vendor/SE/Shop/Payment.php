@@ -287,7 +287,6 @@ class Payment extends Base
 
     public function fetchByOrder($idOrder)
     {
-        // fixme получить платежи?
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $this->setFilters(array("field" => "idOrder", "value" => $idOrder));
         return $this->fetch();
