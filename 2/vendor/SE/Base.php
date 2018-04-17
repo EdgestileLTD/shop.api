@@ -89,7 +89,6 @@ class Base
         $settings = new DB('se_settings', 'ss');
         $settings->select("db_version");
         $result = $settings->fetchOne();
-
         if (empty($result["dbVersion"]))
             DB::query("INSERT INTO se_settings (`version`, `db_version`) VALUE (1, 1)");
         if ($result["dbVersion"] < DB_VERSION) {
@@ -131,7 +130,7 @@ class Base
     protected function debugging($group, $funct = null, $class = null, $act = null)
     {
         // $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
-        if (API_STATUS == "dev") {
+        if (API_STATUS == "dev2") {
 
             // [True | Print Log]  [False]
             $print = array(

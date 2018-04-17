@@ -136,6 +136,10 @@ foreach ($objects as $item) {
     $group['grCount'] = $item['gcount'];
     $group['countGoods'] = $item['countGoods'];
     $group['idModificationGroupDef'] = $item['id_modification_group_def'];
+
+    if ($_SESSION['isIncPrices'])
+        $group['sourcePrice'] = $item['source_price'];
+
     $groups[] = $group;
 }
 

@@ -239,6 +239,7 @@ foreach ($result as $item) {
     getImages($item['id'], $group);
 
     if ($_SESSION['isIncPrices']) {
+        $group["sourcePrice"] = $item["source_price"];
         $u = new seTable('shop_group_inc_price', 'sgi');
         $u->select("sgi.*");
         $u->where('sgi.id_group = ?', $group["id"]);

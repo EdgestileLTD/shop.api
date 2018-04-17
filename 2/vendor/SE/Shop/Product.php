@@ -1574,8 +1574,11 @@ class Product extends Base
 
             if ($this->isNew)
                 foreach ($modifications as &$mod)
-                    foreach ($mod["items"] as &$item)
+                    foreach ($mod["items"] as &$item) {
                         $item["id"] = null;
+                        if (empty($item["article"]))
+                            $item["article"] = $this->input["article"];
+                    }
 
             $idsStr = implode(",", $idsProducts);
             $isMultiMode = sizeof($idsProducts) > 1;

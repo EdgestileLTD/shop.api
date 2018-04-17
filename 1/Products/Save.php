@@ -268,6 +268,7 @@ function saveModifications($idsProducts, $modifications)
 
     $idsStr = implode(",", $idsProducts);
     $isMultiMode = sizeof($idsProducts) > 1;
+    $article = $json->article;
 
     $namesToIds = array();
     if (!empty($newImages)) {
@@ -318,6 +319,8 @@ function saveModifications($idsProducts, $modifications)
                     $count = $item->count;
                 foreach ($idsProducts as $idProduct) {
                     $i++;
+                    if (!$isMultiMode && $article && !$item->article)
+                        $item->article = $article;
                     $dataM[] = array('id' => $i, '`code`' => $item->article, 'id_mod_group' => $mod->id, 'id_price' => $idProduct, 'value' => $item->price,
                         'value_opt' => $item->priceSmallOpt, 'value_opt_corp' => $item->priceOpt,
                         'value_purchase' => (real)$item->pricePurchase, 'count' => $count,
@@ -829,7 +832,6 @@ if ($isNew || !empty($ids)) {
         $json->code = getCode($json->code);
         $isUpdated |= setField($isNew, $u, $json->code, 'code');
     }
-
 
     if (isset($json->article) && empty($json->article))
         $json->article = maxArticle($json->idGroup);

@@ -99,7 +99,7 @@ class Base extends CustomBase
         $this->patterns = $this->getPattensBySelect($settingsFetch["select"]);
         try {
             $searchFields = [];
-            $u = $this->createTableForInfo($settingsFetch);
+            $u = $this->createTableForInfo($settingsFetch); // начало запроса
             $fields = $u->getFields();
             foreach ($fields as $key => $field)
                 if (empty($this->searchFields) || $this->isSearchField($key))
@@ -218,12 +218,13 @@ class Base extends CustomBase
             if ($settingsFetch["convertingValues"]) { // 5
                 $course = DB::getCourse($this->currData["name"], $item["curr"]);
                 foreach ($settingsFetch["convertingValues"] as $key => $i) {
+                    $item[$i] = (float)str_replace(" ","",$item[$i]);
                     $item[$i] = round($item[$i] * $course, 2);
                 }
                 unset($item["curr"]);
-                $item["nameFlang"] = $this->currData["name"];
-                $item["titleCurr"] = $this->currData["title"];
-                $item["nameFront"] = $this->currData["nameFront"];
+                if(!$item["nameFlang"]) $item["nameFlang"] = $this->currData["name"];
+                if(!$item["titleCurr"]) $item["titleCurr"] = $this->currData["title"];
+                if(!$item["nameFront"]) $item["nameFront"] = $this->currData["nameFront"];
             } else { // 3
                 foreach ($currList as $currUnit) {
                     if ($item["curr"] == $currUnit["name"]) {
@@ -308,6 +309,7 @@ class Base extends CustomBase
          * @param  array  $this->tableNameDepen  имена таблиц и поля соотношения (id элемента)
          * @return bool                          при удалении - TRUE
          */
+
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
 

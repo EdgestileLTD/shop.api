@@ -18,9 +18,9 @@ function getSeparator($file)
 
     if (empty($buffer))
         $buffer = file_get_contents($file);
-    $countTab = substr_count($buffer, "\t");
-    $countSemicolon = substr_count($buffer, ";");
-    $countComma = substr_count($buffer, ",");
+    $countTab = substr_count($buffer, "\"\t\"");
+    $countSemicolon = substr_count($buffer, "\";\"");
+    $countComma = substr_count($buffer, "\",\"");
     $max = max([$countTab, $countSemicolon, $countComma]);
     if ($max == $countTab)
         return "\t";
@@ -295,6 +295,9 @@ if ($step == 0) {
                 foreach ($row as $key => $value) {
                     if ($encoding != "UTF-8")
                         $value = iconv('CP1251', 'UTF-8', $value);
+                    $value = mb_substr($value , 0, 50);
+                    $value = str_replace("\r", "", $value);
+                    $value = htmlspecialchars(str_replace("\n", "", $value));
                     $samples[$j++] = $value;
                 }
             }

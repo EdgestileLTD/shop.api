@@ -281,6 +281,12 @@ function saveIncPrices($ids, $data)
         $list = $u->getList();
         foreach ($list as $item)
             $ids[] = $item["id_child"];
+
+        $idsStr = implode(",", $ids);
+        $source = "FILE";
+        if (!empty($data->sourcePrice))
+            $source = $data->sourcePrice;
+        se_db_query("UPDATE shop_group SET source_price = '{$source}' WHERE id IN ($idsStr)");
     }
 
     foreach ($ids as $idGroup) {
@@ -346,6 +352,9 @@ if ($isNew || !empty($ids)) {
     $isUpdated |= setField($isNew, $u, $json->pageTitle, 'page_title');
     $isUpdated |= setField($isNew, $u, $json->sortIndex, 'position');
     $isUpdated |= setField($isNew, $u, $json->idModificationGroupDef, 'id_modification_group_def');
+
+    if ($_SESSION['isIncPrices'])
+        $isUpdated |= setField($isNew, $u, $json->sourcePrice, 'source_price');
 
     if (isset($json->isActive)) {
         if ($json->isActive)

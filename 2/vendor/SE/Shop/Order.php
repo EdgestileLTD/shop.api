@@ -28,6 +28,7 @@ class Order extends Base // порядок
         [
             'Y' => 'Оплачен',
             'N' => 'Не оплачен',
+            'A' => 'Предоплата',
             'K' => 'Кредит',
             'P' => 'Подарок',
             'W' => 'В ожидании',
@@ -151,7 +152,8 @@ class Order extends Base // порядок
                 "name" => "totalAmount"
             ),
             "convertingValues" => array(
-                "totalAmount"
+                "totalAmount",
+                "amount"
             )
         );
     }
@@ -163,7 +165,8 @@ class Order extends Base // порядок
             if (!empty($item['customerPhone']))
                 $item['customerPhone'] = Contact::correctPhone($item['customerPhone']);
             $item["amount"] = number_format($item["amount"], 2, '.', ' ');
-        }  
+        }
+
 
         return $items;
     }
@@ -234,9 +237,12 @@ class Order extends Base // порядок
         );
     }
 
-    // добавить полученную информацию
     protected function getAddInfo()
     {
+        /** Передать информацию на страницу
+         * 1 передаем базовую валюту в JS
+         */
+
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result = array();
         $this->result["amount"] = (real)$this->result["amount"];
@@ -246,9 +252,17 @@ class Order extends Base // порядок
         $result["oldDeliveryStatus"] = $this->result["deliveryStatus"];
         $result["items"] = $this->getOrderItems();
         $result['payments'] = $this->getPayments();
+        $result['paymentsCount'] = count($result['payments']);
         $result['customFields'] = $this->getCustomFields($this->input["id"]);
         $result['paid'] = $this->getPaidSum();
         $result['surcharge'] = $this->result["amount"] - $result['paid'];
+
+        $u = new DB('main', 'm'); // 1
+        $u->select('mt.name, mt.title, mt.name_front');
+        $u->innerJoin('money_title mt', 'm.basecurr = mt.name');
+        $result['baseCurr'] = $u->fetchOne();
+        unset($u);
+
         return $result;
     }
 
@@ -313,7 +327,7 @@ class Order extends Base // порядок
         return parent::fetch($isId);
     }
 
-    // получить плтежи
+    // получить платежи
     private function getPayments()
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');

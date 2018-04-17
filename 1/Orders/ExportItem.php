@@ -56,6 +56,7 @@ $sheet->getColumnDimension('C')->setWidth(14);
 $sheet->getColumnDimension('D')->setWidth(9);
 $sheet->getColumnDimension('E')->setWidth(9);
 $sheet->getColumnDimension('F')->setWidth(9);
+$sheet->getColumnDimension('G')->setWidth(9);
 
 $sheet->setCellValue("A3", '№ счёта:');
 if ($order["payments"])
@@ -102,16 +103,18 @@ $sheet->setCellValue("E12", (real)($order["sum"] + $order["discountSum"] - $orde
 $sheet->mergeCells('E12:F12');
 $sheet->setCellValue("C13", 'Сумма скидки:');
 $sheet->mergeCells('C13:D13');
-$sheet->setCellValue("E13", $order["discountSum"]);
+$sheet->setCellValue("E13", $order["discountSum"] + $order["discountProducts"]);
 $sheet->mergeCells('E13:F13');
 $sheet->setCellValue("C14", 'ИТОГО:');
 $sheet->mergeCells('C14:D14');
 $sheet->setCellValue("E14", $order["sum"]);
 $sheet->mergeCells('E14:F14');
+/*
 $sheet->getStyle('D7')->getNumberFormat()->setFormatCode('#,##0.00');
 $sheet->getStyle('E12')->getNumberFormat()->setFormatCode('#,##0.00');
 $sheet->getStyle('E13')->getNumberFormat()->setFormatCode('#,##0.00');
 $sheet->getStyle('E14')->getNumberFormat()->setFormatCode('#,##0.00');
+*/
 $sheet->getStyle('A5:F5')->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border::BORDER_THICK);
 $sheet->getStyle('A7:F7')->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border::BORDER_THICK);
 $sheet->getStyle('A12:F12')->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border::BORDER_THICK);
@@ -140,8 +143,10 @@ if ($order["items"]) {
 
 $startSymCount = $codeSym;
 $sheet->setCellValue(chr($codeSym++) . "17", 'Кол-во');
-$sheet->setCellValue(chr($codeSym++) . "17", 'Цена');
-$sheet->setCellValue(chr($codeSym) . "17", 'Сумма');
+$sheet->setCellValue(chr($codeSym++) . "17", 'Цена пр.');
+$sheet->setCellValue(chr($codeSym++) . "17", 'Сумма пр.');
+$sheet->setCellValue(chr($codeSym++) . "17", 'Цена зак.');
+$sheet->setCellValue(chr($codeSym) . "17", 'Сумма зак.');
 $sheet->setCellValue("A16", 'Товары и услуги заказа');
 $endSym = chr($codeSym);
 $sheet->mergeCells('A16:' . $endSym . '16');
@@ -152,7 +157,7 @@ $sheet->getStyle('A17:' . $endSym . '17')->getFont()->setBold(true);
 $i = 18;
 foreach ($order["items"] as $product) {
     $codeSym = ord($startSym);
-    $sheet->getStyle("E$i:" . $endSym . $i)->getNumberFormat()->setFormatCode('#,##0.00');
+    //$sheet->getStyle("E$i:" . $endSym . $i)->getNumberFormat()->setFormatCode('#,##0.00');
     $sheet->getStyle("A$i:" . $endSym . $i)->getBorders()->getAllBorders()->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
     $sheet->getStyle("A$i:" . $endSym . $i)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_TOP);
     $sheet->mergeCells("A$i:B$i");
@@ -169,6 +174,8 @@ foreach ($order["items"] as $product) {
     $sheet->setCellValue(chr($codeSym++) . "$i", $product["count"]);
     $sheet->setCellValue(chr($codeSym++) . "$i", $product["price"] - $product["discount"]);
     $sheet->setCellValue(chr($codeSym++) . "$i", ($product["price"] - $product["discount"]) * $product["count"]);
+    $sheet->setCellValue(chr($codeSym++) . "$i", $product["pricePurchase"]);
+    $sheet->setCellValue(chr($codeSym++) . "$i", $product["pricePurchase"] * $product["count"]);
     $i++;
 }
 foreach (range('A', $endSym) as $columnID)
