@@ -416,6 +416,16 @@ class Product extends Base
                 $sql .= "{$priceField}+{$priceField}*" . $price / 100;
             $sql .= " WHERE id IN ({$idsStr})";
             DB::query($sql);
+
+            $sqlMod = "UPDATE shop_modifications sm 
+                INNER JOIN shop_modifications_group smg ON sm.id_mod_group = smg.id SET `value` = ";
+            if ($type == "a")
+                $sqlMod .= "`value` + " . $price;
+            if ($type == "p")
+                $sqlMod .= "`value` + `value` * " . $price / 100;
+            $sqlMod .= " WHERE id_price IN ({$idsStr}) AND smg.vtype = 2";
+            DB::query($sqlMod);
+
         } catch (Exception $e) {
             $this->error = "Не удаётся произвести наценку выбранных товаров!";
         }

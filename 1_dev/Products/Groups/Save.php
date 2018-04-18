@@ -217,23 +217,6 @@ function getLevel($id)
     return $level;
 }
 
-function saveIdParent($id, $idParent)
-{
-
-    $idParent = intval($idParent);
-    $u = new seTable('shop_group_tree');
-    $u->select('id');
-    $u->where('id_child = ?', $id);
-    if ($idParent) {
-        $u->andWhere('id_parent = ?', $idParent);
-    } else {
-        $u->andWhere('level = 0');
-    }
-    $answer = $u->fetchOne();
-    if (empty($answer))
-        updateGroupTable();
-}
-
 function updateGroupTable()
 {
     $tree = array();
@@ -389,11 +372,8 @@ if ($isNew || !empty($ids)) {
     if ($ids && $_SESSION['isIncPrices'])
         saveIncPrices($ids, $json);
 
-    if ($isNew || isset($json->idParent)) {
-        foreach ($ids as $id)
-            saveIdParent($id, $json->idParent);
-    }
-
+    if ($isNew || isset($json->idParent))
+        updateGroupTable();
 }
 
 $data['id'] = $ids[0];
