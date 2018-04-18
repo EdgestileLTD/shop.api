@@ -28,11 +28,12 @@ class Base extends CustomBase
     private $patterns = [];
     private $fileSettings;
     private $uiSettings;
+    private $currData;
 
 
     function __construct($input = null)
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         parent::__construct($input);
         $cl = explode('\\', get_class($this));
         $this->fileSettings = strtolower(DIR_SETTINGS . "/" . end($cl)) . ".json";
@@ -64,13 +65,13 @@ class Base extends CustomBase
 
     public function setFilters($filters)
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $this->filters = empty($filters) || !is_array($filters) ? [] : $filters;
     }
 
     private function createTableForInfo($settings)
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $u = new DB($this->tableName, $this->tableAlias);
         $u->select($settings["select"]);
 
@@ -92,7 +93,7 @@ class Base extends CustomBase
 
     public function fetch()
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $settingsFetch = $this->getSettingsFetch();
 
         $settingsFetch["select"] = $settingsFetch["select"] ? $settingsFetch["select"] : "*";
@@ -189,9 +190,9 @@ class Base extends CustomBase
          * 6 костыль на случай если в таблице БД будет "currency" вместо "curr",
          *   или валюта будет вовсе отсутствовать - назначается валюта по умолчанию (при параметре convertingValues)
          *
-         * @param array $this->result
+         * @param array $this ->result
          *   - данные таблицы
-         * @param array $settingsFetch["convertingValues"]
+         * @param array $settingsFetch ["convertingValues"]
          *   - определение потребности конвертации (если есть);
          *   - массив конвертируемых столбцов
          * @return array $this->result
@@ -218,13 +219,16 @@ class Base extends CustomBase
             if ($settingsFetch["convertingValues"]) { // 5
                 $course = DB::getCourse($this->currData["name"], $item["curr"]);
                 foreach ($settingsFetch["convertingValues"] as $key => $i) {
-                    $item[$i] = (float)str_replace(" ","",$item[$i]);
+                    $item[$i] = (float)str_replace(" ", "", $item[$i]);
                     $item[$i] = round($item[$i] * $course, 2);
                 }
                 unset($item["curr"]);
-                if(!$item["nameFlang"]) $item["nameFlang"] = $this->currData["name"];
-                if(!$item["titleCurr"]) $item["titleCurr"] = $this->currData["title"];
-                if(!$item["nameFront"]) $item["nameFront"] = $this->currData["nameFront"];
+                if (!$item["nameFlang"]) 
+                    $item["nameFlang"] = $this->currData["name"];
+                if (!$item["titleCurr"]) 
+                    $item["titleCurr"] = $this->currData["title"];
+                if (!$item["nameFront"]) 
+                    $item["nameFront"] = $this->currData["nameFront"];
             } else { // 3
                 foreach ($currList as $currUnit) {
                     if ($item["curr"] == $currUnit["name"]) {
@@ -236,7 +240,7 @@ class Base extends CustomBase
             }
         };
 
-        $this->result["currTotal"] = array ( // 7
+        $this->result["currTotal"] = array( // 7
             "nameFlang" => $this->currData["name"],
             "titleCurr" => $this->currData["title"],
             "nameFront" => $this->currData["nameFront"]
@@ -245,7 +249,7 @@ class Base extends CustomBase
 
     public function correctAll()
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         if (!empty($this->input['allMode'])) {
             $this->allMode = true;
             $this->limit = 100000;
@@ -270,7 +274,7 @@ class Base extends CustomBase
 
     public function info($id = null)
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $id = empty($id) ? $this->input["id"] : $id;
         $this->input["id"] = $id;
         $settingsInfo = $this->getSettingsInfo();
@@ -293,7 +297,7 @@ class Base extends CustomBase
 
     protected function getAddInfo()
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         return [];
     }
 
@@ -303,14 +307,14 @@ class Base extends CustomBase
          * 1 удаление элементов из основной таблицы
          * 2 удаление элементов из зависимых таблиц
          *
-         * @param  string $this->tableName       имя таблицы           exm:"shop_price"
-         * @param  string $this->tableAlias      псевдоним таблицы     exm:"sp"
-         * @param  array  $this->input["ids"]    массив id на удаление exm:"array(0=>425, 1=>11)"
-         * @param  array  $this->tableNameDepen  имена таблиц и поля соотношения (id элемента)
+         * @param  string $this ->tableName       имя таблицы           exm:"shop_price"
+         * @param  string $this ->tableAlias      псевдоним таблицы     exm:"sp"
+         * @param  array $this ->input["ids"]    массив id на удаление exm:"array(0=>425, 1=>11)"
+         * @param  array $this ->tableNameDepen  имена таблиц и поля соотношения (id элемента)
          * @return bool                          при удалении - TRUE
          */
 
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         try {
 
             // 1
@@ -328,7 +332,7 @@ class Base extends CustomBase
                     $u = new DB($tabNameDepen, $tabNameDepen);
                     if ($this->input["ids"] && !empty($tabNameDepen)) {
                         $ids = implode(",", $this->input["ids"]);
-                        $u->where($field.' IN (?)', $ids)->deleteList();
+                        $u->where($field . ' IN (?)', $ids)->deleteList();
                     }
                     unset($u);
                 }
@@ -343,7 +347,7 @@ class Base extends CustomBase
 
     public function save()
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         try {
             $this->correctValuesBeforeSave();
             $this->correctAll();
@@ -367,7 +371,7 @@ class Base extends CustomBase
 
     public function sort()
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         if (empty($this->tableName))
             return;
 
@@ -386,37 +390,37 @@ class Base extends CustomBase
 
     protected function correctValuesBeforeSave()
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         return true;
     }
 
     protected function correctItemsBeforeFetch($items = [])
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         return $items;
     }
 
     protected function saveAddInfo()
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         return true;
     }
 
     protected function getSettingsFetch()
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         return [];
     }
 
     protected function getSettingsInfo()
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         return $this->getSettingsFetch();
     }
 
     protected function getPattensBySelect($selectQuery)
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $result = [];
         preg_match_all('/\w+[.]+\w+\s\w+/', $selectQuery, $matches);
         if (count($matches) && count($matches[0])) {
@@ -439,7 +443,7 @@ class Base extends CustomBase
 
     protected function getSearchQuery($searchFields = array())
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $searchItem = trim($this->search);
         if (empty($searchItem))
             return array();
@@ -509,7 +513,7 @@ class Base extends CustomBase
 
     protected function getFilterQuery()
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $where = [];
         $filters = [];
         if (!empty($this->filters["field"]))
@@ -547,7 +551,7 @@ class Base extends CustomBase
 
     protected function getWhereQuery($searchFields = [])
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $query = null;
         $searchQuery = $this->getSearchQuery($searchFields);
         $filterQuery = $this->getFilterQuery();
@@ -564,7 +568,7 @@ class Base extends CustomBase
 
     public function getArrayFromCsv($file, $csvSeparator = ";")
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         if (!file_exists($file))
             return null;
 
@@ -594,7 +598,7 @@ class Base extends CustomBase
 
     public function post($tempFile = FALSE)
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $countFiles = count($_FILES);
         $ups = 0;
         $items = [];
@@ -633,7 +637,7 @@ class Base extends CustomBase
 
     public function sendMail($codeMail, $idOrder = false)
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         if ($this->input['send']) {
             if ($codeMail) {
                 try {
@@ -660,7 +664,7 @@ class Base extends CustomBase
 
     public function postRequest($shorturl, $data)
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $url = "http://" . HOSTNAME . "/" . $shorturl;
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
@@ -672,12 +676,12 @@ class Base extends CustomBase
 
     protected function afterSave()
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
     }
 
     public function store()
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         if ($this->input["searchFields"])
             $this->uiSettings["searchFields"] = $this->input["searchFields"];
 
@@ -687,7 +691,7 @@ class Base extends CustomBase
 
     private function isSearchField($key)
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         foreach ($this->searchFields as $field) {
             if ($field["active"] && $field["field"] == $key)
                 return true;
@@ -706,9 +710,9 @@ class Base extends CustomBase
 
         $tagImages = 'src="' . $url . '/images';
 
-        $input["text"] = str_replace($tagImages, 'src="/images',  $input["text"]);
-        $input["note"] = str_replace($tagImages, 'src="/images',  $input["note"]);
-        $input["description"] = str_replace($tagImages, 'src="/images',  $input["description"]);
+        $input["text"] = str_replace($tagImages, 'src="/images', $input["text"]);
+        $input["note"] = str_replace($tagImages, 'src="/images', $input["note"]);
+        $input["description"] = str_replace($tagImages, 'src="/images', $input["description"]);
 
         return $input;
     }
@@ -724,8 +728,8 @@ class Base extends CustomBase
      */
     public function rmdir_recursive($dir)
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
-        foreach(scandir($dir) as $file) {
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
+        foreach (scandir($dir) as $file) {
             if ('.' === $file || '..' === $file) continue;
             if (is_dir("$dir/$file")) $this->rmdir_recursive("$dir/$file");
             else unlink("$dir/$file");
@@ -754,7 +758,7 @@ class Base extends CustomBase
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         if (!empty($writer)) {
             $filename = DOCUMENT_ROOT . "/files/tempfiles/tempfile{$cycleNum}.TMP";
-            $file     = fopen($filename, "w");
+            $file = fopen($filename, "w");
             fwrite($file, json_encode($writer));
             fclose($file);
         }
@@ -763,9 +767,9 @@ class Base extends CustomBase
     // чтение из временного файла
     public function readTempFiles($cycleNum)
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $filename = DOCUMENT_ROOT . "/files/tempfiles/tempfile{$cycleNum}.TMP";
-        $read   = json_decode(file_get_contents($filename)); // чтение файла
+        $read = json_decode(file_get_contents($filename)); // чтение файла
         return $read;
     }
 

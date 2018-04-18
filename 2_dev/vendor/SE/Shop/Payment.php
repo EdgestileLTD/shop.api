@@ -127,6 +127,7 @@ class Payment extends Base
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         return array(
             "select" => 'sop.*, (SELECT name_payment FROM shop_payment WHERE id = sop.payment_type) name,
+                DATE_FORMAT(sop.date, "%d.%m.%Y %H:%m") date_display,
                 IFNULL(c.name,  CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name)) payer',
             "joins" => array(
                 array(
@@ -155,6 +156,7 @@ class Payment extends Base
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         return array(
             "select" => 'sop.*, (SELECT name_payment FROM shop_payment WHERE id = sop.payment_type) name,
+                DATE_FORMAT(sop.date, "%d.%m.%Y %H:%m") date_display,
                 IFNULL(c.name,  CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name)) payer',
             "joins" => array(
                 array(

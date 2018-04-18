@@ -152,8 +152,8 @@ class Order extends Base // порядок
                 "name" => "totalAmount"
             ),
             "convertingValues" => array(
-                "totalAmount",
-                "amount"
+                "amount",
+                "totalAmount"
             )
         );
     }
@@ -164,7 +164,7 @@ class Order extends Base // порядок
         foreach ($items as &$item) {
             if (!empty($item['customerPhone']))
                 $item['customerPhone'] = Contact::correctPhone($item['customerPhone']);
-            $item["amount"] = number_format($item["amount"], 2, '.', ' ');
+            //$item["amount"] = number_format($item["amount"], 2, '.', ' ');
         }
 
 
@@ -237,12 +237,9 @@ class Order extends Base // порядок
         );
     }
 
+    // добавить полученную информацию
     protected function getAddInfo()
     {
-        /** Передать информацию на страницу
-         * 1 передаем базовую валюту в JS
-         */
-
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result = array();
         $this->result["amount"] = (real)$this->result["amount"];
@@ -252,17 +249,9 @@ class Order extends Base // порядок
         $result["oldDeliveryStatus"] = $this->result["deliveryStatus"];
         $result["items"] = $this->getOrderItems();
         $result['payments'] = $this->getPayments();
-        $result['paymentsCount'] = count($result['payments']);
         $result['customFields'] = $this->getCustomFields($this->input["id"]);
         $result['paid'] = $this->getPaidSum();
         $result['surcharge'] = $this->result["amount"] - $result['paid'];
-
-        $u = new DB('main', 'm'); // 1
-        $u->select('mt.name, mt.title, mt.name_front');
-        $u->innerJoin('money_title mt', 'm.basecurr = mt.name');
-        $result['baseCurr'] = $u->fetchOne();
-        unset($u);
-
         return $result;
     }
 
@@ -327,7 +316,7 @@ class Order extends Base // порядок
         return parent::fetch($isId);
     }
 
-    // получить платежи
+    // получить плтежи
     private function getPayments()
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');

@@ -28,6 +28,7 @@ class Base extends CustomBase
     private $patterns = [];
     private $fileSettings;
     private $uiSettings;
+    private $currData;
 
 
     function __construct($input = null)
