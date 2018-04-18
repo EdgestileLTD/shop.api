@@ -332,8 +332,7 @@ class Order extends Base // порядок
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $payment = new Payment();
-        $result = $payment->fetchByOrder($this->input["id"]);        
-        return $result;
+        return $payment->fetchByOrder($this->input["id"]);
     }
 
     // получить пользовательские поля
