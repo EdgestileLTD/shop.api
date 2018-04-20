@@ -342,13 +342,14 @@ class Base extends CustomBase
         return false;
     }
 
-    public function save()
+    public function save($isTransactionMode = true)
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         try {
             $this->correctValuesBeforeSave();
             $this->correctAll();
-            DB::beginTransaction();
+            if ($isTransactionMode)
+                DB::beginTransaction();
             $u = new DB($this->tableName);
             $u->setValuesFields($this->input);
             $this->input["id"] = $u->save();
@@ -356,12 +357,14 @@ class Base extends CustomBase
                 $this->input["ids"] = array($this->input["id"]);
             if ($this->input["id"] && $this->saveAddInfo()) {
                 $this->info();
-                DB::commit();
+                if ($isTransactionMode)
+                    DB::commit();
                 $this->afterSave();
                 return $this;
             } else throw new Exception();
         } catch (Exception $e) {
-            DB::rollBack();
+            if ($isTransactionMode)
+                DB::rollBack();
             $this->error = empty($this->error) ? "Не удаётся сохранить информацию об объекте!" : $this->error;
         }
     }
