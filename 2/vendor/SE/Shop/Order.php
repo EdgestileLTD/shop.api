@@ -395,7 +395,19 @@ class Order extends Base // порядок
 
     private function savePayments()
     {
-        return true;
+        if (!isset($this->input["payments"]))
+            return true;
+
+        try {
+            $payments = $this->input["payments"];
+            foreach ($payments as $payment)
+                (new Payment($payment))->save(false);
+
+            return true;
+
+        } catch (Exception $e) {
+
+        }
     }
 
     protected function afterSave()
@@ -536,7 +548,7 @@ class Order extends Base // порядок
                 $u->save();
             }
             return true;
-            
+
         } catch (Exception $e) {
             $this->error = "Не удаётся сохранить доп. информацию о заказе!";
             throw new Exception($this->error);
