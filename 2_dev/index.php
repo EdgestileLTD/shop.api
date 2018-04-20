@@ -72,7 +72,7 @@ if (IS_EXT) {
     require_once '/home/e/edgestile/admin/home/siteedit/lib/lib_function.php';
 }
 
-require_once API_ROOT . "../1/version.php";
+require_once API_ROOT . "../2_dev/version.php";
 require_once API_ROOT . "vendor/autoload.php";
 
 /**
@@ -169,7 +169,6 @@ if (!method_exists($apiClass, $apiMethod)) {
     echo "Метод'{$apiMethod}' не поддерживается!";
     exit;
 }
-
 
 /**
  * @var array $phpInput получает данные параметра data из ajax

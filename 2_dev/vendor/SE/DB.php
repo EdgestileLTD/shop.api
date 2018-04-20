@@ -493,6 +493,9 @@ class DB
          * @return float|int|null курс валюты
          */
 
+        if ($baseCurrency == $unitCurrency)
+            return 1;
+
         $baseValues     = getCurrencyValues($baseCurrency);
         $currencyValues = getCurrencyValues($unitCurrency);
 

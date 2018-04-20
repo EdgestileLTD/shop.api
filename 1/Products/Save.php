@@ -720,7 +720,7 @@ function saveIdGroup($idsProducts, $idGroup)
     foreach ($idsProducts as $idProduct) {
         $u = new seTable('shop_price_group', 'spg');
         $u->select('spg.id, spg.id_group, spg.is_main');
-        $u->where('spg.id_product = ?', $idProduct);
+        $u->where('spg.id_price = ?', $idProduct);
         $result = $u->fetchOne();
         if (empty($result)) {
             if ($idGroup)

@@ -212,12 +212,14 @@ class Base extends CustomBase
             unset($u);
         }
 
+
         foreach ($this->result["items"] as $key => &$item) {
             if (!empty($item["currency"])) $item["curr"] = $item["currency"]; // 6
             elseif (empty($item["curr"])) $item["curr"] = $this->currData["name"];
 
             if ($settingsFetch["convertingValues"]) { // 5
                 $course = DB::getCourse($this->currData["name"], $item["curr"]);
+
                 foreach ($settingsFetch["convertingValues"] as $key => $i) {
                     $item[$i] = (float)str_replace(" ", "", $item[$i]);
                     $item[$i] = round($item[$i] * $course, 2);
