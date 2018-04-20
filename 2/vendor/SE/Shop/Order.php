@@ -86,7 +86,7 @@ class Order extends Base // порядок
     // получить настройки
     protected function getSettingsFetch()
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         return array(
             "select" => 'so.*,
                 DATE_FORMAT(so.date_order, "%d.%m.%Y") date_order_display,  
@@ -160,7 +160,7 @@ class Order extends Base // порядок
 
     protected function correctItemsBeforeFetch($items = [])
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         foreach ($items as &$item) {
             if (!empty($item['customerPhone']))
                 $item['customerPhone'] = Contact::correctPhone($item['customerPhone']);
@@ -173,7 +173,7 @@ class Order extends Base // порядок
 
     protected function correctResultBeforeFetch($result)
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $result["totalAmount"] = number_format($result["totalAmount"], 2, '.', ' ');
 
         return $result;
@@ -182,7 +182,7 @@ class Order extends Base // порядок
     // получить информацию по настройкам
     protected function getSettingsInfo()
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         return array(
             "select" => 'so.*, IFNULL(c.name, CONCAT_WS(" ", p.last_name, p.first_name, p.sec_name)) customer, 
                 IFNULL(c.phone, p.phone) customer_phone, IFNULL(c.email, p.email) customer_email,
@@ -243,7 +243,7 @@ class Order extends Base // порядок
          * 1 передаем базовую валюту в JS
          */
 
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $result = array();
         $this->result["amount"] = (real)$this->result["amount"];
         $this->result["dateOrder"] = date("d.m.Y", strtotime($this->result["dateOrder"]));
@@ -269,7 +269,7 @@ class Order extends Base // порядок
     // получить оплаченную сумму
     private function getPaidSum()
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $idOrder = $this->result["id"];
         $u = new DB('shop_order_payee', 'sop');
         $u->select('SUM(amount) amount');
@@ -281,7 +281,7 @@ class Order extends Base // порядок
     // получить ордера
     private function getOrderItems()
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $idOrder = $this->result["id"];
         $u = new DB('shop_tovarorder', 'sto');
         $u->select("sto.*, sp.code, sp.id_group, sp.curr, sp.lang, sp.img, si.picture, sp.measure, sp.name price_name");
@@ -321,7 +321,7 @@ class Order extends Base // порядок
     // получить
     public function fetch($isId = false)
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         if ($this->input['searchText'])
             $this->filters = null;
         return parent::fetch($isId);
@@ -330,7 +330,7 @@ class Order extends Base // порядок
     // получить платежи
     private function getPayments()
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $payment = new Payment();
         return $payment->fetchByOrder($this->input["id"]);
     }
@@ -338,7 +338,7 @@ class Order extends Base // порядок
     // получить пользовательские поля
     private function getCustomFields($idOrder)
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $u = new DB('shop_userfields', 'su');
         $u->select("sou.id, sou.id_order, sou.value, su.id id_userfield, 
                     su.name, su.type, su.values, sug.id id_group, sug.name name_group");
@@ -368,7 +368,7 @@ class Order extends Base // порядок
     // правильные значения перед сохранением
     protected function correctValuesBeforeSave()
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         if (empty($this->input["id"]))
             $this->input["dateOrder"] = date("Y-m-d");
         if (isset($this->input["dateOrder"]))
@@ -389,17 +389,18 @@ class Order extends Base // порядок
     // сохранить добавленную информацию
     protected function saveAddInfo()
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
-        $this->saveItems();
-        $this->saveDelivery();
-        $this->saveCustomFields();
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
+        return $this->saveItems() && $this->saveDelivery() && $this->saveCustomFields() && $this->savePayments();
+    }
 
+    private function savePayments()
+    {
         return true;
     }
 
     protected function afterSave()
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         if (!$this->input['send'])
             return;
 
@@ -429,86 +430,95 @@ class Order extends Base // порядок
     // сохранить элементы
     private function saveItems()
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
 
-        $idOrder = $this->input["id"];
-        $products = $this->input["items"];
-        foreach ($products as $p)
-            if ($p["id"]) {
-                if (!empty($idsUpdate))
-                    $idsUpdate .= ',';
-                $idsUpdate .= $p["id"];
+        try {
+
+            $idOrder = $this->input["id"];
+            $products = $this->input["items"];
+            foreach ($products as $p)
+                if ($p["id"]) {
+                    if (!empty($idsUpdate))
+                        $idsUpdate .= ',';
+                    $idsUpdate .= $p["id"];
+                }
+
+            $o = new DB('shop_order', 'so');
+            $o->add_field('nk', 'tinyint(1)', 0, 1);
+            if ($this->input["status"] == 'N') {
+                $o->setValuesFields(array('id' => $idOrder, 'nk' => 0));
+                $o->save();
+                $ua = new DB('se_user_account', 'sua');
+                $ua->where('order_id = ?', $idOrder);
+                $ua->deleteList();
             }
 
-        $o = new DB('shop_order', 'so');
-        $o->add_field('nk', 'tinyint(1)', 0, 1);
-        if ($this->input["status"] == 'N') {
-            $o->setValuesFields(array('id' => $idOrder, 'nk' => 0));
-            $o->save();
-            $ua = new DB('se_user_account', 'sua');
-            $ua->where('order_id = ?', $idOrder);
-            $ua->deleteList();
+            DB::query("UPDATE shop_price sp
+                INNER JOIN shop_tovarorder st ON sp.id = st.id_price
+                SET sp.presence_count = sp.presence_count + st.count
+                WHERE st.id_order = ({$idOrder}) AND sp.presence_count IS NOT NULL AND sp.presence_count >= 0");
+            DB::query("UPDATE shop_modifications sm
+                INNER JOIN shop_tovarorder st ON sm.id IN (st.modifications)
+                INNER JOIN shop_price sp ON sp.id = st.id_price
+                SET sm.count = sm.count + st.count
+                WHERE st.id_order = ({$idOrder}) AND sm.count IS NOT NULL AND sm.count >= 0");
+
+            $u = new DB('shop_tovarorder', 'st');
+            if (!empty($idsUpdate))
+                $u->where('NOT `id` IN (' . $idsUpdate . ') AND id_order = ?', $idOrder)->deleteList();
+            else $u->where('id_order = ?', $idOrder)->deleteList();
+
+            // новый товары/услуги заказа
+            foreach ($products as $p) {
+                if (!$p["id"]) {
+                    $data[] = array('id_order' => $idOrder, 'id_price' => $p["idPrice"], 'article' => $p["article"],
+                        'nameitem' => $p["name"], 'price' => (float)$p["price"],
+                        'discount' => $p["discount"], 'count' => $p["count"], 'modifications' => $p["idsModifications"],
+                        'license' => $p["license"], 'commentary' => $p["note"], 'action' => $p["action"]);
+                } else {
+                    $u = new DB('shop_tovarorder', 'sto');
+                    $u->select("modifications");
+                    $u->where("id = ?", $p["id"]);
+                    $result = $u->fetchOne();
+                    if ($result["modifications"])
+                        $p["idsModifications"] = $result["modifications"];
+                }
+                if ($p["idPrice"] && $p["count"] > 0) {
+                    DB::query("UPDATE shop_price SET presence_count = presence_count - '{$p["count"]}'
+                        WHERE id = {$p["idPrice"]} AND presence_count IS NOT NULL AND presence_count >= 0");
+                }
+                if ($p["idsModifications"] && $p["idPrice"]) {
+                    if ($p["count"] > 0)
+                        DB::query("UPDATE shop_modifications
+                            SET count = count  - '{$p["count"]}'
+                            WHERE id IN ({$p["idsModifications"]}) AND count IS NOT NULL AND count >= 0 AND id_price = {$p["idPrice"]}");
+                }
+            }
+            if (!empty($data))
+                DB::insertList('shop_tovarorder', $data);
+
+            // обновление товаров/услугов заказа
+            foreach ($products as $p)
+                if ($p["id"]) {
+                    $p["nameitem"] = $p["name"];
+                    $p["modifications"] = $p["idsModifications"];
+                    $u = new DB('shop_tovarorder', 'st');
+                    $u->setValuesFields($p);
+                    $u->save();
+                }
+
+            return true;
+
+        } catch (Exception $e) {
+            $this->error = "Не удаётся сохранить товары и услуги заказа!";
         }
 
-        DB::query("UPDATE shop_price sp
-            INNER JOIN shop_tovarorder st ON sp.id = st.id_price
-            SET sp.presence_count = sp.presence_count + st.count
-            WHERE st.id_order = ({$idOrder}) AND sp.presence_count IS NOT NULL AND sp.presence_count >= 0");
-        DB::query("UPDATE shop_modifications sm
-            INNER JOIN shop_tovarorder st ON sm.id IN (st.modifications)
-            INNER JOIN shop_price sp ON sp.id = st.id_price
-            SET sm.count = sm.count + st.count
-            WHERE st.id_order = ({$idOrder}) AND sm.count IS NOT NULL AND sm.count >= 0");
-
-        $u = new DB('shop_tovarorder', 'st');
-        if (!empty($idsUpdate))
-            $u->where('NOT `id` IN (' . $idsUpdate . ') AND id_order = ?', $idOrder)->deleteList();
-        else $u->where('id_order = ?', $idOrder)->deleteList();
-
-        // новый товары/услуги заказа
-        foreach ($products as $p) {
-            if (!$p["id"]) {
-                $data[] = array('id_order' => $idOrder, 'id_price' => $p["idPrice"], 'article' => $p["article"],
-                    'nameitem' => $p["name"], 'price' => (float)$p["price"],
-                    'discount' => $p["discount"], 'count' => $p["count"], 'modifications' => $p["idsModifications"],
-                    'license' => $p["license"], 'commentary' => $p["note"], 'action' => $p["action"]);
-            } else {
-                $u = new DB('shop_tovarorder', 'sto');
-                $u->select("modifications");
-                $u->where("id = ?", $p["id"]);
-                $result = $u->fetchOne();
-                if ($result["modifications"])
-                    $p["idsModifications"] = $result["modifications"];
-            }
-            if ($p["idPrice"] && $p["count"] > 0) {
-                DB::query("UPDATE shop_price SET presence_count = presence_count - '{$p["count"]}'
-                    WHERE id = {$p["idPrice"]} AND presence_count IS NOT NULL AND presence_count >= 0");
-            }
-            if ($p["idsModifications"] && $p["idPrice"]) {
-                if ($p["count"] > 0)
-                    DB::query("UPDATE shop_modifications
-                        SET count = count  - '{$p["count"]}'
-                        WHERE id IN ({$p["idsModifications"]}) AND count IS NOT NULL AND count >= 0 AND id_price = {$p["idPrice"]}");
-            }
-        }
-        if (!empty($data))
-            DB::insertList('shop_tovarorder', $data);
-
-        // обновление товаров/услугов заказа
-        foreach ($products as $p)
-            if ($p["id"]) {
-                $p["nameitem"] = $p["name"];
-                $p["modifications"] = $p["idsModifications"];
-                $u = new DB('shop_tovarorder', 'st');
-                $u->setValuesFields($p);
-                $u->save();
-            }
     }
 
     // сохранить пользовательские поля
     private function saveCustomFields()
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         if (!isset($this->input["customFields"]))
             return true;
 
@@ -526,6 +536,7 @@ class Order extends Base // порядок
                 $u->save();
             }
             return true;
+            
         } catch (Exception $e) {
             $this->error = "Не удаётся сохранить доп. информацию о заказе!";
             throw new Exception($this->error);
@@ -535,25 +546,32 @@ class Order extends Base // порядок
     // сохранить доставку
     private function saveDelivery()
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
-        $input = $this->input;
-        unset($input["ids"]);
-        $idOrder = $input["id"];
-        $p = new DB('shop_delivery', 'sd');
-        $p->select("id");
-        $p->where('id_order = ?', $idOrder);
-        $result = $p->fetchOne();
-        if ($result["id"])
-            $input["id"] = $result["id"];
-        $u = new DB('shop_delivery', 'sd');
-        $u->setValuesFields($input);
-        $u->save();
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
+
+        try {
+            $input = $this->input;
+            unset($input["ids"]);
+            $idOrder = $input["id"];
+            $p = new DB('shop_delivery', 'sd');
+            $p->select("id");
+            $p->where('id_order = ?', $idOrder);
+            $result = $p->fetchOne();
+            if ($result["id"])
+                $input["id"] = $result["id"];
+            $u = new DB('shop_delivery', 'sd');
+            $u->setValuesFields($input);
+            $u->save();
+
+            return true;
+        } catch (Exception $e) {
+            $this->error = "Не удаётся сохранить доставку заказа!";
+        }
     }
 
     // удалить
     public function delete()
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         try {
             $input = $this->input;
             if (!empty($input["allMode"]))
@@ -571,7 +589,7 @@ class Order extends Base // порядок
 
     public function export()
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         if ($this->input["id"]) {
             $this->exportItem();
             return;
@@ -646,7 +664,7 @@ class Order extends Base // порядок
 
     private function exportItem()
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $fileName = "export_order_{$this->input["id"]}.xlsx";
         $filePath = DOCUMENT_ROOT . "/files";
         if (!file_exists($filePath) || !is_dir($filePath))
@@ -725,7 +743,7 @@ class Order extends Base // порядок
         $sheet->mergeCells('E13:F13');
         $sheet->setCellValue("C14", 'ИТОГО:');
         $sheet->mergeCells('C14:D14');
-        $sheet->setCellValue("E14",  number_format($order["amount"], 2, ',', ' '));
+        $sheet->setCellValue("E14", number_format($order["amount"], 2, ',', ' '));
         $sheet->mergeCells('E14:F14');
         $sheet->getStyle('D7')->getNumberFormat()->setFormatCode('#,##0.00');
         $sheet->getStyle('E12')->getNumberFormat()->setFormatCode('#,##0.00');
