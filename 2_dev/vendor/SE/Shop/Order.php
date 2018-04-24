@@ -400,6 +400,7 @@ class Order extends Base // порядок
 
         try {
             $payments = $this->input["payments"];
+            writeLog($payments);
             foreach ($payments as $payment)
                 (new Payment($payment))->save(false);
 
