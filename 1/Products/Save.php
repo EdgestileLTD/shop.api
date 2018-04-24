@@ -721,18 +721,19 @@ function saveIdGroup($idsProducts, $idGroup)
         $u = new seTable('shop_price_group', 'spg');
         $u->select('spg.id, spg.id_group, spg.is_main');
         $u->where('spg.id_price = ?', $idProduct);
+        $u->andWhere('spg.id_group = ?', $idGroup);
         $result = $u->fetchOne();
         if (empty($result)) {
             if ($idGroup)
                 $data[] = array('id_price' => $idProduct, 'id_group' => $idGroup, 'is_main' => 1);
         } else {
-            if ($result["id_group"] != $idGroup) {
-                $u = new seTable('shop_price_group');
-                $u->addupdate('id_group', $idGroup);
-                $u->where('id = ?', $result["id"]);
-                $u->save();
-            }
+            $u = new seTable('shop_price_group');
+            $u->addupdate('id_group', $idGroup);
+            $u->addupdate('is_main', 1);
+            $u->where('id = ?', $result["id"]);
+            $u->save();
         }
+        se_db_query("UPDATE shop_price_group SET is_main = 0 WHERE id_group <> {$idGroup} AND id_price = {$idProduct}");
     }
 
     if (!empty($data))
