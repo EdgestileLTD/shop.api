@@ -10,6 +10,102 @@ class Payment extends Base
 {
     protected $tableName = "shop_order_payee";
 
+    public function save()
+    {
+        /** сохранить (сопоставить данные страницы с данными БД)
+         *
+         * delete в shop/base
+         * getAddInfo в Order получить информацию
+         *
+         * 1 получаем массив id из БД
+         * 2 цикл по id
+         *   2.1 если есть id - в массив
+         *   2.2 если нет id  - на добавление
+         * 3 сравниваем массивы - в JS отсутствует, на удаление
+         *
+         * @param array $this ->input["payments"] массив всех платежей с JS страницы
+         */
+
+        if (isset($this->input["payments"])) {
+            try {
+                $idBase = $this->getPayments($this->input["idOrder"]); // 1
+                $idsPage = array();
+                $deleteIDs = array();
+                foreach ($this->input["payments"] as $item) {
+                    if ($item["id"]) {
+                        $idsPage[$item["id"]] = true; // 2.1
+                    } else {
+                        $this->savePayment($item); // 2.2
+                    }
+                } // 2
+                foreach ($idBase as $id) {
+                    if (!$idsPage[$id]) array_push($deleteIDs, $id);
+                } // 3
+                $this->deletePayments($deleteIDs);
+                $this->info();
+                $this->afterSave();
+
+                return $this;
+            } catch (Exception $e) {
+                DB::rollBack();
+                $this->error = empty($this->error) ? "Не удаётся сохранить информацию об объекте!" : $this->error;
+            }
+        } else return parent::save();
+    }
+
+    protected function getPayments($idOrder)
+    {
+        /** получить id-шники из таблицы shop_order_payee
+         * @param int $idOrder id заказа
+         * @return array $base массив ids из БД
+         */
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
+        $u = new DB('shop_order_payee', 'sop');
+        $u->select('sop.id');
+        $u->where('sop.id_order = ?', $idOrder);
+        $base = $u->getList();
+        $return = array();
+        foreach ($base as $array) {
+            array_push($return, $array["id"]);
+        } // вытаскивае id из массивов
+        unset($u);
+        return $return;
+    }
+
+    protected function savePayment($input)
+    {
+        /** сохранить платеж
+         * @param array $input данные по записываемой строке shop_order_payee
+         * @return array $input
+         */
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
+
+        //$input["curr"] = $this->getBaseCurr()["name"];
+
+        try {
+            $this->correctValuesBeforeSave();
+            $this->correctAll();
+            DB::beginTransaction();
+            $u = new DB("shop_order_payee");
+            $u->setValuesFields($input);
+            $input["id"] = $u->save();
+            if ($input["id"] && $this->saveAddInfo()) {
+                $this->info();
+                DB::commit();
+                $this->afterSave();
+            } else throw new Exception();
+        } catch (Exception $e) {
+            DB::rollBack();
+            $this->error = empty($this->error) ? "Не удаётся сохранить информацию об объекте!" : $this->error;
+        }
+
+        if (!empty($input["idOrder"]))
+            Order::checkStatusOrder($input["idOrder"], $input["paymentType"]);
+
+        return $input;
+
+    }
+
     protected function deletePayments($ids)
     {
         /** удалить массив строк по id из shop_order_payee
@@ -37,7 +133,7 @@ class Payment extends Base
         $u->select('mt.name, mt.title, mt.name_front, mt.name_flang');
         $u->innerJoin('money_title mt', 'm.basecurr = mt.name');;
         $base = $u->fetchOne();
-
+        unset($u);
         return $base;
     }
 
@@ -110,7 +206,7 @@ class Payment extends Base
     protected function correctValuesBeforeSave()
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
-        if ($this->isNew) {
+        if (empty($this->input["id"])) {
             $this->input["num"] = $this->getNewNum();
             $this->input["year"] = date("Y");
             $this->input["date"] = date("Y-m-d H:i:s", strtotime($this->input["date"]));
@@ -208,10 +304,14 @@ class Payment extends Base
         return $result;
     } // добавить полученную информацию
 
-    public function fetchByOrder($idOrder)
+    public function fetchByOrder($idOrder, $curr=null)
     {
+        /**
+         * @param str $curr если валюта страницы отличается от базовой - передаем сюда
+         */
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $this->setFilters(array("field" => "idOrder", "value" => $idOrder));
+        if ($curr!=null) $this->input['curr'] = $curr;
         return $this->fetch();
     } // выбор по заказу
 

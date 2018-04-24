@@ -61,6 +61,8 @@ class Base extends CustomBase
         }
         if (is_array($this->input))
             $this->input = $this->correctInput($this->input);
+        $this->debugging('shop/base', __FUNCTION__.' '.__LINE__, __CLASS__, 'return',
+            $array=array("this->result"=>$this->result, "this->input"=>$this->input));
     }
 
     public function setFilters($filters)
@@ -173,11 +175,17 @@ class Base extends CustomBase
             $this->error = "Не удаётся получить список объектов!";
         }
 
+        $this->debugging('shop/base', __FUNCTION__.' '.__LINE__, __CLASS__, 'return',
+            $array=array("this->result"=>$this->result, "input"=>$this->input));
+
         return $this->result["items"];
     }
 
     public function dataCurrencies($settingsFetch)
     {
+
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+
         /** ДАННЫЕ ПО ВАЛЮТАМ
          *   2 запрашиваем название,приставки/окончания валют
          *   3 и добавляем в эллементы массива соответственно
@@ -199,49 +207,63 @@ class Base extends CustomBase
          *
          */
 
-        if ($settingsFetch["convertingValues"]) { // 4
-            $u = new DB('main', 'm');
-            $u->select('mt.name, mt.title, mt.name_front');
-            $u->innerJoin('money_title mt', 'm.basecurr = mt.name');
-            $this->currData = $u->fetchOne();
-            unset($u);
-        } else { // 2
+        $this->debugging('shop/base', __FUNCTION__.' '.__LINE__, __CLASS__, 'start',
+            $array=array("this->result"=>$this->result, "this->input"=>$this->input, 'settingsFetch'=>$settingsFetch));
+
+        if ($settingsFetch["convertingValues"]) {                                  // 4
+            if ($this->input['curr']) {                                            // если валюта страницы не по умолчанию
+                $u = new DB('money_title', 'mt');
+                $u->select('mt.name, mt.title, mt.name_front');
+                $u->where("name = '?'", $this->input["curr"]);
+                $this->currData = $u->fetchOne();
+                unset($u);
+            } else {
+                $this->getCurrData();
+            }
+        } else {                                                                   // 2
             $u = new DB('money_title', 'mt');
-            $u->select('mt.name name, mt.title title, mt.name_front nameFront, mt.name_flang nameFlang');
+            $u->select('mt.name name, mt.title title, mt.name_front nameFront, mt.name_flang curr');
             $currList = $u->getList();
             unset($u);
         }
 
         foreach ($this->result["items"] as $key => &$item) {
-            if (!empty($item["currency"])) $item["curr"] = $item["currency"]; // 6
+            if (!empty($item["currency"])) $item["curr"] = $item["currency"];      // 6
             elseif (empty($item["curr"])) $item["curr"] = $this->currData["name"];
 
-            if ($settingsFetch["convertingValues"]) { // 5
+            if ($settingsFetch["convertingValues"]) {                              // 5
                 $course = DB::getCourse($this->currData["name"], $item["curr"]);
                 foreach ($settingsFetch["convertingValues"] as $key => $i) {
                     $item[$i] = (float)str_replace(" ","",$item[$i]);
                     $item[$i] = round($item[$i] * $course, 2);
                 }
-                unset($item["curr"]);
-                if(!$item["nameFlang"]) $item["nameFlang"] = $this->currData["name"];
-                if(!$item["titleCurr"]) $item["titleCurr"] = $this->currData["title"];
-                if(!$item["nameFront"]) $item["nameFront"] = $this->currData["nameFront"];
+                if ($this->currData["name"])      $item["curr"] = $this->currData["name"];
+                if ($this->currData["title"])     $item["titleCurr"] = $this->currData["title"];
+                if ($this->currData["nameFront"]) $item["nameFront"] = $this->currData["nameFront"];
             } else { // 3
                 foreach ($currList as $currUnit) {
                     if ($item["curr"] == $currUnit["name"]) {
                         $this->result["items"][$key]["titleCurr"] = $currUnit["title"];
                         $this->result["items"][$key]["nameFront"] = $currUnit["nameFront"];
-                        $this->result["items"][$key]["nameFlang"] = $currUnit["nameFlang"];
+                        $this->result["items"][$key]["curr"] = $currUnit["curr"];
                     };
                 }
             }
         };
 
         $this->result["currTotal"] = array ( // 7
-            "nameFlang" => $this->currData["name"],
+            "curr"      => $this->currData["name"],
             "titleCurr" => $this->currData["title"],
             "nameFront" => $this->currData["nameFront"]
         );
+    }
+
+    public function getCurrData() {
+        $u = new DB('main', 'm');
+        $u->select('mt.name, mt.title, mt.name_front');
+        $u->innerJoin('money_title mt', 'm.basecurr = mt.name');
+        $this->currData = $u->fetchOne();
+        unset($u);
     }
 
     public function correctAll()
@@ -289,8 +311,19 @@ class Base extends CustomBase
         } catch (Exception $e) {
             $this->error = "Не удаётся получить информацию об объекте!";
         }
+        $this->result['pageCurr'] = $this->pageCurr($this->result["curr"]);
         return $this->result;
     }
+
+    private function pageCurr($name)
+    {
+        $u = new DB('money_title', 'mt');
+        $u->select('mt.name, mt.title, mt.name_front');
+        $u->where("name = '?'", $name);
+        $return = $u->fetchOne();
+        unset($u);
+        return $return;
+    } // получить данные по валюте страницы
 
     protected function getAddInfo()
     {
