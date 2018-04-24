@@ -241,10 +241,6 @@ class Order extends Base // порядок
     {
         /** Передать информацию на страницу
          * 1 передаем базовую валюту в JS
-         * 2 если на странице используется валюта отличная от базовой в. - передаем ее значения
-         *
-         * @param  obj $this->input данные с JS
-         * @return obj $result      данные в JS
          */
 
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
@@ -261,7 +257,7 @@ class Order extends Base // порядок
         $result['paid'] = $this->getPaidSum();
         $result['surcharge'] = $this->result["amount"] - $result['paid'];
 
-        $u = new DB('main', 'm');                              // 1
+        $u = new DB('main', 'm'); // 1
         $u->select('mt.name, mt.title, mt.name_front');
         $u->innerJoin('money_title mt', 'm.basecurr = mt.name');
         $result['baseCurr'] = $u->fetchOne();
@@ -282,7 +278,7 @@ class Order extends Base // порядок
         return (real)$result['amount'];
     }
 
-    // получить заказы
+    // получить ордера
     private function getOrderItems()
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
@@ -336,7 +332,7 @@ class Order extends Base // порядок
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $payment = new Payment();
-        return $payment->fetchByOrder($this->input["id"], $curr=$this->input["curr"]);
+        return $payment->fetchByOrder($this->input["id"]);
     }
 
     // получить пользовательские поля
