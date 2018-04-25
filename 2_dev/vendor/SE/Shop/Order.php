@@ -241,6 +241,9 @@ class Order extends Base // порядок
     {
         /** Передать информацию на страницу
          * 1 передаем базовую валюту в JS
+         *
+         * @param  obj $this->input данные с JS
+         * @return obj $result      данные в JS
          */
 
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
@@ -278,7 +281,7 @@ class Order extends Base // порядок
         return (real)$result['amount'];
     }
 
-    // получить ордера
+    // получить заказы
     private function getOrderItems()
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
@@ -332,7 +335,8 @@ class Order extends Base // порядок
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $payment = new Payment();
-        return $payment->fetchByOrder($this->input["id"]);
+        // writeLog($payment->fetchByOrder($this->input["id"], $curr=$this->input["curr"]));
+        return $payment->fetchByOrder($this->input["id"], $curr=$this->input["curr"]);
     }
 
     // получить пользовательские поля
@@ -393,21 +397,52 @@ class Order extends Base // порядок
         return $this->saveItems() && $this->saveDelivery() && $this->saveCustomFields() && $this->savePayments();
     }
 
+    // сохранить платежи заказа
     private function savePayments()
     {
+        /** Сохранить платежи заказа
+         * @param array $this->input["payments"] список платежей заказа из JS, полный без обработки
+         */
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
+
         if (!isset($this->input["payments"]))
             return true;
 
+        $payments = array();
+        foreach ($this->getPayments() as $array) {
+            array_push($payments, $array["id"]);
+        } // вытаскивае id из массивов
+
+        /**
+         * 1 получаем массив id из БД
+         * 2 цикл по id
+         *   2.1 если есть id - в массив
+         *   2.2 если нет id  - на добавление
+         * 3 сравниваем массивы - в JS отсутствует, на удаление
+         */
+
         try {
-            $payments = $this->input["payments"];
-            writeLog($payments);
-            foreach ($payments as $payment)
-                (new Payment($payment))->save(false);
+            $idsPage = array();
+            $deleteIDs = array();
+            foreach ($this->input["payments"] as $item) {
+                if ($item["id"]) {
+                    $idsPage[$item["id"]] = true; // 2.1
+                } else {
+                    (new Payment($item))->save(false); // 2.2
+                }
+            } // 2
+            foreach ($payments as $id) {
+                if (!$idsPage[$id]) array_push($deleteIDs, $id);
+            } // 3
+            (new Payment(array("ids" => $deleteIDs)))->delete();
+            $this->info();
+            $this->checkStatusOrder($this->input["idOrder"]);
 
             return true;
 
         } catch (Exception $e) {
-
+            DB::rollBack();
+            $this->error = empty($this->error) ? "Не удаётся сохранить информацию об объекте!" : $this->error;
         }
     }
 
