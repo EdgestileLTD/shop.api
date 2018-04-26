@@ -99,7 +99,8 @@ class Payment extends Base
             $this->input["num"] = $this->getNewNum();
             $this->input["year"] = date("Y");
             $this->input["date"] = date("Y-m-d H:i:s", strtotime($this->input["date"]));
-            $this->input["curr"] = $this->getBaseCurr()["name"];
+            if (empty($this->input["curr"]))
+                $this->input["curr"] = $this->getBaseCurr()["name"];
         }
         $this->saveOrderAccount();
     } // правильные заначения перед сохранением
