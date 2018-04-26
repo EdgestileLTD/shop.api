@@ -335,7 +335,6 @@ class Order extends Base // порядок
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $payment = new Payment();
-        // writeLog($payment->fetchByOrder($this->input["id"], $curr=$this->input["curr"]));
         return $payment->fetchByOrder($this->input["id"], $curr=$this->input["curr"]);
     }
 
@@ -434,9 +433,9 @@ class Order extends Base // порядок
             foreach ($payments as $id) {
                 if (!$idsPage[$id]) array_push($deleteIDs, $id);
             } // 3
-            (new Payment(array("ids" => $deleteIDs)))->delete();
+            if (count($deleteIDs) > 0) (new Payment(array("ids" => $deleteIDs)))->delete();
             $this->info();
-            $this->checkStatusOrder($this->input["idOrder"]);
+            $this->checkStatusOrder($this->input["id"]);
 
             return true;
 

@@ -192,10 +192,14 @@ class Payment extends Base
         return $result;
     } // добавить полученную информацию
 
-    public function fetchByOrder($idOrder)
+    public function fetchByOrder($idOrder, $curr=null)
     {
+        /**
+         * @param str $curr если валюта страницы отличается от базовой - передаем сюда
+         */
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $this->setFilters(array("field" => "idOrder", "value" => $idOrder));
+        if ($curr!=null) $this->input['curr'] = $curr;
         return $this->fetch();
     } // выбор по заказу
 
