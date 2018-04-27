@@ -1727,8 +1727,8 @@ class Product extends Base
                             $u = new DB('shop_modifications', 'sm');
                             $item["code"] = $item["article"];
                             $item["value"] = $item["priceRetail"];
-                            $item["valueOpt"] = $item["priceOpt"];
-                            $item["valueOptCorp"] = $item["priceSmallOpt"];
+                            $item["valueOpt"] = $item["priceSmallOpt"];
+                            $item["valueOptCorp"] = $item["priceOpt"];
                             $item["sort"] = $item["sortIndex"];
                             $u->setValuesFields($item);
                             $u->save();
