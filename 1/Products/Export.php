@@ -64,15 +64,18 @@ function getGroup53($groups, $idGroup)
     }
 }
 
+$countPhotos = 50;
+
 $fields = ["id" => "Ид.", "article" => "Артикул", "code" => "Код (URL)", "id_group" => "Ид. категории",
     "code_group" => "Код категории",  "path_group" => "Путь категории", "name" => "Наименование",
     "price" => "Цена пр.", "price_opt" => "Цена опт.",
     "price_opt_corp" => "Цена корп.", "price_purchase" => "Цена закуп.", "presence_count" => "Остаток",
     "brand" => "Бренд", "weight" => "Вес", "volume" => "Объем", "measure" => "Ед.Изм", "note" => "Краткое описание",
     "text" => "Полное описание", "curr" => "Код валюты", "title" => "Тег title", "keywords" => "Мета-тег keywords",
-    "description" => "Мета-тег description", "img" => "Фото 1", "img_2" => "Фото 2",
-    "img_3" => "Фото 3", "img_4" => "Фото 4", "img_5" => "Фото 5", "img_6" => "Фото 6",
-    "img_7" => "Фото 7", "img_8" => "Фото 8", "img_9" => "Фото 9", "img_10" => "Фото 10"];
+    "description" => "Мета-тег description", "img" => "Фото 1"];
+
+for ($i = 2; $i <= $countPhotos; ++$i)
+    $fields["img_{$i}"] = "Фото {$i}";
 
 $t = new seTable("shop_feature", "sf");
 $t->select("sf.name");
@@ -82,7 +85,7 @@ foreach ($features as $feature)
     $fields[$feature["name"]] = $feature["name"];
 
 $u = new seTable('shop_price', 'sp');
-$select = 'sp.*, GROUP_CONCAT(si.picture SEPARATOR ";") photos, sb.name brand,              
+$select = 'sp.*, GROUP_CONCAT(DISTINCT si.picture SEPARATOR ";") photos, sb.name brand,              
                 (SELECT GROUP_CONCAT(CONCAT_WS("#", sf.name,
                     IF(smf.id_value IS NOT NULL, sfvl.value, CONCAT(IFNULL(smf.value_number, ""), 
                     IFNULL(smf.value_bool, ""), IFNULL(smf.value_string, "")))) SEPARATOR ";") features

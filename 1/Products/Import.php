@@ -207,6 +207,8 @@ if (!file_exists($root . $dir)) {
 }
 $dir = $root . $dir;
 
+$countPhotos = 50;
+
 $fields = ["id" => "Ид.", "article" => "Артикул", "code" => "Код (URL)", "id_group" => "Ид. категории",
     "code_group" => "Код категории", "catalog0" => "Корневая категория", "catalog1" => "Подкатегория 1",
     "catalog2" => "Подкатегория 2", "catalog3" => "Подкатегория 3", "catalog4" => "Подкатегория 4",
@@ -214,9 +216,7 @@ $fields = ["id" => "Ид.", "article" => "Артикул", "code" => "Код (UR
     "price_opt_corp" => "Цена корп.", "price_purchase" => "Цена закуп.", "presence_count" => "Остаток",
     "brand" => "Бренд", "weight" => "Вес", "volume" => "Объем", "measure" => "Ед.Изм", "note" => "Краткое описание",
     "text" => "Полное описание", "curr" => "Код валюты", "title" => "Тег title", "keywords" => "Мета-тег keywords",
-    "description" => "Мета-тег description", "img" => "Фото 1", "img_2" => "Фото 2",
-    "img_3" => "Фото 3", "img_4" => "Фото 4", "img_5" => "Фото 5", "img_6" => "Фото 6",
-    "img_7" => "Фото 7", "img_8" => "Фото 8", "img_9" => "Фото 9", "img_10" => "Фото 10"];
+    "description" => "Мета-тег description", "img" => "Фото 1"];
 
 $addFields = ["file_1" => "Документ 1", "file_2" => "Документ 2", "file_3" => "Документ 3"];
 
@@ -269,7 +269,11 @@ if ($step == 0) {
     } else $fileCSV = $filePath;
 
 
+    for ($i = 2; $i <= $countPhotos; ++$i)
+        $fields["img_{$i}"] = "Фото {$i}";
     $fields = array_values($fields);
+
+
 
     if ($delimiter == "Автоопределение") {
         $separator = getSeparator($fileCSV);
@@ -535,7 +539,7 @@ if ($step == 1) {
             // фотографии товаров
             if (!empty($product["img"])) {
                 $product["img_0"] = $product["img"];
-                for ($i = 0; $i < 11; $i++) {
+                for ($i = 0; $i <= $countPhotos; $i++) {
                     $picture = $product["img_{$i}"];
                     if (empty($picture))
                         continue;
