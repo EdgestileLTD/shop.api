@@ -207,7 +207,7 @@ if (!file_exists($root . $dir)) {
 }
 $dir = $root . $dir;
 
-$countPhotos = 50;
+$countPhotos = 25;
 
 $fields = ["id" => "Ид.", "article" => "Артикул", "code" => "Код (URL)", "id_group" => "Ид. категории",
     "code_group" => "Код категории", "catalog0" => "Корневая категория", "catalog1" => "Подкатегория 1",

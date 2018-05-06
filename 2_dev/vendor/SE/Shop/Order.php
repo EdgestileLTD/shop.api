@@ -250,6 +250,8 @@ class Order extends Base // порядок
         $result = array();
         $this->result["amount"] = (real)$this->result["amount"];
         $this->result["dateOrder"] = date("d.m.Y", strtotime($this->result["dateOrder"]));
+        if (!empty($this->result["deliveryDate"]))
+            $this->result["deliveryDate"] = date("d.m.Y", strtotime($this->result["deliveryDate"]));
 
         $result["oldStatus"] = $this->result["status"];
         $result["oldDeliveryStatus"] = $this->result["deliveryStatus"];
@@ -376,6 +378,8 @@ class Order extends Base // порядок
             $this->input["dateOrder"] = date("Y-m-d");
         if (isset($this->input["dateOrder"]))
             $this->input["dateOrder"] = date("Y-m-d", strtotime($this->input["dateOrder"]));
+        if (isset($this->input["deliveryDate"]))
+            $this->input["deliveryDate"] = date("Y-m-d", strtotime($this->input["deliveryDate"]));
         if (isset($this->input["idAdmin"]) && empty($this->input["idAdmin"]))
             $this->input["idAdmin"] = null;
         if ($this->isNew) {
@@ -597,17 +601,22 @@ class Order extends Base // порядок
 
         try {
             $input = $this->input;
-            unset($input["ids"]);
             $idOrder = $input["id"];
+            unset($input["ids"]);
+            unset($input["id"]);
+            if (empty($input["nameRecipient"]))
+                $input["nameRecipient"] = "";
             $p = new DB('shop_delivery', 'sd');
             $p->select("id");
             $p->where('id_order = ?', $idOrder);
             $result = $p->fetchOne();
             if ($result["id"])
                 $input["id"] = $result["id"];
+            $input["idOrder"] = $idOrder;
             $u = new DB('shop_delivery', 'sd');
             $u->setValuesFields($input);
             $u->save();
+
 
             return true;
         } catch (Exception $e) {

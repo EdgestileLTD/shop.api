@@ -97,9 +97,10 @@ class UserAccount extends Base
             );
             $this->result['items'][$fld]['balanse'] = round($balances[$this->currData["name"]], 2);
 
-            $this->result['items'][$fld]['nameFlang'] = $this->currData["name"]; // 7
-            $this->result['items'][$fld]['titleCurr'] = $this->currData["title"];
-            $this->result['items'][$fld]['nameFront'] = $this->currData["nameFront"];
+            /** закоментированно: небыло данных $this->currData + валюты прибавлялись в shop/base dataCurrencies */
+//            $this->result['items'][$fld]['nameFlang'] = $this->currData["name"]; // 7
+//            $this->result['items'][$fld]['titleCurr'] = $this->currData["title"];
+//            $this->result['items'][$fld]['nameFront'] = $this->currData["nameFront"];
             unset($this->result['items'][$fld]['curr']);
         }
     }

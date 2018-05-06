@@ -64,7 +64,7 @@ function getGroup53($groups, $idGroup)
     }
 }
 
-$countPhotos = 50;
+$countPhotos = 25;
 
 $fields = ["id" => "Ид.", "article" => "Артикул", "code" => "Код (URL)", "id_group" => "Ид. категории",
     "code_group" => "Код категории",  "path_group" => "Путь категории", "name" => "Наименование",

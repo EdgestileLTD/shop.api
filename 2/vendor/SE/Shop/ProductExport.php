@@ -15,16 +15,17 @@ use Box\Spout\Common\Type;
 class ProductExport extends Product
 {
 
-    /*
-     *  @@@@@@ @@@@@@ @@@@@@ @@    @@    @@@@@@ @@  @@ @@@@@@  | превью экспорта
-     *  @@  @@ @@  @@ @@     @@    @@    @@      @@@@  @@  @@  |
-     *  @@@@@@ @@@@@@ @@@@@@  @@  @@     @@@@@@   @@   @@@@@@  |
-     *  @@     @@ @@  @@       @@@@      @@      @@@@  @@      |
-     *  @@     @@  @@ @@@@@@    @@       @@@@@@ @@  @@ @@      |
-     */
 
     public function previewExport($temporaryFilePath)
     {
+        /**
+         *  @@@@@@ @@@@@@ @@@@@@ @@    @@    @@@@@@ @@  @@ @@@@@@  | превью экспорта
+         *  @@  @@ @@  @@ @@     @@    @@    @@      @@@@  @@  @@  |
+         *  @@@@@@ @@@@@@ @@@@@@  @@  @@     @@@@@@   @@   @@@@@@  |
+         *  @@     @@ @@  @@       @@@@      @@      @@@@  @@      |
+         *  @@     @@  @@ @@@@@@    @@       @@@@@@ @@  @@ @@      |
+         */
+
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $this->rmdir_recursive($temporaryFilePath);  // очистка директории с временными файлами
 
@@ -54,29 +55,30 @@ class ProductExport extends Product
         // unset($u);
 
         return $headerCSV;
-    }
+    } // превью экспорта
 
-    /*
-     *  @@     @@    @@    @@@@@@ @@    @@    @@@@@@ @@  @@ @@@@@@ @@@@@@ @@@@@@ @@@@@@@@  | Экспорт
-     *  @@@   @@@   @@@@     @@   @@@   @@    @@      @@@@  @@  @@ @@  @@ @@  @@    @@     |
-     *  @@ @@@ @@  @@  @@    @@   @@@@@ @@    @@@@@@   @@   @@@@@@ @@  @@ @@@@@@    @@     |
-     *  @@  @  @@ @@@@@@@@   @@   @@  @@@@    @@      @@@@  @@     @@  @@ @@ @@     @@     |
-     *  @@     @@ @@    @@ @@@@@@ @@   @@@    @@@@@@ @@  @@ @@     @@@@@@ @@  @@    @@     |
-     */
 
-    public function mainExport($input, $fileName, $filePath, $oldFilePath, $temporaryFilePath)  // выяснить что приходит в $formData и отделить страницы
+
+    public function mainExport($input, $fileName, $filePath, $oldFilePath, $temporaryFilePath)
     {
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
-        /*
-         * $writer;   // данные по временным файлам
-         * $line;     // номер линии
-         * $column;   // колонки
-         * $limit;    // макс выдачи в одном запросе к БД
-         * $offset;   // начальный номер выдачи
-         * $pages;    // кол-во страниц
-         * $cycleNum; // номер нынешней страницы
+
+        /**
+         *  @@     @@    @@    @@@@@@ @@    @@    @@@@@@ @@  @@ @@@@@@ @@@@@@ @@@@@@ @@@@@@@@  | Экспорт
+         *  @@@   @@@   @@@@     @@   @@@   @@    @@      @@@@  @@  @@ @@  @@ @@  @@    @@     |
+         *  @@ @@@ @@  @@  @@    @@   @@@@@ @@    @@@@@@   @@   @@@@@@ @@  @@ @@@@@@    @@     |
+         *  @@  @  @@ @@@@@@@@   @@   @@  @@@@    @@      @@@@  @@     @@  @@ @@ @@     @@     |
+         *  @@     @@ @@    @@ @@@@@@ @@   @@@    @@@@@@ @@  @@ @@     @@@@@@ @@  @@    @@     |
+         *
+         * @param $writer;   // данные по временным файлам
+         * @param $line;     // номер линии
+         * @param $column;   // колонки
+         * @param $limit;    // макс выдачи в одном запросе к БД
+         * @param $offset;   // начальный номер выдачи
+         * @param $cycleNum; // номер нынешней страницы
+         * @return $pages;   // кол-во страниц
          */
 
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
 
         // объявление параметров для экспорта
         $cycleNum                = $input['cycleNum'];
@@ -90,7 +92,7 @@ class ProductExport extends Product
         $writer                  = array();
         $this->temporaryFilePath = $temporaryFilePath;
 
-        /*
+        /**
          * запрос на получение __листа_товаров__
          * Пакетный запрос к БД с перезагрузкой соединения к БД
          * сбор данных о $limit товарах за проход __цикла__
@@ -110,22 +112,22 @@ class ProductExport extends Product
             $this->assembly($pages, $filePath);
 
         return $pages;   // возврат в Ajax колво страниц в формируемом файле
-    }
+    } // Экспорт
 
 
-    /*
-     *  @@@@@@ @@  @@ @@@@@@ @@     @@@@@@  | цикл экспорта
-     *  @@     @@  @@ @@     @@     @@      |
-     *  @@      @@@@  @@     @@     @@@@@@  |
-     *  @@       @@   @@     @@     @@      |
-     *  @@@@@@   @@   @@@@@@ @@@@@@ @@@@@@  |
-     */
 
-    // завершение экспорта
-    public function exportCycle(
-        $writer, $line, $goodsL, $goodsIndex,
-        $filePath, $formData, $cycleNum, $column, $pages
-    ) {
+    public function exportCycle( $writer, $line, $goodsL, $goodsIndex,
+                                 $filePath, $formData, $cycleNum, $column, $pages )
+    {
+
+        /**
+         *  @@@@@@ @@  @@ @@@@@@ @@     @@@@@@  | цикл экспорта
+         *  @@     @@  @@ @@     @@     @@      |
+         *  @@      @@@@  @@     @@     @@@@@@  |
+         *  @@       @@   @@     @@     @@      |
+         *  @@@@@@   @@   @@@@@@ @@@@@@ @@@@@@  |
+         */
+
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         // фильтрация значений
@@ -166,7 +168,7 @@ class ProductExport extends Product
                     $headerCSV[] = $col;
                 }
 
-        /*
+        /**
          * ФОРМИРОВАНИЕ ФАЙЛА
          *
          * определяем колво заголовков и генерируем список столбцов по длине
@@ -194,21 +196,21 @@ class ProductExport extends Product
         list($writer, $line)       = $this->pricesWithoutModifications($writer, $goodsL, $excludingKeys, $column, $line);
         list($writer, $line)       = $this->pricesWithModifications($writer, $modifications, $lastId, $goodsItem,$goodsIndex, $excludingKeys, $line);
         $this->writTempFiles($writer, $cycleNum);
-    }
+    } // цикл / завершение экспорта
 
 
 
-    /*
-     *  @@@@@@@@ @@@@@@ @@@@@     @@    @@@@@@ @@     @ | ПОЛУЧЕНИЕ
-     *     @@    @@  @@ @@  @@   @@@@   @@  @@ @@     @ | листа товаров
-     *     @@    @@  @@ @@@@@   @@  @@  @@@@@@ @@@@@@ @ |
-     *     @@    @@  @@ @@  @@ @@@@@@@@ @@     @@  @@ @ |
-     *     @@    @@@@@@ @@@@@  @@    @@ @@     @@@@@@ @ |
-     */
-
-    // получение листа товаров
     private function shopPrice($limit, $offset)
     {
+        /**
+         *  @@@@@@@@ @@@@@@ @@@@@     @@    @@@@@@ @@     @ | ПОЛУЧЕНИЕ
+         *     @@    @@  @@ @@  @@   @@@@   @@  @@ @@     @ | листа товаров
+         *     @@    @@  @@ @@@@@   @@  @@  @@@@@@ @@@@@@ @ |
+         *     @@    @@  @@ @@  @@ @@@@@@@@ @@     @@  @@ @ |
+         *     @@    @@@@@@ @@@@@  @@    @@ @@     @@@@@@ @ |
+         */
+
+
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         // получаем данные из БД
         $u = new DB('shop_price', 'sp');
@@ -336,19 +338,21 @@ class ProductExport extends Product
         $u->groupBy('sp.id');
 
         return [$u, $pages];
-    }
+    } // получение листа товаров
 
-   /*
-    *  @@@@@@@@ @@@@@@ @@@@@     @@    @@@@@@ @@     @     @     | ПОЛУЧЕНИЕ
-    *     @@    @@  @@ @@  @@   @@@@   @@  @@ @@     @     @     | особенностей товаров
-    *     @@    @@  @@ @@@@@   @@  @@  @@@@@@ @@@@@@ @  @@@@@@@  | групп        товаров
-    *     @@    @@  @@ @@  @@ @@@@@@@@ @@     @@  @@ @     @     | модификаций  товаров
-    *     @@    @@@@@@ @@@@@  @@    @@ @@     @@@@@@ @     @     |
-    */
 
-    // особенности
+
     private function modsCols()
     {
+        /**
+         *  @@@@@@@@ @@@@@@ @@@@@     @@    @@@@@@ @@     @     @     | ПОЛУЧЕНИЕ
+         *     @@    @@  @@ @@  @@   @@@@   @@  @@ @@     @     @     | особенностей товаров
+         *     @@    @@  @@ @@@@@   @@  @@  @@@@@@ @@@@@@ @  @@@@@@@  | групп        товаров
+         *     @@    @@  @@ @@  @@ @@@@@@@@ @@     @@  @@ @     @     | модификаций  товаров
+         *     @@    @@@@@@ @@@@@  @@    @@ @@     @@@@@@ @     @     |
+         */
+
+
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, 'экспортируемые данные');
         $u = new DB('shop_feature', 'sf');
         $u->reConnection();  // перезагрузка запроса
@@ -360,11 +364,11 @@ class ProductExport extends Product
         $modsCols = $u->getList();
         unset($u);
         return $modsCols;
-    }
+    } // <особенности, группы, модификации> товаров
 
-    // группы товаров
     private function groups()
     {
+        /** группы товаро */
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $u = new DB('shop_group', 'sg');
         $u->reConnection();  // перезагрузка запроса
@@ -381,11 +385,12 @@ class ProductExport extends Product
         $groups = $u->getList();
         unset($u); // удаление переменной
         return $groups;
-    }
+    } // группы товаров
 
-    // модификации товара
     private function modifications()
     {
+        /** модификации товара */
+
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $u = new DB('shop_modifications', 'sm');
         $u->reConnection();  // перезагрузка запроса
@@ -404,20 +409,21 @@ class ProductExport extends Product
         $modifications = $u->getList();
         unset($u); // удаление переменной
         return $modifications;
-    }
+    } // модификации товара
 
-    /*
-     *  @@@@@@ @@@@@@ @@     @@@@@@  | формирование, запись файла
-     *  @@       @@   @@     @@      |
-     *  @@@@@@   @@   @@     @@@@@@  |
-     *  @@       @@   @@     @@      |
-     *  @@     @@@@@@ @@@@@@ @@@@@@  |
-     */
 
-    // замена значений на пользовательские
-    private function customValues(
-        $formData, $headerCSV, $numColumn, $goodsL, $goodsIndex
-    ) {
+
+    private function customValues( $formData,$headerCSV, $numColumn,
+                                   $goodsL, $goodsIndex)
+    {
+        /**
+         *  @@@@@@ @@@@@@ @@     @@@@@@  | формирование, запись файла
+         *  @@       @@   @@     @@      |
+         *  @@@@@@   @@   @@     @@@@@@  |
+         *  @@       @@   @@     @@      |
+         *  @@     @@@@@@ @@@@@@ @@@@@@  |
+         */
+
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if(count($formData) > 1) {
             $headerCSV = array();
@@ -465,12 +471,10 @@ class ProductExport extends Product
             $goodsIndex = $goodsIndexNew;
             return [$goodsL, $goodsIndex];
         }
-    }
+    } // замена значений на пользовательские
 
-    // разметка по столбцам (координаты)
-    private function columnLayout(
-        $column_number, $column, $last_column
-    ) {
+    private function columnLayout( $column_number, $column, $last_column )
+    {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         do {
             $column_name = (($t = floor($column_number / 26)) == 0 ? '' : chr(ord('A')+$t-1)).
@@ -479,22 +483,19 @@ class ProductExport extends Product
             $column_number++;
         } while ($column_number != $last_column);
         return $column;
-    }
+    } // разметка по столбцам (координаты)
 
-    // записываем заголовки
-    private function recordHeaders(
-        $writer, $headerCSV, $line
-    ) {
+    private function recordHeaders( $writer, $headerCSV, $line )
+    {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $writer[] = $headerCSV;
         $line++;
         return [$writer, $line];
-    }
+    } // записываем заголовки
 
-    // вывод товаров без модификаций
-    private function pricesWithoutModifications(
-        $writer, $goodsL, $excludingKeys, $column, $line
-    ) {
+    private function pricesWithoutModifications( $writer, $goodsL,
+                                                 $excludingKeys, $column, $line )
+    {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         foreach ($goodsL as $row) {
             if (empty($row['idModification'])) {
@@ -516,12 +517,12 @@ class ProductExport extends Product
             }
         }
         return [$writer, $line];
-    }
+    } // вывод товаров без модификаций
 
-    // вывод товаров с модификациями
-    private function pricesWithModifications(
-        $writer, $modifications, $lastId, $goodsItem,$goodsIndex, $excludingKeys, $line
-    ) {
+    private function pricesWithModifications( $writer, $modifications, $lastId,
+                                              $goodsItem,$goodsIndex,
+                                              $excludingKeys, $line )
+    {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         foreach ($modifications as $mod) {
             if ($lastId != $mod["idProduct"]) {
@@ -571,29 +572,29 @@ class ProductExport extends Product
             }
         }
         return [$writer, $line];
-    }
+    } // вывод товаров с модификациями
 
 
 
-    /*
-     * @@@@@@@@ @@@@@@ @@     @@ @@@@@@ | методы по работе с временными файлами
-     *    @@    @@     @@@   @@@ @@  @@ |
-     *    @@    @@@@@@ @@ @@@ @@ @@@@@@ |
-     *    @@    @@     @@  @  @@ @@     |
-     *    @@    @@@@@@ @@     @@ @@     |
-     */
-
-    // сборка файла из временных
     private function assembly($pages, $filePath)
     {
+        /**
+         * @@@@@@@@ @@@@@@ @@     @@ @@@@@@ | методы по работе с временными файлами
+         *    @@    @@     @@@   @@@ @@  @@ |
+         *    @@    @@@@@@ @@ @@@ @@ @@@@@@ |
+         *    @@    @@     @@  @  @@ @@     |
+         *    @@    @@@@@@ @@     @@ @@     |
+         */
+
+
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
-        /*
+        /**
          * читает объекты из файлов "goodsL1.TMP" (число - номер цикла) в директории "files/tempfiles/",
          * кол-во циклов опредеялется общим колвом циклов экспорта;
          * полученные объекты отправляет в Spout на запись файла
          */
         if (!empty($pages)) {
-            /*
+            /**
              * библиотека - Spout
              * https://github.com/box/spout
              *
@@ -612,7 +613,7 @@ class ProductExport extends Product
             }
             unset($mainRequest);
 
-            /*
+            /**
              * сохраняем файл
              * закрываем объект записи
              */
@@ -621,7 +622,7 @@ class ProductExport extends Product
             unset($mainRequest);
             unset($objWriter);
         }
-    }
+    } // сборка файла из временных
 
 
 }

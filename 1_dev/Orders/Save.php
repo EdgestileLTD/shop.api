@@ -122,10 +122,12 @@ function savePayments($payments)
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-                    'Content-Type: application/json',
-                    'Content-Length: ' . strlen($apiData))
-            );
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen($apiData),
+                'Secookie: ' . session_id()
+            ));
             $result = json_decode(curl_exec($ch), 1);
+
             if ($result["status"] == "ok") {
                 $idsPayments[] = $result["data"]["id"];
             }
