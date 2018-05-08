@@ -15,7 +15,6 @@ use Box\Spout\Common\Type;
 class ProductExport extends Product
 {
 
-
     public function previewExport($temporaryFilePath)
     {
         /**
@@ -102,7 +101,6 @@ class ProductExport extends Product
          * сбор данных о $limit товарах за проход __цикла__
          */
         list($mainRequest, $pages) = $this->shopPrice($limit, $offset);
-        // TODO нужно перепривязывать лимиты
         $goodsL  = $mainRequest->getList($limit, $offset);  // получение лимитированного списка товаров
 
 
@@ -148,11 +146,15 @@ class ProductExport extends Product
         $modsCols      = $this->modsCols();      // особенности
         $groups        = $this->groups();        // группы товаров
 
-        // TODO ТЕСТ высокой нагрузки, оптимизация кода
-        // TODO ТЕСТ мет: mergerWithMoffification тестировать отсутствие line при больших объемах данных (возможно нужно вернуть)
-        // TODO ТЕСТ надеюсь не все модификации товарОВ разом запрашиваются?
+        // TODO если удастся снизить время старта цикла - можно уменьшить кол-во товаров, записываемых во временный файл
+        // TODO нужен ли вкл/выкл экспорта модификаций?
 
-        $modifications = $this->modifications(); // модификации товаров
+        /** получаем ids товаров для запроса модификаций */
+        $idsProducts = array();
+        foreach ($goodsL as $l)
+            array_push($idsProducts, $l['id']);
+
+        $modifications = $this->modifications($idsProducts); // модификации товаров
 
         $excludingKeys = array("idGroup", "presence", "idModification");
         $rusCols       = $this->rusCols;
@@ -221,7 +223,7 @@ class ProductExport extends Product
             $column                = $this->columnLayout($column_number, $column, $last_column);
         if ($cycleNum == 0)
             list($writer, $line)   = $this->recordHeaders($writer, $headerCSV, $line);
-        list($writer, $line)       = $this->pricesWithoutModifications($writer, $goodsL, $excludingKeys, $column, $line);
+        list($writer, $line)       = $this->recorRow($writer, $goodsL, $excludingKeys, $column, $line);
         $this->writTempFiles($writer, $cycleNum);
     } // цикл / завершение экспорта
 
@@ -423,7 +425,7 @@ class ProductExport extends Product
         return $groups;
     } // группы товаров
 
-    private function modifications()
+    private function modifications($idsProducts)
     {
         /**
          * МОДИФИКАЦИИ ТОВАРА
@@ -451,6 +453,7 @@ class ProductExport extends Product
                 sm.count, smg.name nameGroup, smg.vtype typeGroup, sm.description metaDescription,
 				GROUP_CONCAT(DISTINCT sf.name, "--", sfvl.value SEPARATOR "##") AS `values`,
 				GROUP_CONCAT(DISTINCT si.Picture SEPARATOR ",") AS images');
+        $u->where('sm.id_price IN (?)', implode(",", $idsProducts));
         $u->innerJoin('shop_modifications_group smg',   'smg.id = sm.id_mod_group');
         $u->innerJoin('shop_modifications_feature smf', 'sm.id = smf.id_modification');
         $u->innerJoin('shop_feature sf',                'sf.id = smf.id_feature');
@@ -544,12 +547,10 @@ class ProductExport extends Product
         return [$writer, $line];
     } // записываем заголовки
 
-    private function pricesWithoutModifications( $writer, $goodsL,
-                                                 $excludingKeys, $column, $line )
+    private function recorRow( $writer, $goodsL, $excludingKeys, $column, $line )
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         foreach ($goodsL as $row) {
-            if (empty($row['idModification'])) {
                 $out = [];
                 if ($row['count'] == "-1" || (empty($row["count"]) && $row["count"] !== "0"))
                     $row["count"] = $row['presence'];
@@ -565,61 +566,86 @@ class ProductExport extends Product
                 // записываем данные по товарам
                 $writer[] = $out;
                 $line++;
-            }
         }
         return [$writer, $line];
     } // вывод товаров без модификаций
 
     private function mergerWithMoffification($goodsL, $modifications)
     {
-        /** добавляем модификации в массив */
+        /** добавляем модификации в массив (оптимизированный)
+         * 1 получаем именной массив id модификаций
+         * 2 получаем именной массив товаров / получаем список товаров без модификаций
+         * 3 дополнение модификаций параметрами из товаров
+         * 4 слияние готовых списков модификаций и товаровБезМодификаций
+         *
+         * @param array $goodsL массив товаров (до добавления модификаций)
+         * @param array $modifications массив данных по модификациям (для подстановки)
+         * @return array $tempGoodsL массив товаров и модификаций
+         */
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         $tempGoodsL = array();
 
-        foreach ($goodsL as $k => $v) {
-            $unsetParentItem = false;
-            foreach ($modifications as $item) {
-                if ($v['id'] == $item['idProduct']) {
-                    switch ($item['typeGroup']) { /** $item['typeGroup'] : 0 - добавляет, 1 - умножает цену, 2 - заменяет */
-                        case 0:
-                            $item['price']        = $item['price'] + $v['price'];
-                            $item['priceOpt']     = $item['priceOpt'] + $v['priceOpt'];
-                            $item['priceOptCorp'] = $item['priceOptCorp'] + $v['priceOptCorp'];
-                            break;
-                        case 1:
-                            $item['price']        = $item['price'] * $v['price'];
-                            $item['priceOpt']     = $item['priceOpt'] * $v['priceOpt'];
-                            $item['priceOptCorp'] = $item['priceOptCorp'] * $v['priceOptCorp'];
-                            break;
-                        case 2: break;
-                        default: break;
-                    }
-                    unset($item['id']);
+        /** 1 */
+        $idsModsName = array();
+        foreach ($modifications as $i) {
+            $idsModsName[$i['idProduct']] = true;
+        }
 
-                    $modFeature = explode("##", $item['values']);
-                    foreach ($modFeature as $kMF => $vMF) {
-                        $feat = explode("--", $vMF);
-                        $item[ $item['nameGroup'].'#'.$feat[0] ] = $feat[1];
-                    }
-                    unset($item['nameGroup']);
-                    unset($item['values']);
-                    unset($item['idProduct']);
-                    unset($item['typeGroup']);
-
-                    unset($v['idModification']); // приходят из shopPrice запроса
-                    unset($v['idGroup']);
-                    unset($v['presence']);
-
-                    $unsetParentItem = true;
-                    $newItem = array_merge($v, $item);
-                    array_push($tempGoodsL, $newItem);
-                }
-            }
-            if ($unsetParentItem == false) {
-                array_push($tempGoodsL, $v); /** возвращаем знаение товара, если нет модификаций */
+        /** 2 */
+        $goodsLName = array();
+        $goodsWithoutModification = array();
+        foreach ($goodsL as $i) {
+            if (array_key_exists($i['id'], $idsModsName)) {
+                $goodsLName[$i['id']] = $i;
+                unset($idsModsName[$i['id']]);
+            } else {
+                array_push($goodsWithoutModification, $i);
+                unset($idsModsName[$i['id']]);
             }
         }
+        unset($goodsL); unset($idsModsName);
+
+        /** 3 */
+        foreach ($modifications as $item) {
+            $product = $goodsLName[$item['idProduct']];
+            /** $item['typeGroup'] : 0 - добавляет, 1 - умножает цену, 2 - заменяет */
+            switch ($item['typeGroup']) {
+                case 0:
+                    $item['price']        = $item['price'] + $product['price'];
+                    $item['priceOpt']     = $item['priceOpt'] + $product['priceOpt'];
+                    $item['priceOptCorp'] = $item['priceOptCorp'] + $product['priceOptCorp'];
+                    break;
+                case 1:
+                    $item['price']        = $item['price'] * $product['price'];
+                    $item['priceOpt']     = $item['priceOpt'] * $product['priceOpt'];
+                    $item['priceOptCorp'] = $item['priceOptCorp'] * $product['priceOptCorp'];
+                    break;
+                case 2: break;
+                default: break;
+            }
+            unset($item['id']);
+
+            $modFeature = explode("##", $item['values']);
+            foreach ($modFeature as $kMF => $vMF) {
+                $feat = explode("--", $vMF);
+                $item[ $item['nameGroup'].'#'.$feat[0] ] = $feat[1];
+            }
+            unset($item['nameGroup']); unset($item['values']); unset($item['idProduct']); unset($item['typeGroup']);
+
+            unset($product['idModification']); // приходят из shopPrice запроса
+            unset($product['idGroup']); unset($product['presence']);
+
+            $newItem = array_merge($product, $item);
+            array_push($tempGoodsL, $newItem);
+
+            unset($product);
+        }
+        unset($goodsLName); unset($modifications);
+
+        /** 4 */
+        $tempGoodsL = array_merge($goodsWithoutModification, $tempGoodsL);
+        unset($goodsWithoutModification);
 
         return $tempGoodsL;
     } // добавляем модификации в массив
