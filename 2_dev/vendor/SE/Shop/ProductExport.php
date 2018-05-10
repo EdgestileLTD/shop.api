@@ -85,6 +85,7 @@ class ProductExport extends Product
 
         // объявление параметров для экспорта
         $cycleNum                = $input['cycleNum'];
+        $expModif                = $input['expModif'];
         $limit                   = 1000;
         $offset                  = $cycleNum * $limit;
         $line                    = 1;
@@ -107,7 +108,7 @@ class ProductExport extends Product
         if (!empty($goodsL)) {
             $this->exportCycle(
                 $writer, $line, $goodsL, $goodsIndex,
-                $filePath, $formData, $cycleNum, $column, $pages, $fileName
+                $filePath, $formData, $cycleNum, $expModif, $column, $pages, $fileName
             );  // Запись из БД в файл
         }
 
@@ -118,7 +119,7 @@ class ProductExport extends Product
     } // Экспорт
 
     public function exportCycle( $writer, $line, $goodsL, $goodsIndex,
-                                 $filePath, $formData, $cycleNum, $column, $pages )
+                                 $filePath, $formData, $cycleNum, $expModif, $column, $pages )
     {
 
         /**
@@ -146,15 +147,15 @@ class ProductExport extends Product
         $modsCols      = $this->modsCols();      // особенности
         $groups        = $this->groups();        // группы товаров
 
-        // TODO если удастся снизить время старта цикла - можно уменьшить кол-во товаров, записываемых во временный файл
-        // TODO нужен ли вкл/выкл экспорта модификаций?
-
         /** получаем ids товаров для запроса модификаций */
         $idsProducts = array();
         foreach ($goodsL as $l)
             array_push($idsProducts, $l['id']);
 
-        $modifications = $this->modifications($idsProducts); // модификации товаров
+        $features = $this->features($idsProducts); // характеристики товаров
+        if ($expModif == 'Y') $modifications = $this->modifications($idsProducts); // модификации товаров
+
+        $goodsL = $this->mergerWithFeatures($goodsL, $features); // сливаем списки товаров и их характеристик
 
         $excludingKeys = array("idGroup", "presence", "idModification");
         $rusCols       = $this->rusCols;
@@ -183,7 +184,7 @@ class ProductExport extends Product
         }
         $goodsL = $tempGoodsL; unset($tempGoodsL);
 
-        $goodsL = $this->mergerWithMoffification($goodsL, $modifications); // сливаем списки товаров и их модификаций
+        if ($expModif == 'Y') $goodsL = $this->mergerWithMoffification($goodsL, $modifications); // сливаем списки товаров и их модификаций
 
         if ($cycleNum == 0) {
             foreach ($header as $col)
@@ -317,27 +318,7 @@ class ProductExport extends Product
                 ) AS idAcc,
 
                 sp.title metaHeader, sp.keywords metaKeywords, sp.description metaDescription,
-                sp.note description, sp.text fullDescription, sm.id idModification,
-
-                (
-                    SELECT GROUP_CONCAT(
-                        CONCAT_WS(\'#\', sf.name,
-                            IF(
-                                smf.id_value IS NOT NULL, sfvl.value, CONCAT(
-                                    IFNULL(smf.value_number, \'\'),
-                                    IFNULL(smf.value_bool, \'\'),
-                                    IFNULL(smf.value_string, \'\')
-                                )
-                            )
-                        ) SEPARATOR \';\'
-                    ) features
-
-                    FROM shop_modifications_feature smf
-                    INNER JOIN shop_feature sf ON smf.id_feature = sf.id AND smf.id_modification IS NULL
-                    LEFT JOIN shop_feature_value_list sfvl ON smf.id_value = sfvl.id
-                    WHERE smf.id_price = sp.id
-                    GROUP BY smf.id_price
-                ) features
+                sp.note description, sp.text fullDescription, sm.id idModification
             ';
 
         /** все запршиваемые поля должны использоваться в импорте или удалятся при обработке,
@@ -424,6 +405,35 @@ class ProductExport extends Product
         unset($u); // удаление переменной
         return $groups;
     } // группы товаров
+
+    private function features($idsProducts)
+    {
+        /** ХАРАКТЕРИСТИКИ ТОВАРА (оптимизированный) */
+
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
+        $u = new DB('shop_modifications_feature', 'smf');
+        $u->reConnection();  // перезагрузка запроса
+        $u->select("smf.id_price id, GROUP_CONCAT(
+                CONCAT_WS('#', sf.name,
+                    IF(
+                        smf.id_value IS NOT NULL, sfvl.value, CONCAT(
+                            IFNULL(smf.value_number, ''),
+                            IFNULL(smf.value_bool, ''),
+                            IFNULL(smf.value_string, '')
+                        )
+                    )
+                ) SEPARATOR ';'
+            ) features");
+        $u->where('smf.id_price IN (?)', implode(",", $idsProducts));
+        $u->innerJoin('shop_feature sf',   'smf.id_feature = sf.id AND smf.id_modification IS NULL');
+        $u->leftJoin('shop_feature_value_list sfvl',      'smf.id_value = sfvl.id');
+        $u->groupBy('smf.id_price');
+        $features = $u->getList();
+        unset($u); // удаление переменной
+        return $features;
+
+
+    } // характеристики товара
 
     private function modifications($idsProducts)
     {
@@ -570,9 +580,45 @@ class ProductExport extends Product
         return [$writer, $line];
     } // вывод товаров без модификаций
 
+    private function mergerWithFeatures($goodsL, $features)
+    {
+        /** Добавляем Характеристики в массив (оптимизированный)
+         *
+         * 1 получаем именной массив id характеристик
+         * 2 добавляем характеристики в массив товаров
+         *
+         * @param array $goodsL массив товаров (до добавления характеристик)
+         * @param array $features массив данных по характеристикам (для подстановки)
+         * @return array $tempGoodsL массив товаров и характеристик
+         */
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
+
+        $tempGoodsL = array();
+
+        /** 1 */
+        $idsFeatsName = array();
+        foreach ($features as $k => $v) {
+            $idsFeatsName[$v['id']] = $v;
+            unset($features[$k]);
+        }
+        unset($features);
+
+        /** 2 */
+        foreach ($goodsL as $k => $v) {
+            $newItem = array_merge($v, $idsFeatsName[$v['id']]);
+            array_push($tempGoodsL, $newItem);
+            unset($idsFeatsName[$v['id']]); unset($goodsL[$k]);
+        }
+        unset($goodsL);
+
+        return $tempGoodsL;
+    } // добавляем характеристики в массив
+
+
     private function mergerWithMoffification($goodsL, $modifications)
     {
-        /** добавляем модификации в массив (оптимизированный)
+        /** Добавляем Модификации в массив (оптимизированный)
+         *
          * 1 получаем именной массив id модификаций
          * 2 получаем именной массив товаров / получаем список товаров без модификаций
          * 3 дополнение модификаций параметрами из товаров
