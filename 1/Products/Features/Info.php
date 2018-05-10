@@ -18,6 +18,7 @@ foreach ($result as $item) {
     $feature['idGroup'] = $item['id_feature_group'];
     $feature['nameGroup'] = $item['namegroup'];
     $feature['name'] = $item['name'];
+    $feature['code'] = $item['code'];
     $feature['type'] = $item['type'];
     $feature['valueType'] = $newTypes[$item['type']];
     $feature['description'] = $item['description'];

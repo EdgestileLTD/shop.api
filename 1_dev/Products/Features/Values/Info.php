@@ -14,6 +14,7 @@
         $value['idFeature'] = $item['id_feature'];
         $value['color'] = $item['color'];
         $value['name'] = $item['value'];
+        $value['code'] = $item['code'];
         $value['imageFile'] = $item['image'];
         $value['sortIndex'] = (int) $item['sort'];
         $value['isDefault'] = (bool) $item['default'];

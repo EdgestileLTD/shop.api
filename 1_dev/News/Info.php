@@ -47,6 +47,7 @@ foreach ($result as $item) {
     $new['idGroup'] = $item['id_category'];
     $new['nameGroup'] = $item['nameGroup'];
     $new['name'] = $item['title'];
+    $new['url'] = $item['url'];
     $new['isActive'] = $item['active'] == 'Y';
     $new['imageFile'] = $item['img'];
     $new['description'] = $item['short_txt'];

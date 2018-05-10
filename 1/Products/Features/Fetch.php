@@ -59,6 +59,7 @@ foreach ($objects as $item) {
     $feature = null;
     $feature['id'] = $item['id'];
     $feature['name'] = $item['name'];
+    $feature['code'] = $item['code'];
     $feature['idGroup'] = $item['id_feature_group'];
     $feature['nameGroup'] = $item['nameGroup'];
     $feature['namesTypesGoods'] = $item['namesTypesGoods'];

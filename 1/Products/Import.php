@@ -222,6 +222,9 @@ $addFields = ["file_1" => "Документ 1", "file_2" => "Документ 2"
 
 $keyFields = ["Идентификатор" => "id", "Артикул" => "article", "Код (URL)" => "code", "Наименование" => "name"];
 
+for ($i = 2; $i <= $countPhotos; ++$i)
+    $fields["img_{$i}"] = "Фото {$i}";
+
 if ($step == 0) {
 
     $filePath = $dir . "/" . $_FILES["file"]["name"];
@@ -269,10 +272,7 @@ if ($step == 0) {
     } else $fileCSV = $filePath;
 
 
-    for ($i = 2; $i <= $countPhotos; ++$i)
-        $fields["img_{$i}"] = "Фото {$i}";
     $fields = array_values($fields);
-
 
 
     if ($delimiter == "Автоопределение") {

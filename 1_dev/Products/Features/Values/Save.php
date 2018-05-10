@@ -23,11 +23,15 @@
         if ($isNew)
             $json->sortIndex = getSortIndex($json->idFeature);
 
+
         $isUpdated |= setField($isNew, $u, $json->name, 'value');
         $isUpdated |= setField($isNew, $u, $json->idFeature, 'id_feature');
         $isUpdated |= setField($isNew, $u, $json->imageFile, 'image');
         $isUpdated |= setField($isNew, $u, $json->color, 'color');
         $isUpdated |= setField($isNew, $u, $json->sortIndex, 'sort');
+        if (isset($json->code) && empty($json->code))
+            $json->code = strtolower(se_translite_url($json->name));
+        $isUpdated |= setField($isNew, $u, $json->code, 'code');
 
         if ($isUpdated){
             if (!empty($idsStr)) {

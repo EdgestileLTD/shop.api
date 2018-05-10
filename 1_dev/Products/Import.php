@@ -207,7 +207,7 @@ if (!file_exists($root . $dir)) {
 }
 $dir = $root . $dir;
 
-$countPhotos = 50;
+$countPhotos = 25;
 
 $fields = ["id" => "Ид.", "article" => "Артикул", "code" => "Код (URL)", "id_group" => "Ид. категории",
     "code_group" => "Код категории", "catalog0" => "Корневая категория", "catalog1" => "Подкатегория 1",
@@ -221,6 +221,9 @@ $fields = ["id" => "Ид.", "article" => "Артикул", "code" => "Код (UR
 $addFields = ["file_1" => "Документ 1", "file_2" => "Документ 2", "file_3" => "Документ 3"];
 
 $keyFields = ["Идентификатор" => "id", "Артикул" => "article", "Код (URL)" => "code", "Наименование" => "name"];
+
+for ($i = 2; $i <= $countPhotos; ++$i)
+    $fields["img_{$i}"] = "Фото {$i}";
 
 if ($step == 0) {
 
@@ -269,10 +272,7 @@ if ($step == 0) {
     } else $fileCSV = $filePath;
 
 
-    for ($i = 2; $i <= $countPhotos; ++$i)
-        $fields["img_{$i}"] = "Фото {$i}";
     $fields = array_values($fields);
-
 
 
     if ($delimiter == "Автоопределение") {

@@ -39,6 +39,11 @@ if ($isNew || !empty($ids)) {
     if ($json->isActive)
         $isUpdated |= setField($isNew, $u, 'Y', 'active');
     else $isUpdated |= setField($isNew, $u, 'N', 'active');
+    if (isset($json->url))
+        $json->url = trim($json->url);
+    if (isset($json->url) && empty($json->url))
+        $json->url = strtolower(se_translite_url($json->name));
+    $isUpdated |= setField($isNew, $u, $json->url, 'url');
 
     if ($isUpdated) {
         if (!empty($idsStr)) {

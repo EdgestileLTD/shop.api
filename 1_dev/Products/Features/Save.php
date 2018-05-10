@@ -36,6 +36,10 @@ if ($isNew || !empty($ids)) {
     $isUpdated |= setField($isNew, $u, $json->description, 'description');
     $isUpdated |= setField($isNew, $u, $json->isYAMarket, 'is_market');
     $isUpdated |= setField($isNew, $u, $json->placeholder, 'placeholder');
+    if (isset($json->code) && empty($json->code))
+        $json->code = strtolower(se_translite_url($json->name));
+    $isUpdated |= setField($isNew, $u, $json->code, 'code');
+
 
     if ($isUpdated) {
         if (!empty($idsStr)) {
