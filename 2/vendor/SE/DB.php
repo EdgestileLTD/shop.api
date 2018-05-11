@@ -493,8 +493,6 @@ class DB
          * @return float|int|null курс валюты
          */
 
-        writeLog($baseCurrency);
-        writeLog($unitCurrency);
         if ($baseCurrency == $unitCurrency)
             return 1;
 
