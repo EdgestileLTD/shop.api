@@ -26,11 +26,14 @@ define('URL_API_ORIGINAL', 'http://upload.beget.edgestile.net/api');
  *
  * @param $data              текст
  * @param bool $enter        переключение печати в строчкУ/строчкИ (по умолчанию с новой строчки)
+ * @param bool $clearFile    очистить файл перед записью
  * @var TYPE_NAME $date      [TimeNow]
  * @var TYPE_NAME $interval  SI - secInterval (прошло секунд с последнего лога в пределах минуты)
  */
-function writeLog($data, $enter = TRUE)
+function writeLog($data, $enter = TRUE, $clearFile = FALSE)
 {
+    if ($clearFile == TRUE)
+        file_put_contents($_SERVER['DOCUMENT_ROOT'] . "/api/" . API_VERSION ."/debug.log", "");
     if (!is_string($data))
         $data = print_r($data, 1);
     $file = fopen($_SERVER['DOCUMENT_ROOT'] . "/api/" . API_VERSION ."/debug.log", "a+");
