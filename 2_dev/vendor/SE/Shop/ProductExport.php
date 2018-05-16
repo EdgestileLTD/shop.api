@@ -387,14 +387,23 @@ class ProductExport extends Product
 
     private function groups()
     {
-        /** группы товаро */
+        /** Группы товаров
+         * 1 запрос на получение данных
+         * 2 обработка пути группы
+         */
+
+
+        /** 1 запрос на получение данных */
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $u = new DB('shop_group', 'sg');
-        $u->reConnection();  // перезагрузка запроса
+        $u->reConnection();  /** перезагрузка запроса */
         if (CORE_VERSION != "5.2") {
-            $u->select('sg.id, GROUP_CONCAT(sgp.name ORDER BY sgt.level SEPARATOR "/") name');
-            $u->innerJoin("shop_group_tree sgt", "sg.id = sgt.id_child"); // присоединение столбца из другой таблицы
-            $u->innerJoin("shop_group sgp", "sgp.id = sgt.id_parent");
+            $u->select('sg.id, sg.name endname, sgt.level,
+                        GROUP_CONCAT(CONCAT_WS(\':\', sgtp.level, sgp.name) SEPARATOR \';\') name');
+            $u->innerJoin("shop_group_tree sgt",  "sgt.id_child = sg.id AND sg.id <> sgt.id_parent
+                                                   OR sgt.id_child = sg.id AND sgt.level = 0");
+            $u->innerJoin("shop_group_tree sgtp", "sgtp.id_child = sgt.id_parent");
+            $u->innerJoin("shop_group sgp",  "sgp.id = sgtp.id_child");
             $u->orderBy('sgt.level');
         } else {
             $u->select('sg.*');
@@ -402,9 +411,36 @@ class ProductExport extends Product
         }
         $u->groupBy('sg.id');
         $groups = $u->getList();
-        unset($u); // удаление переменной
+        unset($u);
+
+
+        /** 2 обработка пути группы */
+        foreach ($groups as $k => $i) {
+
+            $path = '';
+            $pathArray = array();
+            $dataname = explode(";", $i['name']);
+
+            foreach ($dataname as $k2 => $i2) {
+                $ki = explode(":", $i2);
+                $pathArray[$ki[0]] = $ki[1];
+            }
+
+            foreach (range(0, count($pathArray)-1, 1) as $number)
+                $path .= $pathArray[$number]."/";
+
+            /** подстановка окончания, а в родительской - удаление слеша */
+            if ($i["level"] == 0)  $path  = substr($path, 0, -1); /** удаление последнего знака (в родительской группе) */
+            else                   $path .= $i["endname"];
+
+            unset($groups[$k]['level']);
+            unset($groups[$k]['endname']);
+            $groups[$k]['name'] = $path;
+        }
+
+
         return $groups;
-    } // группы товаров
+    } // Группы товаров
 
     private function features($idsProducts)
     {
