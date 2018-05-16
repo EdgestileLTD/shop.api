@@ -318,11 +318,12 @@ class ProductExport extends Product
                 ) AS idAcc,
 
                 sp.title metaHeader, sp.keywords metaKeywords, sp.description metaDescription,
-                sp.note description, sp.text fullDescription, sm.id idModification
+                sp.note description, sp.text fullDescription, sm.id idModification, "" AS features
             ';
 
         /** все запршиваемые поля должны использоваться в импорте или удалятся при обработке,
          *  иначе идет сдвиг столбцов и модификации не отображаются
+         *  features должен возвращаться! тк если нет в товарах характеристик - столбец пропадает
          */
 
         if (CORE_VERSION != "5.2") {
@@ -641,7 +642,8 @@ class ProductExport extends Product
 
         /** 2 */
         foreach ($goodsL as $k => $v) {
-            $newItem = array_merge($v, $idsFeatsName[$v['id']]);
+            if ($idsFeatsName[$v['id']]) $newItem = array_merge($v, $idsFeatsName[$v['id']]);
+            else $newItem = $v;
             array_push($tempGoodsL, $newItem);
             unset($idsFeatsName[$v['id']]); unset($goodsL[$k]);
         }
