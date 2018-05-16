@@ -721,6 +721,7 @@ class ProductExport extends Product
             unset($product['idGroup']); unset($product['presence']);
 
             $newItem = array_merge($product, $item);
+            $newItem["features"] = "";
             array_push($tempGoodsL, $newItem);
 
             unset($product);
