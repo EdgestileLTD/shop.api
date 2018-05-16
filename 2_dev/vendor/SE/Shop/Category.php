@@ -649,28 +649,58 @@ class Category extends Base
     // сохранить id родителя
     public function saveIdParent($id, $idParent)
     {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
-        try {
-            $levelIdOld = self::getLevel($id);
-            $level = 0;
-            DB::query("DELETE FROM shop_group_tree WHERE id_child = {$id}");
 
-            $sqlGroupTree = "INSERT INTO shop_group_tree (id_parent, id_child, `level`)
+        /** Сохранение связей таблиц в shop_group_tree
+         *  1 получаем ids всех детей группы
+         *  2 выравниваем массив, заменяем данные на новые
+         *  3 циклом сохраняем данные для группы и ее детей в shop_group_tree
+         */
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+
+
+        /** 1 получаем ids всех детей группы */
+        $u = new DB('shop_group_tree', 'sgt');
+        $u->select('sgt.id_child, sg.upid');
+        $u->leftjoin('shop_group sg', 'sg.id = sgt.id_child');
+        $u->where("id_parent = '?'", $id);
+        $u->orderBy('sgt.id_child');
+        $u->groupBy('sgt.id_child');
+        $idsDB = $u->getList();
+        unset($u);
+
+
+        /** 2 выравниваем массив, заменяем данные на новые */
+        $ids = array();
+        foreach ($idsDB as $k => $i)
+            $ids[$i['idChild']] = $i['upid'];
+        $ids[$id] = $idParent;
+        unset($idsDB);unset($id);unset($idParent);
+
+
+        /** 3 циклом сохраняем данные для группы и ее детей в shop_group_tree */
+        foreach ($ids as $id => $idParent) {
+            try {
+                $levelIdOld = self::getLevel($id);
+                $level = 0;
+                DB::query("DELETE FROM shop_group_tree WHERE id_child = {$id}");
+
+                $sqlGroupTree = "INSERT INTO shop_group_tree (id_parent, id_child, `level`)
                                 SELECT id_parent, :id, :level FROM shop_group_tree
                                 WHERE id_child = :id_parent
                                 UNION ALL
                                 SELECT :id, :id, :level";
-            $sthGroupTree = DB::prepare($sqlGroupTree);
-            if (!empty($idParent)) {
-                $level = self::getLevel($idParent);
-                $level++;
+                $sthGroupTree = DB::prepare($sqlGroupTree);
+                if (!empty($idParent)) {
+                    $level = self::getLevel($idParent);
+                    $level++;
+                }
+                $sthGroupTree->execute(array('id_parent' => $idParent, 'id' => $id, 'level' => $level));
+                $levelIdNew = self::getLevel($id);
+                $diffLevel = $levelIdNew - $levelIdOld;
+                DB::query("UPDATE shop_group_tree SET `level` = `level` + {$diffLevel}  WHERE id_parent = {$id} AND id_child <> {$id}");
+            } catch (Exception $e) {
+                throw new Exception("Не удаётся сохранить родителя группы!");
             }
-            $sthGroupTree->execute(array('id_parent' => $idParent, 'id' => $id, 'level' => $level));
-            $levelIdNew = self::getLevel($id);
-            $diffLevel = $levelIdNew - $levelIdOld;
-            DB::query("UPDATE shop_group_tree SET `level` = `level` + {$diffLevel}  WHERE id_parent = {$id} AND id_child <> {$id}");
-        } catch (Exception $e) {
-            throw new Exception("Не удаётся сохранить родителя группы!");
         }
     }
 
