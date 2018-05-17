@@ -19,7 +19,8 @@ class Product extends Base
      */
     protected $tableName      = "shop_price";
     protected $tableNameDepen = array(
-        "shop_price_group" => "id_price"
+        "shop_price_group"           => "id_price",
+        "shop_modifications_feature" => "id_price"
     );
     private $newImages;
 
