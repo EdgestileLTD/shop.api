@@ -148,7 +148,15 @@ class Import extends Product
 
     public function startImport($filename, $prepare = false, $options, $customEdition, $cycleNum)
     {
-        /** Запуск импорта */
+        /** Запуск импорта
+         *
+         * @@@@@@ @@@@@@@@    @@    @@@@@@ @@@@@@@@    @@@@@@ @@     @@ @@@@@@ @@@@@@ @@@@@@ @@@@@@@@
+         * @@        @@      @@@@   @@  @@    @@         @@   @@@   @@@ @@  @@ @@  @@ @@  @@    @@
+         * @@@@@@    @@     @@  @@  @@@@@@    @@         @@   @@ @@@ @@ @@@@@@ @@  @@ @@@@@@    @@
+         *     @@    @@    @@@@@@@@ @@ @@     @@         @@   @@  @  @@ @@     @@  @@ @@ @@     @@
+         * @@@@@@    @@    @@    @@ @@  @@    @@       @@@@@@ @@     @@ @@     @@@@@@ @@  @@    @@
+         *
+         */
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
 
@@ -170,7 +178,10 @@ class Import extends Product
             $this->getDataFromFile($filename, $options, $prepare);
         }
         if ($prepare or $this->cycleNum != 0) {
-            // перебор записанных файлов
+            /** подгрузка кодов-ids категорий из БД */
+            $this->getCodesIdsForSession();
+
+            /** перебор записанных файлов */
             if ($prepare)       $this->data = $this->readTempFiles($this->cycleNum);
             else                $this->data = $this->readTempFiles($this->cycleNum-1);
             if (!$prepare and $this->cycleNum == 1)  {
@@ -192,6 +203,22 @@ class Import extends Product
         }
         return 0;
     } // Запуск импорта
+
+    private function getCodesIdsForSession()
+    {
+        /**получить данные коды-ids групп в сессию (для генирации кодов новых групп - предотвращения совпадений)*/
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+
+        $u = new DB("shop_group", "sg");
+        $u->select("sg.id, sg.code_gr");
+        $list = $u->getList();
+        unset($u);
+
+        foreach ($list as $k => $i) {
+            $code_gr = $i['codeGr'];
+            $_SESSION["getId"]['code_gr'][$code_gr] = $i['id'];
+        }
+    } // получить данные коды-ids групп
 
     private function addCategoryMain($code_group, $path_group)
     {
