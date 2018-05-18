@@ -19,6 +19,7 @@ class Import extends Product
     private $data = array();
     private $cycleNum = 0;
     private $checkGroupIdName = FALSE; /** проверка наличия массива ид-имя группы в сессии */
+    private $feature = array();        /** характеристики из БД */
 
     public $fieldsMap = array();
 
@@ -78,7 +79,7 @@ class Import extends Product
         "is_market"         => "Маркет",
 
         "img_alt"           => "Изображения",
-        // "description"       => "Характеристики",
+        "features"          => "Характеристики",
         'min_count'         => "Мин.кол-во",
         'id_acc'            => "Сопутствующие товары",
 
@@ -178,8 +179,8 @@ class Import extends Product
             $this->getDataFromFile($filename, $options, $prepare);
         }
         if ($prepare or $this->cycleNum != 0) {
-            /** подгрузка кодов-ids категорий из БД */
-            $this->getCodesIdsForSession();
+            $this->getCodesIdsForSession(); /** подгрузка кодов-ids категорий из БД */
+            $this->getFeature();            /** подгрузка характеристик из БД */
 
             /** перебор записанных файлов */
             if ($prepare)       $this->data = $this->readTempFiles($this->cycleNum);
@@ -219,6 +220,39 @@ class Import extends Product
             $_SESSION["getId"]['code_gr'][$code_gr] = $i['id'];
         }
     } // получить данные коды-ids групп
+
+    private function getFeature()
+    {
+        /** Получить данные по характеристикам и их значениям
+         * 1 подгрузка связки имя-id характеристик из БД
+         * 2 подгрузка связки имя-id значений характеристик из БД
+         */
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+
+
+        /** 1 подгрузка связки имя-id характеристик из БД */
+
+        $u = new DB("shop_feature", "sf");
+        $u->select("sf.id, sf.name");
+        $list = $u->getList();
+        unset($u);
+
+        foreach ($list as $k => $i)
+            $this->feature['featureIdName'][$i['name']] = $i['id'];
+
+
+        /** 2 подгрузка связки имя-id значений характеристик из БД */
+
+        $u = new DB("shop_feature_value_list", "sfvl");
+        $u->select("sfvl.id, sfvl.value name");
+        $list = $u->getList();
+        unset($u);
+
+        $this->featureValueListIdName = array();
+        foreach ($list as $k => $i)
+            $this->feature['featureValueListIdName'][$i['name']] = $i['id'];
+
+    } // подгрузка связки имя-id характеристик из БД
 
     private function addCategoryMain($code_group, $path_group)
     {
@@ -583,6 +617,7 @@ class Import extends Product
         /** привязываем Заголовки к Номерам Столбцов
          *
          * 1 если приходит пользовательская редакция - подставляем. Иначе берем стандартно
+         * 2 соотносим поля с ключами, если нет среди ключей и есть "#" - определяем как модификацию
          *
          * Готовим данные
          * @param $userData
@@ -591,7 +626,7 @@ class Import extends Product
 
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
-        /** 1 */
+        /** 1 если приходит пользовательская редакция - подставляем. Иначе берем стандартно */
         if (!empty($userData)) {
             $array = $userData;
             if($options['skip'] > 0)
@@ -607,10 +642,20 @@ class Import extends Product
                     array_shift($this->data);
         }
 
+        /** 2 соотносим поля с ключами, если нет среди ключей и есть "#" - определяем как модификацию */
+        // TODO решеток может и не быть в сторонних файлах - нужно что то придумать для распознавания столбцов
+        $rusFields = array();
         foreach ($this->fields as $name => $rus)
-            foreach ($array as $key => $field)
-                if ($field == $rus)
-                    $this->fieldsMap[$name] = $key;
+            $rusFields[$rus] = $name;
+        foreach ($array as $key => $field) {
+            if ($rusFields[$field]) {
+                $name = $rusFields[$field];
+                $this->fieldsMap[$name] = $key;
+            } elseif (strripos($field, '#')) {
+                $this->fieldsMap[$field] = $key;
+            }
+        }
+
         $_SESSION["fieldsMap"] = $this->fieldsMap;
     } // привязываем Заголовки к Номерам Столбцов
 
@@ -1001,6 +1046,126 @@ class Import extends Product
         return $startGetRightData;
     } // Проверка заполненности строки
 
+    private function creationFeature($Product, $item)
+    {
+        /** Cверяем наличие характеристик и значений <shop_feature> <shop_feature_value_list>.
+         *
+         * @@@@@@ @@@@@@ @@@@@@    @@    @@@@@@@@    @@@@@@ @@@@@@    @@    @@@@@@@@
+         * @@     @@  @@ @@       @@@@      @@       @@     @@       @@@@      @@
+         * @@     @@@@@@ @@@@@@  @@  @@     @@       @@@@@@ @@@@@@  @@  @@     @@
+         * @@     @@ @@  @@     @@@@@@@@    @@       @@     @@     @@@@@@@@    @@
+         * @@@@@@ @@  @@ @@@@@@ @@    @@    @@       @@     @@@@@@ @@    @@    @@
+         *
+         * если нет - создаем;
+         * Заменяем значения на id
+         *
+         * @param array $Product все параметры продукта (одной строчки)
+         * param array $item нужен для получения id товара
+         */
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+
+        $features = explode(";", $Product["features"]);
+        $Product["features"] = array();
+        foreach ($features as $k => $i) {
+            $featuresValue = explode("#", $i);
+            $Product["features"][$featuresValue[0]] = $featuresValue[1];
+        }
+        unset($features);
+        $Product["features"] = $this->featureReconciliation($Product["features"], "featureIdName");
+        $Product["features"] = $this->featureValueReconciliation($Product["features"], "featureValueListIdName");
+
+
+        /** выстраиваем формат сохранения */
+        $insertListFeatures = array();
+        foreach ($Product["features"] as $k => $i) {
+            $inserUnut = array(
+                "id_price" => $this->get('id', "/,(?!\s+)/ui", $item),
+                "id_feature" => $k,
+                "id_value" => $i);
+            array_push($insertListFeatures, $inserUnut);
+        }
+        $this->importData['features'] = $insertListFeatures;
+        unset($Product["features"]);
+
+        return $Product;
+    } // Cверяем наличие характеристик и значений
+
+    private function featureReconciliation($features, $section)
+    {
+        /** Проверка наличия характеристики в БД <shop_feature> или ее создание */
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+
+        $nameFeatures = array_keys($features);
+        foreach ($nameFeatures as $k => $i) {
+            /** ищем связку в сессии - присваиваем id */
+            if ($this->feature[$section][$i]) {
+
+                $id = $this->feature[$section][$i];
+                $features[$id] = $features[$i];
+                unset($features[$i]);
+
+            } else {
+
+                /** если нет характеристики - создаем и добавляем в сессию, присваиваем id */
+                // TODO делать экспорт типа и его импорт (при отсутствии по умлчанию list)
+
+                $newfeat = array('name' => $i, 'type' => 'list');
+                DB::query('SET foreign_key_checks = 0');
+                DB::insertList('shop_feature', array($newfeat),TRUE);
+                DB::query('SET foreign_key_checks = 1');
+
+                $u = new DB("shop_feature", "sf");
+                $u->select("sf.id");
+                $u->where("sf.name = '$i'");
+                $list = $u->getList();
+                unset($u);
+
+                $id = $list[0]['id'];
+                $this->feature[$section][$id] = $features[$i];
+                $features[$id] = $features[$i];
+                unset($features[$i]);
+            }
+        }
+        return $features;
+    } // Проверка наличия характеристики в БД
+
+    private function featureValueReconciliation($features, $section)
+    {
+        /** Проверка наличия значения характеристики в БД <shop_feature_value_list> или ее создание */
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+
+        $nameFeatures = $features;
+        foreach ($nameFeatures as $k => $i) {
+            /** ищем связку в сессии - присваиваем id */
+            if ($this->feature[$section][$i]) {
+
+                $val = $this->feature[$section][$i];
+                $features[$k] = $val;
+
+            } else {
+
+                /** если нет значения характеристики - создаем и добавляем в сессию, присваиваем id */
+
+                $newfeat = array('value' => $i, 'id_feature' => $k);
+                DB::query('SET foreign_key_checks = 0');
+                DB::insertList('shop_feature_value_list', array($newfeat),TRUE);
+                DB::query('SET foreign_key_checks = 1');
+
+                $u = new DB("shop_feature_value_list", "sfvl");
+                $u->select("sfvl.id");
+                $u->where("sfvl.value = '$i'");
+                $list = $u->getList();
+                unset($u);
+
+                $val = $list[0]['id'];
+                $this->feature[$section][$i] = $val;
+                $features[$k] = $val;
+
+            }
+        }
+        return $features;
+    } // Проверка наличия значения характеристики в БД
+
     private function getRightData($item, $options)
     {
         /** Получить правильные данные
@@ -1018,8 +1183,9 @@ class Import extends Product
          * 3 Добавляем сопутствующие товары
          * 4 ас.массив значений записи в БД
          * 5 обработчик значений/текста в Остатке
-         * 6 устанновка значений по умолчанию при NULL (ЗАГЛУШКИ)
-         * 7 получение списка изображений из ячеек Excel
+         * 6 Cверяем наличие характеристик и значений
+         * 7 устанновка значений по умолчанию при NULL (ЗАГЛУШКИ)
+         * 8 получение списка изображений из ячеек Excel
          *
          * @param $item данные по КАЖДОМУ товару
          */
@@ -1059,42 +1225,49 @@ class Import extends Product
             }
         };
 
+        // TODO протянул столбцы модификаций - нужно делать обработчик
+        // TODO тестировать на обновлении и добавлении
+        // TODO тестировать дублирование родительской группы при многократном импорте файла
+        //writeLog($this->fieldsMap);
+
+
         /** 4 ас.массив значений записи в БД */
         $Product = array(
-            'id' =>                 $this->get('id', FALSE, $item),
-            'id_group' =>           $id_gr,
-            'name' =>               $this->get('name', FALSE, $item),
-            'article' =>            $this->get('article', FALSE, $item),
-            'code' =>               $this->get('code', FALSE, $item),
-            'price' =>              (int) $this->get('price', FALSE, $item),
-            'price_opt' =>          (int) $this->get('price_opt', FALSE, $item),
-            'price_opt_corp' =>     (int) $this->get('price_opt_corp', FALSE, $item),
-            'price_purchase' =>     (int) $this->get('price_purchase', FALSE, $item),
-            'bonus' =>     			(int) $this->get('bonus', FALSE, $item),
-            'presence_count' =>     $this->get('presence_count', FALSE, $item),
-            'presence' =>           NULL, // если Остаток текстовый - поле заполняется ниже
-            'step_count' =>         $this->get('step_count', FALSE, $item),
+            'id'             => $this->get('id', FALSE, $item),
+            'id_group'       => $id_gr,
+            'name'           => $this->get('name', FALSE, $item),
+            'article'        => $this->get('article', FALSE, $item),
+            'code'           => $this->get('code', FALSE, $item),
+            'price'          => (int) $this->get('price', FALSE, $item),
+            'price_opt'      => (int) $this->get('price_opt', FALSE, $item),
+            'price_opt_corp' => (int) $this->get('price_opt_corp', FALSE, $item),
+            'price_purchase' => (int) $this->get('price_purchase', FALSE, $item),
+            'bonus'          => (int) $this->get('bonus', FALSE, $item),
+            'presence_count' => $this->get('presence_count', FALSE, $item),
+            'presence'       => NULL, // если Остаток текстовый - поле заполняется ниже
+            'step_count'     => $this->get('step_count', FALSE, $item),
 
-            'weight' =>             $this->get('weight', FALSE, $item),
-            'volume' =>             $this->get('volume', FALSE, $item),
+            'weight'         => $this->get('weight', FALSE, $item),
+            'volume'         => $this->get('volume', FALSE, $item),
 
-            'measure' =>            $this->get('measure', "/,(?!\s+)/ui", $item),
-            'note' =>               $this->get('note', FALSE, $item),
-            'text' =>               $this->get('text', FALSE, $item),
-            'curr' =>               $this->get('curr', FALSE, $item),
+            'measure'        => $this->get('measure', "/,(?!\s+)/ui", $item),
+            'note'           => $this->get('note', FALSE, $item),
+            'text'           => $this->get('text', FALSE, $item),
+            'curr'           => $this->get('curr', FALSE, $item),
 
-            'enabled' =>            $this->get('enabled', FALSE, $item),//
-            'flag_new' =>           $this->get('flag_new', FALSE, $item),
-            'flag_hit' =>           $this->get('flag_hit', FALSE, $item),
-            'is_market' =>          (int) $this->get('is_market', FALSE, $item),
+            'enabled'        => $this->get('enabled', FALSE, $item),//
+            'flag_new'       => $this->get('flag_new', FALSE, $item),
+            'flag_hit'       => $this->get('flag_hit', FALSE, $item),
+            'is_market'      => (int) $this->get('is_market', FALSE, $item),
 
-            "img_alt" =>            $this->get('img_alt', "/,(?!\s+)/ui", $item),
-            'min_count' =>          (int) $this->get('min_count', FALSE, $item),
-            'id_brand' =>           $this->getId('id_brand', FALSE, 'shop_brand', 'name', $item),
+            "img_alt"        => $this->get('img_alt', "/,(?!\s+)/ui", $item),
+            'min_count'      => (int) $this->get('min_count', FALSE, $item),
+            'id_brand'       => $this->getId('id_brand', FALSE, 'shop_brand', 'name', $item),
 
-            'title' =>              $this->get('title', FALSE, $item),
-            'keywords' =>           $this->get('keywords', FALSE, $item),
-            'description' =>        $this->get('description', FALSE, $item)
+            'title'          => $this->get('title', FALSE, $item),
+            'keywords'       => $this->get('keywords', FALSE, $item),
+            'description'    => $this->get('description', FALSE, $item),
+            'features'       => $this->get('features', FALSE, $item)
             /** смотреть в БД */
 
         );
@@ -1104,6 +1277,9 @@ class Import extends Product
             $Product['presence'] = $Product['presence_count'];
             $Product['presence_count'] = -1;
         }
+
+        /** 6 Cверяем наличие характеристик и значений */
+        $Product = $this->creationFeature($Product, $item);
 
         /**
          * НЕ ЖЕЛАТЕЛЬНО ИСПОЛЬЗОВАНИЕ ФИЛЬТРАЦИИ ПУСТЫХ ПОЛЕЙ В $Product !
@@ -1116,7 +1292,7 @@ class Import extends Product
         //     if($include !== NULL) {$Product[$ingredient]= $include;};
         // };
 
-        /** 6 устанновка значений по умолчанию при NULL (ЗАГЛУШКИ) */
+        /** 7 устанновка значений по умолчанию при NULL (ЗАГЛУШКИ) */
         $substitution = array(
             'curr'     => 'RUB',
             'enabled'  => 'Y',
@@ -1130,7 +1306,7 @@ class Import extends Product
                     $Product[$ingredient] = $inc;
 
 
-        /** 7 получение списка изображений из ячеек Excel */
+        /** 8 получение списка изображений из ячеек Excel */
         $imgList = array('img_alt','img', 'img_2', 'img_3', 'img_4', 'img_5', 'img_6', 'img_7', 'img_8', 'img_9', 'img_10');
 
         foreach ($imgList as $imgKey){
@@ -1160,6 +1336,7 @@ class Import extends Product
                 }
             }
         }
+
         $this->importData['products'][] = $Product;
         unset($item);
     } // Получить правильные данные
@@ -1181,7 +1358,8 @@ class Import extends Product
          * 3 импорт мер (веса/объема)
          * 4 импорт сопутствующих товаров
          * 5 импорт товаров
-         * 6 импорт изображений
+         * 6 импорт характеристик
+         * 7 импорт изображений
          */
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
@@ -1241,7 +1419,14 @@ class Import extends Product
                 DB::query("SET foreign_key_checks = 1");
             }
 
-            /** 6 импорт изображений */
+            /** 6 импорт характеристик */
+            if (!empty($this->importData['features'])){
+                DB::query("SET foreign_key_checks = 0");
+                DB::insertList('shop_modifications_feature', $this->importData['features'],TRUE);
+                DB::query("SET foreign_key_checks = 1");
+            }
+
+            /** 7 импорт изображений */
             if (!empty($this->importData['img'])){
                 DB::query("SET foreign_key_checks = 0");
                 DB::insertList('shop_img', $this->importData['img'], TRUE);
