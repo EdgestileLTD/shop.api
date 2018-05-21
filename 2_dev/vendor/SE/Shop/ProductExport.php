@@ -460,7 +460,7 @@ class ProductExport extends Product
                         )
                     ),
                     sf.type
-                ) SEPARATOR ';'
+                ) SEPARATOR ','
             ) features");
         $u->where('smf.id_price IN (?)', implode(",", $idsProducts));
         $u->innerJoin('shop_feature sf',   'smf.id_feature = sf.id AND smf.id_modification IS NULL');

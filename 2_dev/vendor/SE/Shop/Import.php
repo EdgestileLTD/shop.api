@@ -1064,11 +1064,11 @@ class Import extends Product
          */
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
-        $features = explode(";", $Product["features"]);
+        $features = preg_split("/,(?!\s+)/ui", $Product["features"]);
         $Product["features"] = array();
         foreach ($features as $k => $i) {
             $featuresValue = explode("#", $i);
-            $Product["features"][$featuresValue[0]] = $featuresValue[1];
+            $Product["features"][$featuresValue[0]] = array("value"=>$featuresValue[1],"type"=>$featuresValue[2]);
         }
         unset($features);
         $Product["features"] = $this->featureReconciliation($Product["features"], "featureIdName");
@@ -1078,11 +1078,26 @@ class Import extends Product
         /** выстраиваем формат сохранения */
         $insertListFeatures = array();
         foreach ($Product["features"] as $k => $i) {
+
+            $value = $i["value"];
+            if ($i["type"]) $type=$i["type"]; else $type = 'list';
+
             $inserUnut = array(
-                "id_price" => $this->get('id', "/,(?!\s+)/ui", $item),
-                "id_feature" => $k,
-                "id_value" => $i);
+                "id_price"     => $this->get('id', "/,(?!\s+)/ui", $item),
+                "id_feature"   => $k,
+                "value_string" => null,
+                "value_number" => null,
+                "value_bool"   => null,
+                "id_value"     => null,
+            );
+            if     ($type=="string")    $inserUnut["value_string"]=$value;
+            elseif ($type=="number")    $inserUnut["value_number"]=$value;
+            elseif ($type=="bool")      $inserUnut["value_bool"]=$value;
+            elseif ($type=="list")      $inserUnut["id_value"]=$value;
+            elseif ($type=="colorlist") $inserUnut["id_value"]=$value;
+
             array_push($insertListFeatures, $inserUnut);
+            unset($value,$type);
         }
         $this->importData['features'] = $insertListFeatures;
         unset($Product["features"]);
@@ -1097,34 +1112,37 @@ class Import extends Product
 
         $nameFeatures = array_keys($features);
         foreach ($nameFeatures as $k => $i) {
-            /** ищем связку в сессии - присваиваем id */
-            if ($this->feature[$section][$i]) {
 
-                $id = $this->feature[$section][$i];
-                $features[$id] = $features[$i];
-                unset($features[$i]);
+            $value = $i;
+            if ($i["type"]) $type=$features[$i]["type"]; else $type = 'list';
+
+            /** ищем связку в сессии - присваиваем id */
+            if ($this->feature[$section][$value]) {
+                $id = $this->feature[$section][$value];
+                $features[$id] = $features[$value];
 
             } else {
 
                 /** если нет характеристики - создаем и добавляем в сессию, присваиваем id */
                 // TODO делать экспорт типа и его импорт (при отсутствии по умлчанию list)
 
-                $newfeat = array('name' => $i, 'type' => 'list');
+                $newfeat = array('name' => $value, 'type' => $type);
+
                 DB::query('SET foreign_key_checks = 0');
                 DB::insertList('shop_feature', array($newfeat),TRUE);
                 DB::query('SET foreign_key_checks = 1');
 
                 $u = new DB("shop_feature", "sf");
                 $u->select("sf.id");
-                $u->where("sf.name = '$i'");
+                $u->where("sf.name = '$value'");
                 $list = $u->getList();
                 unset($u);
 
                 $id = $list[0]['id'];
-                $this->feature[$section][$id] = $features[$i];
-                $features[$id] = $features[$i];
-                unset($features[$i]);
+                $this->feature[$section][$id] = $features[$value];
+                $features[$id] = $features[$value];
             }
+            unset($features[$i],$value,$type);
         }
         return $features;
     } // Проверка наличия характеристики в БД
@@ -1136,31 +1154,38 @@ class Import extends Product
 
         $nameFeatures = $features;
         foreach ($nameFeatures as $k => $i) {
-            /** ищем связку в сессии - присваиваем id */
-            if ($this->feature[$section][$i]) {
 
-                $val = $this->feature[$section][$i];
-                $features[$k] = $val;
+            $value = $i["value"];
+            if ($i["type"]) $type=$i["type"]; else $type = 'list';
 
-            } else {
+            if ($type=='list' or $type=='colorlist') {
+                /** ищем связку в сессии - присваиваем id */
+                if ($this->feature[$section][$value]) {
 
-                /** если нет значения характеристики - создаем и добавляем в сессию, присваиваем id */
+                    $val = $this->feature[$section][$value];
+                    $features[$k] = array("value"=>$val,"type"=>$type);
 
-                $newfeat = array('value' => $i, 'id_feature' => $k);
-                DB::query('SET foreign_key_checks = 0');
-                DB::insertList('shop_feature_value_list', array($newfeat),TRUE);
-                DB::query('SET foreign_key_checks = 1');
+                } else {
 
-                $u = new DB("shop_feature_value_list", "sfvl");
-                $u->select("sfvl.id");
-                $u->where("sfvl.value = '$i'");
-                $list = $u->getList();
-                unset($u);
+                    /** если нет значения характеристики - создаем и добавляем в сессию, присваиваем id */
 
-                $val = $list[0]['id'];
-                $this->feature[$section][$i] = $val;
-                $features[$k] = $val;
+                    $newfeat = array('value' => $value, 'id_feature' => $k);
+                    DB::query('SET foreign_key_checks = 0');
+                    DB::insertList('shop_feature_value_list', array($newfeat),TRUE);
+                    DB::query('SET foreign_key_checks = 1');
 
+                    $u = new DB("shop_feature_value_list", "sfvl");
+                    $u->select("sfvl.id");
+                    $u->where("sfvl.value = '$value'");
+                    $list = $u->getList();
+                    unset($u);
+
+                    $val = $list[0]['id'];
+                    $this->feature[$section][$value] = $val;
+                    $features[$k] = array("value"=>$val,"type"=>$type);
+
+                }
+                unset($value,$type);
             }
         }
         return $features;
