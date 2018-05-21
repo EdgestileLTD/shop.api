@@ -458,7 +458,8 @@ class ProductExport extends Product
                             IFNULL(smf.value_bool, ''),
                             IFNULL(smf.value_string, '')
                         )
-                    )
+                    ),
+                    sf.type
                 ) SEPARATOR ';'
             ) features");
         $u->where('smf.id_price IN (?)', implode(",", $idsProducts));
@@ -527,26 +528,24 @@ class ProductExport extends Product
 
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if(count($formData) > 1) {
+
             $headerCSV = array();
             $numColumn = array();
+
             foreach($formData as $k => $v)
                 if($v['checkbox'] == 'Y') {
                     array_push($headerCSV, $v['column']);
                     array_push($numColumn, $k);
                 }
+
             $goodsLNew = array();
             foreach($goodsL as $key => $value) {
+                unset($value['idModification'],$value['idGroup'],$value['presence']); // приходят из shopPrice запроса
+
                 $VColumn = 0;
                 $unit    = array();
                 foreach($value as $k => $v) {
-                    foreach($numColumn as $vNum) {
-                        if ($VColumn == $vNum) {
-                            $record  = True;
-                            break;
-                        }
-                        else $record = False;
-                    }
-                    if($record == True) $unit[$k] = $v;
+                    if (in_array($VColumn, $numColumn)) $unit[$k] = $v;
                     $VColumn++;
                 }
                 if(count($unit) > 1) array_push($goodsLNew, $unit);
@@ -688,7 +687,7 @@ class ProductExport extends Product
                 unset($idsModsName[$i['id']]);
             }
         }
-        unset($goodsL); unset($idsModsName);
+        unset($goodsL,$idsModsName);
 
         /** 3 */
         foreach ($modifications as $item) {
@@ -715,10 +714,7 @@ class ProductExport extends Product
                 $feat = explode("--", $vMF);
                 $item[ $item['nameGroup'].'#'.$feat[0] ] = $feat[1];
             }
-            unset($item['nameGroup']); unset($item['values']); unset($item['idProduct']); unset($item['typeGroup']);
-
-            unset($product['idModification']); // приходят из shopPrice запроса
-            unset($product['idGroup']); unset($product['presence']);
+            unset($item['nameGroup'],$item['values'],$item['idProduct'],$item['typeGroup']);
 
             $newItem = array_merge($product, $item);
             $newItem["features"] = "";
@@ -726,7 +722,7 @@ class ProductExport extends Product
 
             unset($product);
         }
-        unset($goodsLName); unset($modifications);
+        unset($goodsLName,$modifications);
 
         /** 4 */
         $tempGoodsL = array_merge($goodsWithoutModification, $tempGoodsL);
