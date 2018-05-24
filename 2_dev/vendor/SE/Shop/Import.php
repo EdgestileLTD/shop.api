@@ -157,14 +157,11 @@ class Import extends Product
          *     @@    @@    @@@@@@@@ @@ @@     @@         @@   @@  @  @@ @@     @@  @@ @@ @@     @@
          * @@@@@@    @@    @@    @@ @@  @@    @@       @@@@@@ @@     @@ @@     @@@@@@ @@  @@    @@
          *
-         */
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
-
-
-        /**
          * if     - превью      - чтение первых 100 строк
          * elseif - первый цикл - весь файл во временные
          */
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+
         $this->cycleNum = $cycleNum;
         if ($prepare) {
             unset($_SESSION["cycleNum"]);
@@ -180,7 +177,7 @@ class Import extends Product
         }
         if ($prepare or $this->cycleNum != 0) {
             $this->getCodesIdsForSession(); /** подгрузка кодов-ids категорий из БД */
-            $this->getFeature();            /** подгрузка характеристик из БД */
+            $this->getNamesIds();            /** подгрузка характеристик и модификаций из БД */
 
             /** перебор записанных файлов */
             if ($prepare)       $this->data = $this->readTempFiles($this->cycleNum);
@@ -212,47 +209,36 @@ class Import extends Product
 
         $u = new DB("shop_group", "sg");
         $u->select("sg.id, sg.code_gr");
-        $list = $u->getList();
-        unset($u);
-
+        $list = $u->getList(); unset($u);
         foreach ($list as $k => $i) {
             $code_gr = $i['codeGr'];
             $_SESSION["getId"]['code_gr'][$code_gr] = $i['id'];
         }
     } // получить данные коды-ids групп
 
-    private function getFeature()
+    private function getNamesIds()
     {
-        /** Получить данные по характеристикам и их значениям
-         * 1 подгрузка связки имя-id характеристик из БД
-         * 2 подгрузка связки имя-id значений характеристик из БД
+        /** Получить данные по характеристикам и модификациям, получить их значения
+         * подгрузка связки имя-id из БД:     1 ... характеристик        2 ... значений характеристик
+         *                                    3 ... групп модификаций    4 ... соотношений Характеристик и ГруппМодификаций
          */
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
+        $this->getFeatureInquiry("shop_feature","sf","sf.id, sf.name");
+        $this->getFeatureInquiry("shop_feature_value_list","sfvl","sfvl.id, sfvl.value name");
+        $this->getFeatureInquiry("shop_modifications_group","smg","smg.id, smg.name");
+        $this->getFeatureInquiry("shop_group_feature","sgf","CONCAT_WS(':', sgf.id_group, sgf.id_feature) name, sgf.id");
 
-        /** 1 подгрузка связки имя-id характеристик из БД */
+    } // подгрузка связки имя-id характеристик и модификаций из БД
 
-        $u = new DB("shop_feature", "sf");
-        $u->select("sf.id, sf.name");
-        $list = $u->getList();
-        unset($u);
-
-        foreach ($list as $k => $i)
-            $this->feature['featureIdName'][$i['name']] = $i['id'];
-
-
-        /** 2 подгрузка связки имя-id значений характеристик из БД */
-
-        $u = new DB("shop_feature_value_list", "sfvl");
-        $u->select("sfvl.id, sfvl.value name");
-        $list = $u->getList();
-        unset($u);
-
-        $this->featureValueListIdName = array();
-        foreach ($list as $k => $i)
-            $this->feature['featureValueListIdName'][$i['name']] = $i['id'];
-
-    } // подгрузка связки имя-id характеристик из БД
+    private function getFeatureInquiry($table,$abbreviation,$select,$section)
+    {
+        /** обычный запрос характеристик, модификаций к БД  [smg]=>aray( [<name>]=><id> ) */
+        $u = new DB($table, $abbreviation);
+        $u->select($select);
+        $list = $u->getList(); unset($u);
+        foreach ($list as $k => $i) $this->feature[$abbreviation][$i['name']] = $i['id'];
+    } // обычный запрос характеристик, модификаций к БД
 
     private function addCategoryMain($code_group, $path_group)
     {
@@ -704,6 +690,7 @@ class Import extends Product
          *   третий подмассив: значения для таблиц sql
          * 3 построчная обработка в БД
          * 4 если заголовок отсутствует - ставим заглушку
+         * 4.1 добавляем модификации в соотношения, если нет среди ключей и есть "#" - определяем как модификацию
          */
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
@@ -744,6 +731,18 @@ class Import extends Product
         if(empty($this->importData['prepare'][0])) {
             $count = count($this->importData['prepare'][1]);
             $this->importData['prepare'][0] = array_fill( 0, $count , null);
+
+        } else {
+            /** 4.1 добавляем модификации в соотношения, если нет среди ключей и есть "#" - определяем как модификацию */
+            // TODO решеток может и не быть в сторонних файлах - нужно что то придумать для распознавания столбцов
+            $rusFields = array();
+            foreach ($this->fields as $name => $rus)
+                $rusFields[$rus] = $name;
+            foreach ($this->importData['prepare'][0] as $key => $field) {
+                if (!$rusFields[$field] and strripos($field, '#')) {
+                    $this->importData['prepare'][2][$field] = $field;
+                }
+            }
         }
     } // Данные итератора
 
@@ -1071,8 +1070,8 @@ class Import extends Product
             $Product["features"][$featuresValue[0]] = array("value"=>$featuresValue[1],"type"=>$featuresValue[2]);
         }
         unset($features);
-        $Product["features"] = $this->featureReconciliation($Product["features"], "featureIdName");
-        $Product["features"] = $this->featureValueReconciliation($Product["features"], "featureValueListIdName");
+        $Product["features"] = $this->featureReconciliation($Product["features"], "sf");
+        $Product["features"] = $this->featureValueReconciliation($Product["features"], "sfvl");
 
 
         /** выстраиваем формат сохранения */
@@ -1113,37 +1112,42 @@ class Import extends Product
         $nameFeatures = array_keys($features);
         foreach ($nameFeatures as $k => $i) {
 
-            $value = $i;
-            if ($i["type"]) $type=$features[$i]["type"]; else $type = 'list';
+            if (!empty($i)) {
+                $value = $i;
+                if ($i["type"]) $type=$features[$i]["type"]; else $type = 'list';
 
-            /** ищем связку в сессии - присваиваем id */
-            if ($this->feature[$section][$value]) {
-                $id = $this->feature[$section][$value];
-                $features[$id] = $features[$value];
+                /** ищем связку в сессии - присваиваем id */
+                if ($this->feature[$section][$value]) {
+                    $id = $this->feature[$section][$value];
+                    $features[$id] = $features[$value];
 
-            } else {
+                } else {
 
-                /** если нет характеристики - создаем и добавляем в сессию, присваиваем id */
-                // TODO делать экспорт типа и его импорт (при отсутствии по умлчанию list)
+                    /** если нет характеристики - создаем и добавляем в сессию, присваиваем id */
 
-                $newfeat = array('name' => $value, 'type' => $type);
+                    $newfeat = array('name' => $value, 'type' => $type);
 
-                DB::query('SET foreign_key_checks = 0');
-                DB::insertList('shop_feature', array($newfeat),TRUE);
-                DB::query('SET foreign_key_checks = 1');
+                    DB::query('SET foreign_key_checks = 0');
+                    DB::insertList('shop_feature', array($newfeat),TRUE);
+                    DB::query('SET foreign_key_checks = 1');
 
-                $u = new DB("shop_feature", "sf");
-                $u->select("sf.id");
-                $u->where("sf.name = '$value'");
-                $list = $u->getList();
-                unset($u);
+                    $u = new DB("shop_feature", "sf");
+                    $u->select("sf.id");
+                    $u->where("sf.name = '$value'");
+                    $list = $u->getList();
+                    unset($u);
 
-                $id = $list[0]['id'];
-                $this->feature[$section][$id] = $features[$value];
-                $features[$id] = $features[$value];
+                    $id = $list[0]['id'];
+                    $this->feature[$section][$id] = $features[$value];
+                    $features[$id] = $features[$value];
+                    // подозрительно перевернуты - нужно проверять
+                    // writeLog($this->feature, true,true)
+                    // writeLog($features)
+                }
+                unset($features[$i],$value,$type);
             }
-            unset($features[$i],$value,$type);
         }
+
         return $features;
     } // Проверка наличия характеристики в БД
 
@@ -1153,43 +1157,286 @@ class Import extends Product
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         $nameFeatures = $features;
+
         foreach ($nameFeatures as $k => $i) {
-
             $value = $i["value"];
-            if ($i["type"]) $type=$i["type"]; else $type = 'list';
 
-            if ($type=='list' or $type=='colorlist') {
-                /** ищем связку в сессии - присваиваем id */
-                if ($this->feature[$section][$value]) {
+            if (!empty($value) and !empty($k)) {
+                if ($i["type"]) $type=$i["type"]; else $type = 'list';
 
-                    $val = $this->feature[$section][$value];
-                    $features[$k] = array("value"=>$val,"type"=>$type);
+                if ($type=='list' or $type=='colorlist') {
+                    /** ищем связку в сессии - присваиваем id */
+                    if ($this->feature[$section][$value]) {
 
-                } else {
+                        $val = $this->feature[$section][$value];
+                        $features[$k] = array("value"=>$val,"type"=>$type);
 
-                    /** если нет значения характеристики - создаем и добавляем в сессию, присваиваем id */
+                    } else {
 
-                    $newfeat = array('value' => $value, 'id_feature' => $k);
-                    DB::query('SET foreign_key_checks = 0');
-                    DB::insertList('shop_feature_value_list', array($newfeat),TRUE);
-                    DB::query('SET foreign_key_checks = 1');
+                        /** если нет значения характеристики - создаем и добавляем в сессию, присваиваем id */
 
-                    $u = new DB("shop_feature_value_list", "sfvl");
-                    $u->select("sfvl.id");
-                    $u->where("sfvl.value = '$value'");
-                    $list = $u->getList();
-                    unset($u);
+                        $newfeat = array('value' => $value, 'id_feature' => $k);
+                        DB::query('SET foreign_key_checks = 0');
+                        DB::insertList('shop_feature_value_list', array($newfeat),TRUE);
+                        DB::query('SET foreign_key_checks = 1');
 
-                    $val = $list[0]['id'];
-                    $this->feature[$section][$value] = $val;
-                    $features[$k] = array("value"=>$val,"type"=>$type);
+                        $u = new DB("shop_feature_value_list", "sfvl");
+                        $u->select("sfvl.id");
+                        $u->where("sfvl.value = '$value'");
+                        $list = $u->getList();
+                        unset($u);
 
+                        $val = $list[0]['id'];
+                        $this->feature[$section][$value] = $val;
+                        $features[$k] = array("value"=>$val,"type"=>$type);
+
+                    }
+                    unset($value,$type);
                 }
-                unset($value,$type);
             }
         }
+
         return $features;
     } // Проверка наличия значения характеристики в БД
+
+    private function creationModifications($Product, $item)
+    {
+        /** создание модификации Главная (группы, самой модификации, параметров), передача данных модификации товара
+         *
+         * @@@@@@ @@@@@@ @@@@@@    @@    @@@@@@@@    @@     @@ @@@@@@ @@@@@@
+         * @@     @@  @@ @@       @@@@      @@       @@@   @@@ @@  @@ @@   @@
+         * @@     @@@@@@ @@@@@@  @@  @@     @@       @@ @@@ @@ @@  @@ @@   @@
+         * @@     @@ @@  @@     @@@@@@@@    @@       @@  @  @@ @@  @@ @@   @@
+         * @@@@@@ @@  @@ @@@@@@ @@    @@    @@       @@     @@ @@@@@@ @@@@@@
+         *
+         * @param array $Product               массив для БД с ключами-значениями
+         * @param array $item                  нумерованный масив ячеек строки
+         * @param array $_SESSION["fieldsMap"] массив ключ-номер столбца
+         * @param array $mod                   все параметры модификации
+         * @return array $Product              массив для БД с ключами-значениями
+         * @return array
+         *
+         * 1 получаем массив группа,модификация,значение
+         * 2 получаем все параметры модификации и удаляем их из основного массива
+         * 3 создаем группы модификаций, модификации, параметры,
+         *   соединяем <shop_modifications_group> и <shop_feature> (при их отсутствии)
+         * 4 Преобразуем данные к записи в БД
+         *
+         * Таблицы:              +shop_modifications_group shop_modifications_img      +shop_feature shop_modifications
+         *                       +shop_feature_value_list shop_modifications_feature  shop_price    +shop_group_feature
+         * Помимо, достаем ids:  shop_img                 shop_price
+         */
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+
+        // TODO дописать экспорт article (код, пример: 000-001) в модификации
+
+        /** 1 получаем массив группа,модификация,значение */
+        $modParam = array();
+        foreach ($_SESSION["fieldsMap"] as $k => $i) {
+            if (strripos($k, '#')) {
+
+                $groupMod = explode("#", $k);
+                $unit = array(
+                    'shop_modifications_group' => $groupMod[0],
+                    'shop_feature'            => $groupMod[1],
+                    'shop_feature_value_list' => $item[$i],
+                );
+
+                if ($item[$i]) array_push($modParam,$unit);
+            }
+        }
+
+        if (!empty($modParam)) {
+
+            /** 2 получаем все параметры модификации и удаляем их из основного массива */
+            $mod = array(
+                'price'          => $Product['price'],
+                'price_opt'      => $Product['price_opt'],
+                'price_opt_corp' => $Product['price_opt_corp'],
+                'price_purchase' => $Product['price_purchase'],
+                'bonus'          => $Product['bonus'],
+
+                'article'        => $Product['article'],
+                'presence_count' => $Product['presence_count'],
+                'img_alt'        => $Product['img_alt'],
+                'text'           => $Product['text'],
+                'mod_param'      => $modParam,
+            );
+            unset($modParam);
+            foreach (array_keys($mod) as $i)
+                if ($i != 'article' and $i != 'mod_param') $Product[$i] = "";
+
+            /** 3 создаем группы модификаций, модификации, параметры, соединяем (при их отсутствии) */
+            $mod = $this->createModifGroup($mod,'smg');  /** shop_modifications_group */
+            $mod = $this->createModific($mod,'sf');      /** shop_feature */
+            $mod = $this->createModifValue($mod,'sfvl'); /** shop_feature_value_list */
+            $this->createCommunMod($mod,'sgf');          /** shop_group_feature */
+
+            /** 4 Преобразуем данные к записи в БД */
+            //writeLog('финальный mod');writeLog($mod);
+            //writeLog('финальный Product');writeLog($Product);
+
+        }
+
+        // $this->importData['features'] = $insertListFeatures;
+        return $Product;
+    } // создание модификации Главная
+
+    private function createModifGroup($mod,$section)
+    {
+        /** создаем группы модификаций (при их отсутствии)
+         * @param array $mod           все параметры по модификации
+         * @param array $this->feature name-id данные для сверки присутствия в базе
+         * @param str   $section       раздел хранения связок name-id по группамМод в $this->feature
+         */
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+
+        /** проверяем наличие, получаем id, подставляем;  иначе создаем, получаем id, в $this->feature, подставляем */
+        foreach ($mod['mod_param'] as $key => $value) {
+            $value = $value['shop_modifications_group'];
+
+            if ($this->feature[$section][$value]) {
+                $id = $this->feature[$section][$value];
+                $mod['mod_param'][$key]['shop_modifications_group'] = $id;
+            } else {
+
+                $newModGroup=array('name'=>$value, 'vtype'=>2); /** vtype 2 - заменяет цену товара */
+
+                DB::query('SET foreign_key_checks = 0');
+                DB::insertList('shop_modifications_group', array($newModGroup),TRUE);
+                DB::query('SET foreign_key_checks = 1');
+
+                $u = new DB("shop_modifications_group", "smg");
+                $u->select("smg.id");
+                $u->where("smg.name = '$value'");
+                $list = $u->getList();
+                unset($u);
+
+                $id = $list[0]['id'];
+                $this->feature[$section][$value] = $id;
+                $mod['mod_param'][$key]['shop_modifications_group'] = $id;
+
+            }
+        }
+
+        return $mod;
+    } // создаем группы модификаций
+
+    private function createModific($mod,$section)
+    {
+        /** создаем модификации (при их отсутствии)
+         * @param array $mod           все параметры по модификации
+         * @param array $this->feature name-id данные для сверки присутствия в базе
+         * @param str   $section       раздел хранения связок name-id по группамМод в $this->feature
+         */
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+
+        /** проверяем наличие, получаем id, подставляем;  иначе создаем, получаем id, в $this->feature, подставляем */
+        foreach ($mod['mod_param'] as $key => $value) {
+            $value = $value['shop_feature'];
+
+            if ($this->feature[$section][$value]) {
+                $id = $this->feature[$section][$value];
+                $mod['mod_param'][$key]['shop_feature'] = $id;
+            } else {
+
+                $newMod=array('name'=>$value, 'type'=>'list');
+
+                DB::query('SET foreign_key_checks = 0');
+                DB::insertList('shop_feature', array($newMod),TRUE);
+                DB::query('SET foreign_key_checks = 1');
+
+                $u = new DB("shop_feature", "sf");
+                $u->select("sf.id");
+                $u->where("sf.name = '$value'");
+                $list = $u->getList();
+                unset($u);
+
+                $id = $list[0]['id'];
+                $this->feature[$section][$value] = $id;
+                $mod['mod_param'][$key]['shop_feature'] = $id;
+
+            }
+        }
+
+        return $mod;
+    } // создаем модификации
+
+    private function createModifValue($mod,$section)
+    {
+        /** создаем значения модификаций (при их отсутствии)
+         * @param array $mod           все параметры по модификации
+         * @param array $this->feature name-id данные для сверки присутствия в базе
+         * @param str   $section       раздел хранения связок name-id по группамМод в $this->feature
+         */
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+
+        /** проверяем наличие, получаем id, подставляем;  иначе создаем, получаем id, в $this->feature, подставляем */
+        foreach ($mod['mod_param'] as $key => $value) {
+            $value = $value['shop_feature_value_list'];
+
+            if ($this->feature[$section][$value]) {
+                $id = $this->feature[$section][$value];
+                $mod['mod_param'][$key]['shop_feature_value_list'] = $id;
+            } else {
+
+                $newModValue=array( 'value'=>$value,  'id_feature'=>$mod['mod_param'][$key]['shop_feature'] );
+
+                DB::query('SET foreign_key_checks = 0');
+                DB::insertList('shop_feature_value_list', array($newModValue),TRUE);
+                DB::query('SET foreign_key_checks = 1');
+
+                $u = new DB("shop_feature_value_list", "sfvl");
+                $u->select("sfvl.id");
+                $u->where("sfvl.value = '$value'");
+                $list = $u->getList();
+                unset($u);
+
+                $id = $list[0]['id'];
+                $this->feature[$section][$value] = $id;
+                $mod['mod_param'][$key]['shop_feature_value_list'] = $id;
+
+            }
+        }
+
+        return $mod;
+    } // создаем значения модификаций
+
+    private function createCommunMod($mod,$section)
+    {
+        /** создаем связи <shop_modifications_group> и <shop_feature> (при их отсутствии)
+         * @param array $mod           все параметры по модификации
+         * @param array $this->feature name-id данные для сверки присутствия в базе
+         * @param str   $section       раздел хранения связок name-id по группамМод в $this->feature
+         */
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+
+        /** проверяем наличие, получаем id, подставляем;  иначе создаем, получаем id, в $this->feature, подставляем */
+        foreach ($mod['mod_param'] as $key => $value) {
+            $value = $value['shop_modifications_group'].":".$value['shop_feature'];
+
+            if (!$this->feature[$section][$value]) {
+
+                $idId = explode(':', $value);
+                $newLigament=array('id_group'=>$idId[0], 'id_feature'=>$idId[1]);
+
+                DB::query('SET foreign_key_checks = 0');
+                DB::insertList('shop_group_feature', array($newLigament),TRUE);
+                DB::query('SET foreign_key_checks = 1');
+
+                $u = new DB("shop_group_feature", "sgf");
+                $u->select("sgf.id");
+                $u->where("sgf.id_group = '$idId[0]'");
+                $u->andWhere("sgf.id_feature = '$idId[1]'");
+                $list = $u->getList();
+                unset($u);
+
+                $id = $list[0]['id'];
+                $this->feature[$section][$value] = $id;
+
+            }
+        }
+    } // создаем связи характеристик и
 
     private function getRightData($item, $options)
     {
@@ -1251,8 +1498,10 @@ class Import extends Product
         };
 
         // TODO протянул столбцы модификаций - нужно делать обработчик
+        // TODO проверять все "// writeLog"
         // TODO тестировать на обновлении и добавлении
         // TODO тестировать дублирование родительской группы при многократном импорте файла
+        // TODO тестировать смену позиций столбцов (по модификациям)
         //writeLog($this->fieldsMap);
 
 
@@ -1305,6 +1554,9 @@ class Import extends Product
 
         /** 6 Cверяем наличие характеристик и значений */
         $Product = $this->creationFeature($Product, $item);
+
+        /** 7 Обрабатываем модификации (если есть) */
+        $Product = $this->creationModifications($Product, $item);
 
         /**
          * НЕ ЖЕЛАТЕЛЬНО ИСПОЛЬЗОВАНИЕ ФИЛЬТРАЦИИ ПУСТЫХ ПОЛЕЙ В $Product !

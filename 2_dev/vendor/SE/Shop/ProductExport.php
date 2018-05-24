@@ -482,7 +482,7 @@ class ProductExport extends Product
          * главная стр  : при наличии модификаций - данные с главной не должны записываться
          * ассоциации   : при импорте модификаций, соотноситься должны по ключевому полю с DB (берем за константу "URL товара")
          *
-         * shop_price  shop_modifications  shop_feature  shop_feature_value_list  shop_modifications_feature  shop_modifications_img
+         * shop_modification_group shop_price  shop_modifications  shop_feature  shop_feature_value_list  shop_modifications_feature  shop_modifications_img
          *
          *
          *                                                             shop_price
