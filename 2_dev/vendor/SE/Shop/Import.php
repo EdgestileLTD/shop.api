@@ -179,8 +179,9 @@ class Import extends Product
             $this->getDataFromFile($filename, $options, $prepare);
         }
         if ($prepare or $this->cycleNum != 0) {
-            $this->getCodesIdsForSession(); /** подгрузка кодов-ids категорий из БД */
-            $this->getNamesIds();            /** подгрузка характеристик и модификаций из БД */
+            $clearDB = $this->clearDB();
+            if($clearDB==false) $this->getCodesIdsForSession(); /** подгрузка кодов-ids категорий из БД */
+            if($clearDB==false) $this->getNamesIds();           /** подгрузка характеристик и модификаций из БД */
 
             /** перебор записанных файлов */
             if ($prepare)       $this->data = $this->readTempFiles($this->cycleNum);
@@ -203,6 +204,49 @@ class Import extends Product
         }
         return 0;
     } // ЗАПУСК ИМПОРТА
+
+    private function clearDB()
+    {
+        /** Очистить таблицу товаров и все дочерние. Удалить все строки в таблицах БД... */
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+
+        try{
+            /** 1 удалить все строки в таблицах БД... */
+            if ($this->mode == 'rld' and $_SESSION["cycleNum"] == 1) {
+                DB::query("SET foreign_key_checks = 0");
+                DB::query("TRUNCATE TABLE shop_group");
+                DB::query("TRUNCATE TABLE shop_price");
+                DB::query("TRUNCATE TABLE shop_price_group");
+                DB::query("TRUNCATE TABLE shop_price_measure");
+                DB::query("TRUNCATE TABLE shop_accomp");
+                //DB::query("TRUNCATE TABLE shop_brand");
+                DB::query("TRUNCATE TABLE shop_img");
+                DB::query("TRUNCATE TABLE shop_group_price");
+                DB::query("TRUNCATE TABLE shop_discounts");
+                DB::query("TRUNCATE TABLE shop_discount_links");
+                DB::query("TRUNCATE TABLE shop_modifications");
+                DB::query("TRUNCATE TABLE shop_modifications_group");
+                DB::query("TRUNCATE TABLE shop_feature_group");
+                DB::query("TRUNCATE TABLE shop_feature");
+                DB::query("TRUNCATE TABLE shop_group_feature");
+                DB::query("TRUNCATE TABLE shop_modifications_feature");
+                DB::query("TRUNCATE TABLE shop_feature_value_list");
+                DB::query("TRUNCATE TABLE shop_modifications_img");
+                DB::query("TRUNCATE TABLE shop_tovarorder");
+                DB::query("TRUNCATE TABLE shop_order");
+                DB::query("SET foreign_key_checks = 1");
+                return true;
+
+            } elseif ($_SESSION["cycleNum"] == 1)  return false;
+            return false;
+
+        } catch (Exception $e){
+            writeLog($e->getMessage());
+            //DB::rollBack();
+            return FALSE;
+        }
+
+    } // Очистить таблицу товаров и все дочерние
 
     private function getCodesIdsForSession()
     {
@@ -1493,7 +1537,6 @@ class Import extends Product
         /** 2 Сверяем ключ с БД */
 
 
-        // todo тестировать ответ запроса при наличии
         /** ответ БД через query # ответ query */
         $ca = DB::query("SELECT
                            smf.id,
@@ -1699,11 +1742,11 @@ class Import extends Product
         };
 
         // TODO DB::query("SET foreign_key_checks = 0"); DB::insertList('shop_price_measure', $this->importData['measure'],TRUE); DB::query("SET foreign_key_checks = 1"); - пробовать удалить query
-        // FIXME тестировать на обновлении и добавлении
         // FIXME тестировать дублирование родительской группы при многократном импорте файла
         // FIXME тестировать смену позиций столбцов (по модификациям)
         // FIXME проверять все "// writeLog"
         // FIXME тестировать на слияние файлов с конфликтами id
+        // FIXME тестировать смену изображений модов
         //writeLog($this->fieldsMap);
 
 
@@ -1833,42 +1876,15 @@ class Import extends Product
          * @@    @@ @@@@@@  @@@@@@     @@@@@@  @@    @@    @@    @@    @@
          *
          *
-         * 1 удалить все строки в таблицах БД...
+         * 1 ставим ид в ключи массивов
          * 2 импорт товаров
          */
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         try{
-            //writeLog($this->mode,'MODE');
-            $param = true;
-            /** 1 удалить все строки в таблицах БД... */
-            if ($this->mode == 'rld' and $_SESSION["cycleNum"] == 1) {
-                DB::query("SET foreign_key_checks = 0");
-                DB::query("TRUNCATE TABLE shop_group");
-                DB::query("TRUNCATE TABLE shop_price");
-                DB::query("TRUNCATE TABLE shop_price_group");
-                DB::query("TRUNCATE TABLE shop_price_measure");
-                DB::query("TRUNCATE TABLE shop_accomp");
-                //DB::query("TRUNCATE TABLE shop_brand");
-                DB::query("TRUNCATE TABLE shop_img");
-                DB::query("TRUNCATE TABLE shop_group_price");
-                DB::query("TRUNCATE TABLE shop_discounts");
-                DB::query("TRUNCATE TABLE shop_discount_links");
-                DB::query("TRUNCATE TABLE shop_modifications");
-                DB::query("TRUNCATE TABLE shop_modifications_group");
-                DB::query("TRUNCATE TABLE shop_feature_group");
-                DB::query("TRUNCATE TABLE shop_feature");
-                DB::query("TRUNCATE TABLE shop_group_feature");
-                DB::query("TRUNCATE TABLE shop_modifications_feature");
-                DB::query("TRUNCATE TABLE shop_feature_value_list");
-                DB::query("TRUNCATE TABLE shop_modifications_img");
-                DB::query("TRUNCATE TABLE shop_tovarorder");
-                DB::query("TRUNCATE TABLE shop_order");
-                DB::query("SET foreign_key_checks = 1");
-            } elseif ($_SESSION["cycleNum"] == 1)  $param = false;
 
+            /** 1 ставим ид в ключи массивов */
             $this->childTablesWentTokeys();
-            /** ставим ид в ключи массивов */
 
             /** 2 импорт товаров */
             if (!empty($this->importData['products'])) {
