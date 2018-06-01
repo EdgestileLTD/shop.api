@@ -789,7 +789,6 @@ class Import extends Product
         }
     } // Данные итератора
 
-    // FIXME Тестить работу связок из сесии
     private function getId($key = 'id', $delimiter, $reconTable, $column, $item)
     {
         /** Получение ИД от Имени/Кода...
@@ -1181,9 +1180,6 @@ class Import extends Product
                     $id = $list[0]['id'];
                     $this->feature[$section][$id] = $features[$value];
                     $features[$id] = $features[$value];
-                    // todo подозрительно перевернуты - нужно проверять
-                    // writeLog($this->feature, true,true)
-                    // writeLog($features)
                 }
                 unset($features[$i],$value,$type);
             }
@@ -1342,8 +1338,8 @@ class Import extends Product
 
                 /** 2 Преобразуем данные к записи в БД */
 
-                $checkBool = $this->checkCreatMod($mod, $idPrice);
-                if ($checkBool == true) {
+                $idModification = $this->checkCreatMod($mod, $idPrice);
+                if ($idModification == null) {
                     $idModification = $this->createModifications($mod, $idPrice); /** заполнение shop_modifications */
                     if ($idModification != null)
                         $this->createModFeature($mod, $idPrice, $idModification); /** заполнение shop_modifications_feature */
@@ -1554,10 +1550,10 @@ class Import extends Product
         //$checkArray = $u->getList();
         //unset($u);
 
-        if (count($checkArray) == 0) $сreat = true;
-        else                         $сreat = false;
+        if (count($checkArray) == 0) $idModification = null;
+        else                         $idModification = $checkArray[0]['id_modification'];
 
-        return $сreat;
+        return $idModification;
     } // проверка наличия модификации <shop_modifications_feature>
 
     private function createModifications($mod, $idPrice)
@@ -1641,6 +1637,11 @@ class Import extends Product
             $imgs = $mod['img_alt'];
             is_array($imgs) ?: $imgs=array($imgs);
 
+            if ($idModification) {
+                $u = new DB('shop_modifications_img', 'smi');
+                $u->where('id_modification = ?', $idModification)->deletelist();
+            }
+
             /** 1 получаем имяРисунка-ид (с фильтрацией по идТовара) */
 
             $u = new DB("shop_img", "si");
@@ -1653,11 +1654,6 @@ class Import extends Product
                 unset($l[$k]);
             }
             unset($u,$l);
-
-            if ($idModification) {
-                $u = new DB('shop_modifications_img','smi');
-                $u->where('id_modification = ?', $idModification)->deletelist();
-            }
 
             /** 2 записываем в <shop_modifications_img> */
 
@@ -1735,10 +1731,9 @@ class Import extends Product
 
         // TODO DB::query("SET foreign_key_checks = 0"); DB::insertList('shop_price_measure', $this->importData['measure'],TRUE); DB::query("SET foreign_key_checks = 1"); - пробовать удалить query
         // FIXME тестировать дублирование родительской группы при многократном импорте файла
-        // FIXME тестировать смену позиций столбцов (по модификациям)
         // FIXME тестировать на слияние файлов с конфликтами id
-        // FIXME тестировать смену изображений модов
         // FIXME тестировать высокую нагрузку
+        // FIXME тестить имп/эксп характеристик+модификаций
 
 
         /** 4 ас.массив значений записи в БД */
@@ -2161,7 +2156,7 @@ class Import extends Product
 
 
         if (count($faileImgs)>0)
-            $this->insertListChildTables($id, array('img'=>'shop_img'), true); /** true=изменяемЗапись  false=создаем */
+            $this->insertListChildTables($id, array('img'=>'shop_img'), false); /** true=изменяемЗапись  false=создаем */
     } // Проверить есть ли изображения у товара - если нет, создать
 
     private function insertListChildTablesBeforePrice($id, $setValuesFields = false)
@@ -2194,6 +2189,7 @@ class Import extends Product
             if ($tableNames[$i] and $this->importData[$i][$id]) {
 
                 $tableData = $this->importData[$i][$id];
+                $tableData[0] ?: $tableData=array($tableData);
 
                 $shop_price = new DB($tableNames[$i]);
                 $shop_price->select('id_price');
@@ -2204,14 +2200,20 @@ class Import extends Product
                 }
 
                 /** проверка не пустой строки */
-                $checkWrite = false;
-                foreach ($tableData as $k2=>$i2)
-                    if ($k2!='id_price' and $i2!='') { $checkWrite = true; break; };
-                if ($checkWrite==true) {
+                $tableDataTemp = array();
+                foreach ($tableData as $k2=>$i2) {
+                    foreach ($i2 as $k3 => $i3) {
+                        if ($k3 != 'id_price' and $i3 != '') {
+                            array_push($tableDataTemp, $i2);
+                            break;
+                        };
+                    }
+                }
+                if (count($tableDataTemp)>0) {
 
                     if ($setValuesFields==false) {
                         DB::query("SET foreign_key_checks = 0");
-                        $tableData[0] ? $tableData=$tableData : $tableData=array($tableData);
+                        $tableData[0] ?: $tableData=array($tableData);
                         DB::insertList($tableNames[$i], $tableData,false);
                         DB::query("SET foreign_key_checks = 1");
                     } else {
