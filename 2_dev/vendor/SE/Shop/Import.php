@@ -178,7 +178,7 @@ class Import extends Product
         }
         if ($prepare or $this->cycleNum != 0) {
             $clearDB = $this->clearDB();
-            if($clearDB==false) $this->getCodesIdsForSession(); /** подгрузка кодов-ids категорий из БД */
+            if($clearDB==false) $this->getGroupsCodesIdsPath(); /** подгрузка кодов-ids, путей-ids категорий из БД */
             if($clearDB==false) $this->getNamesIds();           /** подгрузка характеристик и модификаций из БД */
 
             /** перебор записанных файлов */
@@ -244,19 +244,69 @@ class Import extends Product
 
     } // Очистить таблицу товаров и все дочерние
 
-    private function getCodesIdsForSession()
+    private function getGroupsCodesIdsPath()
     {
-        /**получить данные коды-ids групп в сессию (для генирации кодов новых групп - предотвращения совпадений)*/
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        /** получить данные коды-ids, пути-ids групп в сессию (для генирации кодов новых групп - предотвращения совпадений)
+         * 1 запрос на получение данных
+         * 2 обработка пути группы
+         * 3 заполнение данных сессии
+         */
 
-        $u = new DB("shop_group", "sg");
-        $u->select("sg.id, sg.code_gr");
-        $list = $u->getList(); unset($u);
+
+        /** 1 запрос на получение данных */
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
+        $u = new DB('shop_group', 'sg');
+        $u->reConnection();  /** перезагрузка запроса */
+        if (CORE_VERSION != "5.2") {
+            $u->select('sg.id, sg.code_gr, sg.name endname, sgt.level,
+                        GROUP_CONCAT(CONCAT_WS(\':\', sgtp.level, sgp.name) SEPARATOR \';\') name');
+            $u->innerJoin("shop_group_tree sgt",  "sgt.id_child = sg.id AND sg.id <> sgt.id_parent
+                                                   OR sgt.id_child = sg.id AND sgt.level = 0");
+            $u->innerJoin("shop_group_tree sgtp", "sgtp.id_child = sgt.id_parent");
+            $u->innerJoin("shop_group sgp",  "sgp.id = sgtp.id_child");
+            $u->orderBy('sgt.level');
+        } else {
+            $u->select('sg.*');
+            $u->orderBy('sg.id');
+        }
+        $u->groupBy('sg.id');
+        $groups = $u->getList();
+        unset($u);
+
+
+        /** 2 обработка пути группы */
+        foreach ($groups as $k => $i) {
+
+            $path = '';
+            $pathArray = array();
+            $dataname = explode(";", $i['name']);
+
+            foreach ($dataname as $k2 => $i2) {
+                $ki = explode(":", $i2);
+                $pathArray[$ki[0]] = $ki[1];
+            }
+
+            foreach (range(0, count($pathArray)-1, 1) as $number)
+                $path .= $pathArray[$number]."/";
+
+            /** подстановка окончания, а в родительской - удаление слеша */
+            if ($i["level"] == 0)  $path  = substr($path, 0, -1); /** удаление последнего знака (в родительской группе) */
+            else                   $path .= $i["endname"];
+
+            unset($groups[$k]['level']);
+            unset($groups[$k]['endname']);
+            $groups[$k]['name'] = $path;
+        }
+
+
+        /** 3 заполнение данных сессии */
         foreach ($list as $k => $i) {
             $code_gr = $i['codeGr'];
             $_SESSION["getId"]['code_gr'][$code_gr] = $i['id'];
+            $_SESSION["getId"]['path_group'][$code_gr] = $i['id'];
         }
-    } // получить данные коды-ids групп
+
+    } // подгрузка кодов-ids, путей-ids категорий из БД
 
     private function getNamesIds()
     {
@@ -672,7 +722,7 @@ class Import extends Product
         }
 
         /** 2 соотносим поля с ключами, если нет среди ключей и есть "#" - определяем как модификацию */
-        // TODO 2 решеток может и не быть в сторонних файлах - нужно что то придумать для распознавания столбцов
+        // TODO 3 решеток может и не быть в сторонних файлах - нужно что то придумать для распознавания столбцов
         $rusFields = array();
         foreach ($this->fields as $name => $rus)
             $rusFields[$rus] = $name;
@@ -777,7 +827,7 @@ class Import extends Product
 
         } else {
             /** 4.1 добавляем модификации в соотношения, если нет среди ключей и есть "#" - определяем как модификацию */
-            // todo 2 решеток может и не быть в сторонних файлах - нужно что то придумать для распознавания столбцов
+            // todo 3 решеток может и не быть в сторонних файлах - нужно что то придумать для распознавания столбцов
             $rusFields = array();
             foreach ($this->fields as $name => $rus)
                 $rusFields[$rus] = $name;
@@ -1731,10 +1781,10 @@ class Import extends Product
             }
         };
 
-        // TODO 2 DB::query("SET foreign_key_checks = 0"); DB::insertList('shop_price_measure', $this->importData['measure'],TRUE); DB::query("SET foreign_key_checks = 1"); - пробовать удалить query
-        // FIXME 1 тестировать дублирование родительской группы при многократном импорте файла
-        // FIXME 2 тестировать на слияние файлов с конфликтами id
+        // TODO  2 DB::query("SET foreign_key_checks = 0"); DB::insertList('shop_price_measure', $this->importData['measure'],TRUE); DB::query("SET foreign_key_checks = 1"); - пробовать удалить query
+        // FIXME 3 тестировать на слияние файлов с конфликтами id
         // FIXME 1 тестировать высокую нагрузку
+        // FIXME 2 Дебажить клиентский файл
 
 
         /** 4 ас.массив значений записи в БД */
