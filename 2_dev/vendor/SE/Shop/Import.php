@@ -672,7 +672,7 @@ class Import extends Product
         }
 
         /** 2 соотносим поля с ключами, если нет среди ключей и есть "#" - определяем как модификацию */
-        // TODO решеток может и не быть в сторонних файлах - нужно что то придумать для распознавания столбцов
+        // TODO 2 решеток может и не быть в сторонних файлах - нужно что то придумать для распознавания столбцов
         $rusFields = array();
         foreach ($this->fields as $name => $rus)
             $rusFields[$rus] = $name;
@@ -777,7 +777,7 @@ class Import extends Product
 
         } else {
             /** 4.1 добавляем модификации в соотношения, если нет среди ключей и есть "#" - определяем как модификацию */
-            // todo решеток может и не быть в сторонних файлах - нужно что то придумать для распознавания столбцов
+            // todo 2 решеток может и не быть в сторонних файлах - нужно что то придумать для распознавания столбцов
             $rusFields = array();
             foreach ($this->fields as $name => $rus)
                 $rusFields[$rus] = $name;
@@ -1306,6 +1306,7 @@ class Import extends Product
                 } elseif ($i == 'presence_count') $Product[$i] = 0;
                 else $Product[$i] = "";
             }
+            $Product['features'] = ""; /** заглушка для характеристик */
             $this->modData[$Product['id']][]=$mod;
         }
         return $Product;
@@ -1689,9 +1690,10 @@ class Import extends Product
          * 3 Добавляем сопутствующие товары
          * 4 ас.массив значений записи в БД
          * 5 обработчик значений/текста в Остатке
-         * 6 Cверяем наличие характеристик и значений
-         * 7 устанновка значений по умолчанию при NULL (ЗАГЛУШКИ)
-         * 8 получение списка изображений из ячеек Excel
+         * 6 Обрабатываем модификации (если есть)
+         * 7 Cверяем наличие характеристик и значений
+         * 8 устанновка значений по умолчанию при NULL (ЗАГЛУШКИ)
+         * 9 получение списка изображений из ячеек Excel
          *
          * @param $item данные по КАЖДОМУ товару
          */
@@ -1729,11 +1731,10 @@ class Import extends Product
             }
         };
 
-        // TODO DB::query("SET foreign_key_checks = 0"); DB::insertList('shop_price_measure', $this->importData['measure'],TRUE); DB::query("SET foreign_key_checks = 1"); - пробовать удалить query
-        // FIXME тестировать дублирование родительской группы при многократном импорте файла
-        // FIXME тестировать на слияние файлов с конфликтами id
-        // FIXME тестировать высокую нагрузку
-        // FIXME тестить имп/эксп характеристик+модификаций
+        // TODO 2 DB::query("SET foreign_key_checks = 0"); DB::insertList('shop_price_measure', $this->importData['measure'],TRUE); DB::query("SET foreign_key_checks = 1"); - пробовать удалить query
+        // FIXME 1 тестировать дублирование родительской группы при многократном импорте файла
+        // FIXME 2 тестировать на слияние файлов с конфликтами id
+        // FIXME 1 тестировать высокую нагрузку
 
 
         /** 4 ас.массив значений записи в БД */
@@ -1783,11 +1784,11 @@ class Import extends Product
             $Product['presence_count'] = -1;
         }
 
-        /** 6 Cверяем наличие характеристик и значений */
-        $Product = $this->creationFeature($Product, $item);
-
-        /** 7 Обрабатываем модификации (если есть) */
+        /** 6 Обрабатываем модификации (если есть) */
         $Product = $this->creationModificationsStart($Product, $item);
+
+        /** 7 Cверяем наличие характеристик и значений */
+        $Product = $this->creationFeature($Product, $item);
 
         /**
          * НЕ ЖЕЛАТЕЛЬНО ИСПОЛЬЗОВАНИЕ ФИЛЬТРАЦИИ ПУСТЫХ ПОЛЕЙ В $Product !
@@ -1800,7 +1801,7 @@ class Import extends Product
         //     if($include !== NULL) {$Product[$ingredient]= $include;};
         // };
 
-        /** 7 устанновка значений по умолчанию при NULL (ЗАГЛУШКИ) */
+        /** 8 устанновка значений по умолчанию при NULL (ЗАГЛУШКИ) */
         $substitution = array(
             'curr'     => 'RUB',
             'enabled'  => 'Y',
@@ -1814,7 +1815,7 @@ class Import extends Product
                     $Product[$ingredient] = $inc;
 
 
-        /** 8 получение списка изображений из ячеек Excel */
+        /** 9 получение списка изображений из ячеек Excel */
         $imgList = array('img_alt','img', 'img_2', 'img_3', 'img_4', 'img_5', 'img_6', 'img_7', 'img_8', 'img_9', 'img_10');
 
         foreach ($imgList as $imgKey){
