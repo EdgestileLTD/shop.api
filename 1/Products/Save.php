@@ -1086,6 +1086,19 @@ if ($isNew || !empty($ids)) {
     }
 }
 
+
+se_db_query('UPDATE shop_price_group spg INNER JOIN (SELECT
+  spg.id_price,
+  spg.id_group,
+  COUNT(*) AS cnt
+FROM shop_price_group spg
+WHERE spg.is_main=1
+GROUP BY spg.id_price
+HAVING cnt > 1
+ORDER BY spg.id_price, spg.updated_at DESC, spg.created_at DESC) AS tt 
+  ON spg.id_price = tt.id_price AND spg.id_group=tt.id_group 
+  SET spg.is_main=0');
+
 $data['id'] = $ids[0];
 $status = array();
 if (!se_db_error()) {
