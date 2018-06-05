@@ -722,7 +722,7 @@ class Contact extends Base
                 }
             } else {
                 $u = new DB('se_user', 'su');
-                if (!empty($this->input["username"])) {
+                if (!empty($this->input["login"])) {
                     $login = !empty($this->input["lastName"]) ? trim($this->input["lastName"]) : $this->input["firstName"];
                     $this->input["username"] = $this->getUserName($login, $userName, $ids[0]);
                 }
