@@ -171,9 +171,12 @@ class Base
 
     private function correctOutput($output)
     {
-        $output["text"] = str_replace('src="/images', 'src="' . $this->protocol . "://" . $this->hostname . '/images', $output["text"]);
-        $output["note"] = str_replace('src="/images', 'src="' . $this->protocol . "://" . $this->hostname . '/images', $output["note"]);
-        $output["description"] = str_replace('src="/images', 'src="' . $this->protocol . "://" . $this->hostname . '/images', $output["description"]);
+        if (isset($output["text"]))
+            $output["text"] = str_replace('src="/images', 'src="' . $this->protocol . "://" . $this->hostname . '/images', $output["text"]);
+        if (isset($output["note"]))
+            $output["note"] = str_replace('src="/images', 'src="' . $this->protocol . "://" . $this->hostname . '/images', $output["note"]);
+        if (isset($output["description"]))
+            $output["description"] = str_replace('src="/images', 'src="' . $this->protocol . "://" . $this->hostname . '/images', $output["description"]);
 
         return $output;
     }

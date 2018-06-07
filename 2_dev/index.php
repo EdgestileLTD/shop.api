@@ -138,7 +138,8 @@ if (($apiClass == "Auth" || $apiClass == "TokenAuth") && strtolower($apiMethod) 
     $hostname = (strpos($headers["Project"], '.') !== false) ? $headers["Project"] : $headers["Project"] . '.e-stile.ru';
 
 define("HOSTNAME", $hostname);
-define('DOCUMENT_ROOT', IS_EXT ? $_SERVER['DOCUMENT_ROOT'] : '/home/e/edgestile/' . HOSTNAME . '/public_html');
+define("HOST_FOLDER", empty($_SESSION["hostFolder"]) ? HOSTNAME : $_SESSION["hostFolder"]);
+define('DOCUMENT_ROOT', IS_EXT ? $_SERVER['DOCUMENT_ROOT'] : '/home/e/edgestile/' . HOST_FOLDER . '/public_html');
 $dbConfig = DOCUMENT_ROOT . '/system/config_db.php';
 if (file_exists($dbConfig))
     require_once $dbConfig;
