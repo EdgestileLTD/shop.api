@@ -99,6 +99,13 @@ class Auth extends Base
             $_SESSION['isAuth'] = true;
             $_SESSION['hostname'] = HOSTNAME;
             $_SESSION['coreVersion'] = $authData["version"];
+            $_SESSION["hostFolder"] = HOSTNAME;
+
+            if (!empty($authData["alias"])) {
+                $alias = array_shift(explode(";", $authData["alias"]));
+                $_SESSION['hostname'] = $alias;
+                $data['hostname'] = $alias;
+            }
 
             $this->result = $data;
 

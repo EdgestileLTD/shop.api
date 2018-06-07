@@ -698,11 +698,14 @@ class Base extends CustomBase
     public function postRequest($shorturl, $data)
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+
         $url = "http://" . HOSTNAME . "/" . $shorturl;
+        writeLog($url);
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         return curl_exec($ch);
     }
