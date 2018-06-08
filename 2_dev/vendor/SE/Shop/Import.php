@@ -167,6 +167,7 @@ class Import extends Product
         if ($prepare) {
             unset($_SESSION["cycleNum"]);
             unset($_SESSION["pages"]);
+            $_SESSION['lastIdPrice'] = '';
             $_SESSION["countPages"] = 0;
             unset($_SESSION["getId"]);
             $this->getDataFromFile($filename, $options, $prepare);
@@ -2011,7 +2012,7 @@ class Import extends Product
         // FIXME 3 тестировать на слияние файлов с конфликтами id
         // FIXME 1 Дебажить клиентский файл
         // FIXME 3 отвязывать id и переводить на code
-        // TODO  1 дебажить стыки csv
+        // TODO  2 updateListImport updateListImport попробовать отработанные ids товаров сохранять во временный файл (в конце цикла) и получать в начале цикла
 
 
         /** 4 ас.массив значений записи в БД */
@@ -2213,10 +2214,9 @@ class Import extends Product
 
         $data          = array();                                                     /** 2 */
         $shopPriceData = array();
-        $lastIdPrice   = '';
         $ids           = array();
         foreach ($this->importData['products'] as &$product_unit){
-            if ($product_unit['id'] != $lastIdPrice) {
+            if ($product_unit['id'] != $_SESSION['lastIdPrice']) {
 
                 $data_unit = $product_unit;                                           /** 3 */
                 foreach($id_list as $id_unit)
@@ -2268,7 +2268,7 @@ class Import extends Product
                     $this->linkRecordShopPriceGroup($product_unit,$id_group,$id_price);
                     DB::commit();                                                     /** 8 */
 
-                    $lastIdPrice = $id_price;
+                    $_SESSION['lastIdPrice'] = $id_price;
                     array_push($id_list, $id_price);
                 };
             } else {
@@ -2310,10 +2310,9 @@ class Import extends Product
 
         try {
 
-            $lastIdPrice = '';
-            $ids         = array();
+            $ids = array();
             foreach ($product_list as &$product_unit){
-                if ($product_unit['id'] != $lastIdPrice) {
+                if ($product_unit['id'] != $_SESSION['lastIdPrice']) {
                     DB::beginTransaction();                                        /** 2 */
 
                     if (gettype($product_unit['id_group']) == 'array' and          /** 3 */
@@ -2354,7 +2353,7 @@ class Import extends Product
                     $this->linkRecordShopPriceGroup($product_unit,$id_group,$id_price);
                     DB::commit();                                                  /** 6 */
 
-                    $lastIdPrice = $id_price;
+                    $_SESSION['lastIdPrice'] = $id_price;
                     array_push($id_list,$id_price);
                 } else {
                     /** ДЛЯ МОДИФИКАЦИЙ: даже если не пишем товар - записать картинки для привязки к модификациям */
