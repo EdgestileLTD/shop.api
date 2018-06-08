@@ -170,6 +170,7 @@ class Import extends Product
             $_SESSION['lastIdPrice'] = '';
             $_SESSION["countPages"] = 0;
             unset($_SESSION["getId"]);
+            $_SESSION['errors'] = array();
             $this->getDataFromFile($filename, $options, $prepare);
             $this->cycleNum = 0;
         } elseif ($this->cycleNum == 0) {
@@ -1218,19 +1219,21 @@ class Import extends Product
 
                     $newfeat = array('name' => $value, 'type' => $type);
 
-                    DB::query('SET foreign_key_checks = 0');
-                    DB::insertList('shop_feature', array($newfeat),TRUE);
-                    DB::query('SET foreign_key_checks = 1');
+                    if ($newfeat['name'] and $newfeat['type']) {
+                        DB::query('SET foreign_key_checks = 0');
+                        DB::insertList('shop_feature', array($newfeat),TRUE);
+                        DB::query('SET foreign_key_checks = 1');
 
-                    $u = new DB("shop_feature", "sf");
-                    $u->select("sf.id");
-                    $u->where("sf.name = '$value'");
-                    $list = $u->getList();
-                    unset($u);
+                        $u = new DB("shop_feature", "sf");
+                        $u->select("sf.id");
+                        $u->where("sf.name = '$value'");
+                        $list = $u->getList();
+                        unset($u);
 
-                    $id = $list[0]['id'];
-                    $this->feature[$section][$id] = $features[$value];
-                    $features[$id] = $features[$value];
+                        $id = $list[0]['id'];
+                        $this->feature[$section][$id] = $features[$value];
+                        $features[$id] = $features[$value];
+                    } else $_SESSION['errors']['feature'] = 'ОШИБКА: не корректное заполнение столбца "Характеристики"';
                 }
                 unset($features[$i],$value,$type);
             }
@@ -2010,8 +2013,8 @@ class Import extends Product
 
         // TODO  2 DB::query("SET foreign_key_checks = 0"); DB::insertList('shop_price_measure', $this->importData['measure'],TRUE); DB::query("SET foreign_key_checks = 1"); - пробовать удалить query
         // FIXME 3 тестировать на слияние файлов с конфликтами id
-        // FIXME 1 Дебажить клиентский файл
-        // FIXME 3 отвязывать id и переводить на code
+        // TODO  1 делать выведение ошибок - не корректно заполненных столбцов $_SESSION['errors'] c выводом на сайт
+        // TODO  3 отвязывать id и переводить на code
         // TODO  2 updateListImport updateListImport попробовать отработанные ids товаров сохранять во временный файл (в конце цикла) и получать в начале цикла
 
 
@@ -2053,7 +2056,6 @@ class Import extends Product
             'description'    => $this->get('description', FALSE, $item),
             'features'       => $this->get('features', FALSE, $item)
             /** смотреть в БД */
-
         );
 
         /** 5 обработчик значений/текста в Остатке */
@@ -2492,10 +2494,20 @@ class Import extends Product
                 }
                 if (count($tableDataTemp)>0) {
 
+                    /** фильтрация уникальных значений */
+                    $tableData[0] ?: $tableData=array($tableData);
+                    foreach ($tableData as $kTD=>$iTD) {
+                        $keyTDUnit = '';
+                        foreach ($iTD as $kTDU=>$iTDU)  $keyTDUnit=$keyTDUnit.'#'.$iTDU;
+                        $tableData[$keyTDUnit]=$iTD;    unset($tableData[$kTD]);
+                    }
+                    foreach ($tableData as $kTD=>$iTD) {array_push($tableData,$iTD);  unset($tableData[$kTD]);}
+                    $tableData = array_values($tableData);
+
                     if ($setValuesFields==false) {
                         DB::query("SET foreign_key_checks = 0");
                         $tableData[0] ?: $tableData=array($tableData);
-                        DB::insertList($tableNames[$i], $tableData,false);
+                        DB::insertList($tableNames[$i], $tableData,true);
                         DB::query("SET foreign_key_checks = 1");
                     } else {
                         /** удаляем старую запись*/
@@ -2511,7 +2523,7 @@ class Import extends Product
                         //$idDB = $tableDB->save();
                         DB::query("SET foreign_key_checks = 0");
                         $tableData[0] ? $tableData=$tableData : $tableData=array($tableData);
-                        DB::insertList($tableNames[$i], $tableData,false);
+                        DB::insertList($tableNames[$i], $tableData,true);
                         DB::query("SET foreign_key_checks = 1");
                     }
                 }
