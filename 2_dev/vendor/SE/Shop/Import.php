@@ -1387,20 +1387,24 @@ class Import extends Product
         unset($idsPrice);
 
 
-        /** 2 создаем группы модификаций, модификации, параметры, соединяем (при их отсутствии) */
+        if (count($priceMods)>0) {
 
-        $priceMods = $this->createModifGroup($priceMods);  /** shop_modifications_group */
-        $priceMods = $this->createFeature($priceMods);     /** shop_feature */
-        $priceMods = $this->createModifValue($priceMods);  /** shop_feature_value_list */
-        $this->createCommunMod($priceMods);                /** shop_group_feature */
+            /** 2 создаем группы модификаций, модификации, параметры, соединяем (при их отсутствии) */
+
+            $priceMods = $this->createModifGroup($priceMods);  /** shop_modifications_group */
+            $priceMods = $this->createFeature($priceMods);     /** shop_feature */
+            $priceMods = $this->createModifValue($priceMods);  /** shop_feature_value_list */
+            $this->createCommunMod($priceMods);                /** shop_group_feature */
 
 
-        /** 3 Преобразуем данные к записи в БД */
+            /** 3 Преобразуем данные к записи в БД */
 
-        $priceMods = $this->checkCreatMod($priceMods);
-        $priceMods = $this->createModifications($priceMods); /** заполнение shop_modifications */
-        $this->createModFeature($priceMods);                 /** заполнение shop_modifications_feature */
-        $this->createModImg($priceMods);                     /** заполнение shop_modifications_img */
+            $priceMods = $this->checkCreatMod($priceMods);
+            $priceMods = $this->createModifications($priceMods); /** заполнение shop_modifications */
+            $this->createModFeature($priceMods);                 /** заполнение shop_modifications_feature */
+            $this->createModImg($priceMods);                     /** заполнение shop_modifications_img */
+        }
+
         unset($priceMods);
 
     } // создание модификации Главная
@@ -1675,6 +1679,7 @@ class Import extends Product
 
 
         /** генерируем <shopPriceId>#<shopFeatureId>:<shopFeatureValueListId>,... => <shopModificationsFeatureId> */
+
         foreach($checkArray as $k=>$i) {
             $key = $i['id_price'].'#'.$i['ff'];
             $checkArray[$key] = $i['idmod'];
