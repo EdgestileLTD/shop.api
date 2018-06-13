@@ -798,7 +798,7 @@ class Product extends Base
     // @@@@@@ @@@@@@    @@    @@@@@@
 
     // Сохранить
-    public function save()
+    public function save($isTransactionMode = true)
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
 
@@ -1924,7 +1924,7 @@ class Product extends Base
         $oldFileName = "old_export_products.xlsx";
         $filePath = DOCUMENT_ROOT . "/files/tempfiles";
         if (!file_exists($filePath) || !is_dir($filePath))
-            mkdir($filePath);
+            mkdir($filePath, 0766, true);
         $temporaryFilePath = "{$filePath}";
         // создать директорию, если отсутствует
         // if (!is_dir($temporaryFilePath))
