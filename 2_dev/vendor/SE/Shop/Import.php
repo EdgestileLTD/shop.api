@@ -165,6 +165,7 @@ class Import extends Product
 
         $this->cycleNum = $cycleNum;
         if ($prepare) {
+            /** самый первый цикл - подготовка */
             unset($_SESSION["cycleNum"]);
             unset($_SESSION["pages"]);
             $_SESSION['lastIdPrice'] = '';
@@ -173,6 +174,7 @@ class Import extends Product
             $_SESSION['errors'] = array();
             $this->getDataFromFile($filename, $options, $prepare);
             $this->cycleNum = 0;
+            $_SESSION['skip'] = $options['skip'];
         } elseif ($this->cycleNum == 0) {
             $_SESSION["cycleNum"] = 0;
             unset($_SESSION["pages"]);
@@ -186,16 +188,20 @@ class Import extends Product
             /** перебор записанных файлов */
             if ($prepare)       $this->data = $this->readTempFiles($this->cycleNum);
             else                $this->data = $this->readTempFiles($this->cycleNum-1);
+
             if (!$prepare and $this->cycleNum == 1)  {
                 $this->prepareData($customEdition, $options); /** заголовки */
                 $this->communications();                      /** связи */
             } elseif (!$prepare)  $this->fieldsMap = $_SESSION["fieldsMap"];
+
             $this->iteratorData($prepare, $options);
+
             if ($prepare) {
                 unlink(DOCUMENT_ROOT . "/files/tempfiles/tempfile0.TMP");
                 return $this->importData;
             } else
                 $this->addData();
+
             $_SESSION["cycleNum"] += 1;
             unset($_SESSION["getId"]);
             unset($this->data);
@@ -538,11 +544,6 @@ class Import extends Product
             if(file_exists($file) and is_readable($file)){
                 $extension = pathinfo($file, PATHINFO_EXTENSION);
 
-                //  тест  1. xlsx33000редакт
-                //  тест  2. csv33000редакт
-                //  тест  3. xlsxMin
-                //  тест  4. csvMin
-
                 if ($prepare != TRUE)  $chunksize = 1000; /** объем временного файла */
                 else                   $chunksize = 1000; /** объем врем файла для превью */
 
@@ -816,7 +817,7 @@ class Import extends Product
 
                 } else {
                     /** 3 построчная обработка в БД */
-                    if ($this->rowCheck($item) == TRUE)  $this->getRightData($item, $options);
+                    if ($this->rowCheck($item) == TRUE)  $this->getRightData($item, $options, $key);
                     $this->data[$key] = null;
                 }
 
@@ -1155,6 +1156,8 @@ class Import extends Product
          */
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
+        $lineNum = $Product['lineNum'];  /** получаем номер строки из массива  1,2,3,4 */
+
         $features = preg_split("/,(?!\s+)/ui", $Product["features"]);
         $Product["features"] = array();
         foreach ($features as $k => $i) {
@@ -1162,8 +1165,8 @@ class Import extends Product
             $Product["features"][$featuresValue[0]] = array("value"=>$featuresValue[1],"type"=>$featuresValue[2]);
         }
         unset($features);
-        $Product["features"] = $this->featureReconciliation($Product["features"], "sf");
-        $Product["features"] = $this->featureValueReconciliation($Product["features"], "sfvl");
+        $Product["features"] = $this->featureReconciliation($Product["features"], "sf", $lineNum);
+        $Product["features"] = $this->featureValueReconciliation($Product["features"], "sfvl", $lineNum);
 
 
         /** выстраиваем формат сохранения */
@@ -1196,7 +1199,7 @@ class Import extends Product
         return $Product;
     } // СОЗДАНИЕ ХАРАКТЕРИСТИК Cверяем наличие характеристик и значений
 
-    private function featureReconciliation($features, $section)
+    private function featureReconciliation($features, $section, $lineNum)
     {
         /** Проверка наличия характеристики в БД <shop_feature> или ее создание */
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
@@ -1233,7 +1236,11 @@ class Import extends Product
                         $id = $list[0]['id'];
                         $this->feature[$section][$id] = $features[$value];
                         $features[$id] = $features[$value];
-                    } else $_SESSION['errors']['feature'] = 'ОШИБКА: не корректное заполнение столбца "Характеристики"';
+                    } elseif ($newfeat['name'] or $newfeat['type']) {
+                        /** вывод ошибки с линией */
+                        $line = $lineNum + 1 + $_SESSION['skip'];
+                        if (!$_SESSION['errors']['feature']) $_SESSION['errors']['feature'] = 'ОШИБКА[стр. '.$line.']: не корректное заполнение столбца "Характеристики"';
+                    } else {};
                 }
                 unset($features[$i],$value,$type);
             }
@@ -1242,7 +1249,7 @@ class Import extends Product
         return $features;
     } // Проверка наличия характеристики в БД
 
-    private function featureValueReconciliation($features, $section)
+    private function featureValueReconciliation($features, $section, $lineNum)
     {
         /** Проверка наличия значения характеристики в БД <shop_feature_value_list> или ее создание */
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
@@ -1953,7 +1960,7 @@ class Import extends Product
 
     } // Привязываем изображения к модификациям
 
-    private function getRightData($item, $options)
+    private function getRightData($item, $options, $key)
     {
         /** Получить правильные данные
          *
@@ -2054,7 +2061,9 @@ class Import extends Product
             'title'          => $this->get('title', FALSE, $item),
             'keywords'       => $this->get('keywords', FALSE, $item),
             'description'    => $this->get('description', FALSE, $item),
-            'features'       => $this->get('features', FALSE, $item)
+            'features'       => $this->get('features', FALSE, $item),
+
+            'lineNum'        => $key  /** добавляем номер строки */
             /** смотреть в БД */
         );
 
@@ -2230,6 +2239,8 @@ class Import extends Product
                         gettype($product_unit['id_group'][0]) == 'array'
                     ) $id_group = $this->CommunGroup($product_unit['id_group'][0], FALSE);
 
+                    $lineNum = $product_unit['lineNum']; unset($product_unit['lineNum']); /** вынимаем номер строки из массива */
+
                     if( gettype($product_unit['id_group']) == 'array' and             /** 5 */
                         gettype($product_unit['id_group'][0]) == 'array'
                     )   $data_unit['id_group'] = $id_group[0];
@@ -2320,6 +2331,8 @@ class Import extends Product
                     if (gettype($product_unit['id_group']) == 'array' and          /** 3 */
                         gettype($product_unit['id_group'][0]) == 'array'
                     ) $id_group = $this->CommunGroup($product_unit['id_group'][0], FALSE);
+
+                    $lineNum = $product_unit['lineNum']; unset($product_unit['lineNum']); /** вынимаем номер строки из массива */
 
                     $data_unit = $product_unit;                                    /** 4 */
                     if (gettype($product_unit['id_group']) == 'array' and
