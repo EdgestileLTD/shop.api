@@ -1995,6 +1995,7 @@ class Import extends Product
          * 7 Cверяем наличие характеристик и значений
          * 8 устанновка значений по умолчанию при NULL (ЗАГЛУШКИ)
          * 9 получение списка изображений из ячеек Excel
+         * 10 проверка корректности значений и запись в массив
          *
          * @param $item данные по КАЖДОМУ товару
          */
@@ -2150,17 +2151,31 @@ class Import extends Product
             }
         }
 
+        /** 10 проверка корректности значений и запись в массив */
+        $this->validationValues($Product);
 
+        unset($item);
+    } // ПОЛУЧИТЬ ПРАВИЛЬНЫЕ ДАННЫЕ
+
+    private function validationValues($Product)
+    {
         /** проверка корректности значений и запись в массив */
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+
+        // todo Объем сделан ...
+
         $line = $Product['lineNum'] + 1 + $_SESSION['skip']; /** номер строки (с учетом циклов) */
         $id = $Product['id'];
 
-        $Product = $this->notText($Product, 'price', $line, "Цена пр.",'float');
-        $Product = $this->notText($Product, 'price_opt', $line, "Цена опт.",'float');
-        $Product = $this->notText($Product, 'price_opt_corp', $line, "Цена корп.",'float');
-        $Product = $this->notText($Product, 'price_purchase', $line, "Цена закуп.",'float');
-        $Product = $this->notText($Product, 'bonus', $line, "Цена бал.",'float');
-        $Product = $this->notText($Product, 'is_market', $line, "Маркет",'int');
+        $Product = $this->notText($Product, 'price', $line, "Цена пр.",'float', true);
+        $Product = $this->notText($Product, 'price_opt', $line, "Цена опт.",'float', true);
+        $Product = $this->notText($Product, 'price_opt_corp', $line, "Цена корп.",'float', true);
+        $Product = $this->notText($Product, 'price_purchase', $line, "Цена закуп.",'float', true);
+        $Product = $this->notText($Product, 'bonus', $line, "Цена бал.",'float', true);
+        $Product = $this->notText($Product, 'is_market', $line, "Маркет",'int', true);
+        $Product = $this->notText($Product, 'step_count', $line, 'Шаг количества','int', false);
+        $Product = $this->notText($Product, 'weight', $line, 'Вес','float', true);
+        $Product = $this->notText($Product, 'volume', $line, 'Объем','float', true);
 
         // при пустом поле значение переменной $id==NULL
         if ((int)$id and !empty($Product['code']) and !empty($Product['name'])){
@@ -2171,19 +2186,39 @@ class Import extends Product
             if (empty($Product['name']) and !$_SESSION['errors']['name'])  $_SESSION['errors']['name'] = 'ОШИБКА[стр. '.$line.']: столбец "Наименование" не может быть пустым';
 
         }
+    } // ПРОВЕРКА КОРРЕКТНОСТИ ЗНАЧЕНИЙ
 
-        unset($item);
-    } // ПОЛУЧИТЬ ПРАВИЛЬНЫЕ ДАННЫЕ
-
-    private function notText($data, $column, $line, $columnName, $intFloat)
+    private function notText($data, $col, $line, $name, $iF, $zero)
     {
-        /** проверка отсутствия текста и преобразование строки в число (в случае текста в 0) */
-        if (!(int)$data[$column] and $data[$column]!='0' and !empty($data[$column]))
-            if (!$_SESSION['errors'][$column])  $_SESSION['errors'][$column] = 'ОШИБКА[стр. '.$line.']: столец "'.$columnName.'" не может содержать текст';
-        if ($intFloat=='int')       $data[$column] = (int)$data[$column];
-        elseif ($intFloat=='float') $data[$column] = round((float)$data[$column], 2);
+        /**
+         * проверка числового не отрицательного (большего, чем ноль) значения; в случае не совпадения - замена на значения
+         * @param array  $data данные по товару
+         * @param string $col  обозначение колонки в БД
+         * @param int    $line номер строки
+         * @param string $name обозначение колонки в файле
+         * @param string $iF   новый формат значения: int / float
+         * @param bool   $zero при ошибке приравнять к: true-0 false-1
+         * @param int    $subs замена
+         * @param string $text текст-подстановка
+         */
+
+        $v = $data[$col];
+        if ($zero==true) { $subs=0; $text='значения меньшие чем ноль';}         /** приравнять к нулю */
+        else             { $subs=1; $text='значения меньшие или равные нулю';}  /** приравнять к одному */
+
+        if ($zero?
+            (!(int)$v and $v!='0' and !empty($v) or (float)$v<0) :
+            (!(int)$v and $v!='0' and !empty($v) or (float)$v<0 or $v=='0')
+        ) {
+            if (!$_SESSION['errors'][$col]) $_SESSION['errors'][$col]='ОШИБКА[стр. '.$line.']: столец "'.$name.'" не может содержать текст и '.$text.'. Произведена замена на '.$subs;
+            $v = $subs;
+        } elseif (empty($v)) $v = $subs;
+
+        if ($iF=='int')       $data[$col] = (int)$v;
+        elseif ($iF=='float') $data[$col] = round((float)$v, 2);
+
         return $data;
-    } // проверка отсутствия текста и преобразование строки в число
+    } // проверка числового не отрицательного / большего, чем ноль
 
     private function addData()
     {
