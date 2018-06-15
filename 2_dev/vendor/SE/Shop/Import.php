@@ -171,7 +171,15 @@ class Import extends Product
             $_SESSION['lastIdPrice'] = '';
             $_SESSION["countPages"] = 0;
             unset($_SESSION["getId"]);
-            $_SESSION['errors'] = array(); /** проверка: +ид -путьКат -идКат  +характ */
+            /**
+             * проверка:   +ид                             -путьКат(может быть любым)          -идКат(на импорт не влияет)
+             *             -кодКат(на импорт не влияет)    +Код (URL)                          -артикул(может быть любым)
+             *             +Цена пр.                       +Цена закуп.                        +Цена опт.
+             *             +Цена бал.                      -Остаток
+             *             +Маркет
+             *             +характ
+             */
+            $_SESSION['errors'] = array();
             $this->getDataFromFile($filename, $options, $prepare);
             $this->cycleNum = 0;
             $_SESSION['skip'] = $options['skip'];
@@ -965,8 +973,8 @@ class Import extends Product
 
 
         /** 1 разложение строки на элементы */
-        if(gettype($item[$this->fieldsMap[$key]]) == string)
-            if ($delimiter !== FALSE) $fieldsM = preg_split($delimiter, $item[$this->fieldsMap[$key]]);
+        if(gettype($item[$this->fieldsMap[$key]]) == string and $delimiter !== FALSE)
+            $fieldsM = preg_split($delimiter, $item[$this->fieldsMap[$key]]);
         else
             $fieldsM = array((string) $item[$this->fieldsMap[$key]]);
         /** 2 если осталась строкой - приводим к общему формату */
@@ -2038,11 +2046,11 @@ class Import extends Product
             'name'           => $this->get('name', FALSE, $item),
             'article'        => $this->get('article', FALSE, $item),
             'code'           => $this->get('code', FALSE, $item),
-            'price'          => (int) $this->get('price', FALSE, $item),
-            'price_opt'      => (int) $this->get('price_opt', FALSE, $item),
-            'price_opt_corp' => (int) $this->get('price_opt_corp', FALSE, $item),
-            'price_purchase' => (int) $this->get('price_purchase', FALSE, $item),
-            'bonus'          => (int) $this->get('bonus', FALSE, $item),
+            'price'          => $this->get('price', FALSE, $item),
+            'price_opt'      => $this->get('price_opt', FALSE, $item),
+            'price_opt_corp' => $this->get('price_opt_corp', FALSE, $item),
+            'price_purchase' => $this->get('price_purchase', FALSE, $item),
+            'bonus'          => $this->get('bonus', FALSE, $item),
             'presence_count' => $this->get('presence_count', FALSE, $item),
             'presence'       => NULL, /** если Остаток текстовый - поле заполняется ниже */
             'step_count'     => $this->get('step_count', FALSE, $item),
@@ -2058,7 +2066,7 @@ class Import extends Product
             'enabled'        => $this->get('enabled', FALSE, $item),
             'flag_new'       => $this->get('flag_new', FALSE, $item),
             'flag_hit'       => $this->get('flag_hit', FALSE, $item),
-            'is_market'      => (int) $this->get('is_market', FALSE, $item),
+            'is_market'      => $this->get('is_market', FALSE, $item),
 
             "img_alt"        => $this->get('img_alt', "/,(?!\s+)/ui", $item),
             'min_count'      => (int) $this->get('min_count', FALSE, $item),
@@ -2074,7 +2082,7 @@ class Import extends Product
         );
 
         /** 5 обработчик значений/текста в Остатке */
-        if((int)$Product['presence_count'] == 0) {
+        if(!(int)$Product['presence_count'] and $Product['presence_count']!='0') {
             $Product['presence'] = $Product['presence_count'];
             $Product['presence_count'] = -1;
         }
@@ -2142,9 +2150,40 @@ class Import extends Product
             }
         }
 
-        $this->importData['products'][] = $Product;
+
+        /** проверка корректности значений и запись в массив */
+        $line = $Product['lineNum'] + 1 + $_SESSION['skip']; /** номер строки (с учетом циклов) */
+        $id = $Product['id'];
+
+        $Product = $this->notText($Product, 'price', $line, "Цена пр.",'float');
+        $Product = $this->notText($Product, 'price_opt', $line, "Цена опт.",'float');
+        $Product = $this->notText($Product, 'price_opt_corp', $line, "Цена корп.",'float');
+        $Product = $this->notText($Product, 'price_purchase', $line, "Цена закуп.",'float');
+        $Product = $this->notText($Product, 'bonus', $line, "Цена бал.",'float');
+        $Product = $this->notText($Product, 'is_market', $line, "Маркет",'int');
+
+        // при пустом поле значение переменной $id==NULL
+        if ((int)$id and !empty($Product['code']) and !empty($Product['name'])){
+            $this->importData['products'][] = $Product;
+        } else {
+            if (!(int)$id               and !$_SESSION['errors']['id'])    $_SESSION['errors']['id'] = 'ОШИБКА[стр. '.$line.']: не корректное заполнение столбца "Ид."';
+            if (empty($Product['code']) and !$_SESSION['errors']['code'])  $_SESSION['errors']['code'] = 'ОШИБКА[стр. '.$line.']: столбец "Код (URL)" не может быть пустым';
+            if (empty($Product['name']) and !$_SESSION['errors']['name'])  $_SESSION['errors']['name'] = 'ОШИБКА[стр. '.$line.']: столбец "Наименование" не может быть пустым';
+
+        }
+
         unset($item);
     } // ПОЛУЧИТЬ ПРАВИЛЬНЫЕ ДАННЫЕ
+
+    private function notText($data, $column, $line, $columnName, $intFloat)
+    {
+        /** проверка отсутствия текста и преобразование строки в число (в случае текста в 0) */
+        if (!(int)$data[$column] and $data[$column]!='0' and !empty($data[$column]))
+            if (!$_SESSION['errors'][$column])  $_SESSION['errors'][$column] = 'ОШИБКА[стр. '.$line.']: столец "'.$columnName.'" не может содержать текст';
+        if ($intFloat=='int')       $data[$column] = (int)$data[$column];
+        elseif ($intFloat=='float') $data[$column] = round((float)$data[$column], 2);
+        return $data;
+    } // проверка отсутствия текста и преобразование строки в число
 
     private function addData()
     {
@@ -2221,33 +2260,35 @@ class Import extends Product
          * 8: конец транзакции
          *
          * @param array $shopPriceData значения товара для shop_price
+         * @param array $data_unit ответвление данныех продукта для обработки
          */
         $this->debugging('special', __FUNCTION__.' '.__LINE__, __CLASS__, 'передать импортируемые данные в БД таблица: "shop_price"');
 
-        $shop_price = new DB('shop_price');                                           /** 1 */
+        $shop_price = new DB('shop_price');                                           /** 1 получаем id существующих товаров */
         $shop_price->select('id');
         $id_list = $shop_price->getList();
         foreach($id_list as &$id_unit) $id_unit = $id_unit['id'];
 
-        $data          = array();                                                     /** 2 */
+        $data          = array();                                                     /** 2 получаем главною группу для id_group */
         $shopPriceData = array();
         $ids           = array();
         foreach ($this->importData['products'] as &$product_unit){
             if ($product_unit['id'] != $_SESSION['lastIdPrice']) {
 
-                $lineNum = $product_unit['lineNum']; unset($product_unit['lineNum']); /** вынимаем номер строки из массива */
+                $line=$product_unit['lineNum']+1+$_SESSION['skip']; unset($product_unit['lineNum']); /** вынимаем номер строки из массива */
 
-                $data_unit = $product_unit;                                           /** 3 */
+                $data_unit = $product_unit;                                           /** 3 сверяем id товара с shop_price */
+
                 foreach($id_list as $id_unit)
                     if($data_unit['id'] == $id_unit)  $availability = TRUE;
                 if($availability == FALSE) {
-                    DB::beginTransaction();                                           /** 3.1 */
+                    DB::beginTransaction();                                           /** 3.1 начать транзакцию */
 
-                    if (gettype($product_unit['id_group']) == 'array' and             /** 4 */
+                    if (gettype($product_unit['id_group']) == 'array' and             /** 4 если id группы не получена (новая группа) - получаем */
                         gettype($product_unit['id_group'][0]) == 'array'
                     ) $id_group = $this->CommunGroup($product_unit['id_group'][0], FALSE);
 
-                    if( gettype($product_unit['id_group']) == 'array' and             /** 5 */
+                    if( gettype($product_unit['id_group']) == 'array' and             /** 5 получаем главною группу для shop_price id_group, если имеем дело с новой группой и новым товаром */
                         gettype($product_unit['id_group'][0]) == 'array'
                     )   $data_unit['id_group'] = $id_group[0];
                     elseif(gettype($product_unit['id_group']) == 'array')
@@ -2255,34 +2296,25 @@ class Import extends Product
                     array_push($shopPriceData, $data_unit);
                     $id = $data_unit['id'];
 
-                    // при пустом поле значение переменной $id==NULL
-                    if ((int)$id) {
-                        $this->insertListChildTablesBeforePrice($id, false);
-                        $data_unit[0]        ? $data_unit = $data_unit : $data_unit = array($data_unit);
-                        $this->mode != 'rld' ? $param = false          : $param = true;
-                        DB::insertList('shop_price', $data_unit, $param);
-                        $this->insertListChildTablesAfterPrice($id, false);
-                        $this->checkCreateImg($product_unit['id']);
-                    } else {
-                        $line = $lineNum + 1 + $_SESSION['skip'];
-                        if (!$_SESSION['errors']['id']) $_SESSION['errors']['id'] = 'ОШИБКА[стр. '.$line.']: не корректное заполнение столбца "Ид."';
-                    };
+                    /** заполнение shop_price */
+                    $this->insertListChildTablesBeforePrice($id, false);
+                    $data_unit[0]        ? $data_unit = $data_unit : $data_unit = array($data_unit);
+                    $this->mode != 'rld' ? $param = false          : $param = true;
+                    DB::insertList('shop_price', $data_unit, $param);
+                    $this->insertListChildTablesAfterPrice($id, false);
+                    $this->checkCreateImg($product_unit['id']);
 
                     $id_price = $data_unit[0]['id'];
 
-                    if ((int)$id_price) {
-                        if(gettype($product_unit['id_group']) == integer)                 /** 6 */
-                            $product_unit['id_group'] = array($product_unit['id_group']);
-                        elseif(gettype($product_unit['id_group']) == 'array' and gettype($product_unit['id_group'][0]) == 'array')
-                            $product_unit['id_group'] = $id_group;
-                        foreach ($product_unit['id_group'] as $i)
-                            $this->deleteCategory($product_unit['id'], $i);
-                    } else {
-                        $line = $lineNum + 1 + $_SESSION['skip'];
-                        if (!$_SESSION['errors']['id']) $_SESSION['errors']['id'] = 'ОШИБКА[стр. '.$line.']: не корректное заполнение столбца "Ид."';
-                    };
+                    /** удаление категории из shop_price_group */
+                    if(gettype($product_unit['id_group']) == integer)             /** 6 для shop_price_group */
+                        $product_unit['id_group'] = array($product_unit['id_group']);
+                    elseif(gettype($product_unit['id_group']) == 'array' and gettype($product_unit['id_group'][0]) == 'array')
+                        $product_unit['id_group'] = $id_group;
+                    foreach ($product_unit['id_group'] as $i)
+                        $this->deleteCategory($product_unit['id'], $i);
 
-                    if(isset($product_unit['id'],$product_unit['id_group'][0])) {     /** 7 */
+                    if(isset($product_unit['id'],$product_unit['id_group'][0])) {     /** 7 получаем элементы массива с определением главной группы */
                         foreach ($product_unit['id_group'] as $i) {
                             if(isset($product_unit['id'],$i)) {
                                 $product_group_unit = array(
@@ -2296,12 +2328,12 @@ class Import extends Product
                             array_push($data,$product_group_unit);
                         };
                     };
-                    if ((int)$id_price) $this->linkRecordShopPriceGroup($product_unit,$id_group,$id_price);
+                    $this->linkRecordShopPriceGroup($product_unit,$id_group,$id_price);
 
-                    DB::commit();                                                     /** 8 */
+                    DB::commit();                                                     /** 8 конец транзакции */
 
                     $_SESSION['lastIdPrice'] = $id_price;
-                    if ((int)$id_price) array_push($id_list, $id_price);
+                    array_push($id_list, $id_price);
                 };
             } else {
                 /** ДЛЯ МОДИФИКАЦИЙ: даже если не пишем товар - записать картинки для привязки к модификациям */
@@ -2335,7 +2367,7 @@ class Import extends Product
 
         $product_list = $this->importData['products'];
 
-        $shop_price = new DB('shop_price');                                    /** 1 */
+        $shop_price = new DB('shop_price');                                        /** 1 */
         $shop_price->select('id');
         $id_list = $shop_price->getList();
         foreach($id_list as &$id_unit) $id_unit = $id_unit['id'];
@@ -2351,7 +2383,7 @@ class Import extends Product
                         gettype($product_unit['id_group'][0]) == 'array'
                     ) $id_group = $this->CommunGroup($product_unit['id_group'][0], FALSE);
 
-                    $lineNum = $product_unit['lineNum']; unset($product_unit['lineNum']); /** вынимаем номер строки из массива */
+                    $line=$product_unit['lineNum']+1+$_SESSION['skip']; unset($product_unit['lineNum']); /** вынимаем номер строки из массива */
 
                     $data_unit = $product_unit;                                    /** 4 */
                     if (gettype($product_unit['id_group']) == 'array' and
@@ -2368,23 +2400,16 @@ class Import extends Product
                         if ($this->mode != 'rld') $param = false;
                         $id = $data_unit['id'];
 
-                        // при пустом поле значение переменной $id==NULL
-                        if ((int)$id) {
-                            $data_unit = array($data_unit);
-                            $this->insertListChildTablesBeforePrice($id, false);
-                            DB::insertList('shop_price', $data_unit, $param);
-                            $id_price = $id;
-                            $this->insertListChildTablesAfterPrice($id, false);
-                            $this->checkCreateImg($product_unit['id']);
+                        $data_unit = array($data_unit);
+                        $this->insertListChildTablesBeforePrice($id, false);
+                        DB::insertList('shop_price', $data_unit, $param);
+                        $id_price = $id;
+                        $this->insertListChildTablesAfterPrice($id, false);
+                        $this->checkCreateImg($product_unit['id']);
 
-                            $this->linkRecordShopPriceGroup($product_unit,$id_group,$id_price);
+                        $this->linkRecordShopPriceGroup($product_unit,$id_group,$id_price);
 
-                            array_push($id_list,$id_price);
-
-                        } else {
-                            $line = $lineNum + 1 + $_SESSION['skip'];
-                            if (!$_SESSION['errors']['id']) $_SESSION['errors']['id'] = 'ОШИБКА[стр. '.$line.']: не корректное заполнение столбца "Ид."';
-                        };
+                        array_push($id_list,$id_price);
 
                     } else {
                         $this->insertListChildTablesBeforePrice($data_unit['id'], true);
