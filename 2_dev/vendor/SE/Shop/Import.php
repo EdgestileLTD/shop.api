@@ -176,7 +176,7 @@ class Import extends Product
              *             -кодКат(на импорт не влияет)    +Код (URL)                          -артикул(может быть любым)
              *             +Цена пр.                       +Цена закуп.                        +Цена опт.
              *             +Цена бал.                      -Остаток
-             *             +Маркет
+             *             +Маркет                         +Изображения
              *             +характ
              */
             $_SESSION['errors'] = array();
@@ -1997,7 +1997,8 @@ class Import extends Product
          * 9 получение списка изображений из ячеек Excel
          * 10 проверка корректности значений и запись в массив
          *
-         * @param $item данные по КАЖДОМУ товару
+         * @param array $item данные по КАЖДОМУ товару
+         * @param array $this->importData данные для таблиц
          */
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
@@ -2162,8 +2163,6 @@ class Import extends Product
         /** проверка корректности значений и запись в массив */
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
-        // todo Объем сделан ...
-
         $line = $Product['lineNum'] + 1 + $_SESSION['skip']; /** номер строки (с учетом циклов) */
         $id = $Product['id'];
 
@@ -2308,10 +2307,9 @@ class Import extends Product
         $shopPriceData = array();
         $ids           = array();
         foreach ($this->importData['products'] as &$product_unit){
+            $line=$product_unit['lineNum']+1+$_SESSION['skip']; unset($product_unit['lineNum']); /** вынимаем номер строки из массива */
+
             if ($product_unit['id'] != $_SESSION['lastIdPrice']) {
-
-                $line=$product_unit['lineNum']+1+$_SESSION['skip']; unset($product_unit['lineNum']); /** вынимаем номер строки из массива */
-
                 $data_unit = $product_unit;                                           /** 3 сверяем id товара с shop_price */
 
                 foreach($id_list as $id_unit)
@@ -2337,7 +2335,7 @@ class Import extends Product
                     $this->mode != 'rld' ? $param = false          : $param = true;
                     DB::insertList('shop_price', $data_unit, $param);
                     $this->insertListChildTablesAfterPrice($id, false);
-                    $this->checkCreateImg($product_unit['id']);
+                    $this->checkCreateImg($product_unit['id'],$line);
 
                     $id_price = $data_unit[0]['id'];
 
@@ -2372,7 +2370,7 @@ class Import extends Product
                 };
             } else {
                 /** ДЛЯ МОДИФИКАЦИЙ: даже если не пишем товар - записать картинки для привязки к модификациям */
-                $this->checkCreateImg($product_unit['id']);
+                $this->checkCreateImg($product_unit['id'],$line);
             };
             $ids[ $product_unit['id'] ] = $this->thereModification[ $product_unit['code'] ];
         };
@@ -2411,14 +2409,14 @@ class Import extends Product
 
             $ids = array();
             foreach ($product_list as &$product_unit){
+                $line=$product_unit['lineNum']+1+$_SESSION['skip']; unset($product_unit['lineNum']); /** вынимаем номер строки из массива */
+
                 if ($product_unit['id'] != $_SESSION['lastIdPrice']) {
                     DB::beginTransaction();                                        /** 2 */
 
                     if (gettype($product_unit['id_group']) == 'array' and          /** 3 */
                         gettype($product_unit['id_group'][0]) == 'array'
                     ) $id_group = $this->CommunGroup($product_unit['id_group'][0], FALSE);
-
-                    $line=$product_unit['lineNum']+1+$_SESSION['skip']; unset($product_unit['lineNum']); /** вынимаем номер строки из массива */
 
                     $data_unit = $product_unit;                                    /** 4 */
                     if (gettype($product_unit['id_group']) == 'array' and
@@ -2440,7 +2438,7 @@ class Import extends Product
                         DB::insertList('shop_price', $data_unit, $param);
                         $id_price = $id;
                         $this->insertListChildTablesAfterPrice($id, false);
-                        $this->checkCreateImg($product_unit['id']);
+                        $this->checkCreateImg($product_unit['id'],$line);
 
                         $this->linkRecordShopPriceGroup($product_unit,$id_group,$id_price);
 
@@ -2453,7 +2451,7 @@ class Import extends Product
                         $id_price = $pr_unit->save();
 
                         $this->insertListChildTablesAfterPrice($data_unit['id'], true);
-                        $this->checkCreateImg($product_unit['id']);
+                        $this->checkCreateImg($product_unit['id'],$line);
                     };
 
                     $_SESSION['lastIdPrice'] = $id_price;
@@ -2461,7 +2459,7 @@ class Import extends Product
                     DB::commit();                                                  /** 6 */
                 } else {
                     /** ДЛЯ МОДИФИКАЦИЙ: даже если не пишем товар - записать картинки для привязки к модификациям */
-                    $this->checkCreateImg($product_unit['id']);
+                    $this->checkCreateImg($product_unit['id'],$line);
                 };
                 $ids[ $product_unit['id'] ] = $this->thereModification[ $product_unit['code'] ];
             };
@@ -2475,8 +2473,14 @@ class Import extends Product
 
     private function childTablesWentTokeys()
     {
-        /** id в ключи в массива <measure,features,prepare...> */
+        /** id в ключи в массива <measure,features,prepare...>
+         * @param array $keyTable      массив дочерних таблиц
+         * @param array $newImportData новый сгруппированный по ид-товаров массив
+         * @param array $i2            данные по одной записи ячейки
+         * @param int   $id            ид товара
+         */
         $keyTable = array_keys($this->importData);
+        $newImportData = array();
 
         foreach ($keyTable as $k => $i) {
             if ($i != 'products') {
@@ -2484,22 +2488,27 @@ class Import extends Product
                     $id = $i2['id_price'];
                     if ($id) {
                         /** если у одного id несоклько значений - заворачиваем все в массив */
-                        if ($tempData = $this->importData[$i][$id]) {
-                            $tempData[0] ?: $this->importData[$i][$id] = array($tempData);
-                            array_push($this->importData[$i][$id], $i2);
-                        } else $this->importData[$i][$id] = $i2;
+                        if ($newImportData[$i][$id]) array_push($newImportData[$i][$id], $i2);
+                        else                                     $newImportData[$i][$id] = array($i2);
                     }
-                    unset($this->importData[$i][$k2], $tempData);
+                    unset($this->importData[$i][$k2]);
                 }
+            } else {
+                $newImportData[$i] = $this->importData[$i];
+                unset($this->importData[$i]);
             }
         }
+        $this->importData = $newImportData;
     } // id в ключи в массива
 
-    private function checkCreateImg($id)
+    private function checkCreateImg($id,$line)
     {
         /** Проверить есть ли изображения у товара - если нет, создать
-         * @param array $this->importData    данные из строки
-         * @param num $id                    ид товара к которому привязаны записи таблиц
+         * @param array $this->importData данные из строки
+         * @param num   $id               ид товара к которому привязаны записи таблиц
+         * @param array $faileImgs        изображения товара из файла [0..]=>(id_price, picture, default)
+         * @param bool  $isFile           true - файл корректен  false - не корректен
+         * @param array $exten            возможные расширения файлов
          *
          * 1 получаем изображения товара из файла
          * 2 получаем изображения товара из БД
@@ -2527,9 +2536,25 @@ class Import extends Product
 
 
         /** 3 отбираем отсутсвующие рисунки*/
+        $faileImgs[0] ?: $faileImgs=array($faileImgs);
         $faileImgsTemp = array();
         foreach ($faileImgs as $k=>$i) {
-            $list[$i['picture']] ?: array_push($faileImgsTemp, $i);
+
+            $exten=array('.jpg','.jpeg','.jpe','.png','.tif','.tiff','.gif','.bmp','.dib','.psd');
+            $isFile=false;
+            foreach ($exten as $kEX=>$iEX) {
+                if (strpos(' '.$i['picture'],$iEX)) {
+                    $isFile = true;
+                    break;
+                }
+            }
+
+            if ($isFile) {
+                $list[$i['picture']] ?: array_push($faileImgsTemp, $i);
+            } else {
+                if (!$_SESSION['errors']['img_alt']) $_SESSION['errors']['img_alt']='ОШИБКА[стр. '.$line.']: столец "Изображения" не корректное расширение файла';
+            }
+
             unset($faileImgs[$k]);
         }
         $faileImgs = $faileImgsTemp; unset($faileImgsTemp);
@@ -2561,9 +2586,12 @@ class Import extends Product
     private function insertListChildTables($id, $tableNames, $setValuesFields=false)
     {
         /** Форма заполнения дочерних таблиц
-         * @param array $this->importData    данные из строки
-         * @param num $id                    ид товара к которому привязаны записи таблиц
-         * @param bool $setValuesFields      true=изменяемЗапись  false=создаем
+         * @param array $this->importData    именной массив данных из строки (разбитые по таблицам ключТабл)
+         * @param int   $id                  ид товара к которому привязаны записи таблиц
+         * @param bool  $setValuesFields     true=изменяемЗапись  false=создаем
+         * @param array $tableNames          ключТабл-имяТабл
+         * @param array $tableData           массив данных для записи в БД
+         * @param str   $tab                 имя таблицы
          */
 
         /** id в ключи в массива <measure,features,prepare...> */
