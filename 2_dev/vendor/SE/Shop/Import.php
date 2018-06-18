@@ -175,8 +175,8 @@ class Import extends Product
              * проверка:   +ид                             -путьКат(может быть любым)          -идКат(на импорт не влияет)
              *             -кодКат(на импорт не влияет)    +Код (URL)                          -артикул(может быть любым)
              *             +Цена пр.                       +Цена закуп.                        +Цена опт.
-             *             +Цена бал.                      -Остаток
-             *             +Маркет                         +Изображения
+             *             +Цена бал.                      -Остаток                            +Маркет
+             *             +Изображения                    +Мин.кол-во
              *             +характ
              */
             $_SESSION['errors'] = array();
@@ -2175,6 +2175,7 @@ class Import extends Product
         $Product = $this->notText($Product, 'step_count', $line, 'Шаг количества','int', false);
         $Product = $this->notText($Product, 'weight', $line, 'Вес','float', true);
         $Product = $this->notText($Product, 'volume', $line, 'Объем','float', true);
+        $Product = $this->notText($Product, 'min_count', $line, 'Мин.кол-во','int', true);
 
         // при пустом поле значение переменной $id==NULL
         if ((int)$id and !empty($Product['code']) and !empty($Product['name'])){
