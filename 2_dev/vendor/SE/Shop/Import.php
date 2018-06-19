@@ -12,6 +12,7 @@ use SE\Shop\Product;
 use SE\DB;
 use SE\Shop\ReadFilter;
 use \PDO as PDO;
+use SE\Exception;
 
 
 class Import extends Product
@@ -708,10 +709,16 @@ class Import extends Product
          *
          * 1 если приходит пользовательская редакция - подставляем. Иначе берем стандартно
          * 2 соотносим поля с ключами, если нет среди ключей и есть "#" - определяем как модификацию
+         * 3 проверка на модификацию и ее корректность
          *
          * Готовим данные
          * @param $userData
          * @param $options
+         * @param array $rusFields             именной массив столбцов РусНазван-ключНазван  [Ид.] => id ...
+         * @param array $this->fieldsMap       именной массив ключЗаголов-номерСтолбцов [id] => 0  [path_group] => 1 ...
+         * @param array $_SESSION["fieldsMap"] именной массив ключЗаголов-номерСтолбцов [id] => 0  [path_group] => 1 ...
+         * @param int   $amountElements        колво эллементов в заголовке модификации (при правильном заполнении файла, должно быть две)
+         * @param str   $field                 название столбца. Если столбец - модификация - <группа модификации>#<параметр модификации>  <shop_modifications_group> и <shop_feature>
          */
 
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
@@ -733,21 +740,38 @@ class Import extends Product
         }
 
         /** 2 соотносим поля с ключами, если нет среди ключей и есть "#" - определяем как модификацию */
-        // TODO 3 решеток может и не быть в сторонних файлах - нужно что то придумать для распознавания столбцов
         $rusFields = array();
         foreach ($this->fields as $name => $rus)
             $rusFields[$rus] = $name;
+
         foreach ($array as $key => $field) {
             if ($rusFields[$field]) {
                 $name = $rusFields[$field];
                 $this->fieldsMap[$name] = $key;
-            } elseif (strripos($field, '#')) {
-                $this->fieldsMap[$field] = $key;
+            } elseif (preg_match("/[^\s]+#(?!\s+)/ui",$field)) {
+                /** 3 проверка на модификацию и ее корректность*/
+                $amountElements = count(explode('#',$field));
+                if ($amountElements == 2)    $this->fieldsMap[$field] = $key;
+                elseif ($amountElements > 2) {
+                    $nameNum = $this->getNameFromNumber($key);
+                    $this->error = "ОШИБКА[стлб. ".$nameNum."]: Ошибка заголовка столбца модификации!";
+                    throw new Exception($this->error);
+                } else {}
             }
         }
 
         $_SESSION["fieldsMap"] = $this->fieldsMap;
     } // привязываем Заголовки к Номерам Столбцов
+
+    private function getNameFromNumber($num)
+    {
+        /** получение буквенного номера столбца Excel */
+        $numeric=$num%26;
+        $letter =chr(65+$numeric);
+        $num2   =intval($num/26);
+        if ($num2 > 0)  return $this->getNameFromNumber($num2-1).$letter;
+        else            return $letter;
+    } // получить буквенный номер
 
     private function communications()
     {
@@ -838,7 +862,6 @@ class Import extends Product
 
         } else {
             /** 4.1 добавляем модификации в соотношения, если нет среди ключей и есть "#" - определяем как модификацию */
-            // todo 3 решеток может и не быть в сторонних файлах - нужно что то придумать для распознавания столбцов
             $rusFields = array();
             foreach ($this->fields as $name => $rus)
                 $rusFields[$rus] = $name;
