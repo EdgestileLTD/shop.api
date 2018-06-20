@@ -161,6 +161,9 @@ class Import extends Product
          *
          * if     - превью      - чтение первых 100 строк
          * elseif - первый цикл - весь файл во временные
+         *
+         * @param int $_SESSION['lastProcessedLine'] последняя обработанная строка (без превью)
+         * @method bool public getDataFromFile($filename, $options, $prepare) чтение и разложение файла на временные
          */
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
@@ -180,10 +183,11 @@ class Import extends Product
              *             +Изображения                    +Мин.кол-во
              *             +характ
              */
-            $_SESSION['errors'] = array();
+            $_SESSION['errors']            = array();
             $this->getDataFromFile($filename, $options, $prepare);
-            $this->cycleNum = 0;
-            $_SESSION['skip'] = $options['skip'];
+            $this->cycleNum                = 0;
+            $_SESSION['skip']              = $options['skip'];
+            $_SESSION['lastProcessedLine'] = 0;
         } elseif ($this->cycleNum == 0) {
             $_SESSION["cycleNum"] = 0;
             unset($_SESSION["pages"]);
@@ -198,6 +202,7 @@ class Import extends Product
             if ($prepare)       $this->data = $this->readTempFiles($this->cycleNum);
             else                $this->data = $this->readTempFiles($this->cycleNum-1);
 
+            // todo если столбец пустой - игнорить, если два столбца с одинаковыми названиями - подсвечивать ошибку
             if (!$prepare and $this->cycleNum == 1)  {
                 $this->prepareData($customEdition, $options); /** заголовки */
                 $this->communications();                      /** связи */
@@ -540,8 +545,12 @@ class Import extends Product
         /** Получить данные из файла
          *
          * @param $filename
-         * @param $options
-         * @param $prepare
+         * @param array  $options                          параметры пользователя из первого шага импорта
+         * @param bool   $prepare                          true - режим предпросмотра
+         * @param int    $startRow                         стартовая строка
+         * @param obj    $objPHPExcel                      объект с ячейками эксель
+         * @param int    $_SESSION["countPages"]           общее количество страниц
+         * @metod public writTempFiles($writer, $cycleNum) запись временного файла
          * @return bool
          * @throws \Exception
          */
@@ -566,7 +575,6 @@ class Import extends Product
                         $obj_reader = PHPExcel_IOFactory::createReader('Excel2007');
                         $obj_reader->setReadDataOnly(true);
 
-                        $chunkSize   = 10000;
                         $chunkFilter = new ReadFilter();
                         $obj_reader->setReadFilter($chunkFilter);
                         $chunkFilter->setRows($startRow+1,$chunksize);
@@ -819,6 +827,8 @@ class Import extends Product
          * 3 построчная обработка в БД
          * 4 если заголовок отсутствует - ставим заглушку
          * 4.1 добавляем модификации в соотношения, если нет среди ключей и есть "#" - определяем как модификацию
+         *
+         * @param int $_SESSION['lastProcessedLine'] последняя обработанная строка (без превью)
          */
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
@@ -855,6 +865,7 @@ class Import extends Product
 
             }
         }
+        if($prepare==false) $_SESSION['lastProcessedLine'] += count($this->data);
         /** 4 если заголовок отсутствует - ставим заглушку */
         if(empty($this->importData['prepare'][0])) {
             $count = count($this->importData['prepare'][1]);
@@ -1269,7 +1280,7 @@ class Import extends Product
                         $features[$id] = $features[$value];
                     } elseif ($newfeat['name'] or $newfeat['type']) {
                         /** вывод ошибки с линией */
-                        $line = $lineNum + 1 + $_SESSION['skip'];
+                        $line = $lineNum;
                         if (!$_SESSION['errors']['feature']) $_SESSION['errors']['feature'] = 'ОШИБКА[стр. '.$line.']: не корректное заполнение столбца "Характеристики"';
                     } else {};
                 }
@@ -1321,7 +1332,7 @@ class Import extends Product
                             $features[$k] = array("value"=>$val,"type"=>$type);
                         } elseif ($newfeat['name'] or $newfeat['type']) {
                             /** вывод ошибки с линией */
-                            $line = $lineNum + 1 + $_SESSION['skip'];
+                            $line = $lineNum;
                             if (!$_SESSION['errors']['feature']) $_SESSION['errors']['feature'] = 'ОШИБКА[стр. '.$line.']: не корректное заполнение столбца "Характеристики"';
                         } else {};
 
@@ -2102,7 +2113,7 @@ class Import extends Product
             'description'    => $this->get('description', FALSE, $item),
             'features'       => $this->get('features', FALSE, $item),
 
-            'lineNum'        => $key  /** добавляем номер строки */
+            'lineNum'        => $key+1 + $_SESSION['skip'] + $_SESSION['lastProcessedLine']  /** добавляем номер строки (с отступом и учетом цикла) */
             /** смотреть в БД */
         );
 
@@ -2186,7 +2197,7 @@ class Import extends Product
         /** проверка корректности значений и запись в массив */
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
-        $line = $Product['lineNum'] + 1 + $_SESSION['skip']; /** номер строки (с учетом циклов) */
+        $line = $Product['lineNum']; /** номер строки (с учетом циклов) */
         $id = $Product['id'];
 
         $Product = $this->notText($Product, 'price', $line, "Цена пр.",'float', true);
@@ -2331,7 +2342,7 @@ class Import extends Product
         $shopPriceData = array();
         $ids           = array();
         foreach ($this->importData['products'] as &$product_unit){
-            $line=$product_unit['lineNum']+1+$_SESSION['skip']; unset($product_unit['lineNum']); /** вынимаем номер строки из массива */
+            $line=$product_unit['lineNum']; unset($product_unit['lineNum']); /** вынимаем номер строки из массива */
 
             if ($product_unit['id'] != $_SESSION['lastIdPrice']) {
                 $data_unit = $product_unit;                                           /** 3 сверяем id товара с shop_price */
@@ -2433,7 +2444,7 @@ class Import extends Product
 
             $ids = array();
             foreach ($product_list as &$product_unit){
-                $line=$product_unit['lineNum']+1+$_SESSION['skip']; unset($product_unit['lineNum']); /** вынимаем номер строки из массива */
+                $line=$product_unit['lineNum']; unset($product_unit['lineNum']); /** вынимаем номер строки из массива */
 
                 if ($product_unit['id'] != $_SESSION['lastIdPrice']) {
                     DB::beginTransaction();                                        /** 2 */
@@ -2560,7 +2571,7 @@ class Import extends Product
 
 
         /** 3 отбираем отсутсвующие рисунки*/
-        $faileImgs[0] ?: $faileImgs=array($faileImgs);
+        if (!$faileImgs[0] and isset($faileImgs)) $faileImgs=array($faileImgs);
         $faileImgsTemp = array();
         foreach ($faileImgs as $k=>$i) {
 
@@ -2575,7 +2586,7 @@ class Import extends Product
 
             if ($isFile) {
                 $list[$i['picture']] ?: array_push($faileImgsTemp, $i);
-            } else {
+            } elseif (count($faileImgs)!=0) {
                 if (!$_SESSION['errors']['img_alt']) $_SESSION['errors']['img_alt']='ОШИБКА[стр. '.$line.']: столец "Изображения" не корректное расширение файла';
             }
 

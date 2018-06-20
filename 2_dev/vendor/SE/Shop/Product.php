@@ -2027,6 +2027,7 @@ class Product extends Base
             $this->result['pages'] = $_SESSION["pages"];
             $this->result['countPages'] = $_SESSION["countPages"];
             $this->result['cycleNum'] = $_SESSION["cycleNum"];
+            $this->result['errors'] = implode('<br/>', $_SESSION['errors']);
             return true;
         }
     }
