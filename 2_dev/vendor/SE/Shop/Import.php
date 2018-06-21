@@ -162,25 +162,26 @@ class Import extends Product
          * if     - превью      - чтение первых 100 строк
          * elseif - первый цикл - весь файл во временные
          *
-         * @param int $_SESSION['lastProcessedLine'] последняя обработанная строка (без превью)
-         * @method bool public getDataFromFile($filename, $options, $prepare) чтение и разложение файла на временные
+         * @param int   $_SESSION['lastProcessedLine'] последняя обработанная строка (без превью)
+         * @param array $_SESSION['errors']            данные по некритическим ошибкам, возникшим в ходе обработки импФайла
+         * @method bool public $this->getDataFromFile($filename, $options, $prepare) чтение и разложение файла на временные
          */
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         $this->cycleNum = $cycleNum;
         if ($prepare) {
-            /** самый первый цикл - подготовка */
+            /** превью - обнуление переменных сессии, чтение файла */
             unset($_SESSION["cycleNum"]);
             unset($_SESSION["pages"]);
             $_SESSION['lastIdPrice'] = '';
             $_SESSION["countPages"] = 0;
             unset($_SESSION["getId"]);
             /**
-             * проверка:   +ид                             -путьКат(может быть любым)          -идКат(на импорт не влияет)
-             *             -кодКат(на импорт не влияет)    +Код (URL)                          -артикул(может быть любым)
-             *             +Цена пр.                       +Цена закуп.                        +Цена опт.
-             *             +Цена бал.                      -Остаток                            +Маркет
-             *             +Изображения                    +Мин.кол-во
+             * проверка:   +ид                           -путьКат(может быть любым)  -идКат(на импорт не влияет)
+             *             -кодКат(на импорт не влияет)  +Код (URL)                  -артикул(может быть любым)
+             *             +Цена пр.                     +Цена закуп.                +Цена опт.
+             *             +Цена бал.                    -Остаток                    +Маркет
+             *             +Изображения                  +Мин.кол-во
              *             +характ
              */
             $_SESSION['errors']            = array();
@@ -189,6 +190,7 @@ class Import extends Product
             $_SESSION['skip']              = $options['skip'];
             $_SESSION['lastProcessedLine'] = 0;
         } elseif ($this->cycleNum == 0) {
+            $_SESSION['errors']            = array();
             $_SESSION["cycleNum"] = 0;
             unset($_SESSION["pages"]);
             $this->getDataFromFile($filename, $options, $prepare);
@@ -203,9 +205,9 @@ class Import extends Product
             else                $this->data = $this->readTempFiles($this->cycleNum-1);
 
             // todo если столбец пустой - игнорить, если два столбца с одинаковыми названиями - подсвечивать ошибку
-            if (!$prepare and $this->cycleNum == 1)  {
-                $this->prepareData($customEdition, $options); /** заголовки */
-                $this->communications();                      /** связи */
+            if ($prepare or $this->cycleNum == 1)  {
+                $this->prepareData($customEdition, $options, $prepare); /** заголовки */
+                $this->communications();                                /** связи */
             } elseif (!$prepare)  $this->fieldsMap = $_SESSION["fieldsMap"];
 
             $this->iteratorData($prepare, $options);
@@ -711,7 +713,7 @@ class Import extends Product
         return true;
     } // Получить данные из файла
 
-    private function prepareData($userData, $options)
+    private function prepareData($userData, $options, $prepare=false)
     {
         /** привязываем Заголовки к Номерам Столбцов
          *
@@ -723,29 +725,33 @@ class Import extends Product
          * @param $userData
          * @param $options
          * @param array $rusFields             именной массив столбцов РусНазван-ключНазван  [Ид.] => id ...
+         * @param array $this->fields          ассоц массив код=>руссНазвание столбцов
          * @param array $this->fieldsMap       именной массив ключЗаголов-номерСтолбцов [id] => 0  [path_group] => 1 ...
          * @param array $_SESSION["fieldsMap"] именной массив ключЗаголов-номерСтолбцов [id] => 0  [path_group] => 1 ...
          * @param int   $amountElements        колво эллементов в заголовке модификации (при правильном заполнении файла, должно быть две)
          * @param str   $field                 название столбца. Если столбец - модификация - <группа модификации>#<параметр модификации>  <shop_modifications_group> и <shop_feature>
+         * @param array $array                 массив названий столбцов
          */
 
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         /** 1 если приходит пользовательская редакция - подставляем. Иначе берем стандартно */
-        if (!empty($userData)) {
-            $array = $userData;
-            if($options['skip'] > 0)
-                foreach (range(0, $options['skip']-1) as $number)
-                    array_shift($this->data);
-        } else {
-            $array = array_shift($this->data);
-            if($options['skip'] > 1)
-                foreach (range(0, $options['skip']-2) as $number)
-                    array_shift($this->data);
-            elseif($options['skip'] > 0)
-                foreach (range(0, $options['skip']-1) as $number)
-                    array_shift($this->data);
-        }
+        if (!$prepare) {
+            if (!empty($userData)) {
+                $array = $userData;
+                if($options['skip'] > 0)
+                    foreach (range(0, $options['skip']-1) as $number)
+                        array_shift($this->data);
+            } else {
+                $array = array_shift($this->data);
+                if($options['skip'] > 1)
+                    foreach (range(0, $options['skip']-2) as $number)
+                        array_shift($this->data);
+                elseif($options['skip'] > 0)
+                    foreach (range(0, $options['skip']-1) as $number)
+                        array_shift($this->data);
+            }
+        } else $array = $this->data[0];
 
         /** 2 соотносим поля с ключами, если нет среди ключей и есть "#" - определяем как модификацию */
         $rusFields = array();
@@ -759,11 +765,11 @@ class Import extends Product
             } elseif (preg_match("/[^\s]+#(?!\s+)/ui",$field)) {
                 /** 3 проверка на модификацию и ее корректность*/
                 $amountElements = count(explode('#',$field));
-                if ($amountElements == 2)    $this->fieldsMap[$field] = $key;
-                elseif ($amountElements > 2) {
+                if ($amountElements==2)  $this->fieldsMap[$field] = $key;
+                elseif ($amountElements>2) {
                     $nameNum = $this->getNameFromNumber($key);
-                    $this->error = "ОШИБКА[стлб. ".$nameNum."]: Ошибка заголовка столбца модификации!";
-                    throw new Exception($this->error);
+                    $_SESSION['errors']['headline'] = "ОШИБКА[стлб. ".$nameNum."]: Ошибка заголовка столбца модификации!";
+                    //throw new Exception($this->error);
                 } else {}
             }
         }

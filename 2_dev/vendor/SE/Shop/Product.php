@@ -2042,16 +2042,19 @@ class Product extends Base
     // Превью импорта
     private function productsImport($url, $fileName)
     {
+        /** @param array $this->result возвращаемые клиенту данные */
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $import = new Import($this->input);
         $options = $_SESSION["options"];
-        return $this->result = $import->startImport(
+        $this->result = $import->startImport(
             $fileName,
             true,
             $options,
             $this->input['prepare'][0],
             0
         );
+        $this->result['errors'] = implode('<br/>', $_SESSION['errors']);
+        return true;
     }
 
     /*
