@@ -722,7 +722,7 @@ class Import extends Product
          * 3 проверка на модификацию и ее корректность
          *
          * Готовим данные
-         * @param $userData
+         * @param array $userData              пользовательские значения со второго шага
          * @param $options
          * @param array $rusFields             именной массив столбцов РусНазван-ключНазван  [Ид.] => id ...
          * @param array $this->fields          ассоц массив код=>руссНазвание столбцов
@@ -765,7 +765,8 @@ class Import extends Product
             } elseif (preg_match("/[^\s]+#(?!\s+)/ui",$field)) {
                 /** 3 проверка на модификацию и ее корректность*/
                 $amountElements = count(explode('#',$field));
-                if ($amountElements==2)  $this->fieldsMap[$field] = $key;
+                if ($amountElements==2 and $amountElements[0]!='' and $amountElements[1]!='')
+                    $this->fieldsMap[$field] = $key;
                 elseif ($amountElements>2) {
                     $nameNum = $this->getNameFromNumber($key);
                     $_SESSION['errors']['headline'] = "ОШИБКА[стлб. ".$nameNum."]: Ошибка заголовка столбца модификации!";
@@ -2076,7 +2077,6 @@ class Import extends Product
 
         // TODO  2 DB::query("SET foreign_key_checks = 0"); DB::insertList('shop_price_measure', $this->importData['measure'],TRUE); DB::query("SET foreign_key_checks = 1"); - пробовать удалить query
         // FIXME 3 тестировать на слияние файлов с конфликтами id
-        // TODO  1 делать выведение ошибок - не корректно заполненных столбцов $_SESSION['errors'] c выводом на сайт
         // TODO  3 отвязывать id и переводить на code
         // TODO  2 updateListImport updateListImport попробовать отработанные ids товаров сохранять во временный файл (в конце цикла) и получать в начале цикла
 
