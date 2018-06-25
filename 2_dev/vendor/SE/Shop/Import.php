@@ -764,10 +764,10 @@ class Import extends Product
                 $this->fieldsMap[$name] = $key;
             } elseif (preg_match("/[^\s]+#(?!\s+)/ui",$field)) {
                 /** 3 проверка на модификацию и ее корректность*/
-                $amountElements = count(explode('#',$field));
-                if ($amountElements==2 and $amountElements[0]!='' and $amountElements[1]!='')
+                $amountElements = explode('#',$field);
+                if (count($amountElements)==2 and $amountElements[0]!='' and $amountElements[1]!='') {
                     $this->fieldsMap[$field] = $key;
-                elseif ($amountElements>2) {
+                } elseif (count($amountElements)>2) {
                     $nameNum = $this->getNameFromNumber($key);
                     $_SESSION['errors']['headline'] = "ОШИБКА[стлб. ".$nameNum."]: Ошибка заголовка столбца модификации!";
                     //throw new Exception($this->error);
