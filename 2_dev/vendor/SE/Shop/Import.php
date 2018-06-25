@@ -204,7 +204,6 @@ class Import extends Product
             if ($prepare)       $this->data = $this->readTempFiles($this->cycleNum);
             else                $this->data = $this->readTempFiles($this->cycleNum-1);
 
-            // todo если столбец пустой - игнорить, если два столбца с одинаковыми названиями - подсвечивать ошибку
             if ($prepare or $this->cycleNum == 1)  {
                 $this->prepareData($customEdition, $options, $prepare); /** заголовки */
                 $this->communications();                                /** связи */
