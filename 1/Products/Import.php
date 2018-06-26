@@ -98,31 +98,6 @@ function getGroup53($groups, $idGroup)
     }
 }
 
-function createGroup(&$groups, $idParent, $name)
-{
-    foreach ($groups as $group) {
-        if ($group['upid'] == $idParent && trim($group['name']) == trim($name))
-            return $group['id'];
-    }
-
-    $u = new seTable('shop_group', 'sg');
-    $u->code_gr = getCode(strtolower(se_translite_url(trim($name))), 'shop_group', 'code_gr');
-    $u->name = trim($name);
-    if ($idParent)
-        $u->upid = $idParent;
-    $id = $u->save();
-
-    $group = array();
-    $group["id"] = $id;
-    $group['name'] = trim($name);
-    $group["code_gr"] = $u->code_gr;
-    $group['upid'] = $idParent;
-    $groups[] = $group;
-
-    return $id;
-}
-
-
 function getLevel($id)
 {
     global $DBH;
@@ -158,12 +133,29 @@ function saveIdParent($id, $idParent)
     $sthGroupTree->execute(array('id_parent' => $idParent, 'id' => $id, 'level' => $level));
 }
 
-function createGroup53(&$groups, $idParent, $name)
+function createGroup(&$groups, $idParent, $name)
 {
     foreach ($groups as $group) {
         if ($group['upid'] == $idParent && $group['name'] == $name)
             return $group['id'];
     }
+
+    if ($idParent) {
+        $u = new seTable('shop_group_tree', 'sgt');
+        $u->select("sg.id");
+        $u->innerJoin("shop_group sg", "sg.id = sgt.id_child");
+        $u->where("sgt.id_parent = ?", $idParent);
+        $u->andWhere("sg.name = '?'", $name);
+    } else {
+        $u = new seTable('shop_group_tree', 'sgt');
+        $u->select("sg.id");
+        $u->innerJoin("shop_group sg", "sg.id = sgt.id_child AND sg.id = sgt.id_parent");
+        $u->where("sg.name = '?'", $name);
+    }
+
+    $result = $u->fetchOne();
+    if (!empty($result))
+        return $result["id"];
 
     $u = new seTable('shop_group', 'sg');
     $u->code_gr = getCode(strtolower(se_translite_url($name)), 'shop_group', 'code_gr');
@@ -317,7 +309,7 @@ if ($step == 0) {
                 foreach ($row as $key => $value) {
                     if ($encoding != "UTF-8")
                         $value = iconv('CP1251', 'UTF-8', $value);
-                    $value = mb_substr($value , 0, 50);
+                    $value = mb_substr($value, 0, 50);
                     $value = str_replace("\r", "", $value);
                     $value = htmlspecialchars(str_replace("\n", "", $value));
                     $samples[$j++] = $value;
@@ -454,11 +446,8 @@ if ($step == 1) {
                             $path = str_replace("/ ", "/", $path);
                             $names = explode("/", $path);
                             $idGroup = null;
-                            foreach ($names as $name) {
-                                if (CORE_VERSION != "5.2")
-                                    $idGroup = createGroup53($groups, $idGroup, $name);
-                                else $idGroup = createGroup($groups, $idGroup, $name);
-                            }
+                            foreach ($names as $name)
+                                $idGroup = createGroup($groups, $idGroup, $name);
                             $product["id_group"] = $idsGroups[] = $idGroup;
                         }
                     } else $product["id_group"] = $idsGroupsByCode[$product["code_group"]];
@@ -485,9 +474,21 @@ if ($step == 1) {
                 $product["id"] = $result["id"];
                 $isUpdate = false;
 
-                foreach ($product as $field => $value)
-                    if (in_array($field, $colsProducts))
-                        $isUpdate |= setField(false, $t, $value, $field);
+                foreach ($product as $field => $value) {
+                    if (in_array($field, $colsProducts)) {
+                        if ($field != 'presence_count')
+                            $isUpdate |= setField(false, $t, $value, $field);
+                        else {
+                            $count = (string)$product["presence_count"];
+                            if ($count == "0") {
+                                $isUpdate |= setField(false, $t, 0.00, $field);
+                                $isInsert |= setField(false, $t, false, "market_available");
+                            }
+                            else $isUpdate |= setField(false, $t, $count, $field);
+                        }
+                    }
+                }
+
                 if ($isUpdate) {
                     $t->where("id = ?", $product["id"]);
                     $t->save();
@@ -503,7 +504,16 @@ if ($step == 1) {
                     if (in_array($field, $colsProducts)) {
                         if ($field == "code" && !empty($value))
                             $value = getCode($value, "shop_price", "code");
-                        $isInsert |= setField(true, $t, $value, $field);
+                        if ($field != 'presence_count')
+                            $isInsert |= setField(true, $t, $value, $field);
+                        else {
+                            $count = (string)$product["presence_count"];
+                            if ($count == "0") {
+                                $isInsert |= setField(true, $t, 0.00, $field);
+                                $isInsert |= setField(true, $t, false, "market_available");
+                            }
+                            else $isInsert |= setField(true, $t, $count, $field);
+                        }
                     }
                 $isInsert = $isInsert && !empty($product["name"]);
                 if ($isInsert) {
@@ -646,7 +656,7 @@ if ($step == 1) {
                             setField($isNewValue, $t, $product[$name], "value_number");
                             break;
                         case 'bool' :
-                            setField($isNewValue, $t, (bool) $product[$name], "value_bool");
+                            setField($isNewValue, $t, (bool)$product[$name], "value_bool");
                             break;
                         case 'string' :
                             setField($isNewValue, $t, $product[$name], "value_string");

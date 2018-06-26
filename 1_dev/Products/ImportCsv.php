@@ -382,7 +382,7 @@ try {
                     $idParent = null;
                     foreach ($names as $name) {
                         if (CORE_VERSION != "5.2")
-                            $idParent = createGroup53($groups, $idParent, $name);
+                            $idParent = createGroup($groups, $idParent, $name);
                         else $idParent = createGroup($groups, $idParent, $name);
                     }
                     $groupsKeys[$key] = $idParent;
