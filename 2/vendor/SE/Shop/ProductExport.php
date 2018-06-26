@@ -540,7 +540,7 @@ class ProductExport extends Product
 
             $goodsLNew = array();
             foreach($goodsL as $key => $value) {
-                unset($value['idModification'],$value['idGroup'],$value['presence']); // приходят из shopPrice запроса
+                unset($value['idModification'],$value['idGroup']); // приходят из shopPrice запроса
 
                 $VColumn = 0;
                 $unit    = array();
@@ -548,6 +548,13 @@ class ProductExport extends Product
                     if (in_array($VColumn, $numColumn)) $unit[$k] = $v;
                     $VColumn++;
                 }
+
+                /** при неограниченном количестве - подставлять "текст при неограниченном" */
+                if ($value['count']<0) {
+                    $value['count'] = $value['presence'];
+                    unset($value['presence']);
+                }
+
                 if(count($unit) > 1) array_push($goodsLNew, $unit);
             }
             $goodsL        = $goodsLNew;

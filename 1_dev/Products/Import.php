@@ -216,14 +216,32 @@ $fields = ["id" => "Ид.", "article" => "Артикул", "code" => "Код (UR
     "price_opt_corp" => "Цена корп.", "price_purchase" => "Цена закуп.", "presence_count" => "Остаток",
     "brand" => "Бренд", "weight" => "Вес", "volume" => "Объем", "measure" => "Ед.Изм", "note" => "Краткое описание",
     "text" => "Полное описание", "curr" => "Код валюты", "title" => "Тег title", "keywords" => "Мета-тег keywords",
-    "description" => "Мета-тег description", "img" => "Фото 1"];
+    "description" => "Мета-тег description"];
 
 $addFields = ["file_1" => "Документ 1", "file_2" => "Документ 2", "file_3" => "Документ 3"];
 
 $keyFields = ["Идентификатор" => "id", "Артикул" => "article", "Код (URL)" => "code", "Наименование" => "name"];
 
-for ($i = 2; $i <= $countPhotos; ++$i)
-    $fields["img_{$i}"] = "Фото {$i}";
+$t = new seTable("shop_feature", "sf");
+$t->select("sf.name");
+$t->orderBy("sf.id");
+$offers = $t->getList();
+foreach ($offers as $feature)
+    $fields[$feature["name"]] = $feature["name"];
+
+$result = se_db_query('SELECT MAX(si.c) p FROM (
+SELECT COUNT(si.id_price) c FROM shop_img si
+  GROUP BY si.id_price) si');
+$result = $result->fetch_assoc();
+$countPhotos = $result["p"];
+if (!$countPhotos)
+    $countPhotos = 1;
+
+for ($i = 1; $i <= $countPhotos; ++$i) {
+    if ($i == 1)
+        $fields["img"] = "Фото {$i}";
+    else $fields["img_{$i}"] = "Фото {$i}";
+}
 
 if ($step == 0) {
 
@@ -321,13 +339,6 @@ if ($step == 0) {
     $_SESSION["import"]["product"]["enclosure"] = $enclosure;
     $_SESSION["import"]["product"]["skip"] = $skip;
 
-    $t = new seTable("shop_feature", "sf");
-    $t->select("sf.name");
-    $t->orderBy("sf.id");
-    $features = $t->getList();
-    foreach ($features as $feature)
-        $fields[] = $feature["name"];
-
     foreach ($addFields as $key => $addField)
         $fields[] = $addField;
 
@@ -382,7 +393,8 @@ if ($step == 1) {
 
     $features = array();
     $t = new seTable("shop_feature", "sf");
-    $t->select("sf.id, sf.name, sf.type");
+    $t->select("sf.id, sf.name, sf.type, sgf.id_group");
+    $t->leftJoin("shop_group_feature sgf", "sf.id = sgf.id_feature");
     $t->orderBy("sf.id");
     $items = $t->getList();
     foreach ($items as $item) {
@@ -590,7 +602,6 @@ if ($step == 1) {
                     $t->save();
                 }
             }
-
 
             // параметры
             foreach ($features as $name => $feature) {

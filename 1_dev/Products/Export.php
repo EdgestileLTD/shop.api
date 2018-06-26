@@ -72,10 +72,7 @@ $fields = ["id" => "Ид.", "article" => "Артикул", "code" => "Код (UR
     "price_opt_corp" => "Цена корп.", "price_purchase" => "Цена закуп.", "presence_count" => "Остаток",
     "brand" => "Бренд", "weight" => "Вес", "volume" => "Объем", "measure" => "Ед.Изм", "note" => "Краткое описание",
     "text" => "Полное описание", "curr" => "Код валюты", "title" => "Тег title", "keywords" => "Мета-тег keywords",
-    "description" => "Мета-тег description", "features" => "Параметры", "img" => "Фото 1"];
-
-for ($i = 2; $i <= $countPhotos; ++$i)
-    $fields["img_{$i}"] = "Фото {$i}";
+    "description" => "Мета-тег description"];
 
 $t = new seTable("shop_feature", "sf");
 $t->select("sf.name");
@@ -84,26 +81,36 @@ $offers = $t->getList();
 foreach ($offers as $feature)
     $fields[$feature["name"]] = $feature["name"];
 
+$result = se_db_query('SELECT MAX(si.c) p FROM (
+SELECT COUNT(si.id_price) c FROM shop_img si
+  GROUP BY si.id_price) si');
+$result = $result->fetch_assoc();
+$countPhotos = $result["p"];
+if (!$countPhotos)
+    $countPhotos = 1;
+
+for ($i = 1; $i <= $countPhotos; ++$i) {
+    if ($i == 1)
+        $fields["img"] = "Фото {$i}";
+    else $fields["img_{$i}"] = "Фото {$i}";
+}
+
 $u = new seTable('shop_price', 'sp');
 $select = 'sp.*, GROUP_CONCAT(DISTINCT si.picture SEPARATOR ";") photos, sb.name brand,              
-                (SELECT GROUP_CONCAT(CONCAT_WS(":", sf.name,
+                (SELECT GROUP_CONCAT(CONCAT_WS("#", sf.name,
                     IF(smf.id_value IS NOT NULL, sfvl.value, CONCAT(IFNULL(smf.value_number, ""), 
                     IFNULL(smf.value_bool, ""), IFNULL(smf.value_string, "")))) SEPARATOR "| ") features
                     FROM shop_modifications_feature smf
                     INNER JOIN shop_feature sf ON smf.id_feature = sf.id AND smf.id_modification IS NULL
                     LEFT JOIN shop_feature_value_list sfvl ON smf.id_value = sfvl.id
                     WHERE smf.id_price = sp.id
-                    GROUP BY smf.id_price) features, sm.code code_m, sm.value price_m, sm.count count_m, 
-                    GROUP_CONCAT(DISTINCT CONCAT_WS("#", sf.name, sfvl.value) SEPARATOR ";") mods';
+                    GROUP BY smf.id_price) mods, sm.code code_m, sm.value price_m, sm.count count_m';
 if (CORE_VERSION != "5.2") {
     $select .= ', spg.id_group id_group_t';
     $u->select($select);
     $u->leftJoin("shop_price_group spg", "spg.id_price = sp.id AND spg.is_main");
 } else $u->select($select);
 $u->leftJoin('shop_modifications sm', 'sm.id_price = sp.id');
-$u->leftJoin('shop_modifications_feature smf', 'sm.id = smf.id_modification');
-$u->leftJoin('shop_feature sf', 'smf.id_feature = sf.id');
-$u->leftJoin('shop_feature_value_list sfvl', 'smf.id_value = sfvl.id');
 $u->leftJoin('shop_img si', 'si.id_price = sp.id');
 $u->leftJoin('shop_brand sb', 'sp.id_brand = sb.id');
 $u->orderBy('sp.id');
@@ -159,9 +166,9 @@ foreach ($products as $product) {
 
     if (!empty($product["code_m"]))
         $product["article"] = $product["code_m"];
-    if (!empty($product["price_m"]))
+    if ($product["price_m"] > 0)
         $product["price"] = $product["price_m"];
-    if (!empty($product["count_m"]))
+    if ($product["count_m"] > 0)
         $product["count"] = $product["count_m"];
 
     $product["note"] = str_replace(chr(0), ' ', $product["note"]);
@@ -185,7 +192,7 @@ foreach ($products as $product) {
     }
     $offers = array();
     if ($product["mods"]) {
-        $offersV = explode(";", $product["mods"]);
+        $offersV = explode("| ", $product["mods"]);
         foreach ($offersV as $offerV) {
             $values = explode("#", $offerV);
             if (key_exists($values[0], $offers))

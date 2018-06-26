@@ -19,7 +19,8 @@ class Product extends Base
      */
     protected $tableName      = "shop_price";
     protected $tableNameDepen = array(
-        "shop_price_group" => "id_price"
+        "shop_price_group"           => "id_price",
+        "shop_modifications_feature" => "id_price"
     );
     private $newImages;
 
@@ -797,7 +798,7 @@ class Product extends Base
     // @@@@@@ @@@@@@    @@    @@@@@@
 
     // Сохранить
-    public function save()
+    public function save($isTransactionMode = true)
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
 
@@ -1923,7 +1924,7 @@ class Product extends Base
         $oldFileName = "old_export_products.xlsx";
         $filePath = DOCUMENT_ROOT . "/files/tempfiles";
         if (!file_exists($filePath) || !is_dir($filePath))
-            mkdir($filePath);
+            mkdir($filePath, 0766, true);
         $temporaryFilePath = "{$filePath}";
         // создать директорию, если отсутствует
         // if (!is_dir($temporaryFilePath))
@@ -2026,6 +2027,7 @@ class Product extends Base
             $this->result['pages'] = $_SESSION["pages"];
             $this->result['countPages'] = $_SESSION["countPages"];
             $this->result['cycleNum'] = $_SESSION["cycleNum"];
+            $this->result['errors'] = implode('<br/>', $_SESSION['errors']);
             return true;
         }
     }
@@ -2040,16 +2042,19 @@ class Product extends Base
     // Превью импорта
     private function productsImport($url, $fileName)
     {
+        /** @param array $this->result возвращаемые клиенту данные */
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $import = new Import($this->input);
         $options = $_SESSION["options"];
-        return $this->result = $import->startImport(
+        $this->result = $import->startImport(
             $fileName,
             true,
             $options,
             $this->input['prepare'][0],
             0
         );
+        $this->result['errors'] = implode('<br/>', $_SESSION['errors']);
+        return true;
     }
 
     /*
