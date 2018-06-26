@@ -809,5 +809,28 @@ class Base extends CustomBase
         return $read;
     }
 
+    /**
+     * Запуск Python 2.7 методов (ЭКСПЕРЕМЕНТАЛЬНЫЙ)
+     *
+     * $data = array('as', 'df', 'gh');
+     * $resultData = $this->pyMethods("PyMethods.py", "test", $data);
+     *
+     * @param  str   $nameFile   имя файла .py (в директории запуска метода)
+     * @param  str   $nameMethod имя метода Py
+     * @param        $dataArray  данные для обработки скриптом (любой тип данных)
+     * @return       $resultData результаты обработки (любой тип данных)
+     */
+    public function pyMethods($nameFile, $nameMethod, $dataArray)
+    {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $param = array(
+            'method' => $nameMethod,
+            'data'   => $dataArray
+        );
+        $result = shell_exec('python ' . __DIR__.'/'.$nameFile.' '.escapeshellarg(json_encode($param)));
+        $resultData = json_decode($result, true);
+        return $resultData;
+    } // запуск Python 2.7 методов
+
 
 }
