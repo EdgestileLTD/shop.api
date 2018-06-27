@@ -6,10 +6,6 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/Spout/Autoloader/autoload.php
 
 use SE\DB as DB;
 use SE\Exception;
-use \PHPExcel as PHPExcel;
-use \PHPExcel_Writer_Excel2007 as PHPExcel_Writer_Excel2007;
-use \PHPExcel_Style_Fill as PHPExcel_Style_Fill;
-
 use Box\Spout\Reader\ReaderFactory;
 use Box\Spout\Writer\WriterFactory;
 use Box\Spout\Common\Type;
@@ -788,8 +784,8 @@ class Contact extends Base
         /**
          * экспорт
          *
-         * @param array $rusCols ключи-заголовки столбцов
-         * @param array $contacts массив контактов с ассоциативными колонками
+         * @param array $rusCols    ключи-заголовки столбцов
+         * @param array $contacts   массив контактов с ассоциативными колонками
          * @param array $writeArray массив строк-столбцов array(0=>array(0=>sdfs,1=>sdgdg...), 1=>array(0=>sdfs,1=>sdgdg...))
          */
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
@@ -808,9 +804,9 @@ class Contact extends Base
         $filePath = $tempFilePath."/{$fileName}";
         $urlFile = 'http://' . HOSTNAME . "/files/tempfiles/{$fileName}";
 
-        $this->rmdir_recursive($tempFilePath);  /** очистка директории с временными файлами */
+        $this->rmdir_recursive($tempFilePath);                      /** очистка директории с временными файлами */
         if (!file_exists($tempFilePath) || !is_dir($tempFilePath))
-            mkdir($tempFilePath, 0766, true); /** рекурсивное создание директорий */
+            mkdir($tempFilePath, 0766, true);      /** рекурсивное создание директорий */
 
         /** поднимаем записи из БД */
         $rusCols = array(
@@ -860,98 +856,85 @@ class Contact extends Base
 
         /** запись в файл xlsx */
         $writer = WriterFactory::create(Type::XLSX);
-        $writer->setTempFolder($tempFilePath); // директория хранения временных файлов
-        $writer->openToFile($filePath);        // директория сохраниния XLSX
+        $writer->setTempFolder($tempFilePath); /** директория хранения временных файлов */
+        $writer->openToFile($filePath);        /** директория сохраниния XLSX */
         $writer->addRows($writeArray);
         $writer->close();
         unset($writer, $writeArray);
 
+        /** передача в JS */
         if (file_exists($filePath) && filesize($filePath)) {
             $this->result['url'] = $urlFile;
             $this->result['name'] = $fileName;
         } else $this->result = "Не удаётся экспортировать контакты!";
+
     } // экспорт
 
-    // @@@@@  @@  @@ @@@@@@ @@@@@@     @@  @@ @@@@@@ @@  @@ @@@@@@@@    @@    @@  @@ @@@@@@@@    @@
-    //     @@ @@ @@  @@     @@  @@     @@ @@  @@  @@ @@  @@    @@      @@@@   @@ @@     @@      @@@@
-    // @@@@@@ @@@@   @@     @@  @@     @@@@   @@  @@ @@@@@@    @@     @@  @@  @@@@      @@     @@  @@
-    //     @@ @@ @@  @@     @@  @@     @@ @@  @@  @@ @@  @@    @@    @@@@@@@@ @@ @@     @@    @@@@@@@@
-    // @@@@@  @@  @@ @@@@@@ @@  @@     @@  @@ @@@@@@ @@  @@    @@    @@    @@ @@  @@    @@    @@    @@
-    // экспорт контактА
     private function exportItem()
     {
+        /**
+         * экспорт контактА
+         *
+         * @param array $contact     вся информация по контакту
+         * @param array $columnValue заголовок-значение информации по контакту
+         * @param array $writeArray массив строк-столбцов array(0=>array(0=>sdfs,1=>sdgdg...), 1=>array(0=>sdfs,1=>sdgdg...))
+         */
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
-        // проверка параметров / библиотек
+        /** проверка параметров / библиотек */
         $idContact = $this->input["id"];
         if (!$idContact) {
             $this->result = "Отсутствует параметр: id контакта!";
             return;
         }
-        if (!class_exists("PHPExcel")) {
-            $this->result = "Отсутствуют необходимые библиотеки для экспорта!";
-            return;
-        }
 
-        // инициализация контакта
+        /** инициализация контакта */
         $contact = new Contact();
         $contact = $contact->info($idContact);
 
-        // задаем параметры файла
+        /** сборка данных */
+        $columnValue = array(
+            'Ид. № ' . $contact["id"] => '',
+            'Ф.И.О.'                  => $contact["displayName"],
+            'Телефон:'                => $contact["phone"],
+        );
+        if ($contact["email"])  $columnValue['Эл. почта:'] = $contact["email"];
+        if ($contact["addr"])   $columnValue['Адрес:']     = $contact["addr"];
+        if ($contact["docSer"]) $columnValue['Документ:']  = $contact["docSer"] . " " . $contact["docNum"] . " " . $contact["docRegistr"];
+
+        /** формирование массива на запись*/
+        $writeArray = array();
+        foreach($columnValue as $k=>$i) {
+            $unit = array(0=>$k,1=>$i);
+            $writeArray[] = $unit;
+        }
+
+        /** объявляем переменные */
         $fileName = "export_person_{$idContact}.xlsx";
-        $filePath = DOCUMENT_ROOT . "/files";
-        if (!file_exists($filePath) || !is_dir($filePath))
-            mkdir($filePath);
-        $filePath .= "/{$fileName}";
-        $urlFile = 'http://' . HOSTNAME . "/files/{$fileName}";
+        $tempFilePath = DOCUMENT_ROOT . "/files/tempfiles";
+        if (!file_exists($tempFilePath) || !is_dir($tempFilePath))
+            mkdir($tempFilePath);
+        $filePath = $tempFilePath."/{$fileName}";
+        $urlFile = 'http://' . HOSTNAME . "/files/tempfiles/{$fileName}";
 
-        // инициализация файла
-        $xls = new PHPExcel();
-        $xls->setActiveSheetIndex(0);
-        $sheet = $xls->getActiveSheet();
-        $sheet->setTitle('Контакт ' . $contact["displayName"] ? $contact["displayName"] : $contact["id"]);
-        $sheet->setCellValue("A1", 'Ид. № ' . $contact["id"]);
-        $sheet->getStyle('A1')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID);
-        $sheet->getStyle('A1')->getFill()->getStartColor()->setRGB('EEEEEE');
-        $sheet->mergeCells('A1:B1');
-        $sheet->getColumnDimension('A')->setWidth(20);
-        $sheet->getColumnDimension('B')->setWidth(50);
-        $sheet->setCellValue("A2", 'Ф.И.О.');
-        $sheet->setCellValue("B2", $contact["displayName"]);
-        $sheet->setCellValue("A3", 'Телефон:');
-        $sheet->setCellValue("B3", $contact["phone"]);
-        $i = 4;
-        if ($contact["email"]) {
-            $sheet->setCellValue("A$i", 'Эл. почта:');
-            $sheet->setCellValue("B$i", $contact["email"]);
-            $i++;
-        }
-        if ($contact["country"]) {
-            $sheet->setCellValue("A$i", 'Страна:');
-            $sheet->setCellValue("B$i", $contact["country"]);
-            $i++;
-        }
-        if ($contact["city"]) {
-            $sheet->setCellValue("A$i", 'Город:');
-            $sheet->setCellValue("B$i", $contact["city"]);
-            $i++;
-        }
-        $sheet->setCellValue("A$i", 'Адрес:');
-        $sheet->setCellValue("B$i", $contact["address"]);
-        $i++;
-        if ($contact["docSer"]) {
-            $sheet->setCellValue("A$i", 'Документ:');
-            $sheet->setCellValue("B$i", $contact["docSer"] . " " . $contact["docNum"] . " " . $contact["docRegistr"]);
-        }
+        $this->rmdir_recursive($tempFilePath);                      /** очистка директории с временными файлами */
+        if (!file_exists($tempFilePath) || !is_dir($tempFilePath))
+            mkdir($tempFilePath, 0766, true);      /** рекурсивное создание директорий */
 
-        $sheet->getStyle('A1:B10')->getFont()->setSize(20);
-        $objWriter = new PHPExcel_Writer_Excel2007($xls);
-        $objWriter->save($filePath);
+        /** запись в файл xlsx */
+        $writer = WriterFactory::create(Type::XLSX);
+        $writer->setTempFolder($tempFilePath); /** директория хранения временных файлов */
+        $writer->openToFile($filePath);        /** директория сохраниния XLSX */
+        $writer->addRows($writeArray);
+        $writer->close();
+        unset($writer, $writeArray);
 
+        /** передача в JS */
         if (file_exists($filePath) && filesize($filePath)) {
             $this->result['url'] = $urlFile;
             $this->result['name'] = $fileName;
         } else $this->result = "Не удаётся экспортировать данные контакта!";
-    }
+
+    } // экспорт контактА
 
     // @@@@@@ @@@@@@ @@@@@@ @@@@@@@@
     // @@  @@ @@  @@ @@        @@
