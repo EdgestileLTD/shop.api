@@ -823,10 +823,7 @@ class Base extends CustomBase
     public function pyMethods($nameFile, $nameMethod, $dataArray)
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
-        $param = array(
-            'method' => $nameMethod,
-            'data'   => $dataArray
-        );
+        $param = array('method' => $nameMethod, 'data' => $dataArray);
         $result = shell_exec('python ' . __DIR__.'/'.$nameFile.' '.escapeshellarg(json_encode($param)));
         $resultData = json_decode($result, true);
         return $resultData;
