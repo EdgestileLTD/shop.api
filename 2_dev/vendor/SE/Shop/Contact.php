@@ -2,11 +2,17 @@
 
 namespace SE\Shop;
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/api/lib/Spout/Autoloader/autoload.php';
+
 use SE\DB as DB;
 use SE\Exception;
 use \PHPExcel as PHPExcel;
 use \PHPExcel_Writer_Excel2007 as PHPExcel_Writer_Excel2007;
 use \PHPExcel_Style_Fill as PHPExcel_Style_Fill;
+
+use Box\Spout\Reader\ReaderFactory;
+use Box\Spout\Writer\WriterFactory;
+use Box\Spout\Common\Type;
 
 class Contact extends Base
 {
@@ -144,7 +150,7 @@ class Contact extends Base
                 "paidOrders",
             )
         );
-    }
+    } // получить настройки
 
     protected function correctItemsBeforeFetch($items = [])
     {
@@ -190,7 +196,7 @@ class Contact extends Base
             $groups[$key]["items"][] = $item;
         }
         return array_values($groups);
-    }
+    } // получить пользовательские поля
 
 
     // @@    @@ @@  @@ @@@@@@@@@ @@@@@@
@@ -777,31 +783,36 @@ class Contact extends Base
 
     }
 
-    // @@@@@  @@  @@ @@@@@@ @@@@@@ @@@@@@ @@@@@@ @@@@@@@@
-    //     @@ @@ @@  @@     @@  @@ @@  @@ @@  @@    @@
-    // @@@@@@ @@@@   @@     @@  @@ @@  @@ @@@@@@    @@
-    //     @@ @@ @@  @@     @@  @@ @@  @@ @@        @@
-    // @@@@@  @@  @@ @@@@@@ @@  @@ @@@@@@ @@        @@
-    // экспорт
     public function export()
     {
+        /**
+         * экспорт
+         *
+         * @param array $rusCols ключи-заголовки столбцов
+         * @param array $contacts массив контактов с ассоциативными колонками
+         * @param array $writeArray массив строк-столбцов array(0=>array(0=>sdfs,1=>sdgdg...), 1=>array(0=>sdfs,1=>sdgdg...))
+         */
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
-        // проверяем на наличие записей в id
+
+        /** проверяем на наличие записей в id */
         if (!empty($this->input["id"])) {
             $this->exportItem();
             return;
         }
 
-        // инициализируем файл экспорта
-        $fileName = "export_persons.csv";
-        $filePath = DOCUMENT_ROOT . "/files";
-        if (!file_exists($filePath) || !is_dir($filePath))
-            mkdir($filePath);
-        $filePath .= "/{$fileName}";
-        $fp = fopen($filePath, 'w');
-        $urlFile = 'http://' . HOSTNAME . "/files/{$fileName}";
+        /** объявляем переменные */
+        $fileName = "export_persons.xlsx";
+        $tempFilePath = DOCUMENT_ROOT . "/files/tempfiles";
+        if (!file_exists($tempFilePath) || !is_dir($tempFilePath))
+            mkdir($tempFilePath);
+        $filePath = $tempFilePath."/{$fileName}";
+        $urlFile = 'http://' . HOSTNAME . "/files/tempfiles/{$fileName}";
 
-        // поднимаем записи из БД
+        $this->rmdir_recursive($tempFilePath);  /** очистка директории с временными файлами */
+        if (!file_exists($tempFilePath) || !is_dir($tempFilePath))
+            mkdir($tempFilePath, 0766, true); /** рекурсивное создание директорий */
+
+        /** поднимаем записи из БД */
         $rusCols = array(
             "regDateTime"   => "Время регистрации",
             "username"      => "Код",
@@ -815,50 +826,51 @@ class Contact extends Base
             "note"          => "Заметка"
         );
 
-        $header = array();
         $u = new DB('person', 'p');
-        // отбираем
         //$u->select('p.reg_date regDateTime, su.username, p.last_name, p.first_name Name, p.sec_name patronymic,
-        //p.sex gender, p.birth_date, p.email, p.phone, p.note');
-//        $u->select('p.reg_date regDateTime, su.username, p.last_name, p.first_name, p.sec_name,
-//            p.sex gender, p.birth_date, p.email, p.phone, p.note');
-
+        //    p.sex gender, p.birth_date, p.email, p.phone, p.note');
+        //$u->select('p.reg_date regDateTime, su.username, p.last_name, p.first_name, p.sec_name,
+        //    p.sex gender, p.birth_date, p.email, p.phone, p.note');
         $u->select('p.reg_date regDateTime, su.username, p.last_name, p.first_name, p.sec_name, 
             p.sex gender, p.birth_date, p.email, p.phone, p.note');
-
-        // сопоставляем, выводим результат
         $u->innerJoin('se_user su', 'p.id = su.id');
-        // вернуть записи из левой таблицы
         $u->leftJoin('se_user_group sug', 'p.id = sug.user_id');
-        // группируем
         $u->groupBy('p.id');
-        // сортируем
         $u->orderBy('p.id');
-        // формируем список
         $contacts = $u->getList();
-        // для каждого контакта (в случае наличия заголовка)... экспортируем
-        foreach ($contacts as $contact) {
-            if (!$header) {
-                $header = array_keys($contact);
-                $headerCSV = array();
-                foreach ($header as $col) {
-                    // $headerCSV[] = iconv('utf-8', 'CP1251', $col);
-                    $headerCSV[] = iconv('utf-8', 'CP1251', $rusCols[$col] ? $rusCols[$col] : $col);
-                }
-                $list[] = $header;
-                fputcsv($fp, $headerCSV, ";");
-            }
-            $out = array();
-            foreach ($contact as $r)
-                $out[] = iconv('utf-8', 'CP1251', $r);
-            fputcsv($fp, $out, ";");
+
+        /** формирование массива на запись */
+        $writeArray = array(0=>array());
+        $columnNumbers = array();
+        $num = 0;
+        foreach($rusCols as $k=>$i) {
+            array_push($writeArray[0], $i);
+            $columnNumbers[$k] = $num;
+            $num += 1;
         }
-        fclose($fp);
+        unset($rusCols);
+        foreach($contacts as $k=>$i) {
+            $writeArrayUnit = array();
+            foreach($i as $k2=>$i2)
+                $writeArrayUnit[$columnNumbers[$k2]] = $i2;
+            array_push($writeArray,$writeArrayUnit);
+            unset($contacts[$k]);
+        }
+        unset($contacts);
+
+        /** запись в файл xlsx */
+        $writer = WriterFactory::create(Type::XLSX);
+        $writer->setTempFolder($tempFilePath); // директория хранения временных файлов
+        $writer->openToFile($filePath);        // директория сохраниния XLSX
+        $writer->addRows($writeArray);
+        $writer->close();
+        unset($writer, $writeArray);
+
         if (file_exists($filePath) && filesize($filePath)) {
             $this->result['url'] = $urlFile;
             $this->result['name'] = $fileName;
         } else $this->result = "Не удаётся экспортировать контакты!";
-    }
+    } // экспорт
 
     // @@@@@  @@  @@ @@@@@@ @@@@@@     @@  @@ @@@@@@ @@  @@ @@@@@@@@    @@    @@  @@ @@@@@@@@    @@
     //     @@ @@ @@  @@     @@  @@     @@ @@  @@  @@ @@  @@    @@      @@@@   @@ @@     @@      @@@@
