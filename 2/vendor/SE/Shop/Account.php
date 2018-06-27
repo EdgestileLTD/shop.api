@@ -36,7 +36,7 @@ class Account extends Base
     }
 
     // сохрнить
-    public function save()
+    public function save($isTransactionMode = true)
     {
         $isNew = empty($this->input["id"]);
         $mainProject = str_replace(".e-stile.ru", "", HOSTNAME);

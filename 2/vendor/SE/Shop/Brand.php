@@ -129,7 +129,7 @@ class Brand extends Base
 
 
     // сохранить
-    public function save()
+    public function save($isTransactionMode = true)
     {
         try {
             $this->input["code"] = $this->getCode($this->input["id"], $this->input["name"], $this->input["code"]);

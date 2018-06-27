@@ -604,21 +604,21 @@ class ProductExport extends Product
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         foreach ($goodsL as $row) {
-            $out = [];
-            if ($row['count'] == "-1" || (empty($row["count"]) && $row["count"] !== "0"))
-                $row["count"] = $row['presence'];
-            foreach ($row as $key => $r) {
-                if (!in_array($key, $excludingKeys)) {
-                    if ($key == "description" || $key == "fullDescription") {
-                        $r = preg_replace('/\\\\+/', '', $r);
-                        $r = preg_replace('/\r\n+/', '', $r);
+                $out = [];
+                if ($row['count'] == "-1" || (empty($row["count"]) && $row["count"] !== "0"))
+                    $row["count"] = $row['presence'];
+                foreach ($row as $key => $r) {
+                    if (!in_array($key, $excludingKeys)) {
+                        if ($key == "description" || $key == "fullDescription") {
+                            $r = preg_replace('/\\\\+/', '', $r);
+                            $r = preg_replace('/\r\n+/', '', $r);
+                        }
+                        $out[] = iconv('utf-8', 'utf-8', $r); // CP1251
                     }
-                    $out[] = iconv('utf-8', 'utf-8', $r); // CP1251
                 }
-            }
-            // записываем данные по товарам
-            $writer[] = $out;
-            $line++;
+                // записываем данные по товарам
+                $writer[] = $out;
+                $line++;
         }
         return [$writer, $line];
     } // вывод товаров без модификаций

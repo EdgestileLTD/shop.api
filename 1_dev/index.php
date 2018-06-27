@@ -144,6 +144,7 @@ if ($json->token) {
     list($json->hostname, $json->token, $folderShop) = explode('||', cryptDecodeStr($json->token));
     $folderShop = trim($folderShop);
     define("FOLDER_SHOP", $folderShop);
+    $_SESSION['dirProject'] = $folderShop;
     if (IS_EXT)
         $dbConfig = empty($folderShop) ? 'system/config_db.php' : "../projects/{$folderShop}/config/config_db.php";
     else {

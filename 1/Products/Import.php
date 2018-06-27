@@ -98,39 +98,44 @@ function getGroup53($groups, $idGroup)
     }
 }
 
-function getLevel($id)
-{
-    global $DBH;
 
-    $level = 0;
-    $sqlLevel = 'SELECT `level` FROM shop_group_tree WHERE id_parent = :id_parent AND id_child = :id_parent LIMIT 1';
-    $sth = $DBH->prepare($sqlLevel);
-    $params = array("id_parent" => $id);
-    $answer = $sth->execute($params);
-    if ($answer !== false) {
-        $items = $sth->fetchAll(PDO::FETCH_ASSOC);
-        if (count($items))
-            $level = $items[0]['level'];
+function updateGroupTable()
+{
+    $tree = array();
+
+    $tbl = new seTable('shop_group', 'sg');
+    $tbl->select('upid, id');
+    $list = $tbl->getList();
+    foreach ($list as $it) {
+        $tree[intval($it['upid'])][] = $it['id'];
     }
-    return $level;
+
+    unset($list);
+    $data = addInTree([], $tree);
+    se_db_query("TRUNCATE TABLE `shop_group_tree`");
+    se_db_InsertList('shop_group_tree', $data);
+
 }
 
-function saveIdParent($id, $idParent)
-{
-    global $DBH;
 
-    $level = 0;
-    $sqlGroupTree = "INSERT INTO shop_group_tree (id_parent, id_child, `level`)
-                            SELECT id_parent, :id, `level` FROM shop_group_tree
-                            WHERE id_child = :id_parent
-                            UNION ALL
-                            SELECT :id, :id, :level";
-    $sthGroupTree = $DBH->prepare($sqlGroupTree);
-    if (!empty($idParent)) {
-        $level = getLevel($idParent);
-        $level++;
+function addInTree($treePath, $tree, $parent = 0, $level = 0)
+{
+    if ($level == 0) {
+        $treePath = array();
+    } else
+        $treePath[$level] = $parent;
+
+    foreach ($tree[$parent] as $id) {
+        $data[] = array('id_parent' => $id, 'id_child' => $id, 'level' => $level);
+        if ($level > 0)
+            for ($l = 1; $l <= $level; $l++) {
+                $data[] = array('id_parent' => $treePath[$l], 'id_child' => $id, 'level' => $level);
+            }
+        if (!empty($tree[$id])) {
+            $data = array_merge($data, addInTree($treePath, $tree, $id, $level + 1));
+        }
     }
-    $sthGroupTree->execute(array('id_parent' => $idParent, 'id' => $id, 'level' => $level));
+    return $data;
 }
 
 function createGroup(&$groups, $idParent, $name)
@@ -141,16 +146,15 @@ function createGroup(&$groups, $idParent, $name)
     }
 
     if ($idParent) {
-        $u = new seTable('shop_group_tree', 'sgt');
+        $u = new seTable('shop_group', 'sg');
         $u->select("sg.id");
-        $u->innerJoin("shop_group sg", "sg.id = sgt.id_child");
-        $u->where("sgt.id_parent = ?", $idParent);
+        $u->where("sg.upid = ?", $idParent);
         $u->andWhere("sg.name = '?'", $name);
     } else {
-        $u = new seTable('shop_group_tree', 'sgt');
+        $u = new seTable('shop_group', 'sg');
         $u->select("sg.id");
-        $u->innerJoin("shop_group sg", "sg.id = sgt.id_child AND sg.id = sgt.id_parent");
         $u->where("sg.name = '?'", $name);
+        $u->andWhere("sg.upid IS NULL");
     }
 
     $result = $u->fetchOne();
@@ -158,6 +162,8 @@ function createGroup(&$groups, $idParent, $name)
         return $result["id"];
 
     $u = new seTable('shop_group', 'sg');
+    if ($idParent)
+        $u->upid = $idParent;
     $u->code_gr = getCode(strtolower(se_translite_url($name)), 'shop_group', 'code_gr');
     $u->name = $name;
     $id = $u->save();
@@ -168,8 +174,6 @@ function createGroup(&$groups, $idParent, $name)
     $group["code_gr"] = $u->code_gr;
     $group['upid'] = $idParent;
     $groups[] = $group;
-
-    saveIdParent($id, $idParent);
 
     return $id;
 }
@@ -343,6 +347,7 @@ if ($step == 0) {
 
 if ($step == 1) {
 
+    $isUpdateGroups = false;
     $separator = $_SESSION["import"]["product"]["separator"];
     $encoding = $_SESSION["import"]["product"]["encoding"];
     $keyUser = $_SESSION["import"]["product"]["key"];
@@ -446,8 +451,10 @@ if ($step == 1) {
                             $path = str_replace("/ ", "/", $path);
                             $names = explode("/", $path);
                             $idGroup = null;
-                            foreach ($names as $name)
+                            foreach ($names as $name) {
                                 $idGroup = createGroup($groups, $idGroup, $name);
+                                $isUpdateGroups = true;
+                            }
                             $product["id_group"] = $idsGroups[] = $idGroup;
                         }
                     } else $product["id_group"] = $idsGroupsByCode[$product["code_group"]];
@@ -673,7 +680,11 @@ if ($step == 1) {
     }
     fclose($handle);
 
+
     se_db_query("COMMIT");
+
+    if ($isUpdateGroups)
+        updateGroupTable();
 
     $status['status'] = 'ok';
     $status['data'] = ["countInsert" => (int)$countInsert, "countUpdate" => (int)$countUpdate];
