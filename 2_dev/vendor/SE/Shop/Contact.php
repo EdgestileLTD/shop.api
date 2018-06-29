@@ -945,61 +945,207 @@ class Contact extends Base
     public function post()
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
-        if ($items = parent::post())
-            $this->import($items[0]["name"]);
-    }
-
-    // @@    @@ @@     @@ @@@@@@ @@@@@@ @@@@@@ @@@@@@@@
-    // @@   @@@ @@@   @@@ @@  @@ @@  @@ @@  @@    @@
-    // @@  @@@@ @@ @@@ @@ @@  @@ @@  @@ @@@@@@    @@
-    // @@@@  @@ @@  @  @@ @@  @@ @@  @@ @@        @@
-    // @@@   @@ @@     @@ @@  @@ @@@@@@ @@        @@
-    // импорт (обновление!!)
-    public function import($fileName)
-    {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
-        // адрес эксель файла
-        $dir = DOCUMENT_ROOT . "/files";
-        $filePath = $dir . "/{$fileName}";
-        // получаем массив из файла
-        $contacts = $this->getArrayFromCsv($filePath);
-
-        // сохранить каждый контакт
-        foreach ($contacts as $contact) {
-
-            // Словарь заголовков
-            $enCols = array(
-                "Время регистрации"     => "regDateTime",
-                "Код"                   => "username",
-                "Фамилия"               => "lastName",
-                "Имя"                   => "firstName",
-                "Отчество"              => "secName",
-                "Пол"                   => "gender",
-                "Дата рождения"         => "birthDate",
-                "Email"                 => "email",
-                "Телефон"               => "phone",
-                "Заметка"               => "note"
-            );
-
-            // замена ру-заголовков на стандартные англ-заголовки
-            $header = array_keys($contact);
-            foreach ($header as $head)
-                $headerDB[$enCols[$head] ? $enCols[$head] : $head] = $contact[$head];
-
-            // фильтрация нулевых значений даты рождения
-            if($headerDB['birthDate'] === '0000-00-00')
-                unset($headerDB['birthDate']);
-
-            // фильтрация пустых значений
-            $header = array_keys($headerDB);
-            foreach ($header as $head)
-                if($headerDB[$head] == '')
-                    unset($headerDB[$head]);
-
-            // сохранение в БД
-            $this->save($headerDB);
+        if ($items = parent::post(true)) {
+            $this->import($items[0]["name"], $_POST);
         }
     }
+
+    public function import($fileName,$param)
+    {
+        /**
+         * импорт (обновление!!)
+         * @param array $fileName    имя файла
+         * @param array $param       delimiter разделит столбцов, limiterField ограничитель поля, skip отступ
+         * @param array $headers     упорядоченный массив заголовков в БД формате
+         * @param array $contacts    массив строк файла  array{0=>array(0=>'dfg',1=>'dsg'),1=>array(...)...}
+         * @param array $enCols      заголовки в БД
+         * @param array $arrayNewRow оработанная строка
+         */
+        // todo делать Обновление/Вставку контактов с панелью выбора и csv/xlsx
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+
+        $path     = DOCUMENT_ROOT . "/files/tempfiles";
+        $filePath = $path . "/{$fileName}";
+        /** получаем массив из файла */
+        $contacts = $this->getDataFromFile($fileName, $filePath, $param);
+
+        $enCols = array(
+            "Время регистрации"     => "regDateTime",
+            "Код"                   => "username",
+            "Фамилия"               => "lastName",
+            "Имя"                   => "firstName",
+            "Отчество"              => "secName",
+            "Пол"                   => "gender",
+            "Дата рождения"         => "birthDate",
+            "Email"                 => "email",
+            "Телефон"               => "phone",
+            "Заметка"               => "note"
+        );
+
+        /** сохранить каждый контакт */
+        $headers = array();
+        foreach ($contacts as $k=>$row) {
+
+            if ($k==0) {
+                /** линия заголовка */
+                foreach ($row as $kCell => $cell)
+                    if ($enCols[$cell]) $headers[] = $enCols[$cell];
+
+            } elseif ($k>=$param["skip"]) {
+                /** если обычные строки (с учетом пользовательского отступа) */
+                $arrayNewRow = array();
+                foreach ($row as $kCell => $cell) {
+                    $key = $headers[$kCell];
+                    $arrayNewRow[$key] = $cell;
+                }
+
+                /** фильтрация пустых значений */
+                if($arrayNewRow['birthDate'] === '0000-00-00')
+                    unset($arrayNewRow['birthDate']);
+                foreach ($arrayNewRow as $kHead=>$head)
+                    if($head == '')  unset($arrayNewRow[$kHead]);
+
+
+                /** сохранение в БД */
+                if (!$arrayNewRow['']) $this->save($arrayNewRow);
+
+            } else {}
+        }
+
+        $this->rmdir_recursive($path);                 /** очистка директории с временными файлами */
+        if (!file_exists($path) || !is_dir($path))
+            mkdir($path, 0766, true); /** рекурсивное создание директорий */
+    } // импорт (обновление!!)
+
+    public function getDataFromFile($filename, $filePath, $options)
+    {
+        /** Получить данные из файла
+         * @param  str        $filename
+         * @param  array      $options  параметры пользователя из первого шага импорта
+         * @return array                массив строк файла  array{0=>array(0=>'dfg',1=>'dsg'),1=>array(...)...}
+         * @throws \Exception
+         */
+
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        try{
+            $temporaryFilePath = DOCUMENT_ROOT . "/files/tempfiles/";
+            $file              = $temporaryFilePath.$filename;
+            if(file_exists($file) and is_readable($file)){
+                $extension = pathinfo($file, PATHINFO_EXTENSION);
+
+                if($extension == 'xlsx')
+                    return $this->getDataFromFileXLSX($filePath);
+                elseif($extension == 'csv')
+                    return $this->getDataFromFileCSV($file,$options);
+                else
+                    writeLog('НЕ КОРРЕКТНОЕ РАСШИРЕНИЕ ФАЙЛА '. $file);
+            } else {
+                writeLog('ФАЙЛА НЕТ '. $file);
+            }
+        } catch (Exception $e) {
+            writeLog($e->getMessage());
+        }
+    } // Получить данные из файла
+
+    public function getDataFromFileXLSX($filePath)
+    {
+        /**
+         * чтение файлов xlsx в windows1251 и utf-8
+         * @param obj   $reader    объект с ячейками эксель
+         * @param array $arrayRows массив строк файла  array{0=>array(0=>'dfg',1=>'dsg'),1=>array(...)...}
+         */
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+
+        $arrayRows = array();
+        $reader = ReaderFactory::create(Type::XLSX);
+        $reader->open($filePath);
+        foreach ($reader->getSheetIterator() as $sheet) {
+            foreach ($sheet->getRowIterator() as $row) {
+                if (!is_array($row)) $row = array();
+                foreach ($row as $k => $cell) {
+                    $encoding = mb_check_encoding($cell, 'UTF-8');
+                    if ($encoding !=1) $row[$k] = mb_convert_encoding($cell, 'utf-8', 'windows-1251');
+                }
+                array_push($arrayRows,$row);
+            }
+        }
+        $reader->close();
+
+        return $arrayRows;
+
+    } // чтение файлов xlsx в windows1251 и utf-8
+
+    public function getDataFromFileCSV($file,$options)
+    {
+        /**
+         * чтение файлов csv в windows1251 и utf-8 (в том числе с автоопределителем разделителя в csv)
+         * @param  string $delimiter    разделитель колонок
+         * @param  int    $skip         отступ (строк)
+         * @param  string $limiterField разделитель вложенного текста
+         * @param  obj    $handle       корректный файловый указатель на файл
+         * @param  array  $line         массив ячеек строчки
+         * @return array  $arrayRows    массив строк файла  array{0=>array(0=>'dfg',1=>'dsg'),1=>array(...)...}
+         */
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+
+        $arrayRows    = array();
+        $delimiter    = $options['delimiter'];
+        $skip         = $options['skip'];
+        $limiterField = $options['limiterField'];
+
+        /** автоопределитель разделителя (чувствителен к порядку знаков - по убывающей приоритетности) */
+        if($delimiter == 'auto') {
+            $delimiters_first_line  = array('\t' => 0, ';'  => 0, ':'  => 0);
+            $delimiters_second_line = $delimiters_first_line;
+            $delimiters_final       = array();
+
+            /** читаем первые 2 строки для обработки (вторая строка с учетом пользовательского отступа) */
+            $handle      = fopen($file, 'r');
+            $first_line  = fgets($handle);
+            for ($c=0; $c < $skip; $c++)  $second_line = fgets($handle);
+            fclose($handle);
+
+            /** производим подсчет знаков из $delimiters_first/second_line в обеих строках */
+            foreach ($delimiters_first_line as $delimiter => &$count)
+                $count = count(str_getcsv($first_line, $delimiter, $limiterField));
+            foreach ($delimiters_second_line as $delimiter => &$count)
+                $count = count(str_getcsv($second_line, $delimiter, $limiterField));
+            $delimiter = array_search(max($delimiters_first_line), $delimiters_first_line);
+
+            /** сопоставляем колво знаков - совпадает, в $delimiters_final */
+            foreach($delimiters_first_line as $key => $value)
+                if($delimiters_first_line[$key] == $delimiters_second_line[$key])
+                    $delimiters_final[$key] = $value;
+
+            /** получаем максимальное совпадение из $delimiters_final - переназначаем разделитель с ";" */
+            if(count($delimiters_final) > 1) {
+                $delimiters_final2 = array_keys($delimiters_final, max($delimiters_final));
+                foreach($delimiters_final2 as $value) $delimiter = $value;
+            } else
+                foreach($delimiters_final as $key => $value) $delimiter = $key;
+        };
+
+        /** формируем массив */
+        if (($handle = fopen($file, "r")) !== FALSE) {
+            /** перебирает все строчки */
+            while (($line = fgetcsv($handle, 10000, $delimiter, $limiterField)) !== FALSE) {
+
+                $num = count($line);
+                $row = array();
+
+                for ($c=0; $c < $num; $c++) {
+                    $auto_encoding = mb_check_encoding($line[$c],'UTF-8');
+                    if($auto_encoding != 1) $cell = mb_convert_encoding($line[$c], 'UTF-8', "windows-1251");
+                    else                    $cell = $line[$c];
+                    $row[$c] = $cell;
+                }
+                $arrayRows[]=$row;
+            }
+            fclose($handle);
+
+            return $arrayRows;
+        }
+    } // чтение файлов csv в windows1251 и utf-8
 
     static public function correctPhone($phone)
     {

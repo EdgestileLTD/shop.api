@@ -599,36 +599,6 @@ class Base extends CustomBase
         return $query;
     }
 
-    public function getArrayFromCsv($file, $csvSeparator = ";")
-    {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
-        if (!file_exists($file))
-            return null;
-
-        $result = [];
-        if (($handle = fopen($file, "r")) !== FALSE) {
-            $i = 0;
-            $keys = [];
-            while (($row = fgetcsv($handle, 10000, $csvSeparator)) !== FALSE) {
-                if (!$i) {
-                    foreach ($row as &$item)
-                        $keys[] = iconv('CP1251', 'utf-8', $item);
-                } else {
-                    $object = [];
-                    $j = 0;
-                    foreach ($row as &$item) {
-                        $object[$keys[$j]] = iconv('CP1251', 'utf-8', $item);
-                        $j++;
-                    }
-                    $result[] = $object;
-                }
-                $i++;
-            }
-            fclose($handle);
-        }
-        return $result;
-    }
-
     public function post($tempFile = FALSE)
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
