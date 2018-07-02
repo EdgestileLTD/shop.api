@@ -954,22 +954,23 @@ class Contact extends Base
     {
         /**
          * импорт (обновление!!)
-         * @param array $fileName    имя файла
-         * @param array $param       delimiter разделит столбцов, limiterField ограничитель поля, skip отступ
-         * @param array $headers     упорядоченный массив заголовков в БД формате
-         * @param array $contacts    массив строк файла  array{0=>array(0=>'dfg',1=>'dsg'),1=>array(...)...}
-         * @param array $enCols      заголовки в БД
-         * @param array $arrayNewRow оработанная строка
+         *
+         * @param  array $fileName       имя файла
+         * @param  array $param          delimiter разделит столбцов, limiterField ограничитель поля, skip отступ
+         * @param  array $headers        упорядоченный массив заголовков в БД формате
+         * @param  array $contacts       массив строк файла  array{0=>array(0=>'dfg',1=>'dsg'),1=>array(...)...}
+         * @param  array $enCols         заголовки в БД
+         * @param  array $arrayNewRow    оработанная строка
+         * @param  array $newArray       массив с разложенными данными
+         * @param  array $arrayUserName  массив кодов пользователей (оригинальных значений)
+         * @method array getDataFromFile получаем массив из файла
+         * @method array importHandler   раскладываем файл на параметры
+         * @method array save            сохранение по одному
+         * @method array rmdir_recursive очистка директории с временными файлами
          */
-        // todo делать Обновление/Вставку контактов с панелью выбора и csv/xlsx
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
-        $path     = DOCUMENT_ROOT . "/files/tempfiles";
-        $filePath = $path . "/{$fileName}";
-        /** получаем массив из файла */
-        $contacts = $this->getDataFromFile($fileName, $filePath, $param);
-
-        $enCols = array(
+        $enCols   = array(
             "Время регистрации"     => "regDateTime",
             "Код"                   => "username",
             "Фамилия"               => "lastName",
@@ -982,8 +983,27 @@ class Contact extends Base
             "Заметка"               => "note"
         );
 
-        /** сохранить каждый контакт */
-        $headers = array();
+        $skip     = $param["skip"];
+        $path     = DOCUMENT_ROOT . "/files/tempfiles";
+        $filePath = $path . "/{$fileName}";
+
+        $contacts = $this->getDataFromFile($fileName, $filePath, $param);
+        $newArray = $this->importHandler($contacts, $enCols, $skip);
+        foreach ($newArray as $k=>$i)  $this->save($i);
+
+        $this->rmdir_recursive($path);
+        if (!file_exists($path) || !is_dir($path))
+            mkdir($path, 0766, true); /** рекурсивное создание директорий */
+    } // импорт (обновление!!)
+
+    private function importHandler($contacts, $enCols, $skip)
+    {
+        /** раскладываем файл */
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+
+        $headers       = array();
+        $newArray      = array();
+        $arrayUserName = array();
         foreach ($contacts as $k=>$row) {
 
             if ($k==0) {
@@ -991,7 +1011,7 @@ class Contact extends Base
                 foreach ($row as $kCell => $cell)
                     if ($enCols[$cell]) $headers[] = $enCols[$cell];
 
-            } elseif ($k>=$param["skip"]) {
+            } elseif ($k>=$skip) {
                 /** если обычные строки (с учетом пользовательского отступа) */
                 $arrayNewRow = array();
                 foreach ($row as $kCell => $cell) {
@@ -1006,18 +1026,36 @@ class Contact extends Base
                     if($head == '')  unset($arrayNewRow[$kHead]);
 
 
-                /** сохранение в БД */
-                if (!$arrayNewRow['']) $this->save($arrayNewRow);
+                $newArray[]                                     = $arrayNewRow;
+                if ($arrayNewRow["username"])  $arrayUserName[] = '"'.$arrayNewRow["username"].'"';
+                unset($contacts[$k]);
 
             } else {}
         }
+        unset($contacts);
 
-        $this->rmdir_recursive($path);                 /** очистка директории с временными файлами */
-        if (!file_exists($path) || !is_dir($path))
-            mkdir($path, 0766, true); /** рекурсивное создание директорий */
-    } // импорт (обновление!!)
 
-    public function getDataFromFile($filename, $filePath, $options)
+        /** получение связки код-id (если есть) */
+        $u = new DB('se_user', 'su');
+        $u->select('id, username');
+        $u->where('username in (?)', implode(",", $arrayUserName));
+        //$u->andWhere('p.sec_name   = "?"', implode(",", $secName)); // проверка по отчеству
+        $arrayDataId = $u->getList();
+
+        $nameId= array();
+        foreach ($arrayDataId as $k=>$i) {
+            $nameId[ $i["username"] ] = $i["id"];
+            unset($arrayDataId[$k]);
+        }
+        unset($arrayDataId);
+
+        foreach ($newArray as $k=>$i)
+            if ($nameId[$i["username"]])  $newArray[$k]["id"] = $nameId[$i["username"]];
+
+        return $newArray;
+    } // раскладываем файл
+
+    private function getDataFromFile($filename, $filePath, $options)
     {
         /** Получить данные из файла
          * @param  str        $filename
@@ -1047,7 +1085,7 @@ class Contact extends Base
         }
     } // Получить данные из файла
 
-    public function getDataFromFileXLSX($filePath)
+    private function getDataFromFileXLSX($filePath)
     {
         /**
          * чтение файлов xlsx в windows1251 и utf-8
@@ -1075,7 +1113,7 @@ class Contact extends Base
 
     } // чтение файлов xlsx в windows1251 и utf-8
 
-    public function getDataFromFileCSV($file,$options)
+    private function getDataFromFileCSV($file,$options)
     {
         /**
          * чтение файлов csv в windows1251 и utf-8 (в том числе с автоопределителем разделителя в csv)
