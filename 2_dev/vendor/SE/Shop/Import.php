@@ -458,9 +458,7 @@ class Import extends Product
                 if ($parent != NULL) $newCat['upid'] = $parent;
 
                 if(!empty($id) or !empty($code_gr) or !empty($name)) {
-                    DB::query('SET foreign_key_checks = 0');
                     DB::insertList('shop_group', array($newCat),TRUE);
-                    DB::query('SET foreign_key_checks = 1');
                 }
 
                 $u  = new DB('shop_group', 'sg');
@@ -2030,12 +2028,12 @@ class Import extends Product
          * 2 Добавляем меры (веса/объема)
          * 3 Добавляем сопутствующие товары
          * 4 ас.массив значений записи в БД
-         * 5 обработчик значений/текста в Остатке
-         * 6 Обрабатываем модификации (если есть)
-         * 7 Cверяем наличие характеристик и значений
-         * 8 устанновка значений по умолчанию при NULL (ЗАГЛУШКИ)
-         * 9 получение списка изображений из ячеек Excel
-         * 10 проверка корректности значений и запись в массив
+         * 5 проверка корректности значений и запись в массив
+         * 6 обработчик значений/текста в Остатке
+         * 7 Обрабатываем модификации (если есть)
+         * 8 Cверяем наличие характеристик и значений
+         * 9 устанновка значений по умолчанию при NULL (ЗАГЛУШКИ)
+         * 10 получение списка изображений из ячеек Excel
          *
          * @param array $item данные по КАЖДОМУ товару
          * @param array $this->importData данные для таблиц
@@ -2078,6 +2076,7 @@ class Import extends Product
         // FIXME 3 тестировать на слияние файлов с конфликтами id
         // TODO  3 отвязывать id и переводить на code (не забыть поменять клочевое поле в импорте JS)
         // TODO  2 updateListImport updateListImport попробовать отработанные ids товаров сохранять во временный файл (в конце цикла) и получать в начале цикла
+        // TODO  1 при пустых колонках и пустых куки выделение ошибок на втором шаге импорта перестает работать
 
 
         /** 4 ас.массив значений записи в БД */
@@ -2122,16 +2121,19 @@ class Import extends Product
             /** смотреть в БД */
         );
 
-        /** 5 обработчик значений/текста в Остатке */
+        /** 5 проверка корректности значений и запись в массив */
+        $this->validationValues($Product);
+
+        /** 6 обработчик значений/текста в Остатке */
         if(!(int)$Product['presence_count'] and $Product['presence_count']!='0') {
             $Product['presence'] = $Product['presence_count'];
             $Product['presence_count'] = -1;
         }
 
-        /** 6 Обрабатываем модификации (если есть) */
+        /** 7 Обрабатываем модификации (если есть) */
         $Product = $this->creationModificationsStart($Product, $item);
 
-        /** 7 Cверяем наличие характеристик и значений */
+        /** 8 Cверяем наличие характеристик и значений */
         $Product = $this->creationFeature($Product, $item);
 
         /**
@@ -2145,7 +2147,7 @@ class Import extends Product
         //     if($include !== NULL) {$Product[$ingredient]= $include;};
         // };
 
-        /** 8 устанновка значений по умолчанию при NULL (ЗАГЛУШКИ) */
+        /** 9 устанновка значений по умолчанию при NULL (ЗАГЛУШКИ) */
         $substitution = array(
             'curr'     => 'RUB',
             'enabled'  => 'Y',
@@ -2159,7 +2161,7 @@ class Import extends Product
                     $Product[$ingredient] = $inc;
 
 
-        /** 9 получение списка изображений из ячеек Excel */
+        /** 10 получение списка изображений из ячеек Excel */
         $imgList = array('img_alt','img', 'img_2', 'img_3', 'img_4', 'img_5', 'img_6', 'img_7', 'img_8', 'img_9', 'img_10');
 
         foreach ($imgList as $imgKey){
@@ -2190,9 +2192,6 @@ class Import extends Product
                 }
             }
         }
-
-        /** 10 проверка корректности значений и запись в массив */
-        $this->validationValues($Product);
 
         unset($item);
     } // ПОЛУЧИТЬ ПРАВИЛЬНЫЕ ДАННЫЕ
@@ -2591,7 +2590,7 @@ class Import extends Product
 
             if ($isFile) {
                 $list[$i['picture']] ?: array_push($faileImgsTemp, $i);
-            } elseif (count($faileImgs)!=0) {
+            } elseif (count($faileImgs)!=0 and $i['picture']!='') {
                 if (!$_SESSION['errors']['img_alt']) $_SESSION['errors']['img_alt']='ОШИБКА[стр. '.$line.']: столец "Изображения" не корректное расширение файла';
             }
 
