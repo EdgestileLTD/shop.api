@@ -755,21 +755,29 @@ class Import extends Product
         foreach ($this->fields as $name => $rus)
             $rusFields[$rus] = $name;
 
+        $arrayNullValues = true;
         foreach ($array as $key => $field) {
             if ($rusFields[$field]) {
                 $name = $rusFields[$field];
                 $this->fieldsMap[$name] = $key;
+                $arrayNullValues = false;
             } elseif (preg_match("/[^\s]+#(?!\s+)/ui",$field)) {
                 /** 3 проверка на модификацию и ее корректность*/
                 $amountElements = explode('#',$field);
                 if (count($amountElements)==2 and $amountElements[0]!='' and $amountElements[1]!='') {
                     $this->fieldsMap[$field] = $key;
+                    $arrayNullValues = false;
                 } elseif (count($amountElements)>2) {
                     $nameNum = $this->getNameFromNumber($key);
                     $_SESSION['errors']['headline'] = "ОШИБКА[стлб. ".$nameNum."]: Ошибка заголовка столбца модификации!";
                     //throw new Exception($this->error);
                 } else {}
             }
+        }
+
+        /** при всех пустых значениях массива (строка заголовков пустая и куки заголовков), выдать ошибку */
+        if ($arrayNullValues == true) {
+            $_SESSION['errors']['headline'] = "ОШИБКА: заголовки столбцов не заданы!";
         }
 
         $_SESSION["fieldsMap"] = $this->fieldsMap;
@@ -2054,10 +2062,9 @@ class Import extends Product
             }
         };
 
-        // FIXME 3 тестировать на слияние файлов с конфликтами id
-        // TODO  3 отвязывать id и переводить на code (не забыть поменять клочевое поле в импорте JS)
-        // TODO  2 updateListImport updateListImport попробовать отработанные ids товаров сохранять во временный файл (в конце цикла) и получать в начале цикла
-        // TODO  1 при пустых колонках и пустых куки выделение ошибок на втором шаге импорта перестает работать
+        // FIXME 2 тестировать на слияние файлов с конфликтами id
+        // TODO  2 отвязывать id и переводить на code (не забыть поменять клочевое поле в импорте JS)
+        // TODO  1 updateListImport updateListImport попробовать отработанные ids товаров сохранять во временный файл (в конце цикла) и получать в начале цикла
 
 
         /** 4 ас.массив значений записи в БД */
