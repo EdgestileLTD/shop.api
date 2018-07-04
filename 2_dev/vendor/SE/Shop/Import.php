@@ -863,7 +863,7 @@ class Import extends Product
 
                 } else {
                     /** 3 построчная обработка в БД */
-                    if ($this->rowCheck($item) == TRUE)  $this->getRightData($item, $options, $key);
+                    if ($this->rowCheck($item) == TRUE)  $this->getRightData($item, $key);
                     $this->data[$key] = null;
                 }
 
@@ -1994,7 +1994,7 @@ class Import extends Product
 
     } // Привязываем изображения к модификациям
 
-    private function getRightData($item, $options, $key)
+    private function getRightData($item, $key)
     {
         /** Получить правильные данные
          *

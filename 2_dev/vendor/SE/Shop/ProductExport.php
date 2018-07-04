@@ -542,17 +542,17 @@ class ProductExport extends Product
             foreach($goodsL as $key => $value) {
                 unset($value['idModification'],$value['idGroup']); // приходят из shopPrice запроса
 
+                /** при неограниченном количестве - подставлять "текст при неограниченном" */
+                if ($value['count']<0 or $value['count']=='') {
+                    $value['count'] = $value['presence'];
+                    unset($value['presence']);
+                }
+
                 $VColumn = 0;
                 $unit    = array();
                 foreach($value as $k => $v) {
                     if (in_array($VColumn, $numColumn)) $unit[$k] = $v;
                     $VColumn++;
-                }
-
-                /** при неограниченном количестве - подставлять "текст при неограниченном" */
-                if ($value['count']<0) {
-                    $value['count'] = $value['presence'];
-                    unset($value['presence']);
                 }
 
                 if(count($unit) > 1) array_push($goodsLNew, $unit);
