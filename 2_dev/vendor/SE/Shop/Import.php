@@ -1269,9 +1269,7 @@ class Import extends Product
                     $newfeat = array('name' => $value, 'type' => $type);
 
                     if ($newfeat['name'] and $newfeat['type']) {
-                        DB::query('SET foreign_key_checks = 0');
                         DB::insertList('shop_feature', array($newfeat),TRUE);
-                        DB::query('SET foreign_key_checks = 1');
 
                         $u = new DB("shop_feature", "sf");
                         $u->select("sf.id");
@@ -1320,10 +1318,8 @@ class Import extends Product
                         /** если нет значения характеристики - создаем и добавляем в сессию, присваиваем id */
 
                         $newfeat = array('value' => $value, 'id_feature' => $k);
-                        if ($newfeat['name'] and $newfeat['type']) {
-                            DB::query('SET foreign_key_checks = 0');
+                        if ($newfeat['value'] and $newfeat['id_feature']) {
                             DB::insertList('shop_feature_value_list', array($newfeat),TRUE);
-                            DB::query('SET foreign_key_checks = 1');
 
                             $u = new DB("shop_feature_value_list", "sfvl");
                             $u->select("sfvl.id");
@@ -1504,9 +1500,7 @@ class Import extends Product
         /** записываем массив */
 
         if (count($newModGroups)>0) {
-            DB::query('SET foreign_key_checks = 0');
             DB::insertList('shop_modifications_group', $newModGroups,TRUE);
-            DB::query('SET foreign_key_checks = 1');
             unset($this->feature['smg']);
             $this->getFeatureInquiry("shop_modifications_group","smg","smg.id, smg.name");
         }
@@ -1564,9 +1558,7 @@ class Import extends Product
         /** записываем массив */
 
         if (count($newMods)>0) {
-            DB::query('SET foreign_key_checks = 0');
             DB::insertList('shop_feature', $newMods, TRUE);
-            DB::query('SET foreign_key_checks = 1');
             unset($this->feature['sf']);
             $this->getFeatureInquiry("shop_feature", "sf", "sf.id, sf.name");
         }
@@ -1624,9 +1616,7 @@ class Import extends Product
         /** записываем массив */
 
         if (count($newModValues)>0) {
-            DB::query('SET foreign_key_checks = 0');
             DB::insertList('shop_feature_value_list', $newModValues, TRUE);
-            DB::query('SET foreign_key_checks = 1');
             unset($this->feature['sfvl']);
             $this->getFeatureInquiry("shop_feature_value_list", "sfvl", "sfvl.id, sfvl.value name");
         }
@@ -1687,9 +1677,7 @@ class Import extends Product
         /** записываем массив */
 
         if (count($newLigaments)>0) {
-            DB::query('SET foreign_key_checks = 0');
             DB::insertList('shop_group_feature', $newLigaments, TRUE);
-            DB::query('SET foreign_key_checks = 1');
             unset($this->feature['sgf']);
             //$this->getFeatureInquiry("shop_group_feature","sgf","CONCAT_WS(':', sgf.id_group, sgf.id_feature) name, sgf.id");
             //unset($this->feature['sgf']);
@@ -1840,9 +1828,7 @@ class Import extends Product
         //$u->setValuesFields($shMods);
         //$idModification = $u->save();
         if (count($newShopMod)>0) {
-            DB::query('SET foreign_key_checks = 0');
             DB::insertList('shop_modifications', $newShopMod, TRUE);
-            DB::query('SET foreign_key_checks = 1');
         }
 
 
@@ -1927,9 +1913,7 @@ class Import extends Product
         foreach ($newFeatures as $k=>$i) {  array_push($newFeatures,$i);  unset($newFeatures[$k]);  }
 
         if (count($newFeatures)>0) {
-            DB::query('SET foreign_key_checks = 0');
             DB::insertList('shop_modifications_feature', $newFeatures, TRUE);
-            DB::query('SET foreign_key_checks = 1');
         }
 
     }  // Записываем значения модификации
@@ -2005,9 +1989,7 @@ class Import extends Product
         /** 4 записываем в <shop_modifications_img> */
 
         if (count($newImgs)>0) {
-            DB::query('SET foreign_key_checks = 0');
             DB::insertList('shop_modifications_img', $newImgs, TRUE);
-            DB::query('SET foreign_key_checks = 1');
         }
 
     } // Привязываем изображения к модификациям
@@ -2072,7 +2054,6 @@ class Import extends Product
             }
         };
 
-        // TODO  2 DB::query("SET foreign_key_checks = 0"); DB::insertList('shop_price_measure', $this->importData['measure'],TRUE); DB::query("SET foreign_key_checks = 1"); - пробовать удалить query
         // FIXME 3 тестировать на слияние файлов с конфликтами id
         // TODO  3 отвязывать id и переводить на code (не забыть поменять клочевое поле в импорте JS)
         // TODO  2 updateListImport updateListImport попробовать отработанные ids товаров сохранять во временный файл (в конце цикла) и получать в начале цикла
@@ -2474,7 +2455,12 @@ class Import extends Product
 
                         $data_unit = array($data_unit);
                         $this->insertListChildTablesBeforePrice($id, false);
-                        DB::insertList('shop_price', $data_unit, $param);
+
+                        $data_unut_sp = $data_unit;
+                        unset($data_unut_sp[0]['features']);
+                        DB::insertList('shop_price', $data_unut_sp, $param);
+                        unset($data_unut_sp);
+
                         $id_price = $id;
                         $this->insertListChildTablesAfterPrice($id, false);
                         $this->checkCreateImg($product_unit['id'],$line);
@@ -2674,10 +2660,8 @@ class Import extends Product
                     $tableData = array_values($tableData);
 
                     if ($setValuesFields==false) {
-                        DB::query("SET foreign_key_checks = 0");
                         $tableData[0] ?: $tableData=array($tableData);
                         DB::insertList($tableNames[$i], $tableData,true);
-                        DB::query("SET foreign_key_checks = 1");
                     } else {
                         /** удаляем старую запись*/
                         if ($id_list[$id]) {
@@ -2690,10 +2674,8 @@ class Import extends Product
                         //$tableDB = new DB($tableNames[$i]);
                         //$tableDB->setValuesFields($tableData);
                         //$idDB = $tableDB->save();
-                        DB::query("SET foreign_key_checks = 0");
                         $tableData[0] ? $tableData=$tableData : $tableData=array($tableData);
                         DB::insertList($tableNames[$i], $tableData,true);
-                        DB::query("SET foreign_key_checks = 1");
                     }
                 }
             }
