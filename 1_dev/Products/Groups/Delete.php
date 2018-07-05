@@ -37,7 +37,7 @@ function deleteGroup($id)
     foreach ($ids as $id) {
 
         $query = "DELETE FROM shop_price INNER JOIN shop_price_group ON shop_price.id = shop_price_group.id_price 
-                    WHERE shop_price_group.id_group = {$id}";
+                    WHERE shop_price_group.id_group = {$id} AND shop_price_group.is_main";
         se_db_query($query);
 
         $t = new seTable("shop_price_group", "spg");

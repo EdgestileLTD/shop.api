@@ -138,27 +138,19 @@ function addInTree($treePath, $tree, $parent = 0, $level = 0)
     return $data;
 }
 
-function createGroup(&$groups, $idParent, $name)
+function createGroup($idParent, $name)
 {
-    foreach ($groups as $group) {
-        if ($group['upid'] == $idParent && $group['name'] == $name)
-            return $group['id'];
-    }
 
-    if ($idParent) {
-        $u = new seTable('shop_group', 'sg');
-        $u->select("sg.id");
-        $u->where("sg.upid = ?", $idParent);
-        $u->andWhere("sg.name = '?'", $name);
-    } else {
-        $u = new seTable('shop_group', 'sg');
-        $u->select("sg.id");
-        $u->where("sg.name = '?'", $name);
-        $u->andWhere("sg.upid IS NULL");
-    }
+    $name = trim($name);
 
+    $u = new seTable('shop_group', 'sg');
+    $u->select("sg.id");
+    $u->where("sg.name = '?'", $name);
+    if ($idParent)
+        $u->andWhere("sg.upid = ?", $idParent);
+    else $u->andWhere("sg.upid IS NULL");
     $result = $u->fetchOne();
-    if (!empty($result))
+    if (!empty($result["id"]))
         return $result["id"];
 
     $u = new seTable('shop_group', 'sg');
@@ -166,16 +158,8 @@ function createGroup(&$groups, $idParent, $name)
         $u->upid = $idParent;
     $u->code_gr = getCode(strtolower(se_translite_url($name)), 'shop_group', 'code_gr');
     $u->name = $name;
-    $id = $u->save();
 
-    $group = array();
-    $group["id"] = $id;
-    $group['name'] = $name;
-    $group["code_gr"] = $u->code_gr;
-    $group['upid'] = $idParent;
-    $groups[] = $group;
-
-    return $id;
+    return $u->save();
 }
 
 $step = isset($_GET['step']) ? $_GET['step'] : 1;
@@ -205,7 +189,7 @@ $dir = $root . $dir;
 
 $countPhotos = 25;
 
-$fields = ["id" => "Ид.", "article" => "Артикул", "code" => "Код (URL)", "id_group" => "Ид. категории",
+$fields = ["id" => "Ид.", "article" => "Артикул", "code" => "Код (URL)",
     "code_group" => "Код категории", "catalog0" => "Корневая категория", "catalog1" => "Подкатегория 1",
     "catalog2" => "Подкатегория 2", "catalog3" => "Подкатегория 3", "catalog4" => "Подкатегория 4",
     "path_group" => "Путь категории", "name" => "Наименование", "price" => "Цена пр.", "price_opt" => "Цена опт.",
@@ -224,14 +208,6 @@ $t->orderBy("sf.id");
 $offers = $t->getList();
 foreach ($offers as $feature)
     $fields[$feature["name"]] = $feature["name"];
-
-$result = se_db_query('SELECT MAX(si.c) p FROM (
-SELECT COUNT(si.id_price) c FROM shop_img si
-  GROUP BY si.id_price) si');
-$result = $result->fetch_assoc();
-$countPhotos = $result["p"];
-if (!$countPhotos)
-    $countPhotos = 1;
 
 for ($i = 1; $i <= $countPhotos; ++$i) {
     if ($i == 1)
@@ -367,26 +343,7 @@ if ($step == 1) {
     while ($row = se_db_fetch_row($result))
         $colsProducts[] = $row[0];
 
-    $fieldsGroups = ["id_group", "code_group", "catalog0", "path_group"];
-
-    $u = new seTable('shop_group', 'sg');
-    if (CORE_VERSION != "5.2") {
-        $u->select('sg.id, sg.code_gr, GROUP_CONCAT(sgp.name ORDER BY sgt.level SEPARATOR "/") name');
-        $u->innerJoin("shop_group_tree sgt", "sg.id = sgt.id_child");
-        $u->innerJoin("shop_group sgp", "sgp.id = sgt.id_parent");
-        $u->orderBy('sgt.level');
-    } else {
-        $u->select('sg.*');
-        $u->orderBy('sg.id');
-    }
-    $u->groupBy('sg.id');
-    $groups = $u->getList();
-    $idsGroups = array();
-    $idsGroupsByCode = array();
-    foreach ($groups as $group) {
-        $idsGroups[] = $group["id"];
-        $idsGroupsByCode[$group["code_gr"]] = $group["id"];
-    }
+    $fieldsGroups = ["code_group", "catalog0", "path_group"];
 
     $features = array();
     $t = new seTable("shop_feature", "sf");
@@ -425,7 +382,7 @@ if ($step == 1) {
             }
 
 
-            if (empty($product[$keyField]) && empty($product["name"]))
+            if (empty($product[$keyField]))
                 continue;
 
             // поиск Id группы
@@ -433,39 +390,49 @@ if ($step == 1) {
             foreach ($fieldsGroups as $field)
                 if ($isExistFieldGroup = key_exists($field, $product))
                     break;
+
             if ($isExistFieldGroup) {
-                if (empty($product["id_group"])) {
-                    if (empty($product["code_group"])) {
-                        $path = $product["path_group"];
-                        if (empty($path)) {
-                            if (!empty($product["catalog0"])) {
-                                for ($i = 0; $i < 5; $i++) {
-                                    $path .= $product["catalog{$i}"] . "/";
-                                    if (empty($product["catalog{$i}"]))
-                                        break;
-                                }
-                                $path = trim($path, "/");
+
+                $product["code_group"] = trim($product["code_group"]);
+                if (empty($product["code_group"])) {
+                    $path = trim($product["path_group"]);
+                    if (empty($path)) {
+                        if (!empty($product["catalog0"])) {
+                            for ($i = 0; $i < 5; $i++) {
+                                $path .= $product["catalog{$i}"] . "/";
+                                if (empty($product["catalog{$i}"]))
+                                    break;
                             }
+                            $path = trim($path, "/");
                         }
-                        if ($path) {
-                            $path = str_replace("/ ", "/", $path);
-                            $names = explode("/", $path);
-                            $idGroup = null;
-                            foreach ($names as $name) {
-                                $idGroup = createGroup($groups, $idGroup, $name);
-                                $isUpdateGroups = true;
-                            }
-                            $product["id_group"] = $idsGroups[] = $idGroup;
+                    }
+                    if ($path) {
+                        $path = str_replace("/ ", "/", $path);
+                        $names = explode("/", $path);
+                        $idGroup = null;
+                        foreach ($names as $name) {
+                            $idGroup = createGroup($idGroup, $name);
+                            $isUpdateGroups = true;
                         }
-                    } else $product["id_group"] = $idsGroupsByCode[$product["code_group"]];
-                    if (!in_array($product["id_group"], $idsGroups))
-                        unset($product["id_group"]);
+                        $product["id_group"] = $idGroup;
+                    }
+
+                } else {
+
+                    $t = new seTable("shop_group", "sg");
+                    $t->select("sg.id");
+                    $t->where("sg.code_gr = '?'", $product["code_group"]);
+                    $result = $t->fetchOne();
+                    if (!empty($result))
+                        $product["id_group"] = $result["id"];
+
                 }
             }
 
             $result = null;
             $isNew = false;
 
+            $result = null;
             if (!empty($product[$keyField])) {
                 $t = new seTable("shop_price");
                 $t->select("id");
@@ -490,8 +457,7 @@ if ($step == 1) {
                             if ($count == "0") {
                                 $isUpdate |= setField(false, $t, 0.00, $field);
                                 $isInsert |= setField(false, $t, false, "market_available");
-                            }
-                            else $isUpdate |= setField(false, $t, $count, $field);
+                            } else $isUpdate |= setField(false, $t, $count, $field);
                         }
                     }
                 }
@@ -518,8 +484,7 @@ if ($step == 1) {
                             if ($count == "0") {
                                 $isInsert |= setField(true, $t, 0.00, $field);
                                 $isInsert |= setField(true, $t, false, "market_available");
-                            }
-                            else $isInsert |= setField(true, $t, $count, $field);
+                            } else $isInsert |= setField(true, $t, $count, $field);
                         }
                     }
                 $isInsert = $isInsert && !empty($product["name"]);
@@ -552,7 +517,7 @@ if ($step == 1) {
                         $isCreate = false;
                     if ($isCreate) {
                         $t = new seTable("shop_price_group");
-                        $t->where("spg.id_price = {$product['id']} AND is_main")->deleteList();
+                        $t->where("spg.id_price = {$product['id']} AND spg.id_group = {$product["id_group"]}")->deleteList();
                     }
                 }
                 if ($isCreate) {
@@ -678,8 +643,8 @@ if ($step == 1) {
             checkError($handle);
         }
     }
-    fclose($handle);
 
+    fclose($handle);
 
     se_db_query("COMMIT");
 
