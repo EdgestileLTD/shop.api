@@ -771,7 +771,7 @@ class DB
     }
 
     // сохранить
-    public function save($isInsertId = false)
+    public function save($isInsertId = false, $insertIgnore = false)
     {
         if (empty($this->tableName))
             return null;
@@ -793,7 +793,10 @@ class DB
                 return $this->dataValues["id"];
         }
 
-        $query[] = $isInsert ? "INSERT INTO" : "UPDATE";
+        $insertUp = $isInsert     ? "INSERT INTO"        : "UPDATE";
+        $insertUp = $insertIgnore ? "INSERT IGNORE INTO" : $insertUp;
+        $query[]  = $insertUp;
+
         $query[] = $this->tableName;
         if (!empty($values)) {
             $query[] = "SET";
