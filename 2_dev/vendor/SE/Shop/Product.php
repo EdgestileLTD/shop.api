@@ -2016,7 +2016,8 @@ class Product extends Base
                 false,
                 $options,
                 $this->input['prepare'][0],
-                $this->input['cycleNum']
+                $this->input['cycleNum'],
+                $this->input['last']
             );
 
             /**

@@ -86,7 +86,7 @@ class Import extends Product
         "img_alt"           => "Изображения",
         "features"          => "Характеристики",
         'min_count'         => "Мин.кол-во",
-        'id_acc'            => "Сопутствующие товары",
+        'code_acc'          => "Сопутствующие товары",
 
         "img"               => "Фото 1",
         "img_2"             => "Фото 2",
@@ -150,7 +150,7 @@ class Import extends Product
         if($settings['prepare'] == "true") $this->mode = 'pre';
     } // сборка
 
-    public function startImport($filename, $prepare = false, $options, $customEdition, $cycleNum)
+    public function startImport($filename, $prepare = false, $options, $customEdition, $cycleNum, $lastCycle)
     {
         /** Запуск импорта
          *
@@ -164,8 +164,10 @@ class Import extends Product
          * elseif - первый цикл - весь файл во временные
          *
          * @param int   $_SESSION['lastProcessedLine'] последняя обработанная строка (без превью)
-         * @param array $_SESSION['errors']            данные по некритическим ошибкам, возникшим в ходе обработки импФайла
-         * @method bool public $this->getDataFromFile($filename, $options, $prepare) чтение и разложение файла на временные
+         * @param array $_SESSION['errors']            данные по некритич. ошибкам, возникшим при обработки импФайла
+         * @method bool public  getDataFromFile($filename, $options, $prepare) чтение и разложение файла на временные
+         * @method      private inserRelatedProducts()       запись сопутств. тов. (shop_accomp)
+         * @method      public  rmdir_recursive(string $dir) очистка директ. с времен. файлами
          */
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
@@ -217,6 +219,15 @@ class Import extends Product
                 return $this->importData;
             } else
                 $this->addData();
+
+            /** последний цикл */
+            if ($lastCycle) {
+                $this->inserRelatedProducts();
+                $tempfiles = DOCUMENT_ROOT . "/files/tempfiles";
+                $this->rmdir_recursive($tempfiles);                  /** очистка директ. с времен. файлами */
+                if (!file_exists($tempfiles) || !is_dir($tempfiles))
+                    mkdir($tempfiles, 0766, true);  /** рекурс. создание директ. */
+            }
 
             $_SESSION["cycleNum"] += 1;
             unset($_SESSION["getId"]);
@@ -2051,23 +2062,23 @@ class Import extends Product
         );
 
         /** 3 Добавляем сопутствующие товары */
-        $accomp       = $this->get('id_acc', "/,(?!\s+)/ui", $item);
+        $accomp       = $this->get('code_acc', "/,(?!\s+)/ui", $item);
         $id_price_acc = $this->get('id', "/,(?!\s+)/ui", $item);
         /** если присутствуют сопутствующие - добавляем */
         if($accomp != NULL) {
+            $accomp = is_array($accomp) ? $accomp : array($accomp);
             foreach ($accomp as $ac) {
                 $this->importData['accomp'][] = array(
                     'id_price' => $id_price_acc,
-                    'id_acc'   => $ac
+                    'code_acc'   => $ac
                 );
             }
         };
 
-        // TODO  2 отвязывать id и переводить на code (не забыть поменять клочевое поле в импорте JS)
-        // TODO  1 updateListImport updateListImport попробовать отработанные ids товаров сохранять во временный файл (в конце цикла) и получать в начале цикла
+        // todo менять клоч. поле в имп. JS
 
-        // todo тестировать изображения в том числе в модификациях
-        // todo сопутствующие переделывать
+        // todo в массиве табл. пробовать аккуратно менять id на коды
+        // todo тест. изображ. в том числе в модиф.
         // SELECT t.* FROM edgestile_150104.shop_price_measure t LIMIT 501;
         // SELECT t.* FROM edgestile_150104.shop_accomp t LIMIT 501;
 
@@ -2387,7 +2398,8 @@ class Import extends Product
          * 8: конец транзакции
          *
          * @param array $shopPriceData значения товара для shop_price
-         * @param array $data_unit ответвление данныех продукта для обработки
+         * @param array $data_unit     ответвление данныех продукта для обработки
+         * @method writeTempFileRelatedProducts(string) запись сопутств. товаров во времен. файл
          */
         $this->debugging('special', __FUNCTION__.' '.__LINE__, __CLASS__, 'передать импортируемые данные в БД таблица: "shop_price"');
 
@@ -2434,6 +2446,9 @@ class Import extends Product
                     $id = $pr_unit->save(true,true); /** логические отвечают за замену (при совпадении - пропуск записи) */
                     $this->insertListChildTablesAfterPrice($id, false);
                     $this->checkCreateImg($product_unit['id'],$line);
+
+                    if ($this->productTables['accomp'][$id_price])
+                        $this->writeTempFileRelatedProducts($this->productTables['accomp'][$id_price]);
 
                     $id_price = $data_unit[0]['id'];
 
@@ -2493,7 +2508,10 @@ class Import extends Product
          *
          * 6: конец транзакции
          * 7: в случае ошибки - прервать транзакцию
+         *
+         * @method writeTempFileRelatedProducts(string) запись сопутств. товаров во времен. файл
          */
+
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         $product_list = $this->importData['products'];
@@ -2543,6 +2561,9 @@ class Import extends Product
                         $this->insertListChildTablesAfterPrice($id_price, false);
                         $this->checkCreateImg($product_unit['id'],$line);
 
+                        if ($this->productTables['accomp'][$id_price])
+                            $this->writeTempFileRelatedProducts($this->productTables['accomp'][$id_price]);
+
                         $this->linkRecordShopPriceGroup($product_unit,$id_group,$id_price);
 
                         array_push($id_list,$id_price);
@@ -2559,6 +2580,9 @@ class Import extends Product
 
                         $this->insertListChildTablesAfterPrice($id_price, true);
                         $this->checkCreateImg($id_price,$line);
+
+                        if ($this->productTables['accomp'][$id_price])
+                            $this->writeTempFileRelatedProducts($this->productTables['accomp'][$id_price]);
                     };
 
                     $_SESSION['lastIdPrice'] = $id_price;
@@ -2679,7 +2703,7 @@ class Import extends Product
     private function insertListChildTablesAfterPrice($id, $setValuesFields = false)
     {
         /** Заполнение дочерних таблиц После заполнения <shop_price>    1 импорт характеристик    2 импорт изображений*/
-        $tableNames = array('category'=>'shop_group', 'measure'=>'shop_price_measure', 'accomp'=>'shop_accomp',
+        $tableNames = array('category'=>'shop_group', 'measure'=>'shop_price_measure',
                             'features'=>'shop_modifications_feature');
         $this->insertListChildTables($id, $tableNames, $setValuesFields);
     } // Заполнение дочерних таблиц После заполнения <shop_price>
@@ -2877,6 +2901,88 @@ class Import extends Product
             };
         };
     } // ЗАПОЛНЕНИЕ shop_price_group
+
+    private function writeTempFileRelatedProducts($relatedProducts)
+    {
+        /**
+         * запись сопутствующих товаров в конец временного файла
+         *
+         * @param array  $relatedProducts массив сопутств. товаров по обрабат. товару
+         * @param string $path            путь времен. файла
+         * @param string $idCode          связка <id создан. товара>,<code сопутств. товара>
+         */
+
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
+
+        foreach ($relatedProducts as $k=>$i) {
+
+            $idCode = $i['id_price'] . ',' . $i['code_acc'];
+            if (!empty($idCode)) {
+                $path = DOCUMENT_ROOT . "/files/tempfiles/relatedProducts.TMP";
+                file_put_contents($path, $idCode, FILE_APPEND);
+            }
+
+        }
+    } // запись сопутств. тов. в конец времен. файла
+
+    private function inserRelatedProducts()
+    {
+        /**
+         * запись сопутствующих товаров в БД
+         *
+         * @param string $path     путь времен. файла
+         * @param string $line     строка из файла
+         * @param string $idCode   связка <id создан. товара>,<code сопутств. товара>
+         * @param array  $DBunit   форма отправки данных в БД
+         * @param array  $arrayDB  список на отправку insertList
+         * @param array  $idDelete список ids товар. на очистку табл. сопутств. тов. (shop_accomp)
+         */
+
+        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
+
+        $path = @fopen(DOCUMENT_ROOT . "/files/tempfiles/relatedProducts.TMP", "r");
+        if ($path) {
+            $arrayDB  = array();
+            $idDelete = array();
+            while (($line = fgets($path, 10000000)) !== false) {
+
+                /** если строчка не пустая - упаков. и помещ. в список insertList */
+                if(gettype($line) == string) {
+                    $idCode      = preg_split("/,(?!\s+)/ui", $line);
+                    $id          = $idCode[0];
+                    $codeRelated = $idCode[1];
+                    $DBunit = array('id_price'=>$id,'id_acc'=>$codeRelated);
+                    array_push($arrayDB,$DBunit);
+                    array_push($idDelete,$id);
+                }
+
+                /** когда накапливается 1000 - записываем в БД, обнул. массив */
+                if (count($arrayDB) >= 1000) {
+                    $idsStr = implode(",", $idDelete);
+                    $u = new DB('shop_accomp', 'sa');
+                    $u->where("id_price IN (?)", $idsStr)->deleteList();
+
+                    DB::insertList('shop_accomp', $arrayDB);
+                    $arrayDB  = array();
+                    $idDelete = array();
+                }
+            }
+            if (count($arrayDB) > 0) {
+                $idsStr = implode(",", $idDelete);
+                $u = new DB('shop_accomp', 'sa');
+                $u->where("id_price IN (?)", $idsStr)->deleteList();
+
+                DB::insertList('shop_accomp', $arrayDB);
+            }
+
+            if (!feof($path)) {
+                // echo "Ошибка: fgets() неожиданно потерпел неудачу\n";
+            }
+
+            fclose($path);
+        }
+
+    } // запись сопутств. тов. в БД
 
     public function updateGroupTable()
     {
