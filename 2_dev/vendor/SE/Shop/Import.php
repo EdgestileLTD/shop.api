@@ -176,7 +176,7 @@ class Import extends Product
             /** превью - обнуление переменных сессии, чтение файла */
             unset($_SESSION["cycleNum"]);
             unset($_SESSION["pages"]);
-            $_SESSION['lastIdPrice'] = '';
+            $_SESSION['lastCodePrice'] = '';
             $_SESSION["countPages"] = 0;
             unset($_SESSION["getId"]);
             /**
@@ -959,10 +959,12 @@ class Import extends Product
 
                         if ($lObj == $obj) {
                             $code = (int)$object[id];
-                            $_SESSION["getId"][$key][$lObj] = (int)$object[id]; /** запоминаем связку в сессии (для быстродействия) */
+                            if ($code != null)
+                                $_SESSION["getId"][$key][$lObj] = $code; /** запоминаем связку в сессии (для быстродействия) */
                         }
                     }
                 }
+                $code = $this->createBrand($lObj,$key,$code);
                 array_push($get, $code);
             }
 
@@ -974,6 +976,36 @@ class Import extends Product
         } else
             return NULL;
     } // Получение ИД от Имени/Кода...
+
+    private static function createBrand($lObj,$key,$id)
+    {
+
+        /**
+         * создаем бренд, если не существует
+         * @param  str $lObj имя бренда
+         * @param  str $key  столбец (код)
+         * @param  int $id   ид бренда в shop_brand
+         * @return int $id
+         */
+
+        if ($key == 'id_brand' and $id == null) {
+            writeLog('создание');
+            try {
+                $data['name'] = $lObj;
+                $data['code'] = strtolower(se_translite_url($lObj));
+                $u = new DB('shop_brand');
+                $u->setValuesFields($data);
+                $id = $u->save();
+                $_SESSION["getId"][$key][$lObj] = $id; /** запоминаем связку в сессии (для быстродействия) */
+                return $id;
+            } catch (Exception $e) {
+                /** "Двухсловный бренд" и "Двухсловный   бренд" - скриптом распозн как разн назван, БД - как одно */
+                return null;
+            }
+        } else
+            return $id;
+
+    } // создаем бренд, если не существует
 
     private function getIdGroup($key = 'id', $delimiter, $item)
     {
@@ -1204,7 +1236,7 @@ class Import extends Product
         return $startGetRightData;
     } // Проверка заполненности строки
 
-    private function creationFeature($Product, $item)
+    private function creationFeature($Product, $item, $code)
     {
         /** Cверяем наличие характеристик и значений <shop_feature> <shop_feature_value_list>.
          *
@@ -1259,7 +1291,7 @@ class Import extends Product
             array_push($insertListFeatures, $inserUnut);
             unset($value,$type);
         }
-        $this->importData['features'] = $insertListFeatures;
+        $this->importData['features'][$code] = $insertListFeatures;
         unset($Product["features"]);
 
         return $Product;
@@ -1436,7 +1468,7 @@ class Import extends Product
                 else $Product[$i] = "";
             }
             $Product['features'] = ""; /** заглушка для характеристик */
-            $this->modData[$Product['id']][]=$mod;
+            $this->modData[$Product['code']][]=$mod;
         }
         return $Product;
     } // СОЗДАНИЕ МОДИФИКАЦИИ
@@ -1460,10 +1492,9 @@ class Import extends Product
 
         /** 1 получаем модификации, рассортированные по товарам */
 
-        $priceMods = array(); /** с сортировкой по товарам */
+        $priceMods = array();                                  /** с сортировкой по товарам */
         foreach($idsPrice as $k=>$i)
             if ($i == true) $priceMods[$k] = $this->modData[$k];
-        unset($idsPrice);
 
 
         if (count($priceMods)>0) {
@@ -1478,10 +1509,10 @@ class Import extends Product
 
             /** 3 Преобразуем данные к записи в БД */
 
-            $priceMods = $this->checkCreatMod($priceMods);
-            $priceMods = $this->createModifications($priceMods); /** заполнение shop_modifications */
-            $this->createModFeature($priceMods);                 /** заполнение shop_modifications_feature */
-            $this->createModImg($priceMods);                     /** заполнение shop_modifications_img */
+            $priceMods = $this->checkCreatMod($priceMods, $idsPrice);
+            $priceMods = $this->createModifications($priceMods, $idsPrice); /** заполнение shop_modifications */
+            $this->createModFeature($priceMods, $idsPrice);                 /** заполнение shop_modifications_feature */
+            $this->createModImg($priceMods, $idsPrice);                     /** заполнение shop_modifications_img */
         }
 
         unset($priceMods);
@@ -1705,7 +1736,7 @@ class Import extends Product
 
     } // создаем связи групп модификаций и характеристик
 
-    private function checkCreatMod($priceMods)
+    private function checkCreatMod($priceMods, $idsPrice)
     {
         /** Проверяем наличие модификации по таблице <shop_modifications_feature>
          * 1 генерируем ключ, например: 47662:148,47663:151
@@ -1716,9 +1747,9 @@ class Import extends Product
 
         /** 1 генерируем ключ, например: 47662:148,47663:151 */
 
-        foreach ($priceMods as $priceKey=>$priceUnit) {
+        foreach ($priceMods as $priceCode=>$priceUnit) {
             foreach ($priceUnit as $key=>$val) {
-                $mod = $priceMods[$priceKey][$key];
+                $mod = $priceMods[$priceCode][$key];
 
                 $keyHaving = '';
                 $keyArray  = array();
@@ -1728,15 +1759,14 @@ class Import extends Product
                 foreach ($keyArray as $k => $i) $keyHaving = $keyHaving . $i . ',';
                 $keyHaving = substr($keyHaving, 0, -1);
 
-                $priceMods[$priceKey][$key]['keyHaving'] = $priceKey.'#'.$keyHaving;
+                $priceMods[$priceCode][$key]['keyHaving'] = $idsPrice[$priceCode].'#'.$keyHaving;
             }
         }
 
 
         /** 2 Сверяем ключ с БД.  ответ БД через query # ответ query */
 
-        $idsProducts = array_keys($priceMods);
-        $idsProdStr = implode(",", $idsProducts);
+        $idsProdStr = implode(",", $idsPrice);
         $ca = DB::query("SELECT
                            smf.id,
                            smf.id_price,
@@ -1778,7 +1808,7 @@ class Import extends Product
         return $priceMods;
     } // проверка наличия модификации <shop_modifications_feature>
 
-    private function createModifications($priceMods)
+    private function createModifications($priceMods, $idsPrice)
     {
         /** заполнение shop_modifications
          * 1 получаем все параметры
@@ -1796,6 +1826,8 @@ class Import extends Product
         foreach ($priceMods as $priceKey=>$priceUnit) {
             foreach ($priceUnit as $key=>$val) {
                 $mod = $priceMods[$priceKey][$key];
+                $idPrice = $idsPrice[$priceKey];
+                $priceMods[$priceKey][$key]['idPrice'] = $idPrice;
 
                 if ($mod['createMod']==true) {
 
@@ -1808,9 +1840,10 @@ class Import extends Product
                     }
 
                     /** заполняем, ставим заглушки в поля с null перед записью */
+                    $idPrice = $idsPrice[$priceKey];
                     $shMods = array(
                         'id_mod_group'   => $shopModifGroup        ? $shopModifGroup        : null,
-                        'id_price'       => $priceKey              ? $priceKey              : null,
+                        'id_price'       => $idPrice               ? $idPrice               : null,
                         'code'           => $mod['article']        ? $mod['article']        : "",
                         'value'          => $mod['price']          ? $mod['price']          : 0,
                         'value_opt'      => $mod['price_opt']      ? $mod['price_opt']      : 0,
@@ -1819,10 +1852,10 @@ class Import extends Product
                         'count'          => $mod['presence_count'] ? $mod['presence_count'] : -1,
                         'description'    => $mod['description']    ? $mod['description']    : "");
 
-
                     /** в массив */
-                    if ($shMods['id_mod_group']!=null or $shMods['id_price']!=null)
+                    if ($shMods['id_mod_group']!=null or $shMods['id_price']!=null) {
                         array_push($newShopMod, $shMods);
+                    }
                 }
             }
         }
@@ -1847,15 +1880,14 @@ class Import extends Product
         //$u = new DB("shop_modifications", "sm");
         //$u->setValuesFields($shMods);
         //$idModification = $u->save();
-        if (count($newShopMod)>0) {
+
+        if (count($newShopMod)>0)
             DB::insertList('shop_modifications', $newShopMod, TRUE);
-        }
 
 
         /** 4 запрашиваем <idPrice>##<idModGroup> => <id> (с фильтрацией по идТовара) */
 
-        $idsProducts = array_keys($priceMods);
-        $idsProductsSrt = implode(",", $idsProducts);
+        $idsProductsSrt = implode(",", $idsPrice);
         $u = new DB("shop_modifications", "sm");
         $u->select("sm.id, sm.id_price, sm.id_mod_group,
             sm.value price, sm.value_opt price_opt, sm.value_opt_corp price_opt_corp, sm.value_purchase price_purchase,
@@ -1885,7 +1917,7 @@ class Import extends Product
             foreach ($priceUnit as $key=>$val) {
                 $mod = $priceMods[$priceKey][$key];
 
-                $keyParamGr = intval($priceKey).'##'.
+                $keyParamGr = intval($mod['idPrice']).'##'.
                               intval($mod['mod_param'][0]['shop_modifications_group']).'##'.
                               number_format($mod['price'], 2, '.', '').'##'.
                               number_format($mod['price_opt'], 2, '.', '').'##'.
@@ -1907,17 +1939,18 @@ class Import extends Product
 
     } // заполнение shop_modifications
 
-    private function createModFeature($priceMods)
+    private function createModFeature($priceMods, $idsPrice)
     {
         /** Записываем значения модификации  <shop_modifications_feature> */
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
 
 
         $newFeatures = array();
-        foreach ($priceMods as $priceKey=>$priceUnit) {
+        foreach ($priceMods as $priceCode=>$priceUnit) {
             foreach ($priceUnit as $key=>$val) {
-                $mod = $priceMods[$priceKey][$key];
+                $mod = $priceMods[$priceCode][$key];
 
+                $priceKey = $idsPrice[$priceCode];
                 if ($mod['createMod']==true and $mod['idModification']!=null) {
                     foreach ($mod['mod_param'] as $k => $i) {
                         $shopModificationsFeature = array(
@@ -1938,7 +1971,7 @@ class Import extends Product
 
     }  // Записываем значения модификации
 
-    private function createModImg($priceMods)
+    private function createModImg($priceMods, $idsPrice)
     {
         /** Привязываем изображения к модификациям  <shop_modifications_img>
          * 1 получаем имяРисунка-ид (с фильтрацией по идТовара)
@@ -1951,15 +1984,16 @@ class Import extends Product
 
         /** 1 получаем имяРисунка-ид (с фильтрацией по идТовара) */
 
-        $idsProducts = array_keys($priceMods);
-        $idsProductsSrt = implode(",", $idsProducts);
+
+        $idsProductsSrt = implode(",", $idsPrice);
         $u = new DB("shop_img", "si");
-        $u->select("si.id, si.picture, si.id_price");
+        $u->select("si.id, si.picture, sp.code");
         $u->where("si.id_price IN ($idsProductsSrt)");
+        $u->innerjoin('shop_price sp', 'sp.id = si.id_price');
         $l = $u->getList();
         $list = array();
         foreach ($l as $k => $i) {
-            $key = $i['idPrice'].'##'.$i['picture'];
+            $key = $i['code'].'##'.$i['picture'];
             $list[$key] = $i['id'];
             unset($l[$k]);
         }
@@ -1986,7 +2020,7 @@ class Import extends Product
                         $shopModificationsImg = array('id_modification' => $mod['idModification'],
                                                       'id_img'          => $list[$priceKey.'##'.$i],
                                                       'sort'            => $numSort);
-                        if ($mod['idModification'] and $list[$priceKey.'##'.$i]) {
+                        if (!empty($mod['idModification']) and !empty($list[$priceKey.'##'.$i]) ) {
                             array_push($newImgs, $shopModificationsImg);
                             $numSort = $numSort + 1;
                         }
@@ -1999,12 +2033,11 @@ class Import extends Product
 
         /** 3 Чистим таблицу картинок модификаций перед записью */
 
-        if (count($idModifications)>0) {
-            $idModificationsStr = implode(",", $idModifications);
+        $idModificationsStr = implode(",", $idModifications);
+        if ($idModificationsStr!='') {
             $u = new DB('shop_modifications_img', 'smi');
             $u->where('id_modification IN (?)', $idModificationsStr)->deletelist();
         }
-
 
         /** 4 записываем в <shop_modifications_img> */
 
@@ -2049,11 +2082,14 @@ class Import extends Product
         //     $this->get('path_group', "/,(?!\s+)/ui", $item)
         // );
 
+        /** получаем код для использ. в качестве ключ. поля в скрипте */
+        $code = $this->get('code', FALSE, $item);
+
         /** 1 создаем группы и связи с ними товаров */
         $id_gr = $this->CommunGroup($item, TRUE);
 
         /** 2 Добавляем меры (веса/объема) */
-        $this->importData['measure'][] = array(
+        $this->importData['measure'][$code] = array(
             'id_price' =>           $this->get('id', "/,(?!\s+)/ui", $item),
             "id_weight_view" =>     $this->getId('measures_weight', "/,(?!\s+)/ui", 'shop_measure_weight', 'name', $item)[0], /** НЕ ПРЕВОДИТЬ В int >> не отфильтровывается значеине при передаче */
             "id_weight_edit" =>     $this->getId('measures_weight', "/,(?!\s+)/ui", 'shop_measure_weight', 'name', $item)[1],
@@ -2068,28 +2104,24 @@ class Import extends Product
         if($accomp != NULL) {
             $accomp = is_array($accomp) ? $accomp : array($accomp);
             foreach ($accomp as $ac) {
-                $this->importData['accomp'][] = array(
+                $this->importData['accomp'][$code] = array(
                     'id_price' => $id_price_acc,
                     'code_acc'   => $ac
                 );
             }
         };
 
-        // todo менять клоч. поле в имп. JS
-
-        // todo в массиве табл. пробовать аккуратно менять id на коды
-        // todo тест. изображ. в том числе в модиф.
+        // todo тест удал мод при удал товара + масштабирование
         // SELECT t.* FROM edgestile_150104.shop_price_measure t LIMIT 501;
         // SELECT t.* FROM edgestile_150104.shop_accomp t LIMIT 501;
 
-
         /** 4 ас.массив значений записи в БД */
         $Product = array(
-            'id'             => $this->get('id', FALSE, $item),
+            'id'             => NULL,
             'id_group'       => $id_gr,
             'name'           => $this->get('name', FALSE, $item),
             'article'        => $this->get('article', FALSE, $item),
-            'code'           => $this->get('code', FALSE, $item),
+            'code'           => $code,
             'price'          => $this->get('price', FALSE, $item),
             'price_opt'      => $this->get('price_opt', FALSE, $item),
             'price_opt_corp' => $this->get('price_opt_corp', FALSE, $item),
@@ -2126,7 +2158,7 @@ class Import extends Product
         );
 
         /** 5 проверка корректности значений и запись в массив */
-        $this->validationValues($Product);
+        $this->validationValues($Product, $code);
 
         /** 6 обработчик значений/текста в Остатке */
         if(!(int)$Product['presence_count'] and $Product['presence_count']!='0') {
@@ -2138,7 +2170,7 @@ class Import extends Product
         $Product = $this->creationModificationsStart($Product, $item);
 
         /** 8 Cверяем наличие характеристик и значений */
-        $Product = $this->creationFeature($Product, $item);
+        $Product = $this->creationFeature($Product, $item, $code);
 
         /**
          * НЕ ЖЕЛАТЕЛЬНО ИСПОЛЬЗОВАНИЕ ФИЛЬТРАЦИИ ПУСТЫХ ПОЛЕЙ В $Product !
@@ -2163,7 +2195,6 @@ class Import extends Product
             foreach ($substitution as $ing => $inc)
                 if ($ingredient == $ing and $include == NULL)
                     $Product[$ingredient] = $inc;
-
 
         /** 10 получение списка изображений из ячеек Excel */
         $imgList = array('img_alt','img', 'img_2', 'img_3', 'img_4', 'img_5', 'img_6', 'img_7', 'img_8', 'img_9', 'img_10');
@@ -2191,18 +2222,19 @@ class Import extends Product
                         if (($result == $imgLL[0] and $imgKey == 'img_alt') or $imgKey == 'img') {
                             $newImg["default"] = 0; /** было 1, но тк могут быть модификации (и соответственно несколько первых изображений) */
                         } else $newImg["default"] = 0;
-                        $this->importData['img'][] = $newImg;
+                        $this->importData['img'][$code][] = $newImg;
                     }
                 }
             }
         }
 
         unset($item);
-    } // ПОЛУЧИТЬ ПРАВИЛЬНЫЕ ДАННЫЕ
+    } // ПОЛУЧ. ПРАВИЛЬНЫЕ ДАННЫЕ
 
-    private function validationValues($Product)
+    private function validationValues($Product, $code)
     {
         /** проверка корректности значений и запись в массив */
+
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         $line = $Product['lineNum']; /** номер строки (с учетом циклов) */
@@ -2220,17 +2252,16 @@ class Import extends Product
         $Product = $this->notText($Product, 'min_count', $line, 'Мин.кол-во','int', true);
 
         // при пустом поле значение переменной $id==NULL
-        if ((int)$id and !empty($Product['code']) and !empty($Product['name'])){
-            $this->importData['products'][] = $Product;
+        if (!empty($Product['code']) and !empty($Product['name'])){
+            $this->importData['products'][$code] = $Product;
         } else {
-            if (!(int)$id               and !$_SESSION['errors']['id'])    $_SESSION['errors']['id'] = 'ОШИБКА[стр. '.$line.']: не корректное заполнение столбца "Ид."';
             if (empty($Product['code']) and !$_SESSION['errors']['code'])  $_SESSION['errors']['code'] = 'ОШИБКА[стр. '.$line.']: столбец "Код (URL)" не может быть пустым';
             if (empty($Product['name']) and !$_SESSION['errors']['name'])  $_SESSION['errors']['name'] = 'ОШИБКА[стр. '.$line.']: столбец "Наименование" не может быть пустым';
 
         }
     } // ПРОВЕРКА КОРРЕКТНОСТИ ЗНАЧЕНИЙ
 
-    private function notText($data, $col, $line, $name, $iF, $zero)
+    private static function notText($data, $col, $line, $name, $iF, $zero)
     {
         /**
          * проверка числового не отрицательного (большего, чем ноль) значения; в случае не совпадения - замена на значения
@@ -2277,8 +2308,6 @@ class Import extends Product
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         try{
-
-            $this->childTablesWentTokeys();
 
             $this->importData['products'] = $this->priceCodeId($this->importData['products']);
 
@@ -2355,8 +2384,10 @@ class Import extends Product
                 foreach ($tableValue as $oldIdTV => $VTV)
                     if ($oldIdTV == $oldId) {
 
-                        foreach ($VTV as $k => $i)
-                            $VTV[$k]['id_price'] = $newId;
+                        foreach ($VTV as $k => $i) {
+                            if ($VTV['id_price']) $VTV['id_price'] = $newId;
+                            if ($VTV[$k]['id_price']) $VTV[$k]['id_price'] = $newId;
+                        }
 
                         $NID[$KTN][$newId] = $VTV;
                     }
@@ -2410,7 +2441,7 @@ class Import extends Product
             $line=$product_unit['lineNum']; unset($product_unit['lineNum']);          /** вынимаем номер строки из массива */
 
             /** 1 подмена id в существующих товарах */
-            $oldId = $product_unit['id'];
+            $code = $product_unit['code'];
             if ($product_unit['newId']) {
                 $product_unit['id'] = $product_unit['newId'];
                 unset($product_unit['newId']);
@@ -2425,7 +2456,7 @@ class Import extends Product
                     /** если уже есть в БД  - игнорируем */
 
                     $id_price = $data_unit['id'];
-                    $this->productTables = $this->replacingIdСhildTables($oldId,$id_price);
+                    $this->productTables = $this->replacingIdСhildTables($code,$id_price);
 
                     DB::beginTransaction();                                           /** 3.1 начать транзакцию */
 
@@ -2444,8 +2475,8 @@ class Import extends Product
                     /** заполнение shop_price */
                     $pr_unit->setValuesFields($data_unit);
                     $id = $pr_unit->save(true,true); /** логические отвечают за замену (при совпадении - пропуск записи) */
-                    $this->insertListChildTablesAfterPrice($id, false);
-                    $this->checkCreateImg($product_unit['id'],$line);
+                    $this->insertListChildTablesAfterPrice($id, $code, false);
+                    $this->checkCreateImg($product_unit['id'],$code,$line);
 
                     if ($this->productTables['accomp'][$id_price])
                         $this->writeTempFileRelatedProducts($this->productTables['accomp'][$id_price]);
@@ -2483,7 +2514,7 @@ class Import extends Product
                 };
             } else {
                 /** ДЛЯ МОДИФИКАЦИЙ: даже если не пишем товар - записать картинки для привязки к модификациям */
-                $this->checkCreateImg($product_unit['id'],$line);
+                $this->checkCreateImg($product_unit['id'],$code,$line);
             };
             $ids[ $product_unit['id'] ] = $this->thereModification[ $product_unit['code'] ];
         };
@@ -2523,14 +2554,14 @@ class Import extends Product
                 $line=$product_unit['lineNum']; unset($product_unit['lineNum']); /** вынимаем номер строки из массива */
 
                 /** 1 подмена id в существующих товарах */
-                $oldId = $product_unit['id'];
+                $code = $product_unit['code'];
                 if ($product_unit['newId']) {
                     $product_unit['id'] = $product_unit['newId'];
                     unset($product_unit['newId']);
                     $refresh = true;
                 }
 
-                if ($product_unit['id'] != $_SESSION['lastIdPrice']) {
+                if ($product_unit['code'] != $_SESSION['lastCodePrice']) {
                     DB::beginTransaction();                                        /** 2 */
 
                     if (gettype($product_unit['id_group']) == 'array' and          /** 3 */
@@ -2550,7 +2581,7 @@ class Import extends Product
                         /** если уже есть в БД  - обновляем */
 
                         $id_price = $data_unit['id'];
-                        $this->productTables = $this->replacingIdСhildTables($oldId,$id_price);
+                        $this->productTables = $this->replacingIdСhildTables($code,$id_price);
 
                         $data_unut_sp = $data_unit;
                         unset($data_unut_sp[0]['features']);
@@ -2561,8 +2592,8 @@ class Import extends Product
                         $this->insertListChildTablesAfterPrice($id_price, false);
                         $this->checkCreateImg($product_unit['id'],$line);
 
-                        if ($this->productTables['accomp'][$id_price])
-                            $this->writeTempFileRelatedProducts($this->productTables['accomp'][$id_price]);
+                        if ($this->productTables['accomp'][$code])
+                            $this->writeTempFileRelatedProducts($this->productTables['accomp'][$code]);
 
                         $this->linkRecordShopPriceGroup($product_unit,$id_group,$id_price);
 
@@ -2576,23 +2607,30 @@ class Import extends Product
 
                         $pr_unit->setValuesFields($data_unit);
                         $id_price = $pr_unit->save();
-                        $this->replacingIdСhildTables($oldId,$id_price);
+                        $this->productTables = $this->replacingIdСhildTables($code,$id_price);
 
                         $this->insertListChildTablesAfterPrice($id_price, true);
-                        $this->checkCreateImg($id_price,$line);
 
-                        if ($this->productTables['accomp'][$id_price])
-                            $this->writeTempFileRelatedProducts($this->productTables['accomp'][$id_price]);
+                        foreach ($product_list as &$product_unit) {
+                            /** вынимаем номер строки из массива */
+                            $line = $product_unit['lineNum'];
+                            unset($product_unit['lineNum']);
+                            $this->checkCreateImg($id_price,$line);
+                        }
+
+                        if ($this->productTables['accomp'][$code])
+                            $this->writeTempFileRelatedProducts($this->productTables['accomp'][$code]);
                     };
 
-                    $_SESSION['lastIdPrice'] = $id_price;
+                    $_SESSION['lastCodePrice'] = $product_unit['code'];
 
                     DB::commit();                                                  /** 6 */
                 } else {
                     /** ДЛЯ МОДИФИКАЦИЙ: даже если не пишем товар - записать картинки для привязки к модификациям */
+                    $this->productTables = $this->replacingIdСhildTables($code,$id_price);
                     $this->checkCreateImg($product_unit['id'],$line);
                 };
-                $ids[ $product_unit['id'] ] = $this->thereModification[ $product_unit['code'] ];
+                $ids[ $product_unit['code'] ] = $this->thereModification[ $product_unit['code'] ];
             };
             $this->creationModificationsFinal($ids);
         } catch (Exception $e) {
@@ -2601,36 +2639,6 @@ class Import extends Product
         };
         return true;
     } // обновление: нет товара-добавление, есть - обновление (замена)
-
-    private function childTablesWentTokeys()
-    {
-        /** id в ключи в массива <measure,features,prepare...>
-         * @param array $keyTable      массив дочерних таблиц
-         * @param array $newImportData новый сгруппированный по ид-товаров массив
-         * @param array $i2            данные по одной записи ячейки
-         * @param int   $id            ид товара
-         */
-        $keyTable = array_keys($this->importData);
-        $newImportData = array();
-
-        foreach ($keyTable as $k => $i) {
-            if ($i != 'products') {
-                foreach ($this->importData[$i] as $k2 => $i2) {
-                    $id = $i2['id_price'];
-                    if ($id) {
-                        /** если у одного id несоклько значений - заворачиваем все в массив */
-                        if ($newImportData[$i][$id]) array_push($newImportData[$i][$id], $i2);
-                        else                                     $newImportData[$i][$id] = array($i2);
-                    }
-                    unset($this->importData[$i][$k2]);
-                }
-            } else {
-                $newImportData[$i] = $this->importData[$i];
-                unset($this->importData[$i]);
-            }
-        }
-        $this->importData = $newImportData;
-    } // id в ключи в массива
 
     private function checkCreateImg($id,$line)
     {
@@ -2649,9 +2657,9 @@ class Import extends Product
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
 
 
-        /** 1 получаем изображения товара из файла */
-        $faileImgs = $this->productTables['img'][$id];
+        /** 1 получаем изображ товара из файла, приводим к нум-массиву */
 
+        $faileImgs = $this->productTables['img'][$id];
 
         /** 2 получаем изображения товара из БД */
         $u = new DB("shop_img", "si");
