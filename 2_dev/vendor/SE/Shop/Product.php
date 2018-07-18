@@ -19,7 +19,11 @@ class Product extends Base
      */
     protected $tableName      = "shop_price";
     protected $tableNameDepen = array(
+        "shop_modifications_img"     => array("field"            =>"id_modification",
+                                              "intermediaryTable"=>'shop_modifications',
+                                              "intermediaryField"=>"id_price"),
         "shop_price_group"           => "id_price",
+        "shop_modifications"         => "id_price",
         "shop_modifications_feature" => "id_price"
     );
     private $newImages;

@@ -989,7 +989,6 @@ class Import extends Product
          */
 
         if ($key == 'id_brand' and $id == null) {
-            writeLog('создание');
             try {
                 $data['name'] = $lObj;
                 $data['code'] = strtolower(se_translite_url($lObj));
@@ -2111,7 +2110,7 @@ class Import extends Product
             }
         };
 
-        // todo тест удал мод при удал товара + масштабирование
+        // todo масштабирование
         // SELECT t.* FROM edgestile_150104.shop_price_measure t LIMIT 501;
         // SELECT t.* FROM edgestile_150104.shop_accomp t LIMIT 501;
 

@@ -359,12 +359,29 @@ class Base extends CustomBase
             // 2
             if ($this->tableNameDepen) {
                 foreach ($this->tableNameDepen as $tabNameDepen => $field) {
-                    $u = new DB($tabNameDepen, $tabNameDepen);
-                    if ($this->input["ids"] && !empty($tabNameDepen)) {
+
+                    if ($this->input["ids"] && !empty($tabNameDepen) && !is_array($field)) {
+
+                        $u = new DB($tabNameDepen, $tabNameDepen);
                         $ids = implode(",", $this->input["ids"]);
                         $u->where($field.' IN (?)', $ids)->deleteList();
+                        unset($u);
+
+                    } elseif ($this->input["ids"] && !empty($tabNameDepen) && is_array($field)) {
+
+                        $ids          = implode(",", $this->input["ids"]);
+                        $initialField = $field["field"];
+                        $intTab       = $field["intermediaryTable"];
+                        $intFie       = $field["intermediaryField"];
+
+                        DB::query("
+                            DELETE $tabNameDepen
+                            FROM `$tabNameDepen`
+                            INNER JOIN $intTab t2 ON t2.id = $tabNameDepen.$initialField
+                            WHERE t2.$intFie IN ($ids);
+                        ");
+
                     }
-                    unset($u);
                 }
             }
 
