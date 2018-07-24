@@ -160,7 +160,7 @@ class Import extends Product
          *     @@    @@    @@@@@@@@ @@ @@     @@         @@   @@  @  @@ @@     @@  @@ @@ @@     @@
          * @@@@@@    @@    @@    @@ @@  @@    @@       @@@@@@ @@     @@ @@     @@@@@@ @@  @@    @@
          *
-         * if     - превью      - чтение первых 100 строк
+         * if     - превью      - чтение первых 1000 строк
          * elseif - первый цикл - весь файл во временные
          *
          * @param int   $_SESSION['lastProcessedLine'] последняя обработанная строка (без превью)
@@ -860,6 +860,7 @@ class Import extends Product
         /** номер строки файла */
         $i=0;
         $skip=0;
+
         foreach ($this->data as $key =>  $item){
             /** 1 пропускаем строки */
             if ($i > 0 and $skip < $options['skip']-1) {
@@ -2112,7 +2113,7 @@ class Import extends Product
         };
 
         // todo смещение столбцов при снятии галочек - фиксить (экспорт)
-        // todo масштабирование
+
         // SELECT t.* FROM edgestile_150104.shop_price_measure t LIMIT 501;
         // SELECT t.* FROM edgestile_150104.shop_accomp t LIMIT 501;
 
@@ -2216,7 +2217,8 @@ class Import extends Product
 
                         $newImg = array(
                             "id_price" => $this->get('id', "/,(?!\s+)/ui", $item),
-                            "picture" => $result
+                            "picture"  => $result,
+                            'lineNum'  => $Product['lineNum']
                         );
 
                         /** главное изображение */
@@ -2353,7 +2355,8 @@ class Import extends Product
 
         try{
 
-            $this->importData['products'] = $this->priceCodeId($this->importData['products']);
+            if (!empty($this->importData['products']))
+                $this->importData['products'] = $this->priceCodeId($this->importData['products']);
 
             if (!empty($this->importData['products'])) {
                 if     ($this->mode=='upd') $this->insertUpdateListImport(true);
@@ -2529,7 +2532,6 @@ class Import extends Product
                         unset($data_unut_sp);
 
                         $this->insertListChildTablesAfterPrice($id_price, false);
-                        $this->checkCreateImg($product_unit['id'],$line);
 
                         if ($this->productTables['accomp'][$code])
                             $this->writeTempFileRelatedProducts($this->productTables['accomp'][$code]);
@@ -2550,12 +2552,9 @@ class Import extends Product
 
                         $this->insertListChildTablesAfterPrice($id_price, true);
 
-                        foreach ($product_list as &$product_unit) {
-                            /** вынимаем номер строки из массива */
-                            $line = $product_unit['lineNum'];
-                            unset($product_unit['lineNum']);
-                            $this->checkCreateImg($id_price,$line);
-                        }
+                        /** вынимаем номер строки из массива */
+                        $line = $product_unit['lineNum'];
+                        unset($product_unit['lineNum']);
 
                         if ($this->productTables['accomp'][$code])
                             $this->writeTempFileRelatedProducts($this->productTables['accomp'][$code]);
@@ -2576,7 +2575,6 @@ class Import extends Product
 
                     /** ДЛЯ МОДИФИКАЦИЙ: даже если не пишем товар - записать картинки для привязки к модификациям */
                     $this->productTables = $this->replacingIdСhildTables($code,$id_price);
-                    $this->checkCreateImg($product_unit['id'],$line);
 
                 };
 
@@ -2584,7 +2582,10 @@ class Import extends Product
                 $product_list[$k]=$product_unit;
             };
 
-            if (count($ids) > 0)  $this->creationModificationsFinal($ids);
+            if (count($ids) > 0) {
+                $this->checkCreateImg($ids, $this->productTables['img']);
+                $this->creationModificationsFinal($ids);
+            }
 
         } catch (Exception $e) {
             DB::rollBack();                                                        /** 7 в случае ошибки - прервать транзакцию */
@@ -2593,72 +2594,70 @@ class Import extends Product
         return true;
     } // обновление: нет товара-добавление, есть - обновление (замена)
 
-    private function checkCreateImg($id,$line)
+    private static function checkCreateImg($ids,$faileImgs)
     {
         /** Проверить есть ли изображения у товара - если нет, создать
-         * @param array $this->productTables данные из строки (один товар)
-         * @param num   $id                  ид товара к которому привязаны записи таблиц
-         * @param array $faileImgs           изображения товара из файла [0..]=>(id_price, picture, default)
+         * @param array $faileImgs           данные по изображениям  [<id>]=>{[0..]=>(id_price, picture, default)}
+         * @param num   $ids                 ид товаров к которым привязаны изображения
          * @param bool  $isFile              true - файл корректен  false - не корректен
          * @param array $exten               возможные расширения файлов
-         *
-         * 1 получаем изображения товара из файла
-         * 2 получаем изображения товара из БД
-         * 3 отбираем отсутсвующие рисунки
-         * 4 определяем главное изображение и возвращаем на запись
          */
-        $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
 
 
-        /** 1 получаем изображ товара из файла, приводим к нум-массиву */
+        /** 1 получаем Корректные изображ товаров из файла, приводим к нум-массиву */
+        $Imgs = array();
+        foreach ($faileImgs as $k=>$i)
+            foreach ($i as $k2=>$i2) {
 
-        $faileImgs = $this->productTables['img'][$id];
+                $exten=array('.jpg','.jpeg','.jpe','.png','.tif','.tiff','.gif','.bmp','.dib','.psd');
+                $isFile=false;
+                foreach ($exten as $kEX=>$iEX)
+                    if (strpos(' '.$i2['picture'],$iEX)) {
+                        $isFile = true;
+                        break;
+                    }
+
+                if ($isFile) {
+                    unset($i2['lineNum']);
+                    if (!empty($i2)) array_push($Imgs, $i2);
+                } elseif (count($Imgs)!=0 and $i['picture']!='')
+                    if (!$_SESSION['errors']['img_alt']) $_SESSION['errors']['img_alt']='ОШИБКА[стр. '.$i2['lineNum'].']: столец "Изображения" не корректное расширение файла';
+            }
+
 
         /** 2 получаем изображения товара из БД */
+        $ids = implode(",", $ids);
         $u = new DB("shop_img", "si");
-        $u->select("si.id, si.picture");
-        $u->where("si.id_price = '$id'");
+        $u->select("si.id, si.picture, si.id_price");
+        $u->where('si.id_price in (?)', $ids);
         $l = $u->getList();
         $list = array();
         foreach ($l as $k => $i) {
-            $list[$i['picture']] = $i['id'];
+            $key = $i['idPrice']."##".$i['picture'];
+            $list[$key] = $i['id'];
             unset($l[$k]);
         }
         unset($u,$l);
 
 
-        /** 3 отбираем отсутсвующие рисунки*/
-        if (!$faileImgs[0] and isset($faileImgs)) $faileImgs=array($faileImgs);
+        /** 3 отбираем отсутсвующие рисунки */
+        if (!$Imgs[0] and isset($Imgs)) $Imgs=array($Imgs);
         $faileImgsTemp = array();
-        foreach ($faileImgs as $k=>$i) {
-
-            $exten=array('.jpg','.jpeg','.jpe','.png','.tif','.tiff','.gif','.bmp','.dib','.psd');
-            $isFile=false;
-            foreach ($exten as $kEX=>$iEX) {
-                if (strpos(' '.$i['picture'],$iEX)) {
-                    $isFile = true;
-                    break;
-                }
-            }
-
-            if ($isFile) {
-                $list[$i['picture']] ?: array_push($faileImgsTemp, $i);
-            } elseif (count($faileImgs)!=0 and $i['picture']!='') {
-                if (!$_SESSION['errors']['img_alt']) $_SESSION['errors']['img_alt']='ОШИБКА[стр. '.$line.']: столец "Изображения" не корректное расширение файла';
-            }
-
-            unset($faileImgs[$k]);
+        foreach ($Imgs as $k=>$i) {
+            $key  = $i['idPrice']."##".$i['picture'];
+            if (!$list[$key] and !empty($i))
+                array_push($faileImgsTemp, $i);
+            unset($Imgs[$k]);
         }
-        $faileImgs = $faileImgsTemp; unset($faileImgsTemp);
+        $Imgs = $faileImgsTemp; unset($faileImgsTemp);
 
 
         /** 4 определяем главное изображение и возвращаем на запись */
-        if (count($list)==0 and $faileImgs[0]) $faileImgs[0]["default"]=1;
-        $this->productTables['img'][$id] = $faileImgs;
+        if (count($list)==0 and $Imgs[0]) $Imgs[0]["default"]=1;
 
+        if (count($Imgs)>0)
+            DB::insertList("shop_img", $Imgs,true);
 
-        if (count($faileImgs)>0)
-            $this->insertListChildTables($id, array('img'=>'shop_img'), false); /** true=изменяемЗапись  false=создаем */
     } // Проверить есть ли изображения у товара - если нет, создать
 
     private function insertListChildTablesAfterPrice($id, $setValuesFields = false)
