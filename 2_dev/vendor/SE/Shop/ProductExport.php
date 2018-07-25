@@ -532,11 +532,12 @@ class ProductExport extends Product
             $headerCSV = array();
             $numColumn = array();
 
-            foreach($formData as $k => $v)
-                if($v['checkbox'] == 'Y') {
+            foreach($formData as $k => $v) {
+                if ($v['checkbox'] == 'Y') {
                     array_push($headerCSV, $v['column']);
-                    array_push($numColumn, $k);
                 }
+                array_push($numColumn, $k);
+            }
 
             $goodsLNew = array();
             foreach($goodsL as $key => $value) {
