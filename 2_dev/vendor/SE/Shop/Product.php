@@ -811,7 +811,7 @@ class Product extends Base
         $this->correctAll();
 
         // формирование артикля // при создании товара (если отличен от нуля и пуст)
-        if (empty($this->input['article']) && count($this->input['ids']) < 2) { // isset($this->input['article']) &&
+        if (empty($this->input['article']) && count($this->input['ids']) < 2 && empty($this->input['id'])) { // isset($this->input['article']) &&
             if (empty($this->input['ids'])) {
                 $u = new DB('shop_price');
                 $u->select('MAX(id) AS mid');

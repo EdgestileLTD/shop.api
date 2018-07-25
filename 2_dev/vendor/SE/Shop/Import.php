@@ -2100,22 +2100,19 @@ class Import extends Product
 
         /** 3 Добавляем сопутствующие товары */
         $accomp       = $this->get('code_acc', "/,(?!\s+)/ui", $item);
-        $id_price_acc = $this->get('id', "/,(?!\s+)/ui", $item);
+        $code_price_acc = $this->get('code', "/,(?!\s+)/ui", $item);
         /** если присутствуют сопутствующие - добавляем */
         if($accomp != NULL) {
             $accomp = is_array($accomp) ? $accomp : array($accomp);
             foreach ($accomp as $ac) {
-                $this->importData['accomp'][$code] = array(
-                    'id_price' => $id_price_acc,
+                $this->importData['accomp'][$code][] = array(
+                    'id_price' => $code_price_acc,
                     'code_acc'   => $ac
                 );
             }
         };
 
         // todo смещение столбцов при снятии галочек - фиксить (экспорт)
-
-        // SELECT t.* FROM edgestile_150104.shop_price_measure t LIMIT 501;
-        // SELECT t.* FROM edgestile_150104.shop_accomp t LIMIT 501;
 
         /** 4 ас.массив значений записи в БД */
         $Product = array(
@@ -2433,7 +2430,7 @@ class Import extends Product
 
                         foreach ($VTV as $k => $i) {
                             if ($VTV['id_price']) $VTV['id_price'] = $newId;
-                            if ($VTV[$k]['id_price']) $VTV[$k]['id_price'] = $newId;
+                            if (gettype($VTV[$k]) == 'array' and $VTV[$k]['id_price']) $VTV[$k]['id_price'] = $newId;
                         }
 
                         $NID[$KTN][$newId] = $VTV;
@@ -2479,7 +2476,7 @@ class Import extends Product
          * @param  bool $update    true- updateListImport, false- insertListImport
          * @param  bool $refresh   true- товар существует в БД
          * @param  bool $processed true- товар обработан
-         * @method writeTempFileRelatedProducts(string) запись сопутств. товаров во времен. файл
+         * @method writeTempFileRelatedProducts(int) запись сопутств. товаров во времен. файл
          */
 
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
@@ -2533,8 +2530,8 @@ class Import extends Product
 
                         $this->insertListChildTablesAfterPrice($id_price, false);
 
-                        if ($this->productTables['accomp'][$code])
-                            $this->writeTempFileRelatedProducts($this->productTables['accomp'][$code]);
+                        if ($this->productTables['accomp'][$id_price])
+                            $this->writeTempFileRelatedProducts($this->productTables['accomp'][$id_price]);
 
                         $this->linkRecordShopPriceGroup($product_unit,$id_group,$id_price);
 
@@ -2556,8 +2553,8 @@ class Import extends Product
                         $line = $product_unit['lineNum'];
                         unset($product_unit['lineNum']);
 
-                        if ($this->productTables['accomp'][$code])
-                            $this->writeTempFileRelatedProducts($this->productTables['accomp'][$code]);
+                        if ($this->productTables['accomp'][$id_price])
+                            $this->writeTempFileRelatedProducts($this->productTables['accomp'][$id_price]);
 
                         $processed = true;
                     };
@@ -2874,14 +2871,12 @@ class Import extends Product
 
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
 
-        foreach ($relatedProducts as $k=>$i) {
-
-            $idCode = $i['id_price'] . ',' . $i['code_acc'];
+        foreach($relatedProducts as $k=>$i) {
+            $idCode = $i['id_price'] . "," . $i['code_acc'] . "\n";
             if (!empty($idCode)) {
                 $path = DOCUMENT_ROOT . "/files/tempfiles/relatedProducts.TMP";
                 file_put_contents($path, $idCode, FILE_APPEND);
             }
-
         }
     } // запись сопутств. тов. в конец времен. файла
 
@@ -2906,6 +2901,8 @@ class Import extends Product
             $idDelete = array();
             while (($line = fgets($path, 10000000)) !== false) {
 
+                $line = substr($line, 0, -1);
+
                 /** если строчка не пустая - упаков. и помещ. в список insertList */
                 if(gettype($line) == string) {
                     $idCode      = preg_split("/,(?!\s+)/ui", $line);
@@ -2922,15 +2919,20 @@ class Import extends Product
                     $u = new DB('shop_accomp', 'sa');
                     $u->where("id_price IN (?)", $idsStr)->deleteList();
 
+                    $arrayDB = $this->codesInIdRelated($arrayDB);
+
                     DB::insertList('shop_accomp', $arrayDB);
                     $arrayDB  = array();
                     $idDelete = array();
                 }
             }
+
             if (count($arrayDB) > 0) {
                 $idsStr = implode(",", $idDelete);
                 $u = new DB('shop_accomp', 'sa');
                 $u->where("id_price IN (?)", $idsStr)->deleteList();
+
+                $arrayDB = $this->codesInIdRelated($arrayDB);
 
                 DB::insertList('shop_accomp', $arrayDB);
             }
@@ -2943,6 +2945,50 @@ class Import extends Product
         }
 
     } // запись сопутств. тов. в БД
+
+    private static function codesInIdRelated($arrayDB)
+    {
+        /**
+         * замена кодов сопустствующих товаров на ид
+         * @param  array $arrayDB  массив сопутствующих товаров [0][id_price,id_acc] (id_acc - коды)
+         * @param  array $codes    массив кодов сопутствующих товаров
+         * @param  str   $codesStr массив кодов сопутствующих товаров в Строку
+         * @param  array $codeId   связки код-ид по товарам
+         * @return array $arrayDB  массив сопутствующих товаров [0][id_price,id_acc] (id_acc - ид)
+         */
+
+        $codes = array();
+        foreach ($arrayDB as $k=>$i)
+            $codes[$i['id_acc']] = true;
+        $codes = array_keys($codes);
+
+        $codesStr = '';
+        foreach ($codes as $k=>$i) $codesStr .= "'$i',";
+        $codesStr = substr($codesStr, 0, -1);
+
+        if (!empty($codesStr)) {
+            $u = new DB('shop_price', 'sp');
+            $u->select('sp.id, sp.code');
+            $u->where("sp.code IN ($codesStr)");
+            $list = $u->getList();
+            unset($u,$codes);
+        } else $list = array();
+
+        $codeId = array();
+        foreach($list as $k=>$i)
+            $codeId[$i['code']] = $i['id'];
+
+        foreach ($arrayDB as $k=>$i) {
+            if ($codeId[$i['id_acc']])
+                $arrayDB[$k]['id_acc'] = $codeId[$i['id_acc']];
+            else
+                unset($arrayDB[$k]);
+        }
+        $arrayDB = array_values($arrayDB);
+        unset($codeId);
+
+        return $arrayDB;
+    } // замена кодов сопустствующих товаров на ид
 
     public function updateGroupTable()
     {
