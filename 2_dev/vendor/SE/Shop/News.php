@@ -229,8 +229,8 @@ class News extends Base
             //$news['description'] = $item['short_txt'];
             //$news['fullDescription'] = $item['text'];
             if (!empty($item['newsDate'])){
-                $news['newsDate'] = date('Y-m-d', $item['newsDate']);
-                $news['newsDateDisplay'] = date('d.m.Y', $item['newsDate']);
+                $news['newsDate'] = date('Y.m.d H:i', $item['newsDate']);
+                $news['newsDateDisplay'] = date('Y.m.d H:i', $item['newsDate']);
             }
             if (!empty($item['pubDate'])) {
                 $news['publicationDate'] = date('Y-m-d', $item['pubDate']);
@@ -378,8 +378,11 @@ class News extends Base
                 $this->input["url"] = strtolower(se_translite_url($this->input["name"]));
             if (isset($this->input["name"]))
                 $this->input["title"] = $this->input["name"];
-            if (isset($this->input["newsDate"]))
-                $this->input["newsDate"] = strtotime($this->input["newsDate"]);
+            if (isset($this->input["newsDate"])) {
+                $i = date_parse_from_format("Y.n.j H:i", $this->input["newsDate"]);
+                $data = $i['day'].'.'.$i['month'].'.'.$i['year'].' '.$i['hour'].':'.$i['minute'];
+                $this->input["newsDate"] = strtotime($data);
+            }
             if (isset($this->input["publicationDate"]))
                 $this->input["pubDate"] = strtotime($this->input["publicationDate"]);
             //if (isset($this->input["fullDescription"]))
