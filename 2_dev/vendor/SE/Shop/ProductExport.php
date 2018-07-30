@@ -28,9 +28,15 @@ class ProductExport extends Product
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $this->rmdir_recursive($temporaryFilePath);  // очистка директории с временными файлами
 
+        /** получение образца экспорта */
+        list($mainRequest, $pages) = $this->shopPrice(1, 0);
+        $goodsL  = $mainRequest->getList(1, 0);  // получение лимитированного списка товаров
+
+        /** заголовки (без модификаций) */
         $headerCSV = array();
-        foreach ($this->rusCols as $k => $v)
-            array_push($headerCSV, $v);
+        foreach ($goodsL[0] as $k => $v)
+            if (!empty($this->rusCols[$k]))
+                array_push($headerCSV, $this->rusCols[$k]);
 
         /** прикрепляем столбцы модификаций */
         $modsCols = $this->modsCols();
@@ -532,12 +538,9 @@ class ProductExport extends Product
             $headerCSV = array();
             $numColumn = array();
 
-            foreach($formData as $k => $v) {
-                if ($v['checkbox'] == 'Y') {
-                    array_push($headerCSV, $v['column']);
-                }
-                array_push($numColumn, $k);
-            }
+            foreach($formData as $k => $v)
+                if ($v['checkbox'] == 'Y')
+                    array_push($numColumn, $k);
 
             $goodsLNew = array();
             foreach($goodsL as $key => $value) {
@@ -553,6 +556,7 @@ class ProductExport extends Product
                 $unit    = array();
                 foreach($value as $k => $v) {
                     if (in_array($VColumn, $numColumn)) $unit[$k] = $v;
+                    else $unit[$k] = null;
                     $VColumn++;
                 }
 
