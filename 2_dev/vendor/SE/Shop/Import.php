@@ -2154,19 +2154,32 @@ class Import extends Product
             /** смотреть в БД */
         );
 
-        /** 5 проверка корректности значений и запись в массив */
+        /** 5 устанновка значений по умолчанию при NULL (ЗАГЛУШКИ) */
+        $substitution = array(
+            'curr'     => 'RUB',
+            'enabled'  => 'Y',
+            'flag_new' => 'N',
+            'flag_hit' => 'N'
+        );
+        /** сверяем значения ячеек продукта со списком замены */
+        foreach ($Product as $ingredient => &$include)
+            foreach ($substitution as $ing => $inc)
+                if ($ingredient == $ing and $include == NULL)
+                    $Product[$ingredient] = $inc;
+
+        /** 6 проверка корректности значений и запись в массив */
         $this->validationValues($Product, $code);
 
-        /** 6 обработчик значений/текста в Остатке */
+        /** 7 обработчик значений/текста в Остатке */
         if(!(int)$Product['presence_count'] and $Product['presence_count']!='0') {
             $Product['presence'] = $Product['presence_count'];
             $Product['presence_count'] = -1;
         }
 
-        /** 7 Обрабатываем модификации (если есть) */
+        /** 8 Обрабатываем модификации (если есть) */
         $Product = $this->creationModificationsStart($Product, $item);
 
-        /** 8 Cверяем наличие характеристик и значений */
+        /** 9 Cверяем наличие характеристик и значений */
         $Product = $this->creationFeature($Product, $item, $code);
 
         /**
@@ -2179,19 +2192,6 @@ class Import extends Product
         // foreach ($Product0 as $ingredient=>$include) {
         //     if($include !== NULL) {$Product[$ingredient]= $include;};
         // };
-
-        /** 9 устанновка значений по умолчанию при NULL (ЗАГЛУШКИ) */
-        $substitution = array(
-            'curr'     => 'RUB',
-            'enabled'  => 'Y',
-            'flag_new' => 'N',
-            'flag_hit' => 'N'
-        );
-        /** сверяем значения ячеек продукта со списком замены */
-        foreach ($Product as $ingredient => &$include)
-            foreach ($substitution as $ing => $inc)
-                if ($ingredient == $ing and $include == NULL)
-                    $Product[$ingredient] = $inc;
 
         /** 10 получение списка изображений из ячеек Excel */
         $imgList = array('img_alt','img', 'img_2', 'img_3', 'img_4', 'img_5', 'img_6', 'img_7', 'img_8', 'img_9', 'img_10');
