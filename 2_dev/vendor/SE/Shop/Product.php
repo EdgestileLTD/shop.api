@@ -75,13 +75,13 @@ class Product extends Base
                 spg.id_group id_group, sg.name name_group, sg.id_modification_group_def id_modification_group_def,
                 COUNT(DISTINCT(smf.id_modification)) count_modifications,
                 (SELECT picture FROM shop_img WHERE id_price = sp.id LIMIT 1) img,
-                sb.name name_brand, slp.id_label id_label, sp.is_show_feature, sp.market_available, 
+                sb.name name_brand, slp.id_label id_label, sp.is_show_feature, sp.market_available,
                 spm.id_weight_view, spm.id_weight_edit, spm.id_volume_view, spm.id_volume_edit';
 
             $joins[] = array(
                 "type" => "left",
                 "table" => 'shop_price_group spg',
-                "condition" => '(spg.id_price = sp.id) AND (spg.is_main = true)'
+                "condition" => '(spg.id_price = sp.id)'
             );
 
             $joins[] = array(
@@ -422,7 +422,7 @@ class Product extends Base
             $sql .= " WHERE id IN ({$idsStr})";
             DB::query($sql);
 
-            $sqlMod = "UPDATE shop_modifications sm 
+            $sqlMod = "UPDATE shop_modifications sm
                 INNER JOIN shop_modifications_group smg ON sm.id_mod_group = smg.id SET `value` = ";
             if ($type == "a")
                 $sqlMod .= "`value` + " . $price;
