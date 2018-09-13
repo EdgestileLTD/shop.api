@@ -2211,7 +2211,7 @@ class Import extends Product
                     if ($result != '') {
 
                         $newImg = array(
-                            "id_price" => $this->get('id', "/,(?!\s+)/ui", $item),
+                            "id_price" => $code,
                             "picture"  => $result,
                             'lineNum'  => $Product['lineNum']
                         );
@@ -2471,9 +2471,10 @@ class Import extends Product
          * обновление: нетТовара-добавляет, есть-изменяет
          * вставка:    нетТовара-добавляет, есть-пропускает
          *
-         * @param  bool $update    true- updateListImport, false- insertListImport
-         * @param  bool $refresh   true- товар существует в БД
-         * @param  bool $processed true- товар обработан
+         * @param  bool  $update    true- updateListImport, false- insertListImport
+         * @param  bool  $refresh   true- товар существует в БД
+         * @param  bool  $processed true- товар обработан
+         * @param  array $img       изображения по всем товарам
          * @method writeTempFileRelatedProducts(int) запись сопутств. товаров во времен. файл
          */
 
@@ -2484,6 +2485,7 @@ class Import extends Product
         try {
 
             $ids = array();
+            $img = array();
             foreach ($product_list as $k => $product_unit){
 
                 $line=$product_unit['lineNum']; unset($product_unit['lineNum']);   /** вынимаем номер строки из массива */
@@ -2519,6 +2521,8 @@ class Import extends Product
 
                         $id_price = $data_unit['id'];
                         $this->productTables = $this->replacingIdСhildTables($code,$id_price);
+                        foreach ($this->productTables['img'] as $k=>$i)
+                            $img[] = $i;
 
                         $data_unut_sp = $data_unit;
                         unset($data_unut_sp[0]['features']);
@@ -2544,6 +2548,8 @@ class Import extends Product
                         $pr_unit->setValuesFields($data_unit);
                         $id_price = $pr_unit->save();
                         $this->productTables = $this->replacingIdСhildTables($code,$id_price);
+                        foreach ($this->productTables['img'] as $k=>$i)
+                            $img[] = $i;
 
                         $this->insertListChildTablesAfterPrice($id_price, true);
 
@@ -2570,6 +2576,8 @@ class Import extends Product
 
                     /** ДЛЯ МОДИФИКАЦИЙ: даже если не пишем товар - записать картинки для привязки к модификациям */
                     $this->productTables = $this->replacingIdСhildTables($code,$id_price);
+                    foreach ($this->productTables['img'] as $k=>$i)
+                        $img[] = $i;
 
                 };
 
@@ -2578,7 +2586,7 @@ class Import extends Product
             };
 
             if (count($ids) > 0) {
-                $this->checkCreateImg($ids, $this->productTables['img']);
+                $this->checkCreateImg($ids, $img);
                 $this->creationModificationsFinal($ids);
             }
 
