@@ -782,7 +782,7 @@ class Import extends Product
                     $arrayNullValues = false;
                 } elseif (count($amountElements)>2) {
                     $nameNum = $this->getNameFromNumber($key);
-                    $_SESSION['errors']['headline'] = "ОШИБКА[стлб. ".$nameNum."]: Ошибка заголовка столбца модификации!";
+                    $_SESSION['errors']['headline'] = "ПРИМЕЧАНИЕ[стлб. ".$nameNum."]: Ошибка заголовка столбца модификации!";
                     //throw new Exception($this->error);
                 } else {}
             }
@@ -790,7 +790,7 @@ class Import extends Product
 
         /** при всех пустых значениях массива (строка заголовков пустая и куки заголовков), выдать ошибку */
         if ($arrayNullValues == true) {
-            $_SESSION['errors']['headline'] = "ОШИБКА: заголовки столбцов не заданы!";
+            $_SESSION['errors']['headline'] = "ПРИМЕЧАНИЕ: заголовки столбцов не заданы!";
         }
 
         $_SESSION["fieldsMap"] = $this->fieldsMap;
@@ -1336,7 +1336,7 @@ class Import extends Product
                     } elseif ($newfeat['name'] or $newfeat['type']) {
                         /** вывод ошибки с линией */
                         $line = $lineNum;
-                        if (!$_SESSION['errors']['feature']) $_SESSION['errors']['feature'] = 'ОШИБКА[стр. '.$line.']: не корректное заполнение столбца "Характеристики"';
+                        if (!$_SESSION['errors']['feature']) $_SESSION['errors']['feature'] = 'ПРИМЕЧАНИЕ[стр. '.$line.']: не корректное заполнение столбца "Характеристики"';
                     } else {};
                 }
                 unset($features[$i],$value,$type);
@@ -1386,7 +1386,7 @@ class Import extends Product
                         } elseif ($newfeat['name'] or $newfeat['type']) {
                             /** вывод ошибки с линией */
                             $line = $lineNum;
-                            if (!$_SESSION['errors']['feature']) $_SESSION['errors']['feature'] = 'ОШИБКА[стр. '.$line.']: не корректное заполнение столбца "Характеристики"';
+                            if (!$_SESSION['errors']['feature']) $_SESSION['errors']['feature'] = 'ПРИМЕЧАНИЕ[стр. '.$line.']: не корректное заполнение столбца "Характеристики"';
                         } else {};
 
                     }
@@ -2284,7 +2284,7 @@ class Import extends Product
             (!(int)$v and $v!='0' and !empty($v) or (float)$v<0) :
             (!(int)$v and $v!='0' and !empty($v) or (float)$v<0 or $v=='0')
         ) {
-            if (!$_SESSION['errors'][$col]) $_SESSION['errors'][$col]='ОШИБКА[стр. '.$line.']: столец "'.$name.'" не может содержать текст и '.$text.'. Произведена замена на '.$subs;
+            if (!$_SESSION['errors'][$col]) $_SESSION['errors'][$col]='ПРИМЕЧАНИЕ[стр. '.$line.']: столбец "'.$name.'" не может содержать текст и '.$text.'. Произведена замена на '.$subs;
             $v = $subs;
         } elseif (empty($v)) $v = $subs;
 
@@ -2324,7 +2324,7 @@ class Import extends Product
             ($v!='1' and $v!='0') :
             ($v!='Y' and $v!='N')
         ) {
-            if (!$_SESSION['errors'][$col]) $_SESSION['errors'][$col]='ОШИБКА[стр. '.$line.']: столец "'.$name.'" значение не равно '.$text.'. Произведена замена на '.$subs;
+            if (!$_SESSION['errors'][$col]) $_SESSION['errors'][$col]='ПРИМЕЧАНИЕ[стр. '.$line.']: столбец "'.$name.'" значение не равно '.$text.'. Произведена замена на '.$subs;
             $v = $subs;
         } elseif (empty($v)) $v = $subs;
 
@@ -2616,7 +2616,7 @@ class Import extends Product
                     unset($i2['lineNum']);
                     if (!empty($i2)) array_push($Imgs, $i2);
                 } elseif (count($Imgs)!=0 and $i['picture']!='')
-                    if (!$_SESSION['errors']['img_alt']) $_SESSION['errors']['img_alt']='ОШИБКА[стр. '.$i2['lineNum'].']: столец "Изображения" не корректное расширение файла';
+                    if (!$_SESSION['errors']['img_alt']) $_SESSION['errors']['img_alt']='ПРИМЕЧАНИЕ[стр. '.$i2['lineNum'].']: столбец "Изображения" не корректное расширение файла';
             }
 
 
