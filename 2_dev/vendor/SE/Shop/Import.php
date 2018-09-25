@@ -2528,6 +2528,7 @@ class Import extends Product
                         unset($data_unut_sp[0]['features']);
                         $pr_unit->setValuesFields($data_unut_sp);
                         $id_price = $pr_unit->save(false);                         /** логические отвечают за обновление (при совпадении - замена) */
+                        $product_unit['id'] = $id_price;
                         unset($data_unut_sp);
 
                         $this->insertListChildTablesAfterPrice($id_price, false);
@@ -2547,6 +2548,7 @@ class Import extends Product
 
                         $pr_unit->setValuesFields($data_unit);
                         $id_price = $pr_unit->save();
+                        $product_unit['id'] = $id_price;
                         $this->productTables = $this->replacingIdСhildTables($code,$id_price);
                         foreach ($this->productTables['img'] as $k=>$i)
                             $img[] = $i;
@@ -2559,6 +2561,8 @@ class Import extends Product
 
                         if ($this->productTables['accomp'][$id_price])
                             $this->writeTempFileRelatedProducts($this->productTables['accomp'][$id_price]);
+
+                        $this->linkRecordShopPriceGroup($product_unit, $id_groups, $id_price);
 
                         $processed = true;
                     };
