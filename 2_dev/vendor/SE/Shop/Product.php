@@ -61,7 +61,7 @@ class Product extends Base
     // @@  @@ @@@@@@ @@    @@   @@       @@     @@  @@ @@    @@ @@@@@@    @@    @@     @@@@@@ @@@   @@ @@  @@ @@@   @@
 
     // Получить настройки
-    protected function getSettingsFetch()
+    protected function getSettingsFetch($isInfo = false)
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         if ($_SESSION['coreVersion'] > 520) {
@@ -81,7 +81,7 @@ class Product extends Base
             $joins[] = array(
                 "type" => "left",
                 "table" => 'shop_price_group spg',
-                "condition" => '(spg.id_price = sp.id)'
+                "condition" => $isInfo ? '(spg.id_price = sp.id AND spg.is_main)' : '(spg.id_price = sp.id)'
             );
 
             $joins[] = array(
