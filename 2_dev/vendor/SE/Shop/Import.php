@@ -2168,7 +2168,7 @@ class Import extends Product
                     $Product[$ingredient] = $inc;
 
         /** 6 проверка корректности значений и запись в массив */
-        $this->validationValues($Product, $code);
+        $Product = $this->validationValues($Product, $code);
 
         /** 7 обработчик значений/текста в Остатке */
         if(!(int)$Product['presence_count'] and $Product['presence_count']!='0') {
@@ -2231,7 +2231,10 @@ class Import extends Product
 
     private function validationValues($Product, $code)
     {
-        /** проверка корректности значений и запись в массив */
+        /** проверка корректности значений и запись в массив
+         * @return array $this->importData отправка товаров на сохранение
+         * @return array $Product отправка данных для дальнейшей обработки
+         */
 
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
@@ -2255,11 +2258,23 @@ class Import extends Product
         // при пустом поле значение переменной $id==NULL
         if (!empty($Product['code']) and !empty($Product['name'])){
             $this->importData['products'][] = $Product;
+
+        } else if (!empty($Product['code']) and empty($Product['name'])) {
+            /** если имя пустое - подставить код (URL) */
+            $Product['name'] = $Product['code'];
+            if (!$_SESSION['errors']['name'])
+                $_SESSION['errors']['name'] = 'ПРИМЕЧАНИЕ[стр. '.$line.']: столбец "Наименование" не может быть пустым. Произведена подстановка кода (URL)';
+
+            $this->importData['products'][] = $Product;
+
         } else {
-            if (empty($Product['code']) and !$_SESSION['errors']['code'])  $_SESSION['errors']['code'] = 'ОШИБКА[стр. '.$line.']: столбец "Код (URL)" не может быть пустым';
-            if (empty($Product['name']) and !$_SESSION['errors']['name'])  $_SESSION['errors']['name'] = 'ОШИБКА[стр. '.$line.']: столбец "Наименование" не может быть пустым';
+            if (empty($Product['code']) and !$_SESSION['errors']['code'])
+                $_SESSION['errors']['code'] = 'ОШИБКА[стр. '.$line.']: столбец "Код (URL)" не может быть пустым';
 
         }
+
+        return $Product;
+
     } // ПРОВЕРКА КОРРЕКТНОСТИ ЗНАЧЕНИЙ
 
     private static function notText($data, $col, $line, $name, $iF, $zero)
