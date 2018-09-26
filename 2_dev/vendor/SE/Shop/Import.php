@@ -1468,7 +1468,6 @@ class Import extends Product
                 } elseif ($i == 'presence_count') $Product[$i] = 0;
                 else $Product[$i] = "";
             }
-            $Product['features'] = ""; /** заглушка для характеристик */
             $this->modData[$Product['code']][]=$mod;
         }
         return $Product;
