@@ -2684,8 +2684,16 @@ class Import extends Product
     private function insertListChildTablesAfterPrice($id, $setValuesFields = false)
     {
         /** Заполнение дочерних таблиц После заполнения <shop_price>    1 импорт характеристик    2 импорт изображений*/
-        $tableNames = array('category'=>'shop_group', 'measure'=>'shop_price_measure',
-                            'features'=>'shop_modifications_feature');
+        $tableNames = array(
+            'category' =>array('table'=>'shop_group'),
+            'measure'  =>array('table'=>'shop_price_measure'),
+            'features' =>array(
+                'table'     =>'shop_modifications_feature',
+                'revise'    =>'id_price, id_modification, id_feature,id_value',
+                'keyRevise' =>'id_price',
+                'empty'     =>'id_modification' // проверка пустоту поля
+            )
+        );
         $this->insertListChildTables($id, $tableNames, $setValuesFields);
     } // Заполнение дочерних таблиц После заполнения <shop_price>
 
@@ -2695,7 +2703,7 @@ class Import extends Product
          * @param array $this->productTables именной массив данных из строки (разбитые по таблицам ключТабл) по одному товару
          * @param int   $id                  ид товара к которому привязаны записи таблиц
          * @param bool  $setValuesFields     true=изменяемЗапись  false=создаем
-         * @param array $tableNames          ключТабл-имяТабл
+         * @param array $tableNames          ключТабл=> table=имяТабл, revise=поляСверки, keyRevise=id_price, empty=проверкаПустоты
          * @param array $tableData           массив данных для записи в БД
          * @param str   $tab                 имя таблицы
          */
@@ -2705,12 +2713,12 @@ class Import extends Product
 
         foreach ($keyTable as $k=>$i) {
 
-            if ($tableNames[$i] and $this->productTables[$i][$id]) {
+            if ($tableNames[$i]['table'] and $this->productTables[$i][$id]) {
 
                 $tableData = $this->productTables[$i][$id];
                 $tableData[0] ?: $tableData=array($tableData);
 
-                $shop_price = new DB($tableNames[$i]);
+                $shop_price = new DB($tableNames[$i]['table']);
                 $shop_price->select('id_price');
                 $id_list = $shop_price->getList();
                 foreach ($id_list as $k2=>$i2) {
@@ -2731,7 +2739,9 @@ class Import extends Product
                 if (count($tableDataTemp)>0) {
 
                     /** фильтрация уникальных значений */
+
                     $tableData[0] ?: $tableData=array($tableData);
+
                     foreach ($tableData as $kTD=>$iTD) {
                         $keyTDUnit = '';
                         foreach ($iTD as $kTDU=>$iTDU)  $keyTDUnit=$keyTDUnit.'#'.$iTDU;
@@ -2741,22 +2751,72 @@ class Import extends Product
                     $tableData = array_values($tableData);
 
                     if ($setValuesFields==false) {
+
                         $tableData[0] ?: $tableData=array($tableData);
-                        DB::insertList($tableNames[$i], $tableData,true);
+
+                        /** фильтрация совпадений записей с базой */
+
+                        if ($tableNames[$i]['keyRevise']) {
+
+                            // получаем записи по id из DB
+                            $revise = new DB($tableNames[$i]['table']);
+                            $revise->select($tableNames[$i]['revise']);
+                            $revise->where($tableNames[$i]['keyRevise']." = ?", $tableData[0]['id_price']);
+                            $reviseList = $revise->getList();
+
+                            // ключи к змеиному регистру
+                            $snakeRegister = array();
+                            foreach($reviseList as $k2=>$i2) {
+                                $unit = array();
+                                foreach ($i2 as $k3=>$i3) {
+                                    $k3 = DB::strToUnderscore($k3);
+                                    $unit[$k3] = $i3;
+                                }
+                                $snakeRegister[$k2] = $unit;
+                            }
+                            $reviseList = $snakeRegister;
+                            unset($snakeRegister);
+
+                            // если есть условие на пустое поле - проверяем
+                            if ($tableNames[$i]['empty']) {
+                                $filter = array();
+                                foreach ($reviseList as $item)
+                                    if(empty($item[$tableNames[$i]['empty']]))
+                                        $filter[] = $item;
+
+                                $reviseList = $filter;
+                                unset($filter);
+                            }
+
+                            // проводим сверку DB с импортом
+                            foreach ($tableData as $importKey => $importItem) {
+                                foreach ($reviseList as $dbKey => $dbItem) {
+
+                                    $sharedKeys = array_intersect_key($importItem,$dbItem);
+                                    $dbItem     = array_intersect_key($dbItem, $importItem);
+                                    $sharedItem = array_uintersect($sharedKeys, $dbItem, "strcasecmp");
+
+                                    if (count($sharedItem) == count($dbItem))
+                                        unset($tableData[$importKey]);
+                                }
+                            }
+                        }
+
+                        DB::insertList($tableNames[$i]['table'], $tableData,true);
                     } else {
                         /** удаляем старую запись*/
                         if ($id_list[$id]) {
                             DB::query("SET foreign_key_checks = 0");
-                            $tab=$tableNames[$i];
+                            $tab=$tableNames[$i]['table'];
                             $u = new DB($tab, $tab);
                             $u->where($tab.".id_price IN ($id)")->deleteList();
                             DB::query("SET foreign_key_checks = 1");
                         }
-                        //$tableDB = new DB($tableNames[$i]);
+                        //$tableDB = new DB($tableNames[$i]['table']);
                         //$tableDB->setValuesFields($tableData);
                         //$idDB = $tableDB->save();
                         $tableData[0] ? $tableData=$tableData : $tableData=array($tableData);
-                        DB::insertList($tableNames[$i], $tableData,true);
+                        DB::insertList($tableNames[$i]['table'], $tableData,true);
                     }
                 }
             }
