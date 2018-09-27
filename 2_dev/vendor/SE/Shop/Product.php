@@ -816,7 +816,6 @@ class Product extends Base
             count($this->input['ids']) < 1 &&
             empty($this->input['id'])
         ) { // isset($this->input['article']) &&
-            writeLog('hi');
             if (empty($this->input['ids'])) {
                 $u = new DB('shop_price');
                 $u->select('MAX(id) AS mid');
