@@ -2423,7 +2423,7 @@ class Import extends Product
     {
         /**
          * замена id в дочерних таблицах и главной
-         * @param  array $TID               импортируемые таблицы
+         * @param  array $this->importData  импортируемые таблицы
          * @param  array $NID newImportData новый массив с новыми ids
          * @param  array $KTN kTableName    имя таблицы
          * @param  array $VTV valuesTV      значения таблицы
@@ -2432,21 +2432,31 @@ class Import extends Product
 
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
 
-        $TID =& $this->importData;
         $NID = array();
 
-        foreach ($TID as $KTN => $tableValue)
-            if ($KTN != 'products')
-                foreach ($tableValue as $oldIdTV => $VTV)
+        foreach ($this->importData as $KTN => $tableValue) {
+            if ($KTN != 'products') {
+
+                foreach ($tableValue as $oldIdTV => $VTV) {
                     if ($oldIdTV == $oldId) {
 
-                        foreach ($VTV as $k => $i) {
-                            if ($VTV['id_price']) $VTV['id_price'] = $newId;
-                            if (gettype($VTV[$k]) == 'array' and $VTV[$k]['id_price']) $VTV[$k]['id_price'] = $newId;
+                        if (array_key_exists('id_price', $VTV)) {
+                            $VTV['id_price'] = $newId;
+
+                        } else {
+                            foreach ($VTV as $k => $i) {
+                                if (array_key_exists('id_price', $i)) {
+                                    $VTV[$k]['id_price'] = $newId;
+                                }
+                            }
+
                         }
 
                         $NID[$KTN][$newId] = $VTV;
                     }
+                }
+            }
+        }
 
         return $NID;
 
