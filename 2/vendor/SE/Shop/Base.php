@@ -359,12 +359,29 @@ class Base extends CustomBase
             // 2
             if ($this->tableNameDepen) {
                 foreach ($this->tableNameDepen as $tabNameDepen => $field) {
-                    $u = new DB($tabNameDepen, $tabNameDepen);
-                    if ($this->input["ids"] && !empty($tabNameDepen)) {
+
+                    if ($this->input["ids"] && !empty($tabNameDepen) && !is_array($field)) {
+
+                        $u = new DB($tabNameDepen, $tabNameDepen);
                         $ids = implode(",", $this->input["ids"]);
                         $u->where($field.' IN (?)', $ids)->deleteList();
+                        unset($u);
+
+                    } elseif ($this->input["ids"] && !empty($tabNameDepen) && is_array($field)) {
+
+                        $ids          = implode(",", $this->input["ids"]);
+                        $initialField = $field["field"];
+                        $intTab       = $field["intermediaryTable"];
+                        $intFie       = $field["intermediaryField"];
+
+                        DB::query("
+                            DELETE $tabNameDepen
+                            FROM `$tabNameDepen`
+                            INNER JOIN $intTab t2 ON t2.id = $tabNameDepen.$initialField
+                            WHERE t2.$intFie IN ($ids);
+                        ");
+
                     }
-                    unset($u);
                 }
             }
 
@@ -599,36 +616,6 @@ class Base extends CustomBase
         return $query;
     }
 
-    public function getArrayFromCsv($file, $csvSeparator = ";")
-    {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
-        if (!file_exists($file))
-            return null;
-
-        $result = [];
-        if (($handle = fopen($file, "r")) !== FALSE) {
-            $i = 0;
-            $keys = [];
-            while (($row = fgetcsv($handle, 10000, $csvSeparator)) !== FALSE) {
-                if (!$i) {
-                    foreach ($row as &$item)
-                        $keys[] = iconv('CP1251', 'utf-8', $item);
-                } else {
-                    $object = [];
-                    $j = 0;
-                    foreach ($row as &$item) {
-                        $object[$keys[$j]] = iconv('CP1251', 'utf-8', $item);
-                        $j++;
-                    }
-                    $result[] = $object;
-                }
-                $i++;
-            }
-            fclose($handle);
-        }
-        return $result;
-    }
-
     public function post($tempFile = FALSE)
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
@@ -698,11 +685,14 @@ class Base extends CustomBase
     public function postRequest($shorturl, $data)
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+
         $url = "http://" . HOSTNAME . "/" . $shorturl;
+        writeLog($url);
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         return curl_exec($ch);
     }
@@ -805,6 +795,26 @@ class Base extends CustomBase
         $read   = json_decode(file_get_contents($filename)); // чтение файла
         return $read;
     }
+
+    /**
+     * Запуск Python 2.7 методов (ЭКСПЕРЕМЕНТАЛЬНЫЙ)
+     *
+     * $data = array('as', 'df', 'gh');
+     * $resultData = $this->pyMethods("PyMethods.py", "test", $data);
+     *
+     * @param  str   $nameFile   имя файла .py (в директории запуска метода)
+     * @param  str   $nameMethod имя метода Py
+     * @param        $dataArray  данные для обработки скриптом (любой тип данных)
+     * @return       $resultData результаты обработки (любой тип данных)
+     */
+    public function pyMethods($nameFile, $nameMethod, $dataArray)
+    {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+        $param = array('method' => $nameMethod, 'data' => $dataArray);
+        $result = shell_exec('python ' . __DIR__.'/'.$nameFile.' '.escapeshellarg(json_encode($param)));
+        $resultData = json_decode($result, true);
+        return $resultData;
+    } // запуск Python 2.7 методов
 
 
 }

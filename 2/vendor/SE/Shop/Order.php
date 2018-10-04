@@ -691,7 +691,10 @@ class Order extends Base // порядок
         $this->limit = null;
         $this->sortOrder = "asc";
         $orders = $this->fetch();
+        foreach ($orders as $k=>$i)
+            if ($i['isDelete'] == 'Y') unset($orders[$k]); /** фильтрация удаленных заказов */
         $i = 2;
+
         foreach ($orders as $order) {
             $sheet->setCellValue("A$i", $order["id"]);
             $sheet->setCellValue("B$i", $order["dateOrderDisplay"]);

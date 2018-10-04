@@ -52,10 +52,14 @@ class PermissionUser extends Base
     public function delete()
     {
         try {
-            $ids = $this->input["ids"];
-            if ($ids) {
+            if ($this->input["allMode"]) {
+                DB::query("UPDATE se_user SET is_manager = 0"); 
+            } else {
+              $ids = $this->input["ids"];
+              if ($ids) {
                 $idsStr = implode(",", $ids);
-                DB::query("UPDATE se_user SET is_manager = 0 WHERE id IN ({$idsStr})");
+                DB::query("UPDATE se_user SET is_manager = 0 WHERE id IN ({$idsStr})"); 
+              }
             }
         } catch (Exception $e) {
             $this->error = "Не удаётся исключить контакты из пользователей!";

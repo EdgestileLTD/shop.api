@@ -28,9 +28,15 @@ class ProductExport extends Product
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $this->rmdir_recursive($temporaryFilePath);  // очистка директории с временными файлами
 
+        /** получение образца экспорта */
+        list($mainRequest, $pages) = $this->shopPrice(1, 0);
+        $goodsL  = $mainRequest->getList(1, 0);  // получение лимитированного списка товаров
+
+        /** заголовки (без модификаций) */
         $headerCSV = array();
-        foreach ($this->rusCols as $k => $v)
-            array_push($headerCSV, $v);
+        foreach ($goodsL[0] as $k => $v)
+            if (!empty($this->rusCols[$k]))
+                array_push($headerCSV, $this->rusCols[$k]);
 
         /** прикрепляем столбцы модификаций */
         $modsCols = $this->modsCols();
@@ -533,26 +539,25 @@ class ProductExport extends Product
             $numColumn = array();
 
             foreach($formData as $k => $v)
-                if($v['checkbox'] == 'Y') {
-                    array_push($headerCSV, $v['column']);
+                if ($v['checkbox'] == 'Y')
                     array_push($numColumn, $k);
-                }
 
             $goodsLNew = array();
             foreach($goodsL as $key => $value) {
                 unset($value['idModification'],$value['idGroup']); // приходят из shopPrice запроса
 
+                /** при неограниченном количестве - подставлять "текст при неограниченном" */
+                if ($value['count']<0 or $value['count']=='') {
+                    $value['count'] = $value['presence'];
+                    unset($value['presence']);
+                }
+
                 $VColumn = 0;
                 $unit    = array();
                 foreach($value as $k => $v) {
                     if (in_array($VColumn, $numColumn)) $unit[$k] = $v;
+                    else $unit[$k] = null;
                     $VColumn++;
-                }
-
-                /** при неограниченном количестве - подставлять "текст при неограниченном" */
-                if ($value['count']<0) {
-                    $value['count'] = $value['presence'];
-                    unset($value['presence']);
                 }
 
                 if(count($unit) > 1) array_push($goodsLNew, $unit);
@@ -724,7 +729,6 @@ class ProductExport extends Product
             unset($item['nameGroup'],$item['values'],$item['idProduct'],$item['typeGroup']);
 
             $newItem = array_merge($product, $item);
-            $newItem["features"] = "";
             array_push($tempGoodsL, $newItem);
 
             unset($product);

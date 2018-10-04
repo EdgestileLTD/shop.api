@@ -127,27 +127,36 @@ class Base
     }
 
     // отладка
-    protected function debugging($group, $funct = null, $class = null, $act = null)
+    protected function debugging($group, $funct=null, $class=null, $act=null, $array=null)
     {
-        // $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
-        if (API_STATUS == "dev2") {
+        /**
+         * $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+         *
+         * $this->debugging('shop/base dataCurrencies', __FUNCTION__.' '.__LINE__, __CLASS__,
+         *     'start', $array=array("this->result"=>$this->result));
+         */
+
+        if (API_STATUS == "dev") {
 
             // [True | Print Log]  [False]
             $print = array(
-                'funct'   => False,   // общие
-                'special' => False,   // значения в модулях
+                'funct'            =>false,   // общие
+                'special'          =>false,   // значения в модулях
+
+                'shop/base'        =>false,
+                'order'            =>false,
             );
 
             if ($print[$group] == True) {
 
                 $thi = get_class($this);
-                $thisPrint  = "ThisCl: {$thi}";
-                $groupPrint = "Group: {$group}";
-                $classPrint = "Class: {$class}";
-                $functPrint = "Funct: {$funct}";
+                $thisPrint  = "ThCl: {$thi}";
+                $groupPrint = "Gr: {$group}";
+                $classPrint = "Cl: {$class}";
+                $functPrint = "F: {$funct}";
                 $actPrint   = "Act: {$act}";
 
-                $ind = 33;      $sy = " ";      $col = " | ";
+                $ind = 25;      $sy = " ";      $col = " | ";
                 $groupLen   = $groupPrint.str_repeat($sy,(15   - mb_strlen($groupPrint))).$col;
                 $thisLen    = $thisPrint.str_repeat( $sy,($ind - mb_strlen($thisPrint)) ).$col;
                 $classLen   = $classPrint.str_repeat($sy,($ind - mb_strlen($classPrint))).$col;
@@ -155,6 +164,7 @@ class Base
                 $actLen     = $actPrint.str_repeat(  $sy,($ind - mb_strlen($actPrint))  ).$col;
 
                 writeLog($groupLen.$actLen.$functLen.$classLen.$thisLen);
+                if ($array!=null) writeLog($array, false);
             }
         }
     }

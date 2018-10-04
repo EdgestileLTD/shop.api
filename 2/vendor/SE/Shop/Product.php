@@ -19,7 +19,11 @@ class Product extends Base
      */
     protected $tableName      = "shop_price";
     protected $tableNameDepen = array(
+        "shop_modifications_img"     => array("field"            =>"id_modification",
+                                              "intermediaryTable"=>'shop_modifications',
+                                              "intermediaryField"=>"id_price"),
         "shop_price_group"           => "id_price",
+        "shop_modifications"         => "id_price",
         "shop_modifications_feature" => "id_price"
     );
     private $newImages;
@@ -57,7 +61,7 @@ class Product extends Base
     // @@  @@ @@@@@@ @@    @@   @@       @@     @@  @@ @@    @@ @@@@@@    @@    @@     @@@@@@ @@@   @@ @@  @@ @@@   @@
 
     // Получить настройки
-    protected function getSettingsFetch()
+    protected function getSettingsFetch($isInfo = false)
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         if ($_SESSION['coreVersion'] > 520) {
@@ -71,13 +75,13 @@ class Product extends Base
                 spg.id_group id_group, sg.name name_group, sg.id_modification_group_def id_modification_group_def,
                 COUNT(DISTINCT(smf.id_modification)) count_modifications,
                 (SELECT picture FROM shop_img WHERE id_price = sp.id LIMIT 1) img,
-                sb.name name_brand, slp.id_label id_label, sp.is_show_feature, sp.market_available, 
+                sb.name name_brand, slp.id_label id_label, sp.is_show_feature, sp.market_available,
                 spm.id_weight_view, spm.id_weight_edit, spm.id_volume_view, spm.id_volume_edit';
 
             $joins[] = array(
                 "type" => "left",
                 "table" => 'shop_price_group spg',
-                "condition" => '(spg.id_price = sp.id) AND (spg.is_main = true)'
+                "condition" => $isInfo ? '(spg.id_price = sp.id AND spg.is_main)' : '(spg.id_price = sp.id)'
             );
 
             $joins[] = array(
@@ -345,6 +349,7 @@ class Product extends Base
             $image['id'] = $item['id'];
             $image['imageFile'] = $item['picture'];
             $image['imageAlt'] = $item['pictureAlt'];
+            $image['imageTitle'] = $item['title'];
             $image['sortIndex'] = $item['sort'];
             $image['isMain'] = (bool)$item['default'];
             if ($image['imageFile']) {
@@ -359,6 +364,7 @@ class Product extends Base
             if (empty($product["imageFile"]) && $image['isMain']) {
                 $product["imageFile"] = $image['imageFile'];
                 $product["imageAlt"] = $image['imageAlt'];
+                $product["title"] = $image['imageTitle'];
             }
             $result[] = $image;
         }
@@ -418,7 +424,7 @@ class Product extends Base
             $sql .= " WHERE id IN ({$idsStr})";
             DB::query($sql);
 
-            $sqlMod = "UPDATE shop_modifications sm 
+            $sqlMod = "UPDATE shop_modifications sm
                 INNER JOIN shop_modifications_group smg ON sm.id_mod_group = smg.id SET `value` = ";
             if ($type == "a")
                 $sqlMod .= "`value` + " . $price;
@@ -807,7 +813,11 @@ class Product extends Base
         $this->correctAll();
 
         // формирование артикля // при создании товара (если отличен от нуля и пуст)
-        if (empty($this->input['article']) && count($this->input['ids']) < 2) { // isset($this->input['article']) &&
+        if (
+            empty($this->input['article']) &&
+            count($this->input['ids']) < 1 &&
+            empty($this->input['id'])
+        ) { // isset($this->input['article']) &&
             if (empty($this->input['ids'])) {
                 $u = new DB('shop_price');
                 $u->select('MAX(id) AS mid');
@@ -910,6 +920,7 @@ class Product extends Base
                     $image["picture"] = $image["imageFile"];
                     $image["sort"] = $image["sortIndex"];
                     $image["pictureAlt"] = $image["imageAlt"];
+                    $image["title"] = $image["imageTitle"];
                     $image["default"] = $image["isMain"];
                     $u->setValuesFields($image);
                     $u->save();
@@ -928,8 +939,11 @@ class Product extends Base
             foreach ($images as $image)
                 if (empty($image["id"]) || ($image["id"] <= 0)) {
                     foreach ($idsProducts as $idProduct) {
-                        $data[] = array('id_price' => $idProduct, 'picture' => $image["imageFile"],
-                            'sort' => (int)$image["sortIndex"], 'picture_alt' => $image["imageAlt"],
+                        $data[] = array('id_price' => $idProduct, 
+                    	    'picture' => $image["imageFile"],
+                            'sort' => (int)$image["sortIndex"], 
+                            'picture_alt' => $image["imageAlt"],
+                            'title' => $image['imageTitle'],
                             'default' => (int)$image["isMain"]);
                         $newImages[] = $image["imageFile"];
                     }
@@ -1010,7 +1024,7 @@ class Product extends Base
                         $idsStore .= ",";
                     $idsStore .= $file["id"];
                     $u = new DB('shop_files', 'si');
-                    $file["file"] = $file["fileURL"];
+                    $file["file"] = $file["fileName"];
                     $file["sort"] = $file["sortIndex"];
                     $file["name"] = $file["fileText"];
                     $u->setValuesFields($file);
@@ -1032,7 +1046,7 @@ class Product extends Base
                     foreach ($idsProducts as $idProduct) {
                         $data[] = array(
                             'id_price' => $idProduct,
-                            'file' => $file["fileURL"],
+                            'file' => $file["fileName"],
                             'sort' => (int)$file["sortIndex"],
                             'name' => $file["fileText"]
                         );
@@ -2016,7 +2030,8 @@ class Product extends Base
                 false,
                 $options,
                 $this->input['prepare'][0],
-                $this->input['cycleNum']
+                $this->input['cycleNum'],
+                $this->input['last']
             );
 
             /**

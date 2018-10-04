@@ -21,7 +21,7 @@ class Product extends Base
     protected $tableNameDepen = array(
         "shop_modifications_img"     => array("field"            =>"id_modification",
                                               "intermediaryTable"=>'shop_modifications',
-                                              "intermediaryField"=>"id_price"),
+                                             "intermediaryField"=>"id_price"),
         "shop_price_group"           => "id_price",
         "shop_modifications"         => "id_price",
         "shop_modifications_feature" => "id_price"
@@ -1018,7 +1018,7 @@ class Product extends Base
                         $idsStore .= ",";
                     $idsStore .= $file["id"];
                     $u = new DB('shop_files', 'si');
-                    $file["file"] = $file["fileURL"];
+                    $file["file"] = $file["fileName"];
                     $file["sort"] = $file["sortIndex"];
                     $file["name"] = $file["fileText"];
                     $u->setValuesFields($file);
@@ -1040,7 +1040,7 @@ class Product extends Base
                     foreach ($idsProducts as $idProduct) {
                         $data[] = array(
                             'id_price' => $idProduct,
-                            'file' => $file["fileURL"],
+                            'file' => $file["fileName"],
                             'sort' => (int)$file["sortIndex"],
                             'name' => $file["fileText"]
                         );
