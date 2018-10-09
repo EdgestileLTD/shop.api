@@ -71,7 +71,7 @@ class Product extends Base
                 sp.img_alt, sp.curr, sp.presence, sp.bonus, sp.min_count,
                 sp.presence_count presence_count, sp.special_offer, sp.flag_hit, sp.enabled, sp.flag_new, sp.is_market, sp.note, sp.text,
                 sp.price_purchase price_purchase, sp.measure, sp.step_count, sp.max_discount, sp.discount,
-                sp.title, sp.keywords, sp.description, sp.weight, sp.volume, spg.is_main,
+                sp.title, sp.keywords, sp.description, sp.page_title, sp.weight, sp.volume, spg.is_main,
                 spg.id_group id_group, sg.name name_group, sg.id_modification_group_def id_modification_group_def,
                 COUNT(DISTINCT(smf.id_modification)) count_modifications,
                 (SELECT picture FROM shop_img WHERE id_price = sp.id LIMIT 1) img,

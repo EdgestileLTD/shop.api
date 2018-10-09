@@ -20,6 +20,12 @@ class SeoVariable extends Base
             $var['name'] = '{asname}';
             $var['note'] = 'наименование товара без склонения';
             $vars[] = $var;
+            $var['name'] = '{nameup}';
+            $var['note'] = 'наименование товара со склонением с сохранением регистра';
+            $vars[] = $var;
+            $var['name'] = '{asnameup}';
+            $var['note'] = 'наименование товара без склонения с сохранением регистра';
+            $vars[] = $var;
             $var['name'] = '{производитель}';
             $var['note'] = 'наименование бренда товара';
             $vars[] = $var;
