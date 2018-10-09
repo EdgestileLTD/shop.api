@@ -1331,7 +1331,7 @@ class Import extends Product
                         unset($u);
 
                         $id = $list[0]['id'];
-                        $this->feature[$section][$id] = $features[$value];
+                        $this->feature[$section][$value] = $id;
                         $features[$id] = $features[$value];
                     } elseif ($newfeat['name'] or $newfeat['type']) {
                         /** вывод ошибки с линией */
