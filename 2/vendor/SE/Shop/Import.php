@@ -615,8 +615,8 @@ class Import extends Product
                      * (чувствителен к порядку знаков - по убывающей приоритетности) */
                     if($delimiter == 'auto') {
                         $delimiters_first_line = array('\t' => 0,
-                                                       ';'  => 0,
-                                                       ':'  => 0);
+                            ';'  => 0,
+                            ':'  => 0);
                         $delimiters_second_line = $delimiters_first_line;
                         $delimiters_final       = array();
 
@@ -1331,7 +1331,7 @@ class Import extends Product
                         unset($u);
 
                         $id = $list[0]['id'];
-                        $this->feature[$section][$id] = $features[$value];
+                        $this->feature[$section][$value] = $id;
                         $features[$id] = $features[$value];
                     } elseif ($newfeat['name'] or $newfeat['type']) {
                         /** вывод ошибки с линией */
@@ -1898,12 +1898,12 @@ class Import extends Product
         $list = array();
         foreach ($l as $k => $i) {
             $key = intval($i['idPrice']).'##'.
-                   intval($i['idModGroup']).'##'.
-                   number_format($i['price'], 2, '.', '').'##'.
-                   number_format($i['priceOpt'], 2, '.', '').'##'.
-                   number_format($i['priceOptCorp'], 2, '.', '').'##'.
-                   number_format($i['pricePurchase'], 2, '.', '').'##'.
-                   intval($i['presenceCount']);
+                intval($i['idModGroup']).'##'.
+                number_format($i['price'], 2, '.', '').'##'.
+                number_format($i['priceOpt'], 2, '.', '').'##'.
+                number_format($i['priceOptCorp'], 2, '.', '').'##'.
+                number_format($i['pricePurchase'], 2, '.', '').'##'.
+                intval($i['presenceCount']);
             $unit = array('key'=>$key,'id'=>$i['id']);
             array_push($list,$unit);
             unset($l[$k]);
@@ -1918,12 +1918,12 @@ class Import extends Product
                 $mod = $priceMods[$priceKey][$key];
 
                 $keyParamGr = intval($mod['idPrice']).'##'.
-                              intval($mod['mod_param'][0]['shop_modifications_group']).'##'.
-                              number_format($mod['price'], 2, '.', '').'##'.
-                              number_format($mod['price_opt'], 2, '.', '').'##'.
-                              number_format($mod['price_opt_corp'], 2, '.', '').'##'.
-                              number_format($mod['price_purchase'], 2, '.', '').'##'.
-                              intval($mod['presence_count']);
+                    intval($mod['mod_param'][0]['shop_modifications_group']).'##'.
+                    number_format($mod['price'], 2, '.', '').'##'.
+                    number_format($mod['price_opt'], 2, '.', '').'##'.
+                    number_format($mod['price_opt_corp'], 2, '.', '').'##'.
+                    number_format($mod['price_purchase'], 2, '.', '').'##'.
+                    intval($mod['presence_count']);
 
                 foreach ($list as $k=>$i) {
                     if ($i['key']==$keyParamGr) {
@@ -2018,8 +2018,8 @@ class Import extends Product
                     $numSort = 0;
                     foreach ($imgs as $k => $i) {
                         $shopModificationsImg = array('id_modification' => $mod['idModification'],
-                                                      'id_img'          => $list[$priceKey.'##'.$i],
-                                                      'sort'            => $numSort);
+                            'id_img'          => $list[$priceKey.'##'.$i],
+                            'sort'            => $numSort);
                         if (!empty($mod['idModification']) and !empty($list[$priceKey.'##'.$i]) ) {
                             array_push($newImgs, $shopModificationsImg);
                             $numSort = $numSort + 1;
@@ -2063,11 +2063,11 @@ class Import extends Product
          * 2 Добавляем меры (веса/объема)
          * 3 Добавляем сопутствующие товары
          * 4 ас.массив значений записи в БД
-         * 5 проверка корректности значений и запись в массив
+         * 5 устанновка значений по умолчанию при NULL (ЗАГЛУШКИ)
          * 6 обработчик значений/текста в Остатке
-         * 7 Обрабатываем модификации (если есть)
-         * 8 Cверяем наличие характеристик и значений
-         * 9 устанновка значений по умолчанию при NULL (ЗАГЛУШКИ)
+         * 7 проверка корректности значений и запись в массив
+         * 8 Обрабатываем модификации (если есть)
+         * 9 Cверяем наличие характеристик и значений
          * 10 получение списка изображений из ячеек Excel
          *
          * @param array $item данные по КАЖДОМУ товару
@@ -2166,14 +2166,14 @@ class Import extends Product
                 if ($ingredient == $ing and $include == NULL)
                     $Product[$ingredient] = $inc;
 
-        /** 6 проверка корректности значений и запись в массив */
-        $Product = $this->validationValues($Product, $code);
-
-        /** 7 обработчик значений/текста в Остатке */
+        /** 6 обработчик значений/текста в Остатке */
         if(!(int)$Product['presence_count'] and $Product['presence_count']!='0') {
             $Product['presence'] = $Product['presence_count'];
             $Product['presence_count'] = -1;
         }
+
+        /** 7 проверка корректности значений и запись в массив */
+        $Product = $this->validationValues($Product, $code);
 
         /** 8 Обрабатываем модификации (если есть) */
         $Product = $this->creationModificationsStart($Product, $item);
