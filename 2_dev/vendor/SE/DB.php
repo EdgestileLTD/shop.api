@@ -372,7 +372,7 @@ class DB
             }
             if ($deleteIds) {
                 $ids = implode(",", $deleteIds);
-                DB::exec("DELETE FROM {$setting['table']} WHERE 
+                DB::exec("DELETE FROM {$setting['table']} WHERE
                                   {$setting['table']}.{$setting['key']} = {$idKey} AND {$setting['link']} IN ({$ids})");
             }
 
@@ -398,7 +398,7 @@ class DB
             if ($updateLinks && !empty($setting["isSort"])) {
                 $sql = array();
                 foreach ($updateLinks as $link)
-                    $sql[] = "UPDATE {$setting['table']} SET sort = {$link["sort"]} 
+                    $sql[] = "UPDATE {$setting['table']} SET sort = {$link["sort"]}
                               WHERE ({$setting['link']} = {$link["id"]} AND {$setting['key']} = {$idKey})";
                 $sql = implode(";\n", $sql);
                 DB::exec($sql);
