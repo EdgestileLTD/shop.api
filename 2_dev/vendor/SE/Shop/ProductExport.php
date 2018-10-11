@@ -299,7 +299,7 @@ class ProductExport extends Product
                 sb.name name_brand, sp.curr codeCurrency, sp.measure measurement,
                 sp.presence_count count, sp.step_count step_count,
                 sp.presence presence, sp.flag_new, sp.flag_hit, sp.enabled, sp.is_market,
-                sp.weight weight, sp.volume volume,
+                sp.weight weight, sp.volume volume, sp.page_title,
 
                 CONCAT(
                     IFNULL(smw1.name, \'\'),\',\',

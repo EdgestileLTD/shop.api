@@ -39,7 +39,7 @@ class Product extends Base
         "features" => "Характеристики",
         "images" => 'Изображения',
         "codeCurrency" => "КодВалюты",
-        "metaHeader" => "MetaHeader", "metaKeywords" => "MetaKeywords", "metaDescription" => "MetaDescription",
+        "metaHeader" => "MetaHeader", "metaKeywords" => "MetaKeywords", "pageTitle" => "Оглавление страницы", "metaDescription" => "MetaDescription",
         "flagNew" => "Новинки", "flagHit" => "Хиты", "enabled" => "Видимость", "isMarket" => "Маркет",
         "minCount" => "Мин.кол-во", "nameBrand" => "Бренд",
         "idAcc" => "Сопутствующие товары"
