@@ -20,8 +20,8 @@ class Product extends Base
     protected $tableName      = "shop_price";
     protected $tableNameDepen = array(
         "shop_modifications_img"     => array("field"            =>"id_modification",
-                                              "intermediaryTable"=>'shop_modifications',
-                                              "intermediaryField"=>"id_price"),
+            "intermediaryTable"=>'shop_modifications',
+            "intermediaryField"=>"id_price"),
         "shop_price_group"           => "id_price",
         "shop_modifications"         => "id_price",
         "shop_modifications_feature" => "id_price"
@@ -39,7 +39,7 @@ class Product extends Base
         "features" => "Характеристики",
         "images" => 'Изображения',
         "codeCurrency" => "КодВалюты",
-        "metaHeader" => "MetaHeader", "metaKeywords" => "MetaKeywords", "metaDescription" => "MetaDescription",
+        "metaHeader" => "MetaHeader", "metaKeywords" => "MetaKeywords", "pageTitle" => "Оглавление страницы", "metaDescription" => "MetaDescription",
         "flagNew" => "Новинки", "flagHit" => "Хиты", "enabled" => "Видимость", "isMarket" => "Маркет",
         "minCount" => "Мин.кол-во", "nameBrand" => "Бренд",
         "idAcc" => "Сопутствующие товары"
@@ -349,7 +349,6 @@ class Product extends Base
             $image['id'] = $item['id'];
             $image['imageFile'] = $item['picture'];
             $image['imageAlt'] = $item['pictureAlt'];
-            $image['imageTitle'] = $item['title'];
             $image['sortIndex'] = $item['sort'];
             $image['isMain'] = (bool)$item['default'];
             if ($image['imageFile']) {
@@ -364,7 +363,6 @@ class Product extends Base
             if (empty($product["imageFile"]) && $image['isMain']) {
                 $product["imageFile"] = $image['imageFile'];
                 $product["imageAlt"] = $image['imageAlt'];
-                $product["title"] = $image['imageTitle'];
             }
             $result[] = $image;
         }
@@ -920,7 +918,6 @@ class Product extends Base
                     $image["picture"] = $image["imageFile"];
                     $image["sort"] = $image["sortIndex"];
                     $image["pictureAlt"] = $image["imageAlt"];
-                    $image["title"] = $image["imageTitle"];
                     $image["default"] = $image["isMain"];
                     $u->setValuesFields($image);
                     $u->save();
@@ -939,11 +936,8 @@ class Product extends Base
             foreach ($images as $image)
                 if (empty($image["id"]) || ($image["id"] <= 0)) {
                     foreach ($idsProducts as $idProduct) {
-                        $data[] = array('id_price' => $idProduct, 
-                    	    'picture' => $image["imageFile"],
-                            'sort' => (int)$image["sortIndex"], 
-                            'picture_alt' => $image["imageAlt"],
-                            'title' => $image['imageTitle'],
+                        $data[] = array('id_price' => $idProduct, 'picture' => $image["imageFile"],
+                            'sort' => (int)$image["sortIndex"], 'picture_alt' => $image["imageAlt"],
                             'default' => (int)$image["isMain"]);
                         $newImages[] = $image["imageFile"];
                     }
