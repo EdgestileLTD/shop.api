@@ -75,6 +75,8 @@ class Import extends Product
         "keywords"          => "MetaKeywords",
         //"keywords"          => "Мета: ключевые слова",
 
+        "page_title"        => "Оглавление страницы",
+
         "description"       => "MetaDescription",
         //"description"       => "Мета: описание",
 
@@ -2146,6 +2148,7 @@ class Import extends Product
 
             'title'          => $this->get('title', FALSE, $item),
             'keywords'       => $this->get('keywords', FALSE, $item),
+            'page_title'       => $this->get('page_title', FALSE, $item),
             'description'    => $this->get('description', FALSE, $item),
             'features'       => $this->get('features', FALSE, $item),
 
