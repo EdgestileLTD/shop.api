@@ -617,8 +617,8 @@ class Import extends Product
                      * (чувствителен к порядку знаков - по убывающей приоритетности) */
                     if($delimiter == 'auto') {
                         $delimiters_first_line = array('\t' => 0,
-                            ';'  => 0,
-                            ':'  => 0);
+                                                       ';'  => 0,
+                                                       ':'  => 0);
                         $delimiters_second_line = $delimiters_first_line;
                         $delimiters_final       = array();
 
@@ -1900,12 +1900,12 @@ class Import extends Product
         $list = array();
         foreach ($l as $k => $i) {
             $key = intval($i['idPrice']).'##'.
-                intval($i['idModGroup']).'##'.
-                number_format($i['price'], 2, '.', '').'##'.
-                number_format($i['priceOpt'], 2, '.', '').'##'.
-                number_format($i['priceOptCorp'], 2, '.', '').'##'.
-                number_format($i['pricePurchase'], 2, '.', '').'##'.
-                intval($i['presenceCount']);
+                   intval($i['idModGroup']).'##'.
+                   number_format($i['price'], 2, '.', '').'##'.
+                   number_format($i['priceOpt'], 2, '.', '').'##'.
+                   number_format($i['priceOptCorp'], 2, '.', '').'##'.
+                   number_format($i['pricePurchase'], 2, '.', '').'##'.
+                   intval($i['presenceCount']);
             $unit = array('key'=>$key,'id'=>$i['id']);
             array_push($list,$unit);
             unset($l[$k]);
@@ -1920,12 +1920,12 @@ class Import extends Product
                 $mod = $priceMods[$priceKey][$key];
 
                 $keyParamGr = intval($mod['idPrice']).'##'.
-                    intval($mod['mod_param'][0]['shop_modifications_group']).'##'.
-                    number_format($mod['price'], 2, '.', '').'##'.
-                    number_format($mod['price_opt'], 2, '.', '').'##'.
-                    number_format($mod['price_opt_corp'], 2, '.', '').'##'.
-                    number_format($mod['price_purchase'], 2, '.', '').'##'.
-                    intval($mod['presence_count']);
+                              intval($mod['mod_param'][0]['shop_modifications_group']).'##'.
+                              number_format($mod['price'], 2, '.', '').'##'.
+                              number_format($mod['price_opt'], 2, '.', '').'##'.
+                              number_format($mod['price_opt_corp'], 2, '.', '').'##'.
+                              number_format($mod['price_purchase'], 2, '.', '').'##'.
+                              intval($mod['presence_count']);
 
                 foreach ($list as $k=>$i) {
                     if ($i['key']==$keyParamGr) {
@@ -2020,8 +2020,8 @@ class Import extends Product
                     $numSort = 0;
                     foreach ($imgs as $k => $i) {
                         $shopModificationsImg = array('id_modification' => $mod['idModification'],
-                            'id_img'          => $list[$priceKey.'##'.$i],
-                            'sort'            => $numSort);
+                                                      'id_img'          => $list[$priceKey.'##'.$i],
+                                                      'sort'            => $numSort);
                         if (!empty($mod['idModification']) and !empty($list[$priceKey.'##'.$i]) ) {
                             array_push($newImgs, $shopModificationsImg);
                             $numSort = $numSort + 1;
@@ -2568,10 +2568,16 @@ class Import extends Product
                         array_push($id_list,$id_price);
                         $processed = true;
 
-                    } else if ($refresh!=true) {
+                    } else {
 
                         /** иначе создаем */
                         $data_unit['id'] = '';
+
+                        /** удаление существующего товара при вставке*/
+                        if ($refresh==true) {
+                            $u = new DB('shop_price', 'sp');
+                            $u->where('id=?', $id_price)->deleteList();
+                        }
 
                         $pr_unit->setValuesFields($data_unit);
                         $id_price = $pr_unit->save();
