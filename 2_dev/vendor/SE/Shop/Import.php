@@ -2568,10 +2568,16 @@ class Import extends Product
                         array_push($id_list,$id_price);
                         $processed = true;
 
-                    } else if ($refresh!=true) {
+                    } else {
 
                         /** иначе создаем */
                         $data_unit['id'] = '';
+
+                        /** удаление существующего товара при вставке*/
+                        if ($refresh==true) {
+                            $u = new DB('shop_price', 'sp');
+                            $u->where('id=?', $id_price)->deleteList();
+                        }
 
                         $pr_unit->setValuesFields($data_unit);
                         $id_price = $pr_unit->save();
