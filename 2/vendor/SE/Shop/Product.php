@@ -349,6 +349,7 @@ class Product extends Base
             $image['id'] = $item['id'];
             $image['imageFile'] = $item['picture'];
             $image['imageAlt'] = $item['pictureAlt'];
+            $image['imageTitle'] = $item['title'];
             $image['sortIndex'] = $item['sort'];
             $image['isMain'] = (bool)$item['default'];
             if ($image['imageFile']) {
@@ -918,6 +919,7 @@ class Product extends Base
                     $image["picture"] = $image["imageFile"];
                     $image["sort"] = $image["sortIndex"];
                     $image["pictureAlt"] = $image["imageAlt"];
+                    $image["title"] = $image["imageTitle"];
                     $image["default"] = $image["isMain"];
                     $u->setValuesFields($image);
                     $u->save();
@@ -937,7 +939,7 @@ class Product extends Base
                 if (empty($image["id"]) || ($image["id"] <= 0)) {
                     foreach ($idsProducts as $idProduct) {
                         $data[] = array('id_price' => $idProduct, 'picture' => $image["imageFile"],
-                            'sort' => (int)$image["sortIndex"], 'picture_alt' => $image["imageAlt"],
+                            'sort' => (int)$image["sortIndex"], 'picture_alt' => $image["imageAlt"], 'title' => $image["imageTitle"],
                             'default' => (int)$image["isMain"]);
                         $newImages[] = $image["imageFile"];
                     }
