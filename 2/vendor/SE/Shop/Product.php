@@ -66,7 +66,7 @@ class Product extends Base
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         if ($_SESSION['coreVersion'] > 520) {
             // получаем данные из таблиц БД
-            $select = 'sp.id, sp.id_group shop_id_group, sp.code, sp.article, sp.name,
+            $select = 'sp.id, sp.id_group shop_id_group, sp.id_brand, sp.code, sp.article, sp.name,
                 sp.price, sp.price_opt, sp.price_opt_corp,
                 sp.img_alt, sp.curr, sp.presence, sp.bonus, sp.min_count,
                 sp.presence_count presence_count, sp.special_offer, sp.flag_hit, sp.enabled, sp.flag_new, sp.is_market, sp.note, sp.text,
@@ -825,9 +825,8 @@ class Product extends Base
             } else {
                 $res['mid'] = $this->input['ids'][0];
             }
-            $this->input['article'] = sprintf("%03s", $this->input["idGroup"]) . '-' . sprintf("%03s", $res["mid"]);
+            $this->input['article'] = sprintf("%03s", $this->input["idGroup"]) . '' . sprintf("%03s", $res["mid"]);
         }
-
 
         if (isset($this->input['brand'], $this->input['ids'])) {
             $brand = (int)$this->input['brand']['id'];
@@ -1594,11 +1593,11 @@ class Product extends Base
             $modifications = $this->correctModificationsBeforeSave($this->input["modifications"]);
 
             if ($this->isNew)
-                foreach ($modifications as &$mod)
-                    foreach ($mod["items"] as &$item) {
-                        $item["id"] = null;
-                        if (empty($item["article"]))
-                            $item["article"] = $this->input["article"];
+                foreach ($modifications as &$mod1)
+                    foreach ($mod1["items"] as &$item1) {
+                        $item1["id"] = null;
+                        if (empty($item1["article"]))
+                            $item1["article"] = $this->input["article"];
                     }
 
             $idsStr = implode(",", $idsProducts);
@@ -1713,9 +1712,8 @@ class Product extends Base
                     }
                 }
             }
+
             try {
-
-
                 if (!empty($dataM)) {
                     DB::insertList('shop_modifications', $dataM);
                     if (!empty($dataF)) {
@@ -2592,5 +2590,4 @@ class Product extends Base
             throw new Exception($this->error);
         }
     }
-
 }
