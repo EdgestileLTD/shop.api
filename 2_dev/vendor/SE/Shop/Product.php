@@ -327,7 +327,7 @@ class Product extends Base
     protected function getSettingsInfo()
     {
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
-        return $this->getSettingsFetch();
+        return $this->getSettingsFetch(true);
     }
 
     // Получить изображения
