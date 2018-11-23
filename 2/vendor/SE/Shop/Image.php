@@ -23,7 +23,12 @@ class Image extends Base
         if ($this->section) {
             if ($this->section == "yandexphotos")
                 $this->dir .= "/tmp";
-            else $this->dir .= "/$this->lang/{$this->section}";
+            else {
+                if ($this->section == "sections") {
+                    $this->section = 'shopsections';
+                }
+                $this->dir .= "/$this->lang/{$this->section}";
+            }
         }
         if (!file_exists($this->dir))
             mkdir($this->dir, 0700, true);
