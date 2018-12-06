@@ -48,7 +48,7 @@ function writeLog($data, $enter = TRUE)
     $date = substr($date, 2, 3);
     $date = '['.date("H:i:s").":$date]";
     $intervalMin = $dateLogMin - $_SESSION["logInterval"]['min'];
-    if ($intervalMin == 0) $query = $interval." $data";
+    if ($intervalMin == 0) $query = $date . $interval." $data";
     else                   $query = $date." $data";
 
     if($enter == TRUE) $query = "\n".$query;

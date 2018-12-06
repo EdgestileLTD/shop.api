@@ -8,7 +8,7 @@ use SE\DB as DB;
 
 class Dump extends Base
 {
-    public function info()
+    public function info($id = null)
     {
         $filePath = DOCUMENT_ROOT . "/files";
         if (!file_exists($filePath) || !is_dir($filePath))
@@ -31,7 +31,7 @@ class Dump extends Base
         }
     }
 
-    public function post()
+    public function post($tempFile = FALSE)
     {
         $this->error = "Не удаётся развернуть дамп базы данных для вашего проекта!";
         try {
@@ -43,17 +43,29 @@ class Dump extends Base
             if (!move_uploaded_file($_FILES["file"]['tmp_name'], $fileName))
                 exit;
 
-            $fp = gzopen($fileName, "r");
             $query = null;
 
+            /*$fp = gzopen($fileName, "r");
             while (!feof($fp)) {
                 $ch = fread($fp, 1);
                 $query .= $ch;
             }
-            if ($query)
-                DB::exec($query);
+            fclose($fp);*/
 
-            fclose($fp);
+            $lines = gzfile($fileName);
+            foreach ($lines as $line) {
+                $query .= $line;
+            }
+
+            if ($query) {
+
+                file_put_contents($filePath . '/dump.sql', $query);
+
+                //exec('mysql  -u' . DB::$connect['DBUserName'] . ' -p' . DB::$connect['DBPassword'] . ' ' . DB::$connect['DBName'] . ' < ' . $filePath . '/dump.sql');
+
+                DB::exec($query);
+            }
+
             $this->error = null;
         } catch (Exception $e) {
             throw new Exception($this->error);

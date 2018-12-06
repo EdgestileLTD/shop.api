@@ -370,7 +370,7 @@ class News extends Base
 
     }
 
-    public function save()
+    public function save($isTransactionMode = true)
     {
         try {
             DB::beginTransaction();

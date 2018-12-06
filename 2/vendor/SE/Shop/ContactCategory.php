@@ -72,7 +72,7 @@ class ContactCategory extends Base
     // @@@@@@  @@  @@   @@  @@  @@@@@@
     //     @@ @@@@@@@@   @@@@   @@
     // @@@@@@ @@    @@    @@    @@@@@@
-    public function save()
+    public function save($isTransactionMode = true)
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $result = parent::save();

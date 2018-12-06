@@ -215,7 +215,7 @@ class Image extends Base
     }
 
     // после
-    public function post()
+    public function post($tempFile = FALSE)
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         $countFiles = count($_FILES);

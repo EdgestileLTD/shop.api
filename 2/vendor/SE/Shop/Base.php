@@ -687,7 +687,6 @@ class Base extends CustomBase
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
         $url = "http://" . HOSTNAME . "/" . $shorturl;
-        writeLog($url);
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);

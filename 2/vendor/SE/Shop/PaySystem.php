@@ -171,7 +171,7 @@ class PaySystem extends Base
             if ($paySystem['imageFile']) {
                 if (strpos($paySystem['imageFile'], "://") === false) {
                     $paySystem['imageUrl'] = 'http://' . HOSTNAME . "/images/rus/shoppayment/" . $paySystem['imageFile'];
-                    $paySystem['imageUrlPreview'] = "http://" . HOSTNAME . "/lib/image.php?size=64&img=images/rus/shoppayment/" . $paySystem['imageFile'];
+                    $paySystem['imageUrlPreview'] = "http://" . HOSTNAME . "/lib/image.php?size=200&img=images/rus/shoppayment/" . $paySystem['imageFile'];
                 } else {
                     $paySystem['imageUrl'] = $paySystem['imageFile'];
                     $paySystem['imageUrlPreview'] = $paySystem['imageFile'];

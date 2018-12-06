@@ -56,7 +56,8 @@ class Settings extends Base
         }
 
     }
-    public function save(){
+    public function save($isTransactionMode = true)
+    {
         if(isset($this->input['settings'])){
             foreach($this->input['settings'] as $setting){
                 try{

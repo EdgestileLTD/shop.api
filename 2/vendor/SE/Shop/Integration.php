@@ -105,7 +105,7 @@ class Integration extends Base
     }
 
     // сохранить
-    public function save()
+    public function save($isTransactionMode = true)
     {
         try {
             if (isset($this->input["parameters"]))

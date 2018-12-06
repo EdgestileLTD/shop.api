@@ -66,7 +66,7 @@ class PermissionUser extends Base
         }
     }
 
-    public function save()
+    public function save($isTransactionMode = true)
     {
         $idsStr = null;
         $ids = $this->input["ids"];

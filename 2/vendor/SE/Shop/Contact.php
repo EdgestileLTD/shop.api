@@ -942,7 +942,7 @@ class Contact extends Base
     // @@  @@ @@  @@ @@        @@
     // @@  @@ @@@@@@ @@@@@@    @@
     // пост
-    public function post()
+    public function post($tempFile = false)
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if ($items = parent::post(true)) {
