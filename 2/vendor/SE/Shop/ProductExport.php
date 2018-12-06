@@ -456,6 +456,7 @@ class ProductExport extends Product
         $this->debugging('funct', __FUNCTION__ . ' ' . __LINE__, __CLASS__, '[comment]');
         $u = new DB('shop_modifications_feature', 'smf');
         $u->reConnection();  // перезагрузка запроса
+        DB::query('SET group_concat_max_len = 8096;'); // увеличить количество символов в характеристиках до N
         $u->select("smf.id_price id, GROUP_CONCAT(
                 CONCAT_WS('#', sf.name,
                     IF(
