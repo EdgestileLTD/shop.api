@@ -838,7 +838,7 @@ class Product extends Base
         }
 
         //DB::exec("ALTER TABLE `shop_price` CHANGE `code` `code` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL;");
-        if (isset($this->input["code"]) && empty($this->input["code"]))
+        if (isset($this->input["code"])/* && empty($this->input["code"])*/)
             $this->input["code"] = strtolower(se_translite_url($this->input["code"]));
 
         file_get_contents('http://' . HOSTNAME . "/lib/shoppreorder_checkCount.php?id={$this->input["id"]}");

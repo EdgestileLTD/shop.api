@@ -59,7 +59,7 @@ class Dump extends Base
 
             if ($query) {
 
-                file_put_contents($filePath . '/dump.sql', $query);
+                //file_put_contents($filePath . '/dump.sql', $query);
 
                 //exec('mysql  -u' . DB::$connect['DBUserName'] . ' -p' . DB::$connect['DBPassword'] . ' ' . DB::$connect['DBName'] . ' < ' . $filePath . '/dump.sql');
 
