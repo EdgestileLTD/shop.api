@@ -13,23 +13,39 @@ class Filter extends Base
     {
         try {
             $u = new DB('shop_feature', 'sf');
-            $u->select('id, name, sort');
+            $u->select('sf.id, sf.name');
             $u->orderBy('sf.sort, sf.name');
 
-            $item['code'] = 'price';
-            $item['name'] = 'Цена';
-            $items[] = $item;
-            $item['code'] = 'brand';
-            $item['name'] = 'Бренды';
-            $items[] = $item;
-            $item['code'] = 'flag_hit';
-            $item['name'] = 'Хиты';
-            $items[] = $item;
-            $item['code'] = 'flag_new';
-            $item['name'] = 'Новинки';
-            $items[] = $item;
+            $default[] = array(
+                'code' => 'price',
+                'name' => 'Цена',
+            );
+            $default[] = array(
+                'code' => 'brand',
+                'name' => 'Бренды',
+            );
+            $default[] = array(
+                'code' => 'flag_hit',
+                'name' => 'Хиты',
+            );
+            $default[] = array(
+                'code' => 'flag_new',
+                'name' => 'Новинки',
+            );
 
-            $objects = $u->getList();
+            $items = array();
+
+            if ($this->search) {
+                foreach ($default as $key => $val) {
+                    if (mb_stripos($val['name'], $this->search) === false) {
+                        unset($default[$key]);
+                    }
+                }
+                $u->where('sf.name LIKE "%?%"', $this->search);
+            }
+
+            $objects = array_merge($default, $u->getList());
+
             foreach ($objects as $item) {
                 $filter = null;
                 $filter['id'] = $item['id'];
@@ -37,7 +53,7 @@ class Filter extends Base
                 $items[] = $filter;
             }
 
-            $this->result['count'] = sizeof($objects) + 4;
+            $this->result['count'] = sizeof($items);
             $this->result['items'] = $items;
         } catch (Exception $e) {
             $this->error = "Не удаётся получить список фильтров!";
