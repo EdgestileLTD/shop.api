@@ -2,7 +2,7 @@
 
 namespace SE\Shop;
 
-use SE\DB;
+use SE\DB as DB;
 
 // изображение
 class Image extends Base
@@ -10,6 +10,7 @@ class Image extends Base
     private $dir;
     private $section;
     private $lang;
+    private $imageDomain = '//' . HOSTNAME;
 
     // сборка
     function __construct($input = null)
@@ -34,9 +35,22 @@ class Image extends Base
             mkdir($this->dir, 0700, true);
     }
 
+    private function setImageDomain()
+    {
+        $u = new DB('main', 'm');
+        $u->select('m.domain');
+        $result = $u->fetchOne();
+
+        $this->imageDomain = ($result['domain'] ? $result['domain'] : '//' . HOSTNAME);
+
+        $this->imageDomain = rtrim($this->imageDomain, '/');
+    }
+
     // получить
     public function fetch()
     {
+        $this->setImageDomain();
+
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
         if (function_exists("mb_strtolower"))
             $searchStr = mb_strtolower(trim($this->search));
@@ -65,11 +79,11 @@ class Image extends Base
                     list($width, $height, $type, $attr) = getimagesize($this->dir . "/" . $file);
                     $item["sizeDisplay"] = $width . " x " . $height;
                     $item["imageUrl"] = !empty($this->section) ?
-                        'http://' . HOSTNAME . "/images/rus/{$this->section}/" . $file :
-                        'http://' . HOSTNAME . "/images/" . $file;
+                        $this->imageDomain . "/images/rus/{$this->section}/" . $file :
+                        $this->imageDomain . "/images/" . $file;
                     $item["imageUrlPreview"] = !empty($this->section) ?
-                        "http://" . HOSTNAME . "/lib/image.php?size=64&img=images/rus/{$this->section}/" . $file :
-                        "http://" . HOSTNAME . "/lib/image.php?size=64&img=images/" . $file;
+                        $this->imageDomain . "/lib/image.php?size=64&img=images/rus/{$this->section}/" . $file :
+                        $this->imageDomain . "/lib/image.php?size=64&img=images/" . $file;
                     $listFiles[] = $item;
                 }
             }
@@ -223,6 +237,8 @@ class Image extends Base
         $files = [];
         $items = [];
 
+        $this->setImageDomain();
+
         for ($i = 0; $i < $countFiles; $i++) {
             $file = $_FILES["file$i"]['name'];
             $uploadFile = $this->dir . '/' . $file;
@@ -257,11 +273,11 @@ class Image extends Base
                     list($width, $height, $type, $attr) = getimagesize($uploadFile);
                     $item["sizeDisplay"] = $width . " x " . $height;
                     $item["imageUrl"] = !empty($this->section) ?
-                        'http://' . HOSTNAME . "/images/rus/{$this->section}/" . urlencode($file) :
-                        'http://' . HOSTNAME . "/images/" . urlencode($file);
+                        $this->imageDomain . "/images/rus/{$this->section}/" . urlencode($file) :
+                        $this->imageDomain . "/images/" . urlencode($file);
                     $item["imageUrlPreview"] = !empty($this->section) ?
-                        "http://" . HOSTNAME . "/lib/image.php?size=64&img=images/rus/{$this->section}/" . urlencode($file) :
-                        "http://" . HOSTNAME . "/lib/image.php?size=64&img=images/" . urlencode($file);
+                        $this->imageDomain . "/lib/image.php?size=64&img=images/rus/{$this->section}/" . urlencode($file) :
+                        $this->imageDomain . "/lib/image.php?size=64&img=images/" . urlencode($file);
                     $items[] = $item;
                 }
                 $ups++;
