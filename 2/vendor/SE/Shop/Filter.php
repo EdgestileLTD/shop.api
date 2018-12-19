@@ -50,6 +50,7 @@ class Filter extends Base
                 $filter = null;
                 $filter['id'] = $item['id'];
                 $filter['name'] = $item['name'];
+                $filter['code'] = !empty($item['code']) ? $item['code'] : null;
                 $items[] = $filter;
             }
 
