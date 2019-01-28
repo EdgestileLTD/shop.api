@@ -732,9 +732,12 @@ class Base extends CustomBase
 
         $tagImages = 'src="' . $url . '/images';
 
-        $input["text"] = str_replace($tagImages, 'src="/images',  $input["text"]);
-        $input["note"] = str_replace($tagImages, 'src="/images',  $input["note"]);
-        $input["description"] = str_replace($tagImages, 'src="/images',  $input["description"]);
+        if (!empty($input["text"]))
+            $input["text"] = str_replace($tagImages, 'src="/images',  $input["text"]);
+        if (!empty($input["note"]))
+            $input["note"] = str_replace($tagImages, 'src="/images',  $input["note"]);
+        if (!empty($input["description"]))
+            $input["description"] = str_replace($tagImages, 'src="/images',  $input["description"]);
 
         return $input;
     }
