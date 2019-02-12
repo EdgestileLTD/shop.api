@@ -131,20 +131,10 @@ class Category extends Base
         // получаем список похожих категорий
         $u = new DB('shop_group', 'sg');
         $u->select('sg.name, sg.position, sg.id');
-        $u->innerJoin("(
-            SELECT id_related AS id
-            FROM shop_group_related
-            WHERE id_group = {$result['id']}
-            AND type = 1
-            UNION
-            SELECT id_group AS id
-            FROM shop_group_related
-            WHERE id_related = {$result['id']}
-            AND type = 1
-            AND is_cross
-        ) sgr", 'sg.id = sgr.id');
+        $u->innerJoin("shop_group_related sgr", "sgr.id_related = sg.id");
         $u->orderBy('sg.upid');
         $u->addOrderBy("sg.position");
+        $u->where("sgr.id_group = ?", $this->input["id"]);
         $result['similar'] = $u->getList();
         unset($u);
 
@@ -396,42 +386,6 @@ class Category extends Base
     {
         $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
 
-        // получаем список похожих категорий
-        if (!empty($this->input["id"])) {
-            $u = new DB('shop_group', 'sg');
-            $u->select('sg.name, sg.position, sg.id');
-            $u->innerJoin("(
-                SELECT id_related AS id
-                FROM shop_group_related
-                WHERE id_group = {$this->input["id"]}
-                AND type = 1
-                UNION
-                SELECT id_group AS id
-                FROM shop_group_related
-                WHERE id_related = {$this->input["id"]}
-                AND type = 1
-                AND is_cross
-            ) sgr", 'sg.id = sgr.id');
-            $u->orderBy('sg.upid');
-            $similarOld = $u->getList();
-            unset($u);
-            // выявляем удаленные связи через сверку
-            foreach ($similarOld as $keyOld => $valueOld)
-                $similarOld[$keyOld]['delete'] = true;
-            foreach ($similarOld as $keyOld => $valueOld)
-                foreach ($this->input["similar"] as $keyN => $valueN)
-                    if ($valueOld['id'] == $valueN['id'])
-                        $similarOld[$keyOld]['delete'] = false;
-            // по сформированносу временному масиву $similarOld удаляем из БД похожие к.
-            foreach ($similarOld as $keyOld => $valueOld) {
-                if ($valueOld['delete'] == true) {
-                    DB::query("DELETE FROM shop_group_related WHERE id_group = {$valueOld['id']} AND id_related = {$this->input["id"]}");
-                    DB::query("DELETE FROM shop_group_related WHERE id_group = {$this->input["id"]} AND id_related = {$valueOld['id']}");
-                }
-            }
-            unset($similarOld);
-        }
-
         if (isset($this->input["codeGr"])) {
             $this->input["codeGr"] = strtolower(se_translite_url($this->input["codeGr"]));
         }
@@ -565,6 +519,9 @@ class Category extends Base
             $u->deleteList();
 
             foreach ($filters as $filter) {
+                if (!(int)$filter["id"]) {
+                    $filter["id"] = null;
+                }
                 foreach ($idsGroups as $idGroup)
                     if ($filter["id"] || !empty($filter["code"]))
                         $data[] = array('id_group' => $idGroup, 'id_feature' => $filter["id"],
@@ -704,25 +661,6 @@ class Category extends Base
         }
     }
 
-    // сохранить id похожей категории
-    public function saveIdSimilar($id, $idRelated)
-    {
-        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
-        try {
-            DB::query("DELETE FROM shop_group_related WHERE id_group = {$id} AND id_related = {$idRelated}");
-            DB::query("DELETE FROM shop_group_related WHERE id_group = {$idRelated} AND id_related = {$id}");
-            $sqlGroupRelated = "INSERT INTO shop_group_related (id_group, id_related)
-                                SELECT id_group, :id_related FROM shop_group_related
-                                UNION
-                                SELECT :id_group, :id_related";
-            $sthGroupTree = DB::prepare($sqlGroupRelated);
-            $sthGroupTree->execute(array('id_group' => $id, 'id_related' => $idRelated));
-            unset($sqlGroupRelated);
-        } catch (Exception $e) {
-            throw new Exception("Не удаётся сохранить похожие категории!");
-        }
-    }
-
     // правильные значения перед сохранением
     protected function correctValuesBeforeSave()
     {
@@ -748,14 +686,11 @@ class Category extends Base
         if (!$this->input["ids"])
             return false;
 
+        $this->saveSimilar();
         $this->saveDiscounts();
         $this->saveImages();
         $this->saveLinksGroups();
         $this->saveParametersFilters();
-        // если присутствуют похожие - запускаем метод записи
-        if(!empty($this->input["similar"]))
-            foreach ($this->input["similar"] as $num => $similar)
-                $this->saveIdSimilar($this->input["id"], $similar['id']);
         $this->saveIdParent($this->input["id"], $this->input["upid"]);
         $this->saveCustomFields();
         return true;
@@ -769,6 +704,58 @@ class Category extends Base
             DB::query('DELETE FROM shop_group WHERE NOT id IN (SELECT t.id_parent FROM shop_group_tree t)');
 
         return $result;
+    }
+
+    private function saveSimilar()
+    {
+        $this->debugging('funct', __FUNCTION__.' '.__LINE__, __CLASS__, '[comment]');
+
+        if (!isset($this->input["similar"]))
+            return true;
+
+
+        try {
+            $idsExists = [];
+            $idsStr = implode(",", $this->input["ids"]);
+            $similar = $this->input["similar"];
+            foreach ($similar as $similarItem)
+                $idsExists[] = $similarItem["id"];
+            $idsExistsStr = implode(",", $idsExists);
+            $u = new DB("shop_group_related", "sgr");
+            if ($idsExistsStr) {
+                $u->where("(NOT id_related IN ({$idsExistsStr})) AND id_group IN (?)", $idsStr);
+                $u->deleteList();
+            } else {
+                $u->where('id_group IN (?)', $idsStr);
+                $u->deleteList();
+            }
+            $data = [];
+            foreach ($this->input["ids"] as $idGroup) {
+                $u = new DB("shop_group_related", "sgr");
+                $u->select("sgr.id_related");
+                $u->where("sgr.id_group = ?", $idGroup);
+                $result = $u->getList();
+                $idsExists = [];
+                foreach ($result as $related)
+                    $idsExists[] = $related["idRelated"];
+                foreach ($similar as $similarItem) {
+                    if (!in_array($similarItem["id"], $idsExists)) {
+                        if ($idGroup != $similarItem["id"])
+                            $data[] = ["id_group" => $idGroup, "id_related" => $similarItem["id"], "is_cross" => 0, "type" => 1];
+                    }
+
+                }
+            }
+
+            if (!empty($data)) {
+                DB::insertList('shop_group_related', $data, true);
+            }
+
+
+        } catch (Exception $e) {
+            $this->error = "Не удаётся сохранить похожие категории!";
+            throw new Exception($this->error);
+        }
     }
 
 }

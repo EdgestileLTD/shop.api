@@ -19,18 +19,22 @@ class Filter extends Base
             $default[] = array(
                 'code' => 'price',
                 'name' => 'Цена',
+                'id' => 'price',
             );
             $default[] = array(
                 'code' => 'brand',
                 'name' => 'Бренды',
+                'id' => 'brand',
             );
             $default[] = array(
                 'code' => 'flag_hit',
                 'name' => 'Хиты',
+                'id' => 'flag_hit',
             );
             $default[] = array(
                 'code' => 'flag_new',
                 'name' => 'Новинки',
+                'id' => 'flag_new',
             );
 
             $items = array();
@@ -59,7 +63,5 @@ class Filter extends Base
         } catch (Exception $e) {
             $this->error = "Не удаётся получить список фильтров!";
         }
-
-
     }
 }

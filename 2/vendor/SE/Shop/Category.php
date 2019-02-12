@@ -519,6 +519,9 @@ class Category extends Base
             $u->deleteList();
 
             foreach ($filters as $filter) {
+                if (!(int)$filter["id"]) {
+                    $filter["id"] = null;
+                }
                 foreach ($idsGroups as $idGroup)
                     if ($filter["id"] || !empty($filter["code"]))
                         $data[] = array('id_group' => $idGroup, 'id_feature' => $filter["id"],
