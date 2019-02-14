@@ -11,6 +11,22 @@ class Discount extends Base
     protected $sortBy = "sort";
     protected $sortOrder = "asc";
 
+    public function info()
+    {
+        parent::info();
+        if ($this->result['dateFrom'])
+            $this->result['dateFrom'] = date('d.m.Y H:i:s', strtotime($this->result['dateFrom']));
+        if ($this->result['dateTo'])
+            $this->result['dateTo'] = date('d.m.Y H:i:s', strtotime($this->result['dateTo']));
+    }
+
+    public function save()
+    {
+        $this->input['dateFrom'] = (($this->input['dateFrom'])) ? date('Y-m-d H:i:s', strtotime($this->input['dateFrom'])): '';
+        $this->input['dateTo'] = (($this->input['dateTo'])) ? date('Y-m-d H:i:s', strtotime($this->input['dateTo'])): '';
+        parent::save();
+    }
+
     // получить натройки
     protected function getSettingsFetch()
     {

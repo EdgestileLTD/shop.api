@@ -828,6 +828,15 @@ class Product extends Base
             $this->input['article'] = sprintf("%03s", $this->input["idGroup"]) . '' . sprintf("%03s", $res["mid"]);
         }
 
+        if (!empty($this->input['ids'])) {
+            if (isset($this->input['note']) && empty($this->input['note'])) {
+                unset($this->input['note']);
+            }
+            if (isset($this->input['text']) && empty($this->input['text'])) {
+                unset($this->input['text']);
+            }
+        }
+
         if (isset($this->input['brand'], $this->input['ids'])) {
             $brand = (int)$this->input['brand']['id'];
             $idsStr = implode(",", $this->input['ids']);
