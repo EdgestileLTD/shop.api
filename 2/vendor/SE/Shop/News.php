@@ -229,8 +229,8 @@ class News extends Base
             //$news['description'] = $item['short_txt'];
             //$news['fullDescription'] = $item['text'];
             if (!empty($item['newsDate'])){
-                $news['newsDate'] = date('Y-m-d', $item['newsDate']);
-                $news['newsDateDisplay'] = date('d.m.Y', $item['newsDate']);
+                $news['newsDate'] = date('Y-m-d H:i:s', $item['newsDate']);
+                $news['newsDateDisplay'] = date('d.m.Y H:i:s', $item['newsDate']);
             }
             if (!empty($item['pubDate'])) {
                 $news['publicationDate'] = date('Y-m-d', $item['pubDate']);
