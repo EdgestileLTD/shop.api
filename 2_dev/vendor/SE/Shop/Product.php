@@ -663,7 +663,7 @@ class Product extends Base
                 $modification = null;
                 $modification['id'] = $item['id'];
                 $modification['article'] = $item['code'];
-                if ($item['count'] != null)
+                if ($item['count'] !== null)
                     $modification['count'] = (real)$item['count'];
                 else $modification['count'] = -1;
                 if (!$modification['article'])
