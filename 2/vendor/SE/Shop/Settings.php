@@ -66,7 +66,7 @@ class Settings extends Base
                     if($setting['type'] == 'bool'){
                         $value = (int) $setting['value'];
                     } else {
-                        $value = htmlspecialchars(trim($setting['value']));
+                        $value = trim($setting['value']);
                     }
                     @$enabled = $setting['enabled'] ? (int) $setting['enabled'] : 0;
                     $id = $setting['id'];
