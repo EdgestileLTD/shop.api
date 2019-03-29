@@ -65,6 +65,7 @@ function writeLog($data, $enter = TRUE)
 // библиотеки
 if (IS_EXT) {
     require_once 'api/update.php';
+    require_once 'lib/lib_utf8.php';
     require_once 'lib/lib_function.php';
     require_once 'lib/lib_se_function.php';
 } else {
@@ -83,7 +84,7 @@ if (!empty($origin)) {
     $url = parse_url($origin);
     if ($url) {
         if ($url['host'] == 'shop.siteedit24.com')
-            header("Access-Control-Allow-Origin: http://shop.siteedit24.com");
+            header("Access-Control-Allow-Origin: " . $origin);
         if ($url['host'] == 'localhost' && $url['port'] == 1337)
             header("Access-Control-Allow-Origin: http://localhost:1337");
         header("Access-Control-Allow-Credentials: true");
