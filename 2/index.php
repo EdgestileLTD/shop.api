@@ -1,10 +1,32 @@
 <?php
-
 $allowedMethods = array('FETCH', 'POST', 'DELETE', 'SAVE', 'INFO', 'GET', 'ADDPRICE', 'TRANSLIT', 'UPLOAD',
     'CHECKNAMES', 'SORT', 'EXPORT', 'IMPORT', 'LOGOUT', 'ITEMS', 'STORE', 'CONVERT');
 $allowedMethods = implode(",", $allowedMethods);
 
-$headers = getallheaders();
+function mygetallheaders() {
+    $arh = array();
+    $rx_http = '/\AHTTP_/';
+    foreach($_SERVER as $key => $val) {
+        if( preg_match($rx_http, $key) ) {
+            $arh_key = preg_replace($rx_http, '', $key);
+            $rx_matches = array();
+            // do some nasty string manipulations to restore the original letter case
+            // this should work in most cases
+            $rx_matches = explode('_', $arh_key);
+            if( count($rx_matches) > 0 and strlen($arh_key) > 2 ) {
+                foreach($rx_matches as $ak_key => $ak_val) {
+                    $rx_matches[$ak_key] = ucfirst(strtolower($ak_val));
+                }
+                $arh_key = implode('-', $rx_matches);
+            }
+            $arh[$arh_key] = $val;
+        }
+    }
+    return( $arh );
+}
+
+$headers = mygetallheaders();
+
 if (!empty($headers['Secookie']))
     session_id($headers['Secookie']);
 session_start();
@@ -136,8 +158,10 @@ define("HOSTNAME", $hostname);
 define("HOST_FOLDER", empty($_SESSION["hostFolder"]) ? HOSTNAME : $_SESSION["hostFolder"]);
 define('DOCUMENT_ROOT', IS_EXT ? $_SERVER['DOCUMENT_ROOT'] : '/home/e/edgestile/' . HOST_FOLDER . '/public_html');
 $dbConfig = DOCUMENT_ROOT . '/system/config_db.php';
-if (file_exists($dbConfig))
+
+if (file_exists($dbConfig)){
     require_once $dbConfig;
+}
 else {
     header("HTTP/1.1 401 Unauthorized");
     echo 'Сессия истекла! Необходима авторизация!';
@@ -168,7 +192,6 @@ if (!method_exists($apiClass, $apiMethod)) {
     echo "Метод'{$apiMethod}' не поддерживается!";
     exit;
 }
-
 
 $apiObject = new $apiClass($phpInput);
 if ($apiObject->initConnection($CONFIG))
