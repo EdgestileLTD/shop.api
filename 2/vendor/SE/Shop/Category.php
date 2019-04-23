@@ -389,6 +389,9 @@ class Category extends Base
         if (isset($this->input["codeGr"])) {
             $this->input["codeGr"] = strtolower(se_translite_url($this->input["codeGr"]));
         }
+		if (!empty($this->input["ids"]) && count($this->input["ids"]) > 1 && empty($this->input["commentary"])) {
+		    unset($this->input["commentary"]);
+        }
         parent::save();
     }
 

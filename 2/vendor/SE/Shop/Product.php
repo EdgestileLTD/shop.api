@@ -600,6 +600,7 @@ class Product extends Base
         $u->where('sm.id_price = ?', $id);
         $u->groupBy('smg.id');
         $u->orderBy('smg.sort');
+        //$u->orderBy('sm.sort');
         $objects = $u->getList();
         $isDefModification = false;
         if (empty($objects)) {
@@ -655,7 +656,8 @@ class Product extends Base
         $u->leftJoin('shop_modifications_img smi', 'sm.id = smi.id_modification');
         $u->leftJoin('shop_img si', 'smi.id_img = si.id');
         $u->where('sm.id_price = ?', $id);
-        $u->groupBy();
+        $u->orderBy('sm.sort');
+        $u->groupBy('sm.id');
         $objects = $u->getList();
         $existFeatures = [];
         foreach ($objects as $item) {
@@ -828,7 +830,7 @@ class Product extends Base
             $this->input['article'] = sprintf("%03s", $this->input["idGroup"]) . '' . sprintf("%03s", $res["mid"]);
         }
         
-        if (!empty($this->input['ids'])) {
+        if (!empty($this->input['ids']) && count($this->input["ids"]) > 1) {
             if (isset($this->input['note']) && empty($this->input['note'])) {
                 unset($this->input['note']);
             }

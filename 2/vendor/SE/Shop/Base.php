@@ -43,10 +43,11 @@ class Base extends CustomBase
         $this->sortOrder = $input["sortOrder"] ? $input["sortOrder"] : $this->sortOrder;
         $this->sortBy = $input["sortBy"] ? $input["sortBy"] : $this->sortBy;
         $this->search = $input["searchText"] && $this->allowedSearch ? $input["searchText"] : null;
-        $this->filters = empty($this->input["filters"]) || !is_array($this->input["filters"]) ?
-            [] : $this->input["filters"];
-        if (!empty($this->input["id"]) && empty($this->input["ids"]))
+        $this->filters = empty($this->input["filters"]) || !is_array($this->input["filters"]) ? [] : $this->input["filters"];
+
+        if (!empty($this->input["id"]) && empty($this->input["ids"])) {
             $this->input["ids"] = array($this->input["id"]);
+        }
         $this->isNew = empty($this->input["id"]) && empty($this->input["ids"]);
         if (empty($this->tableAlias) && !empty($this->tableName)) {
             $worlds = explode("_", $this->tableName);
