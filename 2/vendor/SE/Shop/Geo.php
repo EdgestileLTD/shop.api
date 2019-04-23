@@ -28,5 +28,6 @@ class Geo extends Base
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         $this->result = json_decode(curl_exec($curl), true);
 
+        return $this->result;
     }
 }

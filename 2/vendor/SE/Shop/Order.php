@@ -262,6 +262,14 @@ class Order extends Base // порядок
         $result['paid'] = $this->getPaidSum();
         $result['surcharge'] = $this->result["amount"] - $result['paid'];
 
+        if ($this->result['idCity']) {
+            $apiObject = new Geo(array('idCity' => $this->result['idCity']));
+            $geo = $apiObject->fetch();
+            if (!empty($geo['items'])) {
+                $result['cityName'] = $geo['items'][0]['name'];
+            }
+        }
+
         $u = new DB('main', 'm'); // 1
         $u->select('mt.name, mt.title, mt.name_front');
         $u->innerJoin('money_title mt', 'm.basecurr = mt.name');
